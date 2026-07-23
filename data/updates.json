@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1784843544-3d838ce",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Remove in-game Diamond Refinement panels, add shared activity dots, D/min, and fix favicon override. (by Kasparex)",
+      "date": "2026-07-23T23:52:03+02:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1784841342-26cc944",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Polish Diamond Veins accents, mining status dots, and worker slot badges. (by Kasparex)",
