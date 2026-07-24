@@ -179,7 +179,7 @@ export function TokenPageHeader({ token, onNavigateTab }: TokenPageHeaderProps) 
           </p>
 
           <div className="mb-3 flex items-center gap-3">
-            <TokenLogo token={token} size={44} showName={false} showSymbol={false} shape="rounded" className="flex-shrink-0" />
+            <TokenLogo token={token} size={40} showName={false} showSymbol={false} shape="rounded" className="flex-shrink-0" />
             <span className="hub-tilt-bar h-7 w-1.5 shrink-0 rounded-full" aria-hidden="true" />
             <h1 className="min-w-0 text-3xl font-black leading-tight tracking-tight text-zinc-900 dark:text-white sm:text-4xl">
               {token.name}
