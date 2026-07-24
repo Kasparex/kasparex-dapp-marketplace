@@ -145,7 +145,6 @@ export function CreateAdWizard({
   const formatPrice = (kas: number) => formatHubPaymentFromKas(kas, paymentCurrency, pricingSnapshot);
   const krexCheckoutHint =
     'KREX checkout uses two wallet confirmations: your KREX campaign fee, then a 1 KAS binding payment that carries your metadata on-chain. If storage mass errors appear, compound UTXOs in KasWare (Wallet > UTXO > Compound) and retry.';
-  const tierConfig = KREX_TIERS[krexTier];
   const hubPointsEarn = computeEarnedHubPoints(HUB_EARN_POINTS.hubAdPlacement, krexTier);
   const showBuyKrex = krexDiscountPct <= 0 && krexBalance < KREX_TIERS.Tier1.minKREX;
   const tierPerksTooltip = useMemo(
@@ -953,7 +952,7 @@ export function CreateAdWizard({
                   <p>
                     Slot after tier:{' '}
                     <strong className="text-zinc-900 dark:text-zinc-100">{formatPrice(discountedSlotKas)}</strong>
-                    {` (${krexDiscountPct}% off · ${tierConfig?.label ?? krexTier})`}
+                    {` (${krexDiscountPct}% off · ${KREX_TIERS[krexTier]?.label ?? krexTier})`}
                   </p>
                 ) : null}
                 {featuredHighlight && (
@@ -999,10 +998,6 @@ export function CreateAdWizard({
                     </span>
                   </div>
                 ) : null}
-
-                <p className="text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
-                  Current tier: {tierConfig.label} ({tierConfig.description})
-                </p>
 
                 {showBuyKrex ? (
                   <button

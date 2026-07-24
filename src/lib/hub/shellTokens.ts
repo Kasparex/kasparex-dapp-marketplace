@@ -35,9 +35,6 @@ export const KX_CALCULATION_ASIDE =
 export const KX_FORM_NESTED_GROUP =
   'space-y-4 rounded-xl border border-zinc-200 bg-zinc-50/90 p-5 dark:border-zinc-800 dark:bg-zinc-950/55';
 
-/** Sticky form right rail: Benefits + calculation + Ad Slot (clears Hub header). */
-export const KX_FORM_STICKY_RAIL = 'xl:sticky xl:top-20 self-start';
-
 export const KX_PANEL_PADDING = 'p-4 sm:p-5';
 
 export const KX_SURFACE_INSET =
@@ -77,7 +74,7 @@ export const KX_INFO_DASHED =
 
 export const KX_ASIDE_PANEL = `${KX_PANEL} ${KX_PANEL_PADDING}`;
 
-export const KX_FORM_GRID = 'grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_340px] gap-6 xl:gap-8';
+export const KX_FORM_GRID = 'grid grid-cols-1 items-stretch xl:grid-cols-[minmax(0,1fr)_340px] gap-6 xl:gap-8';
 
 export const KX_STICKY_RAIL = 'xl:sticky xl:top-6 space-y-4 self-start';
 

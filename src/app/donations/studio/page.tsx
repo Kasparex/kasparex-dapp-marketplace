@@ -1177,7 +1177,7 @@ function DonationsStudioPageContent() {
                     )}
 
                     <div
-                      className={`grid grid-cols-1 gap-6 items-start ${
+                      className={`grid grid-cols-1 gap-6 items-stretch ${
                         useStudioRightPanel ? 'xl:grid-cols-[minmax(0,1fr)_340px]' : ''
                       }`}
                     >

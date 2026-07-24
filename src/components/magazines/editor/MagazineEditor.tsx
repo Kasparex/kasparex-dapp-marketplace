@@ -45,7 +45,6 @@ import { getHubFlowPreset } from '@/lib/hub/hubFlowProgress';
 import {
   KX_FORM_GRID,
   KX_FORM_PANEL,
-  KX_FORM_STICKY_RAIL,
   KX_CALCULATION_ASIDE,
   KX_PREMIUM_MODULE_CARD,
 } from '@/lib/hub/shellTokens';
@@ -357,7 +356,7 @@ export function MagazineEditor() {
         e.preventDefault();
         void handlePublish();
       }}
-      className={`${KX_FORM_GRID} items-start`}
+      className={`${KX_FORM_GRID}`}
     >
       <div className="flex min-w-0 flex-col gap-6">
         <div className={`${KX_FORM_PANEL} space-y-6`}>
@@ -612,8 +611,7 @@ export function MagazineEditor() {
         </div>
       </div>
 
-      <div className={KX_FORM_STICKY_RAIL}>
-        <HubAsideRail adSlotId="HALO_MAGAZINES_RIGHT" adId="ad-slot-magazines-editor-form-rail">
+      <HubAsideRail adSlotId="HALO_MAGAZINES_RIGHT" adId="ad-slot-magazines-editor-form-rail">
         <HubBenefitsPanel variant="panel" scope="magazines" />
         <aside className={KX_CALCULATION_ASIDE}>
           <HubListingCalculationBreakdown
@@ -636,7 +634,6 @@ export function MagazineEditor() {
           <HubFlowProgress steps={getHubFlowPreset('hubPublish')} busy={busyPublish} />
         </aside>
         </HubAsideRail>
-      </div>
     </form>
   );
 }

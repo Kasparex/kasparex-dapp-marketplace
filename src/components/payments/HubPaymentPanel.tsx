@@ -13,7 +13,7 @@ import {
   type HubFlowStep,
 } from '@/lib/hub/hubFlowProgress';
 import type { HubPaymentCurrencyOption, HubPaymentQuoteLine } from '@/lib/payments/hubPaymentTypes';
-import { KREX_TIERS, type KREXTier } from '@/lib/rewards/types';
+import type { KREXTier } from '@/lib/rewards/types';
 
 export function HubPaymentPanel({
   title = 'Calculation breakdown',
@@ -37,7 +37,6 @@ export function HubPaymentPanel({
   hubPoints,
   hubPointsDetail,
   hubPointsBaseSpendKas,
-  showCurrentTierFootnote = false,
   flowSteps,
   flowPreset = 'hubPublish',
   flowBusy = false,
@@ -71,7 +70,6 @@ export function HubPaymentPanel({
   hubPoints?: number;
   hubPointsDetail?: string;
   hubPointsBaseSpendKas?: number;
-  showCurrentTierFootnote?: boolean;
   /** Custom flow steps. Defaults to flowPreset when omitted. */
   flowSteps?: HubFlowStep[];
   flowPreset?: HubFlowPresetKey;
@@ -168,12 +166,6 @@ export function HubPaymentPanel({
             ) : null}
           </span>
         </div>
-      ) : null}
-
-      {showCurrentTierFootnote && tier != null ? (
-        <p className="text-xs text-zinc-500 dark:text-zinc-400">
-          Current tier: {KREX_TIERS[tier].label} ({KREX_TIERS[tier].description})
-        </p>
       ) : null}
 
       {footer ? <div className="space-y-3">{footer}</div> : null}

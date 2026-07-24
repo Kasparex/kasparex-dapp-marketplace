@@ -18,7 +18,6 @@ import { HubDashboardPageHeader } from '@/components/hub/HubDashboardPageHeader'
 import {
   KX_FORM_GRID,
   KX_FORM_PANEL,
-  KX_FORM_STICKY_RAIL,
   KX_CALCULATION_ASIDE,
   KX_PREMIUM_MODULE_CARD,
   KX_DASHBOARD_TAB_SHELL,
@@ -603,7 +602,7 @@ export default function GamesDashboardPage() {
           ) : null}
 
           {tab === 'create' ? (
-            <div id="games-dashboard-create" className={`${KX_FORM_GRID} scroll-mt-24 items-start`}>
+            <div id="games-dashboard-create" className={`${KX_FORM_GRID} scroll-mt-24`}>
               <div className="flex min-w-0 flex-col gap-6">
                 <div className={`${KX_FORM_PANEL} space-y-6`}>
                   <div>
@@ -889,8 +888,7 @@ export default function GamesDashboardPage() {
                 </div>
               </div>
 
-              <div className={KX_FORM_STICKY_RAIL}>
-                <HubAsideRail adSlotId="HALO_GAMES_RIGHT" adId="ad-slot-games-listing-form-rail">
+              <HubAsideRail adSlotId="HALO_GAMES_RIGHT" adId="ad-slot-games-listing-form-rail">
                 <HubBenefitsPanel variant="panel" scope="gamesListing" />
                 <aside className={KX_CALCULATION_ASIDE}>
                   <HubListingCalculationBreakdown
@@ -920,7 +918,6 @@ export default function GamesDashboardPage() {
                   <HubFlowProgress steps={getHubFlowPreset('hubPublish')} busy={isProcessing || isUploading} />
                 </aside>
                 </HubAsideRail>
-              </div>
             </div>
           ) : null}
         </section>

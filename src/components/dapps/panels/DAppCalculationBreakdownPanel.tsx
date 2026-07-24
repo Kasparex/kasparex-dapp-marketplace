@@ -103,7 +103,6 @@ export const DAppCalculationBreakdownPanel = memo(function DAppCalculationBreakd
     return null;
   }
 
-  const tierConfig = KREX_TIERS[tier];
   const showBuyKrex = !quote?.hasKrexDiscount && krexBalance < KREX_TIERS.Tier1.minKREX;
   const discountCurrency = quote?.discountCurrency ?? quote?.currency ?? currency;
   const baseSpendKas = paymentAmount ?? quote?.subtotalKas ?? quote?.totalKas;
@@ -175,10 +174,6 @@ export const DAppCalculationBreakdownPanel = memo(function DAppCalculationBreakd
               </span>
             </div>
           ) : null}
-
-          <p className="text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
-            Current tier: {tierConfig.label} ({tierConfig.description})
-          </p>
         </>
       ) : (
         <p className="text-sm text-zinc-600 dark:text-zinc-400">

@@ -86,7 +86,14 @@ export function AdPlacementGrid({ slotId, variant, maxCellsShown, relaxHaloFrame
     const ad = byIndex.get(index);
     return ad ? getAdSlideIntervalMs(ad) : CAROUSEL_INTERVAL_MS;
   };
-  const { slide, setSlide, pauseOnHover } = useCarouselAutoplay(limit, intervalForSlide, false, false);
+  // Sticky panel rails keep the cursor over the ad while the page scrolls; pause-on-hover
+  // would freeze autoplay. Halo headers / footer still pause on intentional hover.
+  const { slide, setSlide, pauseOnHover } = useCarouselAutoplay(
+    limit,
+    intervalForSlide,
+    Boolean(relaxHaloFrame),
+    false,
+  );
 
   const rounded = variant === 'halo' ? 'rounded-2xl' : 'rounded-xl';
 

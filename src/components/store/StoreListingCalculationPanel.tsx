@@ -34,7 +34,6 @@ export function StoreListingCalculationPanel({
   flowComplete?: boolean;
 }) {
   const [isKrexWizardOpen, setIsKrexWizardOpen] = useState(false);
-  const tierConfig = KREX_TIERS[tier];
   const hubPoints = isEdit ? 0 : computeEarnedHubPoints(HUB_EARN_POINTS.storeProductList, tier);
   const showBuyKrex = quote.discountPercent <= 0 && krexBalance < KREX_TIERS.Tier1.minKREX;
 
@@ -104,10 +103,6 @@ export function StoreListingCalculationPanel({
           </span>
         </div>
       ) : null}
-
-      <p className="text-xs text-zinc-500 dark:text-zinc-400">
-        Current tier: {tierConfig.label} ({tierConfig.description})
-      </p>
 
       {showBuyKrex ? (
         <button

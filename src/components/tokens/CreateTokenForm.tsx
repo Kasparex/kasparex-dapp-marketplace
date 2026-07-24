@@ -10,7 +10,6 @@ import { Krc20TickerSearchField } from '@/components/tokens/Krc20TickerSearchFie
 import { Kcc20ConnectField } from '@/components/tokens/Kcc20ConnectField';
 import { TokensBenefitsPanel } from '@/components/tokens/TokensBenefitsPanel';
 import { HubAsideRail } from '@/components/hub/HubAsideRail';
-import { KX_FORM_STICKY_RAIL } from '@/lib/hub/shellTokens';
 import { TokenPreviewModal } from '@/components/tokens/TokenPreviewModal';
 import { TokenPageBuilder } from '@/components/tokens/TokenPageBuilder';
 import { TokenCategoryField } from '@/components/tokens/TokenCategoryField';
@@ -658,7 +657,7 @@ export function CreateTokenForm({ listing, media, onMediaChange, onSuccess, onCa
   return (
     <>
       <form
-        className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_340px] gap-6 items-start"
+        className="grid grid-cols-1 items-stretch xl:grid-cols-[minmax(0,1fr)_340px] gap-6"
         onSubmit={(e) => {
           e.preventDefault();
           void handlePublish();
@@ -1089,8 +1088,7 @@ export function CreateTokenForm({ listing, media, onMediaChange, onSuccess, onCa
           </div>
         </div>
 
-        <div className={KX_FORM_STICKY_RAIL}>
-          <HubAsideRail adSlotId="HALO_TOKENS_RIGHT" adId="ad-slot-tokens-listing-form-rail">
+        <HubAsideRail adSlotId="HALO_TOKENS_RIGHT" adId="ad-slot-tokens-listing-form-rail">
           <TokensBenefitsPanel variant="panel" />
           <HubPaymentPanel
             lines={[
@@ -1165,7 +1163,6 @@ export function CreateTokenForm({ listing, media, onMediaChange, onSuccess, onCa
             }
           />
           </HubAsideRail>
-        </div>
       </form>
       <TokenPreviewModal
         isOpen={isPreviewOpen}

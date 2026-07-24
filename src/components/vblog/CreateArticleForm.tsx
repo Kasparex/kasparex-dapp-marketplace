@@ -31,7 +31,6 @@ import { VBlogModuleConfigFields } from './VBlogModuleConfigFields';
 import { VBlogCategoryField } from './VBlogCategoryField';
 import { VBlogDashboardBenefitsPanel } from './VBlogDashboardBenefitsPanel';
 import { HubAsideRail } from '@/components/hub/HubAsideRail';
-import { KX_FORM_STICKY_RAIL } from '@/lib/hub/shellTokens';
 import { DEFAULT_VBLOG_CATEGORIES, addAuthorCustomCategory, isCustomCategory } from '@/lib/vblog/categories';
 import { cleanVBlogSocialLinks, vBlogSocialLinksToRows, VBLOG_SOCIAL_LABEL_MAX } from '@/lib/vblog/socialLinks';
 import { cleanPollOptions, defaultPollOptions } from '@/components/vblog/VBlogPollOptionsEditor';
@@ -562,7 +561,7 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
   };
 
   return (
-    <form onSubmit={handleSubmit} className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_340px] gap-6 items-start">
+    <form onSubmit={handleSubmit} className="grid grid-cols-1 items-stretch xl:grid-cols-[minmax(0,1fr)_340px] gap-6">
       <div className="flex flex-col gap-6 min-w-0">
         <div className={`${FORM_PANEL_CLASS} space-y-6`}>
           <div>
@@ -874,8 +873,7 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
         </div>
       </div>
 
-      <div className={KX_FORM_STICKY_RAIL}>
-        <HubAsideRail adSlotId="HALO_VBLOG_RIGHT" adId="ad-slot-vblog-article-form-rail">
+      <HubAsideRail adSlotId="HALO_VBLOG_RIGHT" adId="ad-slot-vblog-article-form-rail">
         <VBlogDashboardBenefitsPanel />
         <aside className="flex flex-col bg-gradient-to-b from-white to-zinc-50 dark:from-zinc-900 dark:to-zinc-900/80 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 space-y-4 shadow-[0_10px_30px_-18px_rgba(2,171,184,0.4)]">
         <DAppSectionHeader title="Calculation breakdown" className="mb-1" />
@@ -955,7 +953,6 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
         />
         </aside>
         </HubAsideRail>
-      </div>
       <KREXBuyWizard isOpen={isKrexWizardOpen} onClose={() => setIsKrexWizardOpen(false)} />
       <ArticlePreviewModal
         isOpen={isPreviewOpen}

@@ -40,7 +40,6 @@ import { htmlToPlainText } from '@/lib/richText/html';
 import {
   KX_FORM_GRID,
   KX_FORM_PANEL,
-  KX_FORM_STICKY_RAIL,
   KX_CALCULATION_ASIDE,
   KX_PREMIUM_MODULE_CARD,
 } from '@/lib/hub/shellTokens';
@@ -261,7 +260,7 @@ export function ChroniclesListingForm({ onSubmitted }: { onSubmitted?: () => voi
   };
 
   return (
-    <form onSubmit={handleSubmit} className={`${KX_FORM_GRID} items-start`}>
+    <form onSubmit={handleSubmit} className={`${KX_FORM_GRID}`}>
       <div className="flex min-w-0 flex-col gap-6">
         <div className={`${KX_FORM_PANEL} space-y-6`}>
           <div>
@@ -503,8 +502,7 @@ export function ChroniclesListingForm({ onSubmitted }: { onSubmitted?: () => voi
         </div>
       </div>
 
-      <div className={KX_FORM_STICKY_RAIL}>
-        <HubAsideRail adSlotId="HALO_CHRONICLES_RIGHT" adId="ad-slot-chronicles-listing-form-rail">
+      <HubAsideRail adSlotId="HALO_CHRONICLES_RIGHT" adId="ad-slot-chronicles-listing-form-rail">
         <HubBenefitsPanel variant="panel" scope="chronicles" />
 
         <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
@@ -561,7 +559,6 @@ export function ChroniclesListingForm({ onSubmitted }: { onSubmitted?: () => voi
           <HubFlowProgress steps={getHubFlowPreset('hubPublish')} busy={isProcessing || isUploading} />
         </aside>
         </HubAsideRail>
-      </div>
     </form>
   );
 }

@@ -38,7 +38,6 @@ import { getFieldDef } from '@/lib/dapps/pageLayoutMap';
 import {
   KX_FORM_GRID,
   KX_FORM_PANEL,
-  KX_FORM_STICKY_RAIL,
   KX_FORM_NESTED_GROUP,
   KX_CALCULATION_ASIDE,
   KX_PREMIUM_MODULE_CARD,
@@ -481,7 +480,7 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
   }
 
   return (
-    <form onSubmit={handleSubmit} className={`${KX_FORM_GRID} items-start`}>
+    <form onSubmit={handleSubmit} className={`${KX_FORM_GRID}`}>
       <div className="flex min-w-0 flex-col gap-6">
         <div className={`${KX_FORM_PANEL} space-y-6`}>
           <div>
@@ -879,8 +878,7 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
         </div>
       </div>
 
-      <div className={KX_FORM_STICKY_RAIL}>
-        <HubAsideRail adSlotId="HALO_DAPPS_RIGHT" adId="ad-slot-dapp-listing-form-rail">
+      <HubAsideRail adSlotId="HALO_DAPPS_RIGHT" adId="ad-slot-dapp-listing-form-rail">
         <HubBenefitsPanel variant="panel" scope="dapps" />
 
         <aside className={KX_CALCULATION_ASIDE}>
@@ -918,7 +916,6 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
           <HubFlowProgress steps={getHubFlowPreset('hubPublish')} busy={isProcessing || isUploading} />
         </aside>
         </HubAsideRail>
-      </div>
     </form>
   );
 }

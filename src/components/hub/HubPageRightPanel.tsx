@@ -76,7 +76,7 @@ export function HubPageRightPanelGrid({
     <>
       {showDesktopPanel ? (
         <div
-          className={`grid w-full min-w-0 max-w-full grid-cols-1 lg:grid-cols-12 ${gapClass}`.trim()}
+          className={`grid w-full min-w-0 max-w-full grid-cols-1 items-stretch lg:grid-cols-12 ${gapClass}`.trim()}
         >
           <div className={`min-w-0 max-w-full overflow-x-clip ${mainSpan}`}>{children}</div>
           <aside className={`hidden h-full min-h-full min-w-0 max-w-full self-stretch overflow-visible lg:block ${asideSpan}`}>

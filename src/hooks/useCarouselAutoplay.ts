@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 export type CarouselIntervalMs = number | ((slideIndex: number) => number);
 
@@ -12,6 +12,7 @@ function resolveIntervalMs(intervalMs: CarouselIntervalMs, slideIndex: number): 
  * Auto-advance carousel index; pauses on hover (unless disabled).
  * When `respectReducedMotion` is true, autoplay is off if the user prefers reduced motion.
  * `intervalMs` may be a function for per-slide durations (e.g. paid exposure bonus).
+ * Interval callbacks are read via ref so unstable function identities do not reset the timer.
  */
 export function useCarouselAutoplay(
   itemCount: number,
@@ -21,6 +22,8 @@ export function useCarouselAutoplay(
 ) {
   const [slide, setSlide] = useState(0);
   const [paused, setPaused] = useState(false);
+  const intervalRef = useRef(intervalMs);
+  intervalRef.current = intervalMs;
 
   useEffect(() => {
     setSlide((s) => Math.min(s, Math.max(0, itemCount - 1)));
@@ -35,12 +38,12 @@ export function useCarouselAutoplay(
     ) {
       return;
     }
-    const ms = resolveIntervalMs(intervalMs, slide);
+    const ms = resolveIntervalMs(intervalRef.current, slide);
     const id = window.setTimeout(() => {
       setSlide((s) => (s + 1) % itemCount);
-    }, ms);
+    }, Math.max(250, ms));
     return () => clearTimeout(id);
-  }, [itemCount, intervalMs, paused, disablePauseOnHover, respectReducedMotion, slide]);
+  }, [itemCount, paused, disablePauseOnHover, respectReducedMotion, slide]);
 
   const pauseOnHover = useMemo(
     () =>

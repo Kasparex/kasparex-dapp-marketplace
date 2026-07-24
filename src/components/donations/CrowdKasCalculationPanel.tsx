@@ -142,7 +142,6 @@ export function CrowdKasL1CalculationPanel({
         hubPoints={hubPoints}
         hubPointsDetail={hubPointsDetail}
         hubPointsBaseSpendKas={quote.subtotalKas}
-        showCurrentTierFootnote
         flowBusy={isSubmitting}
         flowPreset="hubPublish"
         footer={
@@ -289,7 +288,6 @@ export function CrowdKasL2CalculationPanel({
       hubPoints={hubPoints}
       hubPointsDetail={hubPointsDetail}
       hubPointsBaseSpendKas={quote.subtotalIkas}
-      showCurrentTierFootnote
       flowBusy={isSubmitting}
       flowPreset="hubPublish"
       footer={

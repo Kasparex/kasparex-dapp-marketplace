@@ -38,7 +38,6 @@ import { StoreSellerBenefitsPanel } from '@/components/store/StoreSellerBenefits
 import { StoreListingCalculationPanel } from '@/components/store/StoreListingCalculationPanel';
 import { HubAsideRail } from '@/components/hub/HubAsideRail';
 import { estimateStoreListingQuote } from '@/lib/store/listingQuote';
-import { KX_FORM_STICKY_RAIL } from '@/lib/hub/shellTokens';
 import { KxInFormPremiumRow } from '@/components/ui/KxInFormPremiumRow';
 import { STORE_MODULE_OFFERS, type StoreModuleId } from '@/lib/store/modules';
 import { StoreFileUpload } from '@/components/store/StoreFileUpload';
@@ -302,7 +301,7 @@ export function StoreProductForm({ product }: StoreProductFormProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_340px] gap-6 items-start">
+    <form onSubmit={handleSubmit} className="grid grid-cols-1 items-stretch xl:grid-cols-[minmax(0,1fr)_340px] gap-6">
       <div className="flex flex-col gap-6 min-w-0">
         <div className={`${FORM_PANEL_CLASS} space-y-6`}>
           <div>
@@ -575,8 +574,7 @@ export function StoreProductForm({ product }: StoreProductFormProps) {
         </div>
       </div>
 
-      <div className={KX_FORM_STICKY_RAIL}>
-        <HubAsideRail adSlotId="HALO_STORE_RIGHT" adId="ad-slot-store-listing-form-rail">
+      <HubAsideRail adSlotId="HALO_STORE_RIGHT" adId="ad-slot-store-listing-form-rail">
         <StoreSellerBenefitsPanel />
 
         <StoreListingCalculationPanel
@@ -604,7 +602,6 @@ export function StoreProductForm({ product }: StoreProductFormProps) {
           }
         />
         </HubAsideRail>
-      </div>
     </form>
   );
 }

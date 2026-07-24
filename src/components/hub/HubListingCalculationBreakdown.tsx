@@ -26,7 +26,6 @@ type Props = {
 export function HubListingCalculationBreakdown({ quote, hubPoints, footerNote, className }: Props) {
   const { balance: krexBalance, tier } = useKREXBalance();
   const [isKrexWizardOpen, setIsKrexWizardOpen] = useState(false);
-  const tierConfig = KREX_TIERS[tier];
   const showBuyKrex = quote.discountPercent <= 0 && krexBalance < KREX_TIERS.Tier1.minKREX;
 
   return (
@@ -123,10 +122,6 @@ export function HubListingCalculationBreakdown({ quote, hubPoints, footerNote, c
           </span>
         </div>
       ) : null}
-
-      <p className="text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
-        Current tier: {tierConfig.label} ({tierConfig.description})
-      </p>
 
       {showBuyKrex ? (
         <button
