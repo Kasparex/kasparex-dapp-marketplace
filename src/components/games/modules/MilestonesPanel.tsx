@@ -28,19 +28,14 @@ export function MilestonesPanel({
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <span className="mb-2 block text-xs font-black uppercase tracking-widest text-[color:var(--hub-accent,#10b981)]">
-            {kicker}
-          </span>
-          <div className="flex items-start gap-3">
-            <span className="hub-tilt-bar mt-1 h-7 w-1.5 shrink-0 -skew-y-12 rounded-full" aria-hidden="true" />
-            <div className="min-w-0">
-              <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">{title}</h2>
-              <div className="mt-1.5 flex items-start gap-2">
-                <span className="hub-tilt-bar-sm mt-1 h-4 w-1 shrink-0 -skew-y-12 rounded-full" aria-hidden="true" />
-                <p className="text-sm text-zinc-500 dark:text-zinc-400">{subtitle}</p>
-              </div>
-            </div>
+          <div className="mb-2 flex items-center gap-2">
+            <span className="hub-tilt-bar-sm h-4 w-1 shrink-0 -skew-y-12 rounded-full" aria-hidden="true" />
+            <span className="text-xs font-black uppercase tracking-widest text-[color:var(--hub-accent,#10b981)]">
+              {kicker}
+            </span>
           </div>
+          <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">{title}</h2>
+          <p className="mt-1.5 text-sm text-zinc-500 dark:text-zinc-400">{subtitle}</p>
         </div>
         <span className={LEVEL_BADGE_CLS}>
           Player level {level}

@@ -82,12 +82,12 @@ function splitLoreIntoBlocks(raw: string): Array<{ type: 'heading' | 'p'; text: 
   return expanded.length ? expanded : [{ type: 'p', text: t }];
 }
 
-/** Hub-accent kicker (not Chronicles cyan). */
+/** Hub-accent kicker (not Chronicles cyan). Tilt sits beside this label only. */
 export const GAME_OVERVIEW_KICKER =
-  'mb-2 block text-xs font-black uppercase tracking-widest text-[color:var(--hub-accent,#10b981)]';
+  'text-xs font-black uppercase tracking-widest text-[color:var(--hub-accent,#10b981)]';
 
 export const GAME_OVERVIEW_SUBTITLE =
-  'text-base font-medium leading-7 text-zinc-500 dark:text-zinc-400';
+  'mt-2 text-base font-medium leading-7 text-zinc-500 dark:text-zinc-400';
 
 export const GAME_OVERVIEW_ACCENT_LINK =
   'font-semibold text-[color:var(--hub-accent,#10b981)] transition-colors hover:underline';
@@ -118,30 +118,24 @@ export function GameOverviewTitleBlock(props: {
   const wrapCls =
     props.className ??
     (props.compact ? 'mb-1' : Tag === 'h2' ? 'mb-6' : 'mt-12 mb-4 first:mt-0');
-  const tiltCls = props.compact
-    ? 'hub-tilt-bar-sm mt-0.5 h-5 w-1 shrink-0 -skew-y-12 rounded-full'
-    : 'hub-tilt-bar mt-1 h-7 w-1.5 shrink-0 -skew-y-12 rounded-full';
 
   return (
     <header className={wrapCls}>
-      {props.kicker?.trim() ? <span className={GAME_OVERVIEW_KICKER}>{props.kicker.trim()}</span> : null}
-      <div className="flex items-start gap-3">
-        <span className={tiltCls} aria-hidden="true" />
-        <div className="min-w-0 flex-1">
-          <Tag className={titleCls}>{props.title}</Tag>
-          {props.subtitle?.trim() ? (
-            <div className={`flex items-start gap-2 ${props.compact ? 'mt-1' : 'mt-2'}`}>
-              <span
-                className="hub-tilt-bar-sm mt-1.5 h-4 w-1 shrink-0 -skew-y-12 rounded-full"
-                aria-hidden="true"
-              />
-              <p className={props.compact ? 'text-sm text-zinc-500 dark:text-zinc-400' : GAME_OVERVIEW_SUBTITLE}>
-                {props.subtitle.trim()}
-              </p>
-            </div>
-          ) : null}
+      {props.kicker?.trim() ? (
+        <div className="mb-2 flex items-center gap-2">
+          <span
+            className="hub-tilt-bar-sm h-4 w-1 shrink-0 -skew-y-12 rounded-full"
+            aria-hidden="true"
+          />
+          <span className={GAME_OVERVIEW_KICKER}>{props.kicker.trim()}</span>
         </div>
-      </div>
+      ) : null}
+      <Tag className={titleCls}>{props.title}</Tag>
+      {props.subtitle?.trim() ? (
+        <p className={props.compact ? 'mt-1 text-sm text-zinc-500 dark:text-zinc-400' : GAME_OVERVIEW_SUBTITLE}>
+          {props.subtitle.trim()}
+        </p>
+      ) : null}
     </header>
   );
 }
@@ -184,7 +178,7 @@ export function GameOverviewSections(props: {
   const tips = props.tips ?? [];
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-10 px-1 pt-6 sm:px-3 lg:px-4">
       <article
         className={`${KX_PROSE} [&_a]:font-semibold [&_a]:text-[color:var(--hub-accent,#10b981)] [&_a]:hover:underline`}
       >

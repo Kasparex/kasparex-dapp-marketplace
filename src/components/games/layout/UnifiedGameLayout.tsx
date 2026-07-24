@@ -13,6 +13,8 @@ import { GamesAsideRail } from '@/components/games/layout/GamesAsideRail';
 /** Partial game payloads from play dashboards (e.g. Diamond Veins) plus full registry games. */
 export type UnifiedGameLayoutGame = Partial<Game> & {
   name: string;
+  id?: string;
+  slug?: string;
   categories?: any[];
   tags?: any[];
   capabilities?: import('@/lib/games/registry').GameCapability[];
@@ -44,7 +46,9 @@ export function UnifiedGameLayout({
   playerLevel,
 }: UnifiedGameLayoutProps) {
   const haloGame = {
+    id: game.id ?? game.slug ?? game.name,
     name: game.name,
+    slug: game.slug ?? game.id ?? '',
     description: game.description ?? '',
     developer: game.developer ?? 'Kasparex',
     status: game.status ?? ('active' as const),

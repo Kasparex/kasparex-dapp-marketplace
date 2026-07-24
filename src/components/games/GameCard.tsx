@@ -11,6 +11,8 @@ import { AuthorInline } from '@/components/ui/AuthorInline';
 import { GameVoteControls } from './GameVoteControls';
 import { GameNetworkBadge } from './GameNetworkBadge';
 import type { GameCapability } from '@/lib/games/registry';
+import { resolveGameAuthorWallet } from '@/lib/games/author';
+import { formatAddress } from '@/lib/vblog/utils';
 
 interface GameCardProps {
   game: Game & { capabilities?: GameCapability[] };
@@ -21,7 +23,8 @@ export function GameCard({ game, onCategoryFilter }: GameCardProps) {
   const gameType = gameTypes[game.gameType];
   const { toggleFavorite, isFavorite, isWalletConnected: isWalletConnectedForFavorites } = useFavorites();
   const isFavoriteGame = isFavorite(game.id);
-  const authorAddress = game.authorAddress ?? `author:${game.developer}`;
+  const authorAddress = resolveGameAuthorWallet(game);
+  const authorLabel = formatAddress(authorAddress);
 
   const handleIconClick = (e: React.MouseEvent, action: () => void) => {
     e.preventDefault();
@@ -83,7 +86,7 @@ export function GameCard({ game, onCategoryFilter }: GameCardProps) {
           </div>
           <AuthorInline
             address={authorAddress}
-            displayName={game.developer}
+            displayName={authorLabel}
             prefix=""
             className="text-sm"
           />

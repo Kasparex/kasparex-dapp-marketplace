@@ -9,15 +9,19 @@ import {
   type GameDeckResource,
 } from '@/components/games/panels/GameDeckPanel';
 import { AuthorInline } from '@/components/ui/AuthorInline';
-import { KASPAREX_GAMES_AUTHOR_SEED } from '@/lib/hub/hubProjectAccent';
 import { GameNetworkBadge } from '@/components/games/GameNetworkBadge';
+import { GameVoteControls } from '@/components/games/GameVoteControls';
 import type { GameCapability } from '@/lib/games/registry';
+import { resolveGameAuthorWallet } from '@/lib/games/author';
+import { formatAddress } from '@/lib/vblog/utils';
 import { Tooltip } from '@/components/ui/Tooltip';
 
 type GamesHaloHeaderProps = {
   game: Pick<
     Game,
+    | 'id'
     | 'name'
+    | 'slug'
     | 'developer'
     | 'status'
     | 'difficulty'
@@ -51,17 +55,15 @@ function formatStatus(status: Game['status']): string {
 
 /**
  * Two-column game header (above tabs).
- * Left: kicker + tilt title, author, badges, Game Deck. Right: featured cover only.
+ * Left: kicker + tilt title, author, badges, Game Deck. Right: featured cover + vote box.
  */
 export function GamesHaloHeader({ game, resources = [], deckFooter, playerLevel }: GamesHaloHeaderProps) {
   const typeName = gameTypes[game.gameType]?.name ?? game.gameType;
   const difficultyName = difficultyLevels[game.difficulty]?.name ?? game.difficulty;
   const cover = game.featuredImage || game.image;
-  const authorSeed =
-    game.authorAddress?.trim() ||
-    (game.publisher === 'community'
-      ? `author:${game.developer}`
-      : KASPAREX_GAMES_AUTHOR_SEED);
+  const authorWallet = resolveGameAuthorWallet(game);
+  const authorLabel = formatAddress(authorWallet);
+  const canVote = Boolean(game.id?.trim());
 
   /** Max 3–4 game-related chips. No entry-cost badge. */
   const badges: { key: string; label: string; tone?: 'accent' | 'player' | 'default' }[] = [
@@ -103,9 +105,9 @@ export function GamesHaloHeader({ game, resources = [], deckFooter, playerLevel 
           </div>
 
           <AuthorInline
-            address={authorSeed}
-            displayName={game.developer}
-            href={`/u/${encodeURIComponent(authorSeed)}`}
+            address={authorWallet}
+            displayName={authorLabel}
+            href={`/u/${encodeURIComponent(authorWallet)}`}
             className="mb-4"
           />
 
@@ -171,6 +173,16 @@ export function GamesHaloHeader({ game, resources = [], deckFooter, playerLevel 
               )}
             </div>
           </Tooltip>
+
+          {canVote ? (
+            <div className="absolute right-4 top-4 z-30 sm:right-6 sm:top-6">
+              <div className="rounded-xl border border-zinc-200 bg-white/90 p-1 backdrop-blur-md dark:border-zinc-800 dark:bg-zinc-900/90">
+                <GameVoteControls
+                  game={{ id: game.id, name: game.name, slug: game.slug || game.id }}
+                />
+              </div>
+            </div>
+          ) : null}
         </div>
       </div>
     </div>

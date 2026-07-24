@@ -19,7 +19,7 @@ export function MinecoreArticle(props: {
   const name = props.gameName ?? 'Minecore';
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-10 px-1 pt-6 sm:px-3 lg:px-4">
       <article className={KX_PROSE}>
         <GameOverviewTitleBlock
           as="h2"

@@ -13,7 +13,7 @@ export type HubProjectAccent = {
   tiltShadow: string;
 };
 
-/** Official Kasparex Games publisher seed for author identicons until wallet addresses are linked. */
+/** Official Kasparex Games publisher seed (legacy). Prefer getKasparexGamesAuthorWallet(). */
 export const KASPAREX_GAMES_AUTHOR_SEED = 'kasparex:games';
 
 const HUB_PROJECT_ACCENTS: Record<string, HubProjectAccent> = {

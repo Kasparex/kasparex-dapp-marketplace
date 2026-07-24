@@ -9,7 +9,7 @@ import {
 
 export function OverviewPanel({ tycon: _tycon, stats: _stats }: { tycon: TyconGameState; stats: YieldStats }) {
   return (
-    <article className={KX_PROSE}>
+    <article className={`${KX_PROSE} px-1 pt-6 sm:px-3 lg:px-4`}>
       <GameOverviewTitleBlock
         as="h2"
         kicker="Rewards"
