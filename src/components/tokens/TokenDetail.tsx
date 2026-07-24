@@ -13,6 +13,7 @@ import { tokenCommentsArticleId } from '@/lib/tokens/comments';
 import { TokenPageHeader } from './TokenPageHeader';
 import { TokenAside } from './TokenAside';
 import { TokenInfoSection } from './TokenInfoSection';
+import { TokenProtocolAvailability } from './TokenProtocolAvailability';
 import { ProgrammableAssetPanel } from './ProgrammableAssetPanel';
 import { TokenomicsSection } from './TokenomicsSection';
 import { RoadmapSection } from './RoadmapSection';
@@ -24,7 +25,7 @@ import { TokenTradingSection } from './TokenTradingSection';
 import { TokenUtilitySection } from './TokenCommentsSection';
 import { TokenWhitepaperSection } from './TokenWhitepaperSection';
 import { CommentsSection } from '@/components/vblog/CommentsSection';
-import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
+import { GameOverviewTitleBlock } from '@/components/games/panels/GameOverviewSections';
 import { TOKEN_TAB_SECTION_CLASS, type TokenContentTab } from '@/lib/tokens/sections';
 import { canShowUtilityTab } from '@/lib/tokens/utilityEligibility';
 import {
@@ -46,7 +47,7 @@ function isFullyMinted(token: Token): boolean {
 function CommentsTabBadge({ count }: { count: number }) {
   if (count <= 0) return null;
   return (
-    <span className="inline-flex min-w-[1.25rem] items-center justify-center rounded-full bg-cyan-500/15 px-1.5 py-0.5 text-[10px] font-bold tabular-nums text-cyan-800 dark:text-cyan-300">
+    <span className="inline-flex min-w-[1.25rem] items-center justify-center rounded-full bg-[color:var(--hub-accent-muted)] px-1.5 py-0.5 text-[10px] font-bold tabular-nums text-[color:var(--hub-accent)]">
       {count}
     </span>
   );
@@ -113,7 +114,7 @@ export function TokenDetail({
     if (type === 'links' && token.links && token.links.length > 0) {
       return (
         <section key="links" id="token-links" className="space-y-6">
-          <DAppSectionHeader title="Links" />
+          <GameOverviewTitleBlock kicker="Resources" title="Links" as="h3" compact />
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             {token.links.map((link, index) => (
               <a
@@ -121,7 +122,7 @@ export function TokenDetail({
                 href={link.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-3 rounded-2xl border border-zinc-200 bg-white p-4 transition hover:border-cyan-500/30 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900/80"
+                className="flex items-center gap-3 rounded-2xl border border-zinc-200 bg-white p-4 transition hover:border-[color:var(--hub-accent-border)] hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900/80"
               >
                 <div className="min-w-0 flex-1">
                   <div className="truncate text-sm font-semibold text-zinc-900 dark:text-zinc-100">{link.label}</div>
@@ -140,7 +141,7 @@ export function TokenDetail({
 
   return (
     <article className="w-full min-w-0 mx-auto max-w-6xl font-sans">
-      <TokenPageHeader token={token} />
+      <TokenPageHeader token={token} onNavigateTab={setContentTab} />
 
       <div className="flex w-full min-w-0 flex-col gap-6">
         <div className="mb-2 flex w-full min-w-0 flex-col gap-2 sm:flex-row sm:items-stretch sm:gap-3">
@@ -171,6 +172,7 @@ export function TokenDetail({
             <div className="flex min-w-0 flex-col">
                 {contentTab === 'overview' ? (
                   <div id="token-overview" className={`${TOKEN_TAB_SECTION_CLASS} space-y-8 animate-in fade-in duration-300`}>
+                    <TokenProtocolAvailability token={token} />
                     <TokenInfoSection token={token} />
                     <ProgrammableAssetPanel token={token} />
                     {orderedOverviewSubsections.map((type) => renderOverviewSubsection(type))}

@@ -1,55 +1,151 @@
 'use client';
 
 import Image from 'next/image';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import type { Token } from '@/lib/tokens/types';
 import { loadTokenFeaturedImageUrl } from '@/lib/tokens/metadata';
 import { TokenLogo } from './TokenLogo';
-import { TokenTitle } from './TokenTitle';
 import { KxListingFeaturedPlaceholder } from '@/components/kx/KxListingFeaturedPlaceholder';
-import { TokenListingTopStatus } from '@/components/tokens/TokenListingTopStatus';
-import { TokenListingFooterRows } from '@/components/tokens/TokenListingFooterRows';
-import { TokenCategoryBadge } from '@/components/tokens/TokenCategoryBadge';
-import { KxTagChip } from '@/components/ui/KxTagChip';
 import { tokenHasModule } from '@/lib/tokens/modules';
 import { resolveTokenCreatorWallet } from '@/lib/tokens/creatorWallet';
 import { formatAddress } from '@/lib/vblog/utils';
 import { AuthorInline } from '@/components/ui/AuthorInline';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useAccount } from 'wagmi';
+import { Tooltip } from '@/components/ui/Tooltip';
+import {
+  GameDeckResourceRows,
+  type GameDeckResource,
+} from '@/components/games/panels/GameDeckPanel';
+import { TokenVoteControls } from '@/components/tokens/TokenVoteControls';
+import { TokenNetworkChips } from '@/components/tokens/TokenNetworkChips';
+import { formatLargeNumber } from '@/lib/rewards/calculator';
+import {
+  getNetworkChipShortLabel,
+  getTokenNetworkEntries,
+} from '@/lib/tokens/networks';
+import type { TokenContentTab } from '@/lib/tokens/sections';
 
-function SocialIcon({ type }: { type?: string }) {
-  const props = { className: 'h-4 w-4', fill: 'none' as const, viewBox: '0 0 24 24', stroke: 'currentColor', strokeWidth: 2 };
-  if (type === 'social') {
-    return (
-      <svg {...props}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-      </svg>
-    );
-  }
-  return (
-    <svg {...props}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
-    </svg>
-  );
+type TokenPageHeaderProps = {
+  token: Token;
+  /** Switch detail tabs from Token Deck quick actions. */
+  onNavigateTab?: (tab: TokenContentTab) => void;
+};
+
+function formatTokenType(type: Token['type']): string {
+  return type === 'global' ? 'Global' : 'Collab';
 }
 
-export function TokenPageHeader({ token }: { token: Token }) {
+export function TokenPageHeader({ token, onNavigateTab }: TokenPageHeaderProps) {
   const router = useRouter();
   const { state: kaspaState } = useKaspaWallet();
-  const { address: evmAddress, isConnected } = useAccount();
+  const { isConnected } = useAccount();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const featuredImageUrl = loadTokenFeaturedImageUrl(token);
   const short = token.shortDescription?.trim() || token.description;
-  const socialLinks = (token.links ?? []).filter((l) => l.type === 'social' || l.type === 'website' || !l.type);
   const isWalletConnected = kaspaState.isConnected || isConnected;
   const isVerifiedDeveloper = Boolean(token.listing?.verified && isWalletConnected);
-
   const isHighlighted = tokenHasModule(token.paidModuleIds, 'highlighted_profile');
   const creatorWallet = resolveTokenCreatorWallet(token);
+  const networkEntries = getTokenNetworkEntries(token);
+  const primaryNetwork = networkEntries.find((e) => e.primary) ?? networkEntries[0];
+
+  const deckResources = useMemo((): GameDeckResource[] => {
+    const rows: GameDeckResource[] = [];
+
+    if (primaryNetwork) {
+      rows.push({
+        id: 'network',
+        label: 'Primary network',
+        value: getNetworkChipShortLabel(primaryNetwork.network),
+        description: primaryNetwork.verified ? 'Verified on-chain' : 'Listed',
+        tooltip: 'Primary deployment network for this token listing.',
+        accent: 'diamonds',
+      });
+    }
+
+    if (token.circulatingSupply != null) {
+      rows.push({
+        id: 'circulating',
+        label: 'Circulating',
+        value: formatLargeNumber(token.circulatingSupply),
+        subValue: token.symbol,
+        tooltip: 'Circulating supply reported for this listing.',
+        accent: 'diamonds',
+      });
+    } else if (token.totalSupply != null) {
+      rows.push({
+        id: 'supply',
+        label: 'Total supply',
+        value: formatLargeNumber(token.totalSupply),
+        subValue: token.symbol,
+        tooltip: 'Total supply reported for this listing.',
+        accent: 'diamonds',
+      });
+    }
+
+    if (token.price?.current != null) {
+      rows.push({
+        id: 'price',
+        label: 'Price',
+        value: `$${token.price.current.toLocaleString(undefined, {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 6,
+        })}`,
+        subValue: token.price.change24h != null ? `${token.price.change24h >= 0 ? '+' : ''}${token.price.change24h.toFixed(2)}% 24h` : undefined,
+        tooltip: 'Latest market price snapshot when available.',
+        accent: 'kas',
+        onClick: onNavigateTab ? () => onNavigateTab('markets') : undefined,
+      });
+    }
+
+    rows.push({
+      id: 'markets',
+      label: 'Markets',
+      value: 'Open',
+      description: 'Charts & liquidity',
+      tooltip: 'Jump to the Markets tab for price, minting progress, and balances.',
+      onClick: onNavigateTab ? () => onNavigateTab('markets') : undefined,
+    });
+
+    if (token.whitepaperUrl || token.links?.some((l) => l.type === 'whitepaper')) {
+      rows.push({
+        id: 'whitepaper',
+        label: 'Whitepaper',
+        value: 'View',
+        description: 'Docs & research',
+        tooltip: 'Open the Overview whitepaper section for this token.',
+        onClick: onNavigateTab
+          ? () => {
+              onNavigateTab('overview');
+              window.setTimeout(() => {
+                document.getElementById('token-whitepaper')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              }, 80);
+            }
+          : undefined,
+      });
+    }
+
+    return rows.slice(0, 5);
+  }, [token, primaryNetwork, onNavigateTab]);
+
+  const badges: { key: string; label: string; tone?: 'accent' | 'player' | 'default' }[] = [
+    {
+      key: 'status',
+      label: token.listing?.verified ? 'Verified' : token.assetKind === 'fictional' ? 'Community' : 'Listed',
+      tone: 'accent',
+    },
+    { key: 'type', label: formatTokenType(token.type) },
+  ];
+  if (token.listing?.featured) {
+    badges.push({ key: 'featured', label: 'Featured', tone: 'player' });
+  }
+  for (const tag of token.tags ?? []) {
+    if (badges.length >= 5) break;
+    badges.push({ key: `tag-${tag}`, label: `#${tag}` });
+  }
 
   const handleEdit = () => {
     router.push(`/tokens/dashboard?edit=${encodeURIComponent(token.slug)}`);
@@ -58,7 +154,7 @@ export function TokenPageHeader({ token }: { token: Token }) {
   return (
     <div
       id="token-header"
-      className={`relative mb-10 scroll-mt-24 overflow-hidden rounded-2xl border bg-zinc-50/80 dark:bg-zinc-900/45 select-text ${
+      className={`relative mb-10 scroll-mt-24 overflow-hidden rounded-2xl border bg-zinc-50/80 select-text dark:bg-zinc-900/45 ${
         isHighlighted
           ? 'border-amber-400/60 shadow-[0_0_40px_-12px_rgba(251,191,36,0.45)]'
           : 'border-zinc-200 dark:border-zinc-800'
@@ -66,94 +162,133 @@ export function TokenPageHeader({ token }: { token: Token }) {
     >
       <div
         className={`absolute inset-0 bg-gradient-to-br via-transparent to-transparent ${
-          isHighlighted ? 'from-amber-500/10' : 'from-cyan-500/5'
+          isHighlighted
+            ? 'from-amber-500/10'
+            : 'from-[color:var(--hub-accent-muted,rgba(59,130,246,0.1))]'
         }`}
       />
 
       <div className="relative flex min-h-[360px] flex-col lg:flex-row">
-        <div className="relative flex w-full flex-1 flex-col p-8 sm:p-10 lg:w-1/2 lg:p-12">
-          <div className="mb-6 flex items-start gap-4">
-            <TokenLogo token={token} size={80} showName={false} showSymbol={false} shape="rounded" className="flex-shrink-0" />
-            <div className="min-w-0 flex-1">
-              <TokenTitle token={token} size="lg" layout="besideLogo" />
-              {creatorWallet ? (
-                <AuthorInline
-                  address={creatorWallet}
-                  displayName={formatAddress(creatorWallet)}
-                  href={`/u/${encodeURIComponent(creatorWallet)}`}
-                  className="mt-2"
-                />
-              ) : null}
-            </div>
-            <TokenListingTopStatus token={token} />
+        <div className="relative flex w-full flex-1 flex-col p-6 sm:p-8 lg:w-1/2 lg:p-10">
+          <div className="absolute right-6 top-6 z-10 sm:right-8 sm:top-8 lg:right-10 lg:top-10">
+            <TokenNetworkChips token={token} className="justify-end" />
           </div>
 
-          <p id="token-intro" className="kx-body mb-6 max-w-2xl select-text">
-            {short}
+          <p className="mb-3 pr-28 text-[10px] font-black uppercase tracking-[0.2em] text-[color:var(--hub-accent,#3b82f6)]">
+            Kasparex Tokens · {token.symbol}
           </p>
 
-          {socialLinks.length > 0 ? (
-            <div className="mb-6 flex flex-wrap items-center gap-2">
-              {socialLinks.map((link) => (
-                <a
-                  key={link.url}
-                  href={link.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 rounded-xl border border-zinc-200 bg-white/80 px-3 py-2 text-sm font-semibold text-zinc-700 transition hover:border-[#02abb8]/40 hover:text-[#02abb8] dark:border-zinc-700 dark:bg-zinc-900/80 dark:text-zinc-200"
-                >
-                  <SocialIcon type={link.type} />
-                  {link.label}
-                </a>
-              ))}
-            </div>
-          ) : null}
-
-          <div className="mb-4 flex flex-wrap items-center gap-2">
-            {token.tags?.map((tag) => (
-              <KxTagChip key={tag} label={tag} prefix="" />
-            ))}
-            <TokenCategoryBadge token={token} />
+          <div className="mb-3 flex items-center gap-3">
+            <TokenLogo token={token} size={44} showName={false} showSymbol={false} shape="rounded" className="flex-shrink-0" />
+            <span className="hub-tilt-bar h-7 w-1.5 shrink-0 rounded-full" aria-hidden="true" />
+            <h1 className="min-w-0 text-3xl font-black leading-tight tracking-tight text-zinc-900 dark:text-white sm:text-4xl">
+              {token.name}
+            </h1>
           </div>
 
-          <TokenListingFooterRows token={token} showCategory={false} className="mt-auto pt-4" />
+          {creatorWallet ? (
+            <AuthorInline
+              address={creatorWallet}
+              displayName={formatAddress(creatorWallet)}
+              href={`/u/${encodeURIComponent(creatorWallet)}`}
+              className="mb-4"
+            />
+          ) : null}
+
+          <div className="mb-5 flex flex-wrap gap-2">
+            {badges.map((b) => {
+              const tone = b.tone ?? 'default';
+              const className =
+                tone === 'player'
+                  ? 'rounded-lg border border-sky-500/35 bg-sky-500/15 px-3 py-1.5 text-xs font-bold text-sky-800 dark:text-sky-200'
+                  : tone === 'accent'
+                    ? 'rounded-lg border border-[color:var(--hub-accent-border,rgba(59,130,246,0.25))] bg-[color:var(--hub-accent-muted,rgba(59,130,246,0.1))] px-3 py-1.5 text-xs font-bold text-[color:var(--hub-accent,#3b82f6)]'
+                    : 'rounded-lg border border-zinc-200 bg-white/90 px-3 py-1.5 text-xs font-bold text-zinc-700 dark:border-zinc-700 dark:bg-zinc-900/70 dark:text-zinc-300';
+              return (
+                <span key={b.key} className={className}>
+                  {b.label}
+                </span>
+              );
+            })}
+          </div>
+
+          {short ? (
+            <p id="token-intro" className="kx-body mb-4 line-clamp-3 max-w-2xl select-text">
+              {short}
+            </p>
+          ) : null}
+
+          {deckResources.length > 0 ? (
+            <div className="mt-auto space-y-2 pt-2">
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Token Deck</p>
+                <p className="text-[10px] font-medium text-zinc-400">Quick actions & snapshot</p>
+              </div>
+              <GameDeckResourceRows resources={deckResources} />
+            </div>
+          ) : null}
         </div>
 
-        <div className="relative min-h-[260px] w-full border-t border-zinc-200 bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-800 lg:min-h-full lg:w-1/2 lg:border-l lg:border-t-0">
-          {featuredImageUrl ? (
-            <Image
-              src={featuredImageUrl}
-              alt={token.name}
-              fill
-              className="object-cover"
-              priority
-              unoptimized
-            />
-          ) : (
-            <KxListingFeaturedPlaceholder className="min-h-[260px]" iconClassName="h-16 w-16" />
-          )}
+        <div className="relative min-h-[220px] w-full border-t border-zinc-200 bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-800 lg:min-h-full lg:w-1/2 lg:border-l lg:border-t-0">
+          <Tooltip
+            content={
+              <div className="space-y-1">
+                <p className="font-bold text-zinc-900 dark:text-zinc-50">
+                  {token.symbol} · {token.name}
+                </p>
+                {short ? (
+                  <p className="text-xs leading-snug text-zinc-600 dark:text-zinc-300">{short}</p>
+                ) : (
+                  <p className="text-xs leading-snug text-zinc-500 dark:text-zinc-400">No intro description yet.</p>
+                )}
+              </div>
+            }
+            className="max-w-xs"
+          >
+            <div className="absolute inset-0 cursor-help">
+              {featuredImageUrl ? (
+                <Image
+                  src={featuredImageUrl}
+                  alt={token.name}
+                  fill
+                  className="object-cover"
+                  priority
+                  sizes="(max-width: 1024px) 100vw, 50vw"
+                  unoptimized
+                />
+              ) : (
+                <KxListingFeaturedPlaceholder className="min-h-[220px] lg:min-h-full" iconClassName="h-16 w-16" />
+              )}
+            </div>
+          </Tooltip>
+
+          <div className="absolute right-4 top-4 z-30 sm:right-6 sm:top-6">
+            <div className="rounded-xl border border-zinc-200 bg-white/90 p-1 backdrop-blur-md dark:border-zinc-800 dark:bg-zinc-900/90">
+              <TokenVoteControls token={token} compact />
+            </div>
+          </div>
         </div>
       </div>
 
       {isVerifiedDeveloper ? (
-        <div className="absolute right-6 top-6 z-30 flex items-center gap-3">
+        <div className="absolute bottom-4 left-4 z-30 flex items-center gap-2 sm:bottom-6 sm:left-6">
           <button
             type="button"
             onClick={handleEdit}
-            className="rounded-xl border border-zinc-200 bg-white/90 p-3 text-zinc-900 backdrop-blur-md transition hover:scale-105 dark:border-zinc-800 dark:bg-zinc-900/90 dark:text-zinc-100"
+            className="rounded-xl border border-zinc-200 bg-white/90 p-2.5 text-zinc-900 backdrop-blur-md transition hover:scale-105 dark:border-zinc-800 dark:bg-zinc-900/90 dark:text-zinc-100"
             aria-label="Edit token page"
           >
-            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
             </svg>
           </button>
           <button
             type="button"
             onClick={() => setShowDeleteConfirm(true)}
-            className="rounded-xl bg-red-500 p-3 text-white transition hover:scale-105"
+            className="rounded-xl bg-red-500 p-2.5 text-white transition hover:scale-105"
             aria-label="Delete token listing"
           >
-            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
             </svg>
           </button>

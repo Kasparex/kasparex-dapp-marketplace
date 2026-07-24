@@ -1,7 +1,7 @@
 'use client';
 
 import type { Token } from '@/lib/tokens/types';
-import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
+import { GameOverviewTitleBlock } from '@/components/games/panels/GameOverviewSections';
 import { getTokenWhitepaperUrl } from '@/lib/tokens/sections';
 
 export function TokenWhitepaperSection({ token }: { token: Token }) {
@@ -9,9 +9,15 @@ export function TokenWhitepaperSection({ token }: { token: Token }) {
 
   return (
     <section id="token-whitepaper" className="space-y-6">
-      <DAppSectionHeader title="Whitepaper" />
+      <GameOverviewTitleBlock
+        kicker="Docs"
+        title="Whitepaper"
+        subtitle={`Official documentation for ${token.symbol}.`}
+        as="h3"
+        compact
+      />
       {whitepaperUrl ? (
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900/80">
+        <div className="flex flex-col gap-3 rounded-2xl border border-zinc-200 bg-white p-4 sm:flex-row sm:items-center sm:justify-between dark:border-zinc-800 dark:bg-zinc-900/80">
           <p className="text-sm text-zinc-600 dark:text-zinc-400">
             Download the official {token.symbol} whitepaper for tokenomics, utility, and roadmap details.
           </p>
@@ -32,7 +38,7 @@ export function TokenWhitepaperSection({ token }: { token: Token }) {
           <p className="text-sm text-zinc-600 dark:text-zinc-400">
             No whitepaper has been published for this token yet.
           </p>
-          <button type="button" disabled className="k-control-btn mt-3 opacity-50 cursor-not-allowed">
+          <button type="button" disabled className="k-control-btn mt-3 cursor-not-allowed opacity-50">
             Download whitepaper
           </button>
         </div>

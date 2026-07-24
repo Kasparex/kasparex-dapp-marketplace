@@ -68,7 +68,7 @@ export function TokenVoteControls({ token, compact = false }: TokenVoteControlsP
   const btnClass = (active: boolean) =>
     `rounded-lg border px-2 py-1 text-xs font-bold transition disabled:opacity-50 ${
       active
-        ? 'border-[#02abb8] bg-[#02abb8]/15 text-[#02abb8]'
+        ? 'border-[color:var(--hub-accent-border,#02abb8)] bg-[color:var(--hub-accent-muted,rgba(2,171,184,0.15))] text-[color:var(--hub-accent,#02abb8)]'
         : 'border-zinc-200 text-zinc-500 hover:border-zinc-300 dark:border-zinc-700 dark:hover:border-zinc-600'
     }`;
 

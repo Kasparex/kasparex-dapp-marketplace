@@ -5,6 +5,7 @@ import type { TokenPageConfig } from '@/lib/tokens/listingRecord';
 import { TokenSidebar } from './TokenSidebar';
 import { TokenDetail, type TokenContentTab } from './TokenDetail';
 import { canShowUtilityTab } from '@/lib/tokens/utilityEligibility';
+import { HubAccentScope } from '@/components/hub/HubAccentScope';
 import { useCallback, useState } from 'react';
 
 interface TokenLandingPageProps {
@@ -44,7 +45,7 @@ export function TokenLandingPage({ token, pageConfig }: TokenLandingPageProps) {
   }, []);
 
   return (
-    <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col overflow-hidden bg-zinc-50 dark:bg-zinc-950 lg:flex-row">
+    <HubAccentScope projectId="kasparex-tokens" className="flex min-h-0 w-full min-w-0 flex-1 flex-col overflow-hidden bg-zinc-50 dark:bg-zinc-950 lg:flex-row">
       <TokenSidebar
         token={token}
         activeTab={contentTab}
@@ -64,6 +65,6 @@ export function TokenLandingPage({ token, pageConfig }: TokenLandingPageProps) {
           />
         </div>
       </main>
-    </div>
+    </HubAccentScope>
   );
 }

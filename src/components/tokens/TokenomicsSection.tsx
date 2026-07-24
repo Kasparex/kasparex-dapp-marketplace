@@ -1,13 +1,14 @@
 /**
  * Tokenomics Section
- * Displays token distribution and allocation
+ * Supply snapshot + distribution (Games Mining-style stat cards).
  */
 
 'use client';
 
 import type { Token } from '@/lib/tokens/types';
 import { formatLargeNumber } from '@/lib/rewards/calculator';
-import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
+import { GameOverviewTitleBlock } from '@/components/games/panels/GameOverviewSections';
+import { TokenStatCard } from '@/components/tokens/TokenStatCard';
 
 interface TokenomicsSectionProps {
   token: Token;
@@ -22,45 +23,51 @@ export function TokenomicsSection({ token }: TokenomicsSectionProps) {
 
   return (
     <section id="tokenomics" className="scroll-mt-28 space-y-6">
-      <DAppSectionHeader title="Tokenomics" />
+      <GameOverviewTitleBlock
+        kicker="Economics"
+        title="Tokenomics"
+        subtitle="Supply figures and how allocation is split across categories."
+        as="h3"
+      />
 
-      {/* Supply Info */}
-      {(token.totalSupply || token.circulatingSupply) && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {token.totalSupply && (
-            <div className="bg-zinc-50 dark:bg-zinc-900/50 rounded-lg p-4 border border-zinc-200 dark:border-zinc-800">
-              <div className="text-xs text-zinc-500 dark:text-zinc-400 mb-1">Total Supply</div>
-              <div className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
-                {formatLargeNumber(token.totalSupply)} {token.symbol}
-              </div>
-            </div>
-          )}
-          {token.circulatingSupply && (
-            <div className="bg-zinc-50 dark:bg-zinc-900/50 rounded-lg p-4 border border-zinc-200 dark:border-zinc-800">
-              <div className="text-xs text-zinc-500 dark:text-zinc-400 mb-1">Circulating Supply</div>
-              <div className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
-                {formatLargeNumber(token.circulatingSupply)} {token.symbol}
-              </div>
-            </div>
-          )}
-          {token.maxSupply && (
-            <div className="bg-zinc-50 dark:bg-zinc-900/50 rounded-lg p-4 border border-zinc-200 dark:border-zinc-800">
-              <div className="text-xs text-zinc-500 dark:text-zinc-400 mb-1">Max Supply</div>
-              <div className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
-                {formatLargeNumber(token.maxSupply)} {token.symbol}
-              </div>
-            </div>
-          )}
+      {(token.totalSupply || token.circulatingSupply || token.maxSupply) && (
+        <div className="grid gap-4 sm:grid-cols-3">
+          {token.totalSupply != null ? (
+            <TokenStatCard
+              label="Total supply"
+              value={formatLargeNumber(token.totalSupply)}
+              hint={token.symbol}
+              tooltipTitle="Total supply"
+              tooltipDescription="Full supply figure for this token listing."
+              valueClassName="text-[color:var(--hub-accent,#3b82f6)]"
+            />
+          ) : null}
+          {token.circulatingSupply != null ? (
+            <TokenStatCard
+              label="Circulating"
+              value={formatLargeNumber(token.circulatingSupply)}
+              hint={token.symbol}
+              tooltipTitle="Circulating supply"
+              tooltipDescription="Tokens currently circulating in the market."
+              valueClassName="text-emerald-600 dark:text-emerald-400"
+            />
+          ) : null}
+          {token.maxSupply != null ? (
+            <TokenStatCard
+              label="Max supply"
+              value={formatLargeNumber(token.maxSupply)}
+              hint={token.symbol}
+              tooltipTitle="Max supply"
+              tooltipDescription="Hard cap on mintable supply when the token is capped."
+            />
+          ) : null}
         </div>
       )}
 
-      {/* Allocation Breakdown */}
-      {allocations.length > 0 && (
+      {allocations.length > 0 ? (
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
-            Distribution
-          </h3>
-          <div className="space-y-3">
+          <h4 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">Distribution</h4>
+          <div className="grid gap-4 sm:grid-cols-2">
             {allocations.map((allocation, index) => {
               const amount = allocation.amount
                 ? `${formatLargeNumber(allocation.amount)} ${token.symbol}`
@@ -69,33 +76,28 @@ export function TokenomicsSection({ token }: TokenomicsSectionProps) {
               return (
                 <div
                   key={index}
-                  className="bg-zinc-50 dark:bg-zinc-900/50 rounded-lg p-4 border border-zinc-200 dark:border-zinc-800"
+                  className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900/60"
                 >
-                  <div className="flex items-center justify-between mb-2">
-                    <div>
-                      <div className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
                         {allocation.category}
                       </div>
-                      {allocation.description && (
-                        <div className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-                          {allocation.description}
-                        </div>
-                      )}
+                      {allocation.description ? (
+                        <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">{allocation.description}</p>
+                      ) : null}
                     </div>
                     <div className="text-right">
-                      <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+                      <div className="text-2xl font-bold tabular-nums text-[color:var(--hub-accent,#3b82f6)]">
                         {allocation.percentage}%
                       </div>
-                      {amount && (
-                        <div className="text-xs text-zinc-500 dark:text-zinc-400">{amount}</div>
-                      )}
+                      {amount ? <div className="mt-0.5 text-xs text-zinc-500">{amount}</div> : null}
                     </div>
                   </div>
-                  {/* Progress bar */}
-                  <div className="w-full bg-zinc-200 dark:bg-zinc-800 rounded-full h-2 overflow-hidden">
+                  <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800">
                     <div
-                      className="bg-[#02abb8] h-2 rounded-full transition-all"
-                      style={{ width: `${allocation.percentage}%` }}
+                      className="h-2 rounded-full bg-[color:var(--hub-accent,#3b82f6)] transition-all"
+                      style={{ width: `${Math.min(100, Math.max(0, allocation.percentage))}%` }}
                     />
                   </div>
                 </div>
@@ -103,7 +105,7 @@ export function TokenomicsSection({ token }: TokenomicsSectionProps) {
             })}
           </div>
         </div>
-      )}
+      ) : null}
     </section>
   );
 }

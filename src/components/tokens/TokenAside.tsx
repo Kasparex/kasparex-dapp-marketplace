@@ -6,7 +6,13 @@ import type { Token } from '@/lib/tokens/types';
 import { HubAsideRail } from '@/components/hub/HubAsideRail';
 import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 import { TokensBenefitsPanel } from '@/components/tokens/TokensBenefitsPanel';
+import { TokenCopyableAddress } from '@/components/tokens/TokenCopyableAddress';
 import { formatLargeNumber } from '@/lib/rewards/calculator';
+import {
+  getNetworkChipLabel,
+  getNetworkExplorerUrl,
+  getTokenNetworkEntries,
+} from '@/lib/tokens/networks';
 
 const PANEL_CLASS =
   'rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900';
@@ -15,24 +21,28 @@ export function TokenAside({ token }: { token: Token }) {
   const price = token.price?.current;
   const marketCap = token.price?.marketCap;
   const otherLinks = (token.links ?? []).filter((l) => l.type === 'explorer' || l.type === 'other');
+  const networkEntries = getTokenNetworkEntries(token).filter((e) => e.contractAddress);
 
-  const sections: { title: string; body: ReactNode }[] = [];
+  const sections: { title: string; hint?: string; body: ReactNode }[] = [];
 
   if (price !== undefined) {
     sections.push({
       title: 'Market snapshot',
+      hint: 'Latest price fields when available for this listing.',
       body: (
         <div className="space-y-2 text-sm">
           <div className="flex justify-between gap-3">
             <span className="text-zinc-500">Price</span>
-            <span className="font-semibold text-zinc-900 dark:text-zinc-100">
+            <span className="font-semibold tabular-nums text-zinc-900 dark:text-zinc-100">
               ${price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 6 })}
             </span>
           </div>
           {marketCap !== undefined ? (
             <div className="flex justify-between gap-3">
               <span className="text-zinc-500">Market cap</span>
-              <span className="font-semibold text-zinc-900 dark:text-zinc-100">${formatLargeNumber(marketCap)}</span>
+              <span className="font-semibold tabular-nums text-zinc-900 dark:text-zinc-100">
+                ${formatLargeNumber(marketCap)}
+              </span>
             </div>
           ) : null}
         </div>
@@ -40,13 +50,29 @@ export function TokenAside({ token }: { token: Token }) {
     });
   }
 
-  if (token.contractAddress || token.l1Address || token.l2Address) {
+  if (networkEntries.length > 0) {
     sections.push({
-      title: 'Contract',
+      title: 'Contracts',
+      hint: 'Copy an address or open it in the matching explorer.',
       body: (
-        <p className="break-all font-mono text-xs leading-relaxed text-zinc-600 dark:text-zinc-400">
-          {token.contractAddress || token.l1Address || token.l2Address}
-        </p>
+        <ul className="space-y-3">
+          {networkEntries.map((entry) => {
+            const explorerUrl = getNetworkExplorerUrl(entry.network, entry.contractAddress);
+            return (
+              <li key={`${entry.network}-${entry.contractAddress}`}>
+                <p className="mb-1 text-[10px] font-black uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+                  {getNetworkChipLabel(entry.network)}
+                </p>
+                <TokenCopyableAddress
+                  value={entry.contractAddress!}
+                  copyLabel={`Copy ${getNetworkChipLabel(entry.network)} address`}
+                  explorerUrl={explorerUrl}
+                  truncate
+                />
+              </li>
+            );
+          })}
+        </ul>
       ),
     });
   }
@@ -62,7 +88,7 @@ export function TokenAside({ token }: { token: Token }) {
                 href={link.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-base font-semibold text-zinc-800 transition-colors hover:text-[#02abb8] dark:text-zinc-200"
+                className="text-base font-semibold text-zinc-800 transition-colors hover:text-[color:var(--hub-accent,#3b82f6)] dark:text-zinc-200"
               >
                 {link.label}
               </Link>
@@ -80,7 +106,7 @@ export function TokenAside({ token }: { token: Token }) {
 
         {sections.map((sec) => (
           <div key={sec.title} className={PANEL_CLASS}>
-            <DAppSectionHeader title={sec.title} className="mb-3" />
+            <DAppSectionHeader title={sec.title} hint={sec.hint} className="mb-3" />
             {sec.body}
           </div>
         ))}
