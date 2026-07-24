@@ -3,13 +3,16 @@
 import type { AdSlotId } from '@/lib/ads/types';
 import { AdSlider } from '@/components/ads/AdSlider';
 
+/** Sticky offset clears sticky Hub Header (h-16) with a little breathing room. */
+export const HUB_PANEL_AD_STICKY_CLASS =
+  'w-full min-w-0 scroll-mt-28 self-start lg:sticky lg:top-20 lg:z-20';
+
 /**
  * Standard 1:1 panel rail ad slot for right-column panels (dApps, vBlog, games, etc.).
  * Sticky so the Ad Slot stays in the viewport while the main column scrolls.
  * Halo headers use AdSlider directly and stay non-sticky.
  *
- * Sticky below the Hub header (h-16) so the Ad Slot does not sit under the menu.
- * Parent rail must stretch to the main column height (see HubPageRightPanelGrid)
+ * Parent rail must stretch to the main column height (see HubAsideRail / HubPageRightPanelGrid)
  * and must not use overflow:hidden on ancestors.
  */
 export function PanelAdSlider({
@@ -22,10 +25,7 @@ export function PanelAdSlider({
   className?: string;
 }) {
   return (
-    <div
-      id={id}
-      className={`w-full min-w-0 scroll-mt-28 self-start lg:sticky lg:top-20 lg:z-20 ${className}`.trim()}
-    >
+    <div id={id} className={`${className} ${HUB_PANEL_AD_STICKY_CLASS}`.trim()}>
       <AdSlider slotId={slotId} variant="halo" relaxHaloFrame />
     </div>
   );

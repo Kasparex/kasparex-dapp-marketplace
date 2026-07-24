@@ -6,7 +6,7 @@ import { MinecoreCallout } from '@/components/chronicles/MinecoreCallout';
 import { ChronicleFeaturedVisual, ChronicleThumb } from '@/components/chronicles/ChronicleFeaturedVisual';
 import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 import { getOverview, getFragments, getChapterSummaries } from '@/lib/chronicles/loaders';
-import { ChroniclesAdSlot } from '@/components/chronicles/ChroniclesAdSlot';
+import { HubAsideRail } from '@/components/hub/HubAsideRail';
 import { KxListingCard, KxListingCardBody } from '@/components/kx/KxListingCard';
 import { KxBadge } from '@/components/ui/KxBadge';
 import { chronicleTimelineBadgeVariant, chronicleTagBadgeVariant } from '@/lib/chronicles/chronicleTagBadge';
@@ -26,8 +26,8 @@ export default function ChroniclesOverviewPage() {
     <div>
       <ChroniclesHaloHeader titleAccent="Chronicles" showDefaultActions />
 
-      <div className="grid lg:grid-cols-3 gap-10 xl:gap-12">
-        <div className="lg:col-span-2 space-y-10">
+      <div className="grid items-stretch gap-10 lg:grid-cols-3 xl:gap-12">
+        <div className="space-y-10 lg:col-span-2">
           <ChronicleFeaturedVisual imageUrl={overview.featuredImageUrl} alt={overview.title} badge="Overview" />
           <div>
             <DAppSectionHeader title={overview.title} />
@@ -39,7 +39,8 @@ export default function ChroniclesOverviewPage() {
           </div>
         </div>
 
-        <aside className="space-y-10">
+        <aside className="h-full min-h-full min-w-0">
+          <HubAsideRail adSlotId="HALO_CHRONICLES_RIGHT" adId="ad-slot-chronicles-overview-rail">
           <div>
             <DAppSectionHeader title="Story timeline" className="mb-5" />
             <ol className="space-y-4">
@@ -124,8 +125,7 @@ export default function ChroniclesOverviewPage() {
               </ul>
             </KxListingCardBody>
           </KxListingCard>
-
-          <ChroniclesAdSlot layout="rail" />
+          </HubAsideRail>
         </aside>
       </div>
     </div>

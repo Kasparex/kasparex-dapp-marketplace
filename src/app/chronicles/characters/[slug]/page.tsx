@@ -150,7 +150,7 @@ export default async function ChronicleCharacterPage({ params }: PageProps) {
         ← Characters
       </Link>
 
-      <div className="grid gap-10 xl:gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,320px)] xl:grid-cols-[minmax(0,1fr)_minmax(0,340px)] items-start min-w-0">
+      <div className="grid min-w-0 items-stretch gap-10 xl:gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,320px)] xl:grid-cols-[minmax(0,1fr)_minmax(0,340px)]">
         <div className="min-w-0 max-w-full">
           <ChronicleFeaturedVisual
             imageUrl={character.featuredImageUrl}

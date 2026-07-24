@@ -13,8 +13,8 @@ import { getContractAddress } from '@/lib/contracts/addresses';
 import { getDAppPaymentConfig } from '@/lib/payments/config';
 import { calculateCost, formatPrice, type CostBreakdown } from '@/lib/payments/calculator';
 import { getNativeCurrencySymbol } from '@/lib/wagmi';
+import { HubAsideRail } from '@/components/hub/HubAsideRail';
 import { formatLargeNumber } from '@/lib/rewards/calculator';
-import { PanelAdSlider } from '@/components/ads/PanelAdSlider';
 
 interface DAppActionsColumnProps {
   dapp: DApp;
@@ -143,7 +143,7 @@ export function DAppActionsColumn({ dapp, contractAddress }: DAppActionsColumnPr
   }, [isConnected, hubAddr, hubPts, nativeLabel, nativeFormatted, krexLabel, krexBalance, krexLoading, gridLabel, gridBalanceNum, gridLoading]);
 
   return (
-    <div className="space-y-6">
+    <HubAsideRail adSlotId="HALO_DAPPS_RIGHT" adId="ad-slot-dapp-actions-rail">
       {/* User Balances - simple TOKEN ---- balance containers */}
       <div className="bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 p-6 shadow-sm">
         <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100 uppercase tracking-widest mb-3 py-2 border-b border-zinc-100 dark:border-zinc-800">
@@ -191,8 +191,6 @@ export function DAppActionsColumn({ dapp, contractAddress }: DAppActionsColumnPr
           </p>
         )}
       </div>
-
-      <PanelAdSlider slotId="HALO_DAPPS_RIGHT" />
-    </div>
+    </HubAsideRail>
   );
 }

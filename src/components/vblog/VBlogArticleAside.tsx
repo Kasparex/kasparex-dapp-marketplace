@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import Link from 'next/link';
 import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
-import { PanelAdSlider } from '@/components/ads/PanelAdSlider';
+import { HubAsideRail } from '@/components/hub/HubAsideRail';
 import { CHRONICLES_PANEL, CHRONICLES_PANEL_BODY } from '@/lib/chronicles/typography';
 
 export type VBlogAsideLink = { href: string; label: string; sublabel?: string; openInNewTab?: boolean };
@@ -24,7 +24,7 @@ export function VBlogArticleAside({
   const filtered = sections.filter((s) => s.body != null || (s.links != null && s.links.length > 0));
 
   return (
-    <div className="w-full min-w-0 space-y-4">
+    <HubAsideRail adSlotId="HALO_VBLOG_RIGHT" adId="ad-slot-vblog-article-aside">
       {topContent}
       {filtered.map((sec) => (
         <div key={sec.title} className={`${CHRONICLES_PANEL} p-4`}>
@@ -57,8 +57,6 @@ export function VBlogArticleAside({
           ) : null}
         </div>
       ))}
-
-      <PanelAdSlider slotId="HALO_VBLOG_RIGHT" id="ad-slot-vblog-article-aside" />
-    </div>
+    </HubAsideRail>
   );
 }

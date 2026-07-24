@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import type { ReactNode } from 'react';
 import type { Token } from '@/lib/tokens/types';
-import { PanelAdSlider } from '@/components/ads/PanelAdSlider';
+import { HubAsideRail } from '@/components/hub/HubAsideRail';
 import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 import { TokensBenefitsPanel } from '@/components/tokens/TokensBenefitsPanel';
 import { formatLargeNumber } from '@/lib/rewards/calculator';
@@ -74,17 +74,17 @@ export function TokenAside({ token }: { token: Token }) {
   }
 
   return (
-    <aside id="kasparex-token-side-panel" className="w-full min-w-0 max-w-full space-y-4 self-start">
-      <TokensBenefitsPanel variant="panel" />
+    <aside id="kasparex-token-side-panel" className="h-full min-h-full w-full min-w-0 max-w-full">
+      <HubAsideRail adSlotId="HALO_TOKENS_RIGHT" adId="ad-slot-token-detail-aside">
+        <TokensBenefitsPanel variant="panel" />
 
-      {sections.map((sec) => (
-        <div key={sec.title} className={PANEL_CLASS}>
-          <DAppSectionHeader title={sec.title} className="mb-3" />
-          {sec.body}
-        </div>
-      ))}
-
-      <PanelAdSlider slotId="HALO_TOKENS_RIGHT" id="ad-slot-token-detail-aside" />
+        {sections.map((sec) => (
+          <div key={sec.title} className={PANEL_CLASS}>
+            <DAppSectionHeader title={sec.title} className="mb-3" />
+            {sec.body}
+          </div>
+        ))}
+      </HubAsideRail>
     </aside>
   );
 }
