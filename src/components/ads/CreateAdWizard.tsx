@@ -31,12 +31,18 @@ import { countActiveForSlot, filterActiveAdsForSlot } from '@/lib/ads/registryUt
 import { defaultFormatForSlot, validateUploadedImageFile } from '@/lib/ads/creativeSpecs';
 import { appendHubActivityEarn } from '@/lib/rewards/appendHubActivityEarn';
 import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
+import { computeEarnedHubPoints, formatHubPointsTierLabel } from '@/lib/rewards/hub-points';
 import { KxSegmentToggle } from '@/components/ui/KxSegmentToggle';
 import { HubPaymentCurrencyDropdown } from '@/components/payments/HubPaymentCurrencyDropdown';
 import { buildKasKrexMenuOptions } from '@/lib/payments/hubPaymentTypes';
 import { KxInFormPremiumList, KxInFormPremiumRow } from '@/components/ui/KxInFormPremiumRow';
 import { FieldHint } from '@/components/ui/FieldHint';
 import { KxModalSectionTitle } from '@/components/payments/KxPaymentUi';
+import { TierBadge } from '@/components/rewards/TierBadge';
+import { HubPointsEarnBadge } from '@/components/hub/HubPointsEarnBadge';
+import { KREXBuyWizard } from '@/components/rewards/KREXBuyWizard';
+import { Tooltip } from '@/components/ui/Tooltip';
+import { KrexTierPerksTooltipTable } from '@/components/rewards/KrexTierPerksTooltipTable';
 import {
   adsPriceKrexFromKas,
   transferKrexForAdsPayment,
@@ -95,6 +101,7 @@ export function CreateAdWizard({
   const [paymentCurrency, setPaymentCurrency] = useState<AdPaymentCurrency>('KAS');
   const [imageSpecError, setImageSpecError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isKrexWizardOpen, setIsKrexWizardOpen] = useState(false);
   const [txHash, setTxHash] = useState<string | null>(null);
   const [metadataCid, setMetadataCid] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -129,6 +136,8 @@ export function CreateAdWizard({
   const krexDiscountPct = KREX_TIER_SHOP_DISCOUNT_PCT[krexTier] ?? 0;
   const discountedSlotKas =
     basePriceKas > 0 ? Number((basePriceKas * (1 - krexDiscountPct / 100)).toFixed(8)) : 0;
+  const discountKas =
+    basePriceKas > 0 ? Number((basePriceKas - discountedSlotKas).toFixed(8)) : 0;
   const premiumAddonKas = adPremiumAddonKas({ featuredHighlight, extendedExposure });
   const priceKas =
     discountedSlotKas > 0 ? Number((discountedSlotKas + premiumAddonKas).toFixed(8)) : 0;
@@ -136,6 +145,13 @@ export function CreateAdWizard({
   const formatPrice = (kas: number) => formatHubPaymentFromKas(kas, paymentCurrency, pricingSnapshot);
   const krexCheckoutHint =
     'KREX checkout uses two wallet confirmations: your KREX campaign fee, then a 1 KAS binding payment that carries your metadata on-chain. If storage mass errors appear, compound UTXOs in KasWare (Wallet > UTXO > Compound) and retry.';
+  const tierConfig = KREX_TIERS[krexTier];
+  const hubPointsEarn = computeEarnedHubPoints(HUB_EARN_POINTS.hubAdPlacement, krexTier);
+  const showBuyKrex = krexDiscountPct <= 0 && krexBalance < KREX_TIERS.Tier1.minKREX;
+  const tierPerksTooltip = useMemo(
+    () => <KrexTierPerksTooltipTable title="Ad slot KREX tier perks" />,
+    [],
+  );
 
   const treasuryAddress = getAdsTreasuryL1Address();
 
@@ -568,8 +584,8 @@ export function CreateAdWizard({
                 connection as the site header.
               </p>
               <p className="text-xs text-zinc-500 dark:text-zinc-500 mb-4">
-                KREX balance across your connected wallets reduces the listed ad price (same tiers as Diamond Veins shop
-                discounts). You can pay in KAS or KREX on the next step.
+                Your KREX tier discounts the slot rate (same tiers as Hub listings) and multiplies Hub Points earned
+                for placing an ad. You can pay in KAS or KREX on the next step.
               </p>
               {installedKaspaWallets.length > 0 ? (
                 <div className="space-y-2">
@@ -896,38 +912,106 @@ export function CreateAdWizard({
                 />
               </div>
 
-              <div className="rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50/80 dark:bg-zinc-800/40 p-4 space-y-2 text-xs text-zinc-600 dark:text-zinc-400">
-                <KxModalSectionTitle className="mb-1">Summary</KxModalSectionTitle>
-                {krexDiscountPct > 0 && (
+              <div className="rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50/80 dark:bg-zinc-800/40 p-4 space-y-3 text-xs text-zinc-600 dark:text-zinc-400">
+                <div className="flex items-center justify-between gap-2">
+                  <KxModalSectionTitle className="mb-0">
+                    <span className="inline-flex items-center gap-1.5">
+                      Summary
+                      <Tooltip content={tierPerksTooltip}>
+                        <button
+                          type="button"
+                          className="inline-flex shrink-0 rounded p-0.5 text-zinc-500 transition-colors hover:bg-zinc-200/60 hover:text-[#02abb8] dark:text-zinc-400 dark:hover:bg-zinc-800/60 dark:hover:text-[#66dfe8]"
+                          aria-label="KREX tier discount and Hub Points multiplier"
+                        >
+                          <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden>
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                            />
+                          </svg>
+                        </button>
+                      </Tooltip>
+                    </span>
+                  </KxModalSectionTitle>
+                  <TierBadge tier={krexTier} isUnlocked={krexBalance > 0} />
+                </div>
+
+                {krexDiscountPct > 0 ? (
                   <p className="line-through opacity-70">
-                    Slot list: {formatPrice(basePriceKas)} ({durationDays} × {formatPrice(slotConfig?.pricePerDay ?? 0)}/day)
+                    Slot list: {formatPrice(basePriceKas)} ({durationDays} × {formatPrice(slotConfig?.pricePerDay ?? 0)}
+                    /day)
+                  </p>
+                ) : (
+                  <p>
+                    Slot: <strong className="text-zinc-900 dark:text-zinc-100">{formatPrice(basePriceKas)}</strong>{' '}
+                    ({durationDays} × {formatPrice(slotConfig?.pricePerDay ?? 0)}/day)
                   </p>
                 )}
-                <p>
-                  Slot after tier: <strong className="text-zinc-900 dark:text-zinc-100">{formatPrice(discountedSlotKas)}</strong>
-                  {krexDiscountPct > 0 ? ` (${krexDiscountPct}% off · ${KREX_TIERS[krexTier]?.label ?? krexTier})` : ''}
-                </p>
+                {krexDiscountPct > 0 ? (
+                  <p>
+                    Slot after tier:{' '}
+                    <strong className="text-zinc-900 dark:text-zinc-100">{formatPrice(discountedSlotKas)}</strong>
+                    {` (${krexDiscountPct}% off · ${tierConfig?.label ?? krexTier})`}
+                  </p>
+                ) : null}
                 {featuredHighlight && (
                   <p>
                     Featured add-on:{' '}
                     <strong className="text-zinc-900 dark:text-zinc-100">+{formatPrice(ADS_FEATURED_HIGHLIGHT_KAS)}</strong>{' '}
-                    <span className="text-zinc-500">(one-time)</span>
+                    <span className="text-zinc-500">(one-time, not discounted)</span>
                   </p>
                 )}
                 {extendedExposure && (
                   <p>
                     Extended exposure:{' '}
                     <strong className="text-zinc-900 dark:text-zinc-100">+{formatPrice(ADS_EXTENDED_EXPOSURE_KAS)}</strong>{' '}
-                    <span className="text-zinc-500">(+{ADS_EXTENDED_EXPOSURE_SECONDS}s, one-time)</span>
+                    <span className="text-zinc-500">(+{ADS_EXTENDED_EXPOSURE_SECONDS}s, one-time, not discounted)</span>
                   </p>
                 )}
-                <p className="text-base font-bold text-[#02abb8] dark:text-[#02abb8] pt-1 border-t border-zinc-200 dark:border-zinc-600 mt-2 tabular-nums">
+                <p className="text-base font-bold text-[#02abb8] dark:text-[#02abb8] pt-1 border-t border-zinc-200 dark:border-zinc-600 mt-1 tabular-nums">
                   Total: {payLabel}
                 </p>
                 {paymentCurrency === 'KREX' ? (
                   <p className="text-zinc-500 dark:text-zinc-500">
                     +{ADS_KREX_BINDING_FEE_KAS} KAS binding fee in the second wallet step (plus network fee).
                   </p>
+                ) : null}
+
+                {discountKas > 0 ? (
+                  <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-3 text-sm text-emerald-800 dark:text-emerald-300">
+                    KREX discount: -{discountKas.toFixed(2)} KAS ({krexDiscountPct}% off slot rate).
+                  </div>
+                ) : null}
+
+                {hubPointsEarn > 0 ? (
+                  <div className="flex items-center justify-between gap-2 rounded-xl border border-zinc-200 px-3 py-2.5 dark:border-zinc-700">
+                    <span>Hub points on placement</span>
+                    <span className="inline-flex items-center gap-1.5">
+                      <HubPointsEarnBadge
+                        points={hubPointsEarn}
+                        baseSpendKas={basePriceKas > 0 ? basePriceKas + premiumAddonKas : null}
+                      />
+                      <span className="text-[10px] font-medium text-zinc-500 dark:text-zinc-400">
+                        ({krexTier !== 'Tier0' ? `${formatHubPointsTierLabel(krexTier)} multiplier` : 'base amount'})
+                      </span>
+                    </span>
+                  </div>
+                ) : null}
+
+                <p className="text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
+                  Current tier: {tierConfig.label} ({tierConfig.description})
+                </p>
+
+                {showBuyKrex ? (
+                  <button
+                    type="button"
+                    onClick={() => setIsKrexWizardOpen(true)}
+                    className="w-full k-control-btn !border-emerald-500/30 !text-emerald-700 dark:!text-emerald-300"
+                  >
+                    Buy KREX to unlock discount
+                  </button>
                 ) : null}
               </div>
 
@@ -1045,6 +1129,7 @@ export function CreateAdWizard({
           )}
         </div>
       </div>
+      <KREXBuyWizard isOpen={isKrexWizardOpen} onClose={() => setIsKrexWizardOpen(false)} />
     </div>
   );
 

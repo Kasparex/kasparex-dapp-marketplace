@@ -956,7 +956,7 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
         </aside>
         </HubAsideRail>
       </div>
-      <KREXBuyWizard<KREXBuyWizard isOpen={isKrexWizardOpen} onClose={() => setIsKrexWizardOpen(false)} />
+      <KREXBuyWizard isOpen={isKrexWizardOpen} onClose={() => setIsKrexWizardOpen(false)} />
       <ArticlePreviewModal
         isOpen={isPreviewOpen}
         onClose={() => setIsPreviewOpen(false)}
