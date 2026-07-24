@@ -87,7 +87,6 @@ export function GameCard({ game, onCategoryFilter }: GameCardProps) {
           <AuthorInline
             address={authorAddress}
             displayName={authorLabel}
-            prefix=""
             className="text-sm"
           />
         </div>

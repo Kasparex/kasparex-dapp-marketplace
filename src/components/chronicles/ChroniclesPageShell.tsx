@@ -17,10 +17,10 @@ type ChroniclesPageShellProps = {
 
 export function ChroniclesPageShell({ children, sidebar }: ChroniclesPageShellProps) {
   return (
-    <div className={`flex min-h-screen flex-col overflow-x-hidden ${HUB_PAGE_BG}`}>
+    <div className={`flex min-h-screen flex-col ${HUB_PAGE_BG}`}>
       <Header />
 
-      <HubAccentScope projectId="krex-chronicles" className="flex min-h-0 flex-1 overflow-x-hidden">
+      <HubAccentScope projectId="krex-chronicles" className="flex min-h-0 flex-1">
         <ChroniclesDashboardSidebar {...sidebar} />
 
         <main className={HUB_MAIN_COLUMN}>

@@ -29,7 +29,7 @@ export function AuthorInline({
 }) {
   const label = displayName ?? formatAddress(address);
   const linkHref =
-    href === null ? null : href ?? `/u/${encodeURIComponent(address)}?tab=my-articles`;
+    href === null ? null : href ?? `/u/${encodeURIComponent(address)}`;
 
   return (
     <div className={`flex min-w-0 items-center gap-2 text-xs text-zinc-500 ${className}`.trim()}>

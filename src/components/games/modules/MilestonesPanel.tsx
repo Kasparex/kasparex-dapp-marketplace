@@ -28,7 +28,7 @@ export function MilestonesPanel({
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <div className="mb-2 flex items-center gap-2">
+          <div className="kx-page-kicker">
             <span className="hub-tilt-bar-sm h-4 w-1 shrink-0 -skew-y-12 rounded-full" aria-hidden="true" />
             <span className="text-xs font-black uppercase tracking-widest text-[color:var(--hub-accent,#10b981)]">
               {kicker}

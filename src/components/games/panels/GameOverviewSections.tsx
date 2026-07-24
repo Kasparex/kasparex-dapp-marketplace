@@ -2,6 +2,7 @@
 
 import type { ReactNode } from 'react';
 import { KX_PREMIUM_MODULE_CARD } from '@/lib/hub/shellTokens';
+import { KX_TITLE_TO_TEASER } from '@/lib/ui/kxLayout';
 import { KX_PROSE, KX_PROSE_LIST, KX_PROSE_LIST_ITEM, KX_PROSE_PARAGRAPH } from '@/lib/ui/kxTypography';
 
 function normalizeLore(raw: string): string {
@@ -87,7 +88,7 @@ export const GAME_OVERVIEW_KICKER =
   'text-xs font-black uppercase tracking-widest text-[color:var(--hub-accent,#10b981)]';
 
 export const GAME_OVERVIEW_SUBTITLE =
-  'mt-2 text-base font-medium leading-7 text-zinc-500 dark:text-zinc-400';
+  `${KX_TITLE_TO_TEASER} text-base font-medium leading-7 text-zinc-500 dark:text-zinc-400`;
 
 export const GAME_OVERVIEW_ACCENT_LINK =
   'font-semibold text-[color:var(--hub-accent,#10b981)] transition-colors hover:underline';
@@ -118,11 +119,12 @@ export function GameOverviewTitleBlock(props: {
   const wrapCls =
     props.className ??
     (props.compact ? 'mb-1' : Tag === 'h2' ? 'mb-6' : 'mt-12 mb-4 first:mt-0');
+  const kickerRowCls = props.compact ? 'mb-2 flex items-center gap-2.5' : 'kx-page-kicker';
 
   return (
     <header className={wrapCls}>
       {props.kicker?.trim() ? (
-        <div className="mb-2 flex items-center gap-2">
+        <div className={kickerRowCls}>
           <span
             className="hub-tilt-bar-sm h-4 w-1 shrink-0 -skew-y-12 rounded-full"
             aria-hidden="true"
