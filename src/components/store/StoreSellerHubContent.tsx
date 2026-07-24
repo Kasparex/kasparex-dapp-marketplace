@@ -20,6 +20,7 @@ import { executeHubPaidDelete, HUB_DELETE_FEE_KAS } from '@/lib/hub/paidDelete';
 import { collectStoreMediaCids } from '@/lib/ipfs/cidUtils';
 import type { KaspaWalletProvider } from '@/lib/kaspa/types';
 import { HubListingTitleRow } from '@/components/hub/HubListingTitleRow';
+import { HubDashboardPageHeader } from '@/components/hub/HubDashboardPageHeader';
 
 const TAB_LABELS: Record<StoreSellerTab, string> = {
   purchased: 'My Purchases',
@@ -137,23 +138,14 @@ export function StoreSellerHubContent() {
       }}
     >
       <MobileDesktopOnlyGate title="Store Seller Hub" backHref="/store" backLabel="Back to Store">
-        <div className="mb-8">
-          <p className="mb-4 text-xs font-black uppercase tracking-widest text-[#02abb8]">
-            Seller dashboard
-          </p>
-          <div className="flex items-center gap-3 mb-2">
-            <span
-              className="h-7 w-1.5 shrink-0 rounded-full bg-[#02abb8] shadow-[0_0_10px_rgba(2,171,184,0.35)]"
-              aria-hidden="true"
-            />
-            <h1 className="text-3xl sm:text-4xl font-bold text-zinc-900 dark:text-zinc-100 leading-tight tracking-tight">
-              Store <span className="text-[#02abb8]">Center</span>
-            </h1>
-          </div>
-          <p className="kx-body max-w-3xl">
-            List digital products, track sales, and manage your Store listings.
-          </p>
-        </div>
+        <HubDashboardPageHeader
+          kicker="Seller dashboard"
+          title="Store"
+          titleAccent="Center"
+          excerpt="List digital products, track sales, and manage your Store listings."
+          adSlotId="HALO_STORE_RIGHT"
+          adSlotDomId="ad-slot-store-halo"
+        />
 
         <StoreWalletBanner config={STORE_DASHBOARD_GATE} />
 

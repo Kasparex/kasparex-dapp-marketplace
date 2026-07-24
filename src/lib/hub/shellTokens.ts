@@ -35,8 +35,8 @@ export const KX_CALCULATION_ASIDE =
 export const KX_FORM_NESTED_GROUP =
   'space-y-4 rounded-xl border border-zinc-200 bg-zinc-50/90 p-5 dark:border-zinc-800 dark:bg-zinc-950/55';
 
-/** Sticky form right rail: Benefits + calculation (matches vBlog Create Article). */
-export const KX_FORM_STICKY_RAIL = 'flex flex-col gap-4 xl:sticky xl:top-6';
+/** Sticky form right rail: Benefits + calculation + Ad Slot (clears Hub header). */
+export const KX_FORM_STICKY_RAIL = 'xl:sticky xl:top-20 self-start';
 
 export const KX_PANEL_PADDING = 'p-4 sm:p-5';
 

@@ -59,7 +59,11 @@ function getAspectClass(format: AdFormat): string {
 
 export function AdCard({ ad, onEdit, onDelete, embedded = false }: AdCardProps) {
   const slotConfig = getSlotConfig(
-    ad.slotId === 'GAMES_PLAY_RAIL_RIGHT' ? 'HALO_GAMES_RIGHT' : ad.slotId,
+    ad.slotId === 'GAMES_PLAY_RAIL_RIGHT'
+      ? 'HALO_GAMES_RIGHT'
+      : ad.slotId === 'VBLOG_ARTICLE_ASIDE_BOTTOM'
+        ? 'HALO_VBLOG_RIGHT'
+        : ad.slotId,
   );
   const slotLabel = slotConfig?.label ?? ad.slotId;
   const expiresText = formatExpires(ad.endTime);

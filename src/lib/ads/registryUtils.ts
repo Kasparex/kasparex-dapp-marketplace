@@ -2,9 +2,10 @@ import type { AdEntry } from './types';
 import { normalizeKaspaAddress } from '@/lib/kaspa/sdk';
 import { ADS_START_SLACK_MS } from '@/lib/ads/adActiveWindow';
 
-/** Legacy rail slot merged into Games Halo for display and capacity. */
+/** Legacy rail slots merged into Halo placements for display and capacity. */
 function slotIdsMatchingPlacement(slotId: string): string[] {
   if (slotId === 'HALO_GAMES_RIGHT') return ['HALO_GAMES_RIGHT', 'GAMES_PLAY_RAIL_RIGHT'];
+  if (slotId === 'HALO_VBLOG_RIGHT') return ['HALO_VBLOG_RIGHT', 'VBLOG_ARTICLE_ASIDE_BOTTOM'];
   return [slotId];
 }
 
@@ -27,6 +28,8 @@ export function filterActiveAdsForSlot(ads: AdEntry[], slotId: string): AdEntry[
       if (ia !== ib) return ia - ib;
       if (a.slotId === 'HALO_GAMES_RIGHT' && b.slotId !== 'HALO_GAMES_RIGHT') return -1;
       if (b.slotId === 'HALO_GAMES_RIGHT' && a.slotId !== 'HALO_GAMES_RIGHT') return 1;
+      if (a.slotId === 'HALO_VBLOG_RIGHT' && b.slotId !== 'HALO_VBLOG_RIGHT') return -1;
+      if (b.slotId === 'HALO_VBLOG_RIGHT' && a.slotId !== 'HALO_VBLOG_RIGHT') return 1;
       return 0;
     });
 }

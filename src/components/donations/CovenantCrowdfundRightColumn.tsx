@@ -25,6 +25,7 @@ import {
 } from '@/components/donations/CrowdKasUi';
 import { shortKaspaAddr } from '@/components/dapps/covenant/CovenantWidgetUi';
 import { getAddressExplorerUrl } from '@/lib/walletUi';
+import { HubAsideRail } from '@/components/hub/HubAsideRail';
 
 export function CovenantCrowdfundRightColumn({ campaign }: { campaign: CrowdfundCampaign }) {
   const { state } = useKaspaWallet();
@@ -56,7 +57,11 @@ export function CovenantCrowdfundRightColumn({ campaign }: { campaign: Crowdfund
   const activePledges = campaign.pledges.filter((p) => !p.refunded);
 
   return (
-    <div className="flex flex-col gap-6">
+    <HubAsideRail
+      adSlotId="HALO_DONATIONS_RIGHT"
+      adId="ad-slot-crowdkas-covenant-rail"
+      className="gap-6"
+    >
       <div id="crowdkas-donate" className={`${crowdkasCardClass} scroll-mt-28 space-y-4`}>
         <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Pledge KAS</h3>
         {!state.isConnected ? (
@@ -193,6 +198,6 @@ export function CovenantCrowdfundRightColumn({ campaign }: { campaign: Crowdfund
           </ul>
         )}
       </div>
-    </div>
+    </HubAsideRail>
   );
 }

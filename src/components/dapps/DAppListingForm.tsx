@@ -49,6 +49,7 @@ import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 import { HubFlowProgress } from '@/components/hub/HubFlowProgress';
 import { getHubFlowPreset } from '@/lib/hub/hubFlowProgress';
 import { HubBenefitsPanel } from '@/components/hub/HubBenefitsPanel';
+import { HubAsideRail } from '@/components/hub/HubAsideRail';
 import { htmlToPlainText } from '@/lib/richText/html';
 import {
   estimateHubListingQuote,
@@ -879,6 +880,7 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
       </div>
 
       <div className={KX_FORM_STICKY_RAIL}>
+        <HubAsideRail adSlotId="HALO_DAPPS_RIGHT" adId="ad-slot-dapp-listing-form-rail">
         <HubBenefitsPanel variant="panel" scope="dapps" />
 
         <aside className={KX_CALCULATION_ASIDE}>
@@ -915,6 +917,7 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
 
           <HubFlowProgress steps={getHubFlowPreset('hubPublish')} busy={isProcessing || isUploading} />
         </aside>
+        </HubAsideRail>
       </div>
     </form>
   );

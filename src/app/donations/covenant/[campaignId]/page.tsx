@@ -123,7 +123,7 @@ export default function CovenantCrowdfundPage({
               Donors · Claims &amp; refunds
             </Link>
 
-            <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 lg:gap-10">
+            <div className="grid grid-cols-1 items-stretch lg:grid-cols-5 gap-6 lg:gap-10">
               <div className="lg:col-span-3 space-y-6">
                 <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-hidden">
                   <div id="crowdkas-overview" className="scroll-mt-28">
@@ -255,7 +255,7 @@ export default function CovenantCrowdfundPage({
                 </div>
               </div>
 
-              <div className="lg:col-span-2">
+              <div className="lg:col-span-2 h-full min-h-full self-stretch">
                 <CovenantCrowdfundRightColumn campaign={campaign} />
               </div>
             </div>

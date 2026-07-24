@@ -12,6 +12,7 @@ import { HubFlowProgress } from '@/components/hub/HubFlowProgress';
 import { getHubFlowPreset } from '@/lib/hub/hubFlowProgress';
 import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 import { HubBenefitsPanel } from '@/components/hub/HubBenefitsPanel';
+import { HubAsideRail } from '@/components/hub/HubAsideRail';
 import { HubAccentScope } from '@/components/hub/HubAccentScope';
 import { HubDashboardPageHeader } from '@/components/hub/HubDashboardPageHeader';
 import {
@@ -889,6 +890,7 @@ export default function GamesDashboardPage() {
               </div>
 
               <div className={KX_FORM_STICKY_RAIL}>
+                <HubAsideRail adSlotId="HALO_GAMES_RIGHT" adId="ad-slot-games-listing-form-rail">
                 <HubBenefitsPanel variant="panel" scope="gamesListing" />
                 <aside className={KX_CALCULATION_ASIDE}>
                   <HubListingCalculationBreakdown
@@ -917,6 +919,7 @@ export default function GamesDashboardPage() {
                   </button>
                   <HubFlowProgress steps={getHubFlowPreset('hubPublish')} busy={isProcessing || isUploading} />
                 </aside>
+                </HubAsideRail>
               </div>
             </div>
           ) : null}

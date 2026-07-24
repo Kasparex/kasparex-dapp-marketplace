@@ -11,6 +11,7 @@ import { HubPageRightPanelGrid, HubPageRightPanelToggle } from '@/components/hub
 import { SidePanelCollapsedContentWrap } from '@/components/layout/SidePanelCollapsedContentWrap';
 import { useStoreRightPanelOpen } from '@/hooks/useStoreRightPanelOpen';
 import { useStoreComments } from '@/hooks/useStoreComments';
+import { HubAsideRail } from '@/components/hub/HubAsideRail';
 import { ProductPurchase } from '@/components/store/ProductPurchase';
 import { StoreBuyerBenefitsPanel } from '@/components/store/StoreBuyerBenefitsPanel';
 import { StoreProductPremiumPanel } from '@/components/store/StoreProductPremiumPanel';
@@ -95,11 +96,11 @@ export function StoreProductDetail({
   );
 
   const rightPanel = (
-    <div className="space-y-6">
+    <HubAsideRail adSlotId="HALO_STORE_RIGHT" adId="ad-slot-store-product-rail">
       <StoreBuyerBenefitsPanel />
       <ProductPurchase product={product} onPurchaseComplete={onPurchaseComplete} />
       <StoreProductPremiumPanel product={product} hasAccess={hasAccess} variant="sidebar" />
-    </div>
+    </HubAsideRail>
   );
 
   return (

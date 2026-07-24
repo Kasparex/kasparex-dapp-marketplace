@@ -10,6 +10,7 @@ import { DonationL1TipJar } from '@/components/donations/DonationL1TipJar';
 import type { DonationCampaignMetadata } from '@/lib/donations/types';
 import { DonationBlock } from '@/components/donations/DonationBlock';
 import { CampaignEndCountdown } from '@/components/donations/CampaignEndCountdown';
+import { HubAsideRail } from '@/components/hub/HubAsideRail';
 
 interface DonationCampaignRightColumnProps {
   campaign: DonationCampaign;
@@ -40,7 +41,11 @@ export function DonationCampaignRightColumn({
   });
 
   return (
-    <div className="flex flex-col gap-6">
+    <HubAsideRail
+      adSlotId="HALO_DONATIONS_RIGHT"
+      adId="ad-slot-crowdkas-campaign-rail"
+      className="gap-6"
+    >
       <DonationBlock
         campaign={campaign}
         layoutVariant="panel"
@@ -114,6 +119,6 @@ export function DonationCampaignRightColumn({
           campaignId={campaign.campaignIdV2}
         />
       </div>
-    </div>
+    </HubAsideRail>
   );
 }

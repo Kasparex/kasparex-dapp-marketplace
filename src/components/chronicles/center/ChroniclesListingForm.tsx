@@ -33,6 +33,7 @@ import { KxFieldCharCount } from '@/components/ui/KxFieldCharCount';
 import { HUB_FORM_LIMITS } from '@/lib/hub/formLimits';
 import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 import { HubBenefitsPanel } from '@/components/hub/HubBenefitsPanel';
+import { HubAsideRail } from '@/components/hub/HubAsideRail';
 import { HubFlowProgress } from '@/components/hub/HubFlowProgress';
 import { getHubFlowPreset } from '@/lib/hub/hubFlowProgress';
 import { htmlToPlainText } from '@/lib/richText/html';
@@ -503,6 +504,7 @@ export function ChroniclesListingForm({ onSubmitted }: { onSubmitted?: () => voi
       </div>
 
       <div className={KX_FORM_STICKY_RAIL}>
+        <HubAsideRail adSlotId="HALO_CHRONICLES_RIGHT" adId="ad-slot-chronicles-listing-form-rail">
         <HubBenefitsPanel variant="panel" scope="chronicles" />
 
         <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
@@ -558,6 +560,7 @@ export function ChroniclesListingForm({ onSubmitted }: { onSubmitted?: () => voi
 
           <HubFlowProgress steps={getHubFlowPreset('hubPublish')} busy={isProcessing || isUploading} />
         </aside>
+        </HubAsideRail>
       </div>
     </form>
   );

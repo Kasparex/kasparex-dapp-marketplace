@@ -50,7 +50,11 @@ import { L1WalletConnectLabel, type L1WalletProviderId } from '@/components/wall
 
 function resolveInitialSlotId(initial: AdSlotId | null | undefined, adsList: AdEntry[]): AdSlotId | null {
   const normalized =
-    initial === 'GAMES_PLAY_RAIL_RIGHT' ? ('HALO_GAMES_RIGHT' as AdSlotId) : initial;
+    initial === 'GAMES_PLAY_RAIL_RIGHT'
+      ? ('HALO_GAMES_RIGHT' as AdSlotId)
+      : initial === 'VBLOG_ARTICLE_ASIDE_BOTTOM'
+        ? ('HALO_VBLOG_RIGHT' as AdSlotId)
+        : initial;
   if (normalized) {
     const cfg = AD_SLOTS.find((s) => s.id === normalized);
     if (cfg && countActiveForSlot(adsList, normalized) < cfg.maxAds) return normalized;

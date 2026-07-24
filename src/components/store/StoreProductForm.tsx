@@ -36,7 +36,9 @@ import {
 } from '@/lib/payments/hubPaymentTypes';
 import { StoreSellerBenefitsPanel } from '@/components/store/StoreSellerBenefitsPanel';
 import { StoreListingCalculationPanel } from '@/components/store/StoreListingCalculationPanel';
+import { HubAsideRail } from '@/components/hub/HubAsideRail';
 import { estimateStoreListingQuote } from '@/lib/store/listingQuote';
+import { KX_FORM_STICKY_RAIL } from '@/lib/hub/shellTokens';
 import { KxInFormPremiumRow } from '@/components/ui/KxInFormPremiumRow';
 import { STORE_MODULE_OFFERS, type StoreModuleId } from '@/lib/store/modules';
 import { StoreFileUpload } from '@/components/store/StoreFileUpload';
@@ -573,7 +575,8 @@ export function StoreProductForm({ product }: StoreProductFormProps) {
         </div>
       </div>
 
-      <div className="flex flex-col gap-4 xl:sticky xl:top-6">
+      <div className={KX_FORM_STICKY_RAIL}>
+        <HubAsideRail adSlotId="HALO_STORE_RIGHT" adId="ad-slot-store-listing-form-rail">
         <StoreSellerBenefitsPanel />
 
         <StoreListingCalculationPanel
@@ -600,6 +603,7 @@ export function StoreProductForm({ product }: StoreProductFormProps) {
             </>
           }
         />
+        </HubAsideRail>
       </div>
     </form>
   );

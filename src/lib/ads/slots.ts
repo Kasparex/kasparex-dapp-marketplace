@@ -113,13 +113,7 @@ export const AD_SLOTS: AdSlotConfig[] = [
     maxAds: 5,
     rotation: 'slider',
   },
-  {
-    id: 'VBLOG_ARTICLE_ASIDE_BOTTOM',
-    label: 'vBlog article aside (bottom)',
-    pricePerDay: 80,
-    maxAds: 5,
-    rotation: 'slider',
-  },
+  // VBLOG_ARTICLE_ASIDE_BOTTOM: legacy id still valid in metadata; merged into HALO_VBLOG_RIGHT for display.
   {
     id: 'SIDEBAR_RANDOM',
     label: 'Sidebar',

@@ -81,6 +81,7 @@ export function buildCampaignMetadataV1(input: {
 
 export function isValidSlotId(id: string): id is AdSlotId {
   if (id === 'GAMES_PLAY_RAIL_RIGHT') return true;
+  if (id === 'VBLOG_ARTICLE_ASIDE_BOTTOM') return true;
   return AD_SLOTS.some((s) => s.id === id);
 }
 
@@ -98,7 +99,11 @@ export function parseAdMetadataJson(data: unknown): AdCampaignMetadataV1 | null 
   const image = o.image;
   if (typeof slotIdRaw !== 'string' || !isValidSlotId(slotIdRaw)) return null;
   const canonicalSlotId = (
-    slotIdRaw === 'GAMES_PLAY_RAIL_RIGHT' ? 'HALO_GAMES_RIGHT' : slotIdRaw
+    slotIdRaw === 'GAMES_PLAY_RAIL_RIGHT'
+      ? 'HALO_GAMES_RIGHT'
+      : slotIdRaw === 'VBLOG_ARTICLE_ASIDE_BOTTOM'
+        ? 'HALO_VBLOG_RIGHT'
+        : slotIdRaw
   ) as AdSlotId;
   if (typeof payerL1 !== 'string' || !payerL1.startsWith('kaspa:')) return null;
   if (typeof title !== 'string' || !title.trim()) return null;

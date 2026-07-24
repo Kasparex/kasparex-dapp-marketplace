@@ -130,7 +130,7 @@ function DonationCampaignPageContent() {
             <Link href="/donations/help#donors" className="kx-body hover:underline mb-4 ml-4 inline-block">
               Donors · Claims &amp; refunds
             </Link>
-            <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 lg:gap-10">
+            <div className="grid grid-cols-1 items-stretch lg:grid-cols-5 gap-6 lg:gap-10">
               {/* Left column: campaign content - 3/5 */}
               <div className="lg:col-span-3 space-y-6">
                 <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-hidden">
@@ -284,7 +284,7 @@ function DonationCampaignPageContent() {
               </div>
 
               {/* Right column: summary + leaderboard + Revenue Tree - 2/5 */}
-              <div className="lg:col-span-2">
+              <div className="lg:col-span-2 h-full min-h-full self-stretch">
                 <DonationCampaignRightColumn
                   campaign={campaign}
                   creatorAddress={creatorAddress}

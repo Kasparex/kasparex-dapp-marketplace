@@ -39,6 +39,7 @@ import { KxFieldCharCount } from '@/components/ui/KxFieldCharCount';
 import { HUB_FORM_LIMITS } from '@/lib/hub/formLimits';
 import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 import { HubBenefitsPanel } from '@/components/hub/HubBenefitsPanel';
+import { HubAsideRail } from '@/components/hub/HubAsideRail';
 import { HubFlowProgress } from '@/components/hub/HubFlowProgress';
 import { getHubFlowPreset } from '@/lib/hub/hubFlowProgress';
 import {
@@ -612,6 +613,7 @@ export function MagazineEditor() {
       </div>
 
       <div className={KX_FORM_STICKY_RAIL}>
+        <HubAsideRail adSlotId="HALO_MAGAZINES_RIGHT" adId="ad-slot-magazines-editor-form-rail">
         <HubBenefitsPanel variant="panel" scope="magazines" />
         <aside className={KX_CALCULATION_ASIDE}>
           <HubListingCalculationBreakdown
@@ -633,6 +635,7 @@ export function MagazineEditor() {
           </button>
           <HubFlowProgress steps={getHubFlowPreset('hubPublish')} busy={busyPublish} />
         </aside>
+        </HubAsideRail>
       </div>
     </form>
   );
