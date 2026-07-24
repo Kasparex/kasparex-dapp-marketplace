@@ -92,7 +92,7 @@ export function GamesSidebar({
   onSearchChange,
   onResetFilters,
   showCategories = true,
-  backLink = { href: '/games', label: 'Back to Games' },
+  backLink = { href: '/hub', label: 'Back to Hub' },
   onSectionNav,
 }: GamesSidebarProps) {
   const pathname = usePathname();

@@ -320,7 +320,7 @@ export function MiningDashboard({
                       <p className="font-semibold text-zinc-900 dark:text-zinc-100">Hub Points</p>
                       <p className="mt-2">
                         Refine from the Game Deck to credit{' '}
-                        <Link href="/rewards" className="font-semibold text-[#02abb8] hover:underline">
+                        <Link href="/rewards" className="font-semibold text-[color:var(--hub-accent,#10b981)] hover:underline">
                           Rewards & Points
                         </Link>
                         , same bridge as Minecore.

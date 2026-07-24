@@ -2,7 +2,7 @@
 
 import type { ReactNode } from 'react';
 import { KX_PREMIUM_MODULE_CARD } from '@/lib/hub/shellTokens';
-import { KX_PANEL_LABEL, KX_PROSE, KX_PROSE_LIST, KX_PROSE_LIST_ITEM, KX_PROSE_PARAGRAPH } from '@/lib/ui/kxTypography';
+import { KX_PROSE, KX_PROSE_LIST, KX_PROSE_LIST_ITEM, KX_PROSE_PARAGRAPH } from '@/lib/ui/kxTypography';
 
 function normalizeLore(raw: string): string {
   const t = raw.replace(/\r\n/g, '\n').trim();
@@ -82,18 +82,22 @@ function splitLoreIntoBlocks(raw: string): Array<{ type: 'heading' | 'p'; text: 
   return expanded.length ? expanded : [{ type: 'p', text: t }];
 }
 
-/** Small uppercase title kicker above Overview headings (Chronicles / Hub style). */
-export const GAME_OVERVIEW_KICKER = `${KX_PANEL_LABEL} mb-2 block`;
+/** Hub-accent kicker (not Chronicles cyan). */
+export const GAME_OVERVIEW_KICKER =
+  'mb-2 block text-xs font-black uppercase tracking-widest text-[color:var(--hub-accent,#10b981)]';
 
 export const GAME_OVERVIEW_SUBTITLE =
-  'mt-2 mb-6 text-base font-medium leading-7 text-zinc-500 dark:text-zinc-400';
+  'text-base font-medium leading-7 text-zinc-500 dark:text-zinc-400';
+
+export const GAME_OVERVIEW_ACCENT_LINK =
+  'font-semibold text-[color:var(--hub-accent,#10b981)] transition-colors hover:underline';
 
 /** Chronicles-style section heading for game Overview articles. */
 export const GAME_OVERVIEW_H2 =
-  'text-2xl font-bold text-zinc-900 dark:text-zinc-100 tracking-tight leading-snug';
+  'text-2xl font-bold tracking-tight leading-snug text-zinc-900 dark:text-zinc-100';
 
 export const GAME_OVERVIEW_H3 =
-  'text-xl font-bold text-zinc-900 dark:text-zinc-100 mt-12 mb-2 tracking-tight border-b border-zinc-200 dark:border-zinc-800 pb-3 leading-snug';
+  'text-xl font-bold tracking-tight leading-snug text-zinc-900 dark:text-zinc-100';
 
 export function GameOverviewTitleBlock(props: {
   kicker?: string;
@@ -107,22 +111,37 @@ export function GameOverviewTitleBlock(props: {
 }) {
   const Tag = props.as ?? 'h2';
   const titleCls = props.compact
-    ? 'text-lg font-semibold text-zinc-900 dark:text-zinc-100 leading-snug'
+    ? 'text-lg font-semibold leading-snug text-zinc-900 dark:text-zinc-100'
     : Tag === 'h2'
       ? GAME_OVERVIEW_H2
-      : GAME_OVERVIEW_H3;
+      : `${GAME_OVERVIEW_H3} border-b border-zinc-200 pb-3 dark:border-zinc-800`;
   const wrapCls =
     props.className ??
     (props.compact ? 'mb-1' : Tag === 'h2' ? 'mb-6' : 'mt-12 mb-4 first:mt-0');
+  const tiltCls = props.compact
+    ? 'hub-tilt-bar-sm mt-0.5 h-5 w-1 shrink-0 -skew-y-12 rounded-full'
+    : 'hub-tilt-bar mt-1 h-7 w-1.5 shrink-0 -skew-y-12 rounded-full';
+
   return (
     <header className={wrapCls}>
       {props.kicker?.trim() ? <span className={GAME_OVERVIEW_KICKER}>{props.kicker.trim()}</span> : null}
-      <Tag className={titleCls}>{props.title}</Tag>
-      {props.subtitle?.trim() ? (
-        <p className={props.compact ? 'mt-1 text-sm text-zinc-500 dark:text-zinc-400' : GAME_OVERVIEW_SUBTITLE}>
-          {props.subtitle.trim()}
-        </p>
-      ) : null}
+      <div className="flex items-start gap-3">
+        <span className={tiltCls} aria-hidden="true" />
+        <div className="min-w-0 flex-1">
+          <Tag className={titleCls}>{props.title}</Tag>
+          {props.subtitle?.trim() ? (
+            <div className={`flex items-start gap-2 ${props.compact ? 'mt-1' : 'mt-2'}`}>
+              <span
+                className="hub-tilt-bar-sm mt-1.5 h-4 w-1 shrink-0 -skew-y-12 rounded-full"
+                aria-hidden="true"
+              />
+              <p className={props.compact ? 'text-sm text-zinc-500 dark:text-zinc-400' : GAME_OVERVIEW_SUBTITLE}>
+                {props.subtitle.trim()}
+              </p>
+            </div>
+          ) : null}
+        </div>
+      </div>
     </header>
   );
 }
@@ -166,7 +185,9 @@ export function GameOverviewSections(props: {
 
   return (
     <div className="space-y-10">
-      <article className={KX_PROSE}>
+      <article
+        className={`${KX_PROSE} [&_a]:font-semibold [&_a]:text-[color:var(--hub-accent,#10b981)] [&_a]:hover:underline`}
+      >
         <GameOverviewTitleBlock
           as="h2"
           kicker={props.kicker ?? 'Game guide'}
@@ -236,7 +257,7 @@ export function GameOverviewSections(props: {
           </li>
           <li className="flex items-center justify-between border-b border-zinc-200/80 py-3 dark:border-zinc-800">
             <span className="text-base text-zinc-600 dark:text-zinc-400">Rewards</span>
-            <span className="text-base font-semibold text-zinc-900 dark:text-zinc-100">
+            <span className="text-base font-semibold text-[color:var(--hub-accent,#10b981)]">
               Claim later via Rewards &amp; Points
             </span>
           </li>

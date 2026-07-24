@@ -4,11 +4,11 @@ import type { ReactNode } from 'react';
 import type { Game } from '@/lib/games/games';
 import type { GameDeckResource } from '../panels/GameDeckPanel';
 import { GameMetadataPanel } from '../panels/GameMetadataPanel';
-import { GamesPlayAdRail } from '../GamesPlayAdRail';
 import { GamesWithSidebarLayout } from './GamesWithSidebarLayout';
 import { GamesHaloHeader } from '../GamesHaloHeader';
 import { HubBenefitsPanel } from '@/components/hub/HubBenefitsPanel';
 import { GamesSecurityPanel } from '@/components/games/panels/GamesSecurityPanel';
+import { GamesAsideRail } from '@/components/games/layout/GamesAsideRail';
 
 /** Partial game payloads from play dashboards (e.g. Diamond Veins) plus full registry games. */
 export type UnifiedGameLayoutGame = Partial<Game> & {
@@ -61,12 +61,11 @@ export function UnifiedGameLayout({
   };
 
   const sidebar = (
-    <div className="flex flex-col gap-4">
+    <GamesAsideRail>
       <HubBenefitsPanel variant="panel" scope="games" className="w-full" />
       <GameMetadataPanel categories={game.categories || []} tags={game.tags || []} />
       <GamesSecurityPanel />
-      <GamesPlayAdRail />
-    </div>
+    </GamesAsideRail>
   );
 
   return (

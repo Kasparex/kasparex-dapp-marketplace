@@ -17,7 +17,7 @@ import { HubBenefitsPanel } from '@/components/hub/HubBenefitsPanel';
 import { GamesSecurityPanel } from '@/components/games/panels/GamesSecurityPanel';
 import { GameMetadataPanel } from '@/components/games/panels/GameMetadataPanel';
 import { GamePurchasesPanel } from '@/components/games/panels/GamePurchasesPanel';
-import { GamesPlayAdRail } from '@/components/games/GamesPlayAdRail';
+import { GamesAsideRail } from '@/components/games/layout/GamesAsideRail';
 import { GameOverviewSections } from '@/components/games/panels/GameOverviewSections';
 import { GamePanelCard } from '@/components/games/layout/GamePanelCard';
 import { GamesAdaptiveGrid } from '@/components/games/layout/GamesAdaptiveGrid';
@@ -355,7 +355,7 @@ export function PrecisionClickDashboard(props: { featuredImage?: string; loreSto
         </>
       }
       sidebar={
-        <div className="flex flex-col gap-4">
+        <GamesAsideRail>
         <HubBenefitsPanel variant="panel" scope="games" className="w-full" />
 
         <GamePurchasesPanel>
@@ -374,21 +374,17 @@ export function PrecisionClickDashboard(props: { featuredImage?: string; loreSto
         <GameMetadataPanel categories={categories} tags={tags} />
         <GamesSecurityPanel />
 
-        <div className="rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900/60">
-          <h3 className="mb-2 text-sm font-semibold text-zinc-800 dark:text-zinc-200">Entry</h3>
+        <GamePanelCard title="Entry" hint="Pay once to begin training runs.">
           <p className="mb-4 text-sm text-zinc-600 dark:text-zinc-400">Pay once to begin training runs.</p>
           <GamePayment game={props.game} />
-        </div>
+        </GamePanelCard>
 
-        <div className="overflow-hidden rounded-2xl border border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900/50">
-          <div className="p-4">
-            <p className="text-base font-semibold text-zinc-900 dark:text-zinc-100">FAQ</p>
-            <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">Boosters are optional. Rewards are unified via the Kasparex deck.</p>
-          </div>
-        </div>
-
-        <GamesPlayAdRail />
-        </div>
+        <GamePanelCard title="FAQ">
+          <p className="text-sm text-zinc-600 dark:text-zinc-400">
+            Boosters are optional. Rewards are unified via the Kasparex deck.
+          </p>
+        </GamePanelCard>
+        </GamesAsideRail>
       }
     />
     </TooltipProvider>

@@ -17,9 +17,10 @@ import { HubBenefitsPanel } from '@/components/hub/HubBenefitsPanel';
 import { GamesSecurityPanel } from '@/components/games/panels/GamesSecurityPanel';
 import { GameMetadataPanel } from '@/components/games/panels/GameMetadataPanel';
 import { GamePurchasesPanel } from '@/components/games/panels/GamePurchasesPanel';
-import { GamesPlayAdRail } from '@/components/games/GamesPlayAdRail';
+import { GamesAsideRail } from '@/components/games/layout/GamesAsideRail';
 import { GameOverviewSections } from '@/components/games/panels/GameOverviewSections';
 import { GamePanelCard } from '@/components/games/layout/GamePanelCard';
+import { CHRONICLES_PANEL } from '@/lib/chronicles/typography';
 import { IconComments, IconMilestones, IconOverview, IconRedeem, IconRewards, IconVaults } from '@/components/games/icons/TabIcons';
 import { CardsFilterBar } from '@/components/games/CardsFilterBar';
 import { GamesAdaptiveGrid } from '@/components/games/layout/GamesAdaptiveGrid';
@@ -652,12 +653,12 @@ export function CipherVaultsDashboard({
         </>
       }
       sidebar={
-        <div className="flex flex-col gap-4">
+        <GamesAsideRail>
         <HubBenefitsPanel variant="panel" scope="games" className="w-full" />
 
         <GamePurchasesPanel>
-          <div className="rounded-xl border border-emerald-500/15 bg-emerald-500/5 p-3 text-sm text-zinc-600 dark:text-zinc-400">
-            <div className="text-xs font-semibold text-emerald-700 dark:text-emerald-300">Entry</div>
+          <div className="rounded-xl border border-[color:var(--hub-accent-border,rgba(16,185,129,0.25))] bg-[color:var(--hub-accent-muted,rgba(16,185,129,0.1))] p-3 text-sm text-zinc-600 dark:text-zinc-400">
+            <div className="text-xs font-semibold text-[color:var(--hub-accent,#10b981)]">Entry</div>
             <div className="mt-1 text-[11px]">Pay with KAS or use tickets. One active run at a time.</div>
           </div>
         </GamePurchasesPanel>
@@ -665,13 +666,16 @@ export function CipherVaultsDashboard({
         <GameMetadataPanel categories={categories} tags={tags} />
         <GamesSecurityPanel />
 
-        <div className="overflow-hidden rounded-2xl border border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900/50">
+        <div className={`${CHRONICLES_PANEL} overflow-hidden p-0`}>
           <button
             type="button"
             onClick={() => setFaqOpen((o) => !o)}
-            className="flex w-full items-center justify-between p-4 text-left text-base font-semibold text-zinc-900 transition-colors hover:bg-zinc-100 dark:text-zinc-100 dark:hover:bg-zinc-800/50"
+            className="flex w-full items-center justify-between p-4 text-left text-sm font-semibold text-zinc-700 transition-colors hover:bg-zinc-50 dark:text-zinc-200 dark:hover:bg-zinc-800/50"
           >
-            FAQ &amp; payouts
+            <span className="inline-flex items-center gap-3">
+              <span className="hub-tilt-bar-sm h-5 w-1 shrink-0 -skew-y-12 rounded-full" aria-hidden="true" />
+              FAQ &amp; payouts
+            </span>
             <svg className={`h-5 w-5 transition-transform ${faqOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
             </svg>
@@ -693,9 +697,7 @@ export function CipherVaultsDashboard({
             </div>
           )}
         </div>
-
-        <GamesPlayAdRail />
-        </div>
+        </GamesAsideRail>
       }
     />
     </TooltipProvider>

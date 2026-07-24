@@ -11,7 +11,7 @@ export function GameMetadataPanel(props: { categories?: string[]; tags?: string[
         {categories.map((c) => (
           <span
             key={c}
-            className="rounded-full border border-zinc-200 bg-white px-3 py-1 text-xs font-semibold text-zinc-700 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-300"
+            className="rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-xs font-medium text-zinc-700 dark:border-zinc-800 dark:bg-zinc-800/50 dark:text-zinc-300"
           >
             {c}
           </span>
@@ -19,7 +19,7 @@ export function GameMetadataPanel(props: { categories?: string[]; tags?: string[
         {tags.map((t) => (
           <span
             key={t}
-            className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-800 dark:text-emerald-200"
+            className="rounded-lg border border-[color:var(--hub-accent-border,rgba(16,185,129,0.25))] bg-[color:var(--hub-accent-muted,rgba(16,185,129,0.1))] px-3 py-1.5 text-xs font-medium text-[color:var(--hub-accent,#10b981)]"
           >
             {t}
           </span>
@@ -31,4 +31,3 @@ export function GameMetadataPanel(props: { categories?: string[]; tags?: string[
     </GamePanelCard>
   );
 }
-

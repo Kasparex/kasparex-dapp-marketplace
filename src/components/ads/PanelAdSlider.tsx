@@ -5,8 +5,11 @@ import { AdSlider } from '@/components/ads/AdSlider';
 
 /**
  * Standard 1:1 panel rail ad slot for right-column panels (dApps, vBlog, games, etc.).
- * Sticky within the right sidebar so the Ad Slot stays visible while main content scrolls.
- * Halo headers use AdSlider directly and are not sticky.
+ * Sticky so the Ad Slot stays in the viewport while the main column scrolls.
+ * Halo headers use AdSlider directly and stay non-sticky.
+ *
+ * Parent rail must stretch to the main column height (see HubPageRightPanelGrid)
+ * and must not use overflow:hidden on ancestors.
  */
 export function PanelAdSlider({
   slotId,
@@ -20,7 +23,7 @@ export function PanelAdSlider({
   return (
     <div
       id={id}
-      className={`scroll-mt-24 w-full min-w-0 lg:sticky lg:top-6 lg:z-10 self-start ${className}`.trim()}
+      className={`w-full min-w-0 scroll-mt-24 self-start lg:sticky lg:top-6 lg:z-20 ${className}`.trim()}
     >
       <AdSlider slotId={slotId} variant="halo" relaxHaloFrame />
     </div>
