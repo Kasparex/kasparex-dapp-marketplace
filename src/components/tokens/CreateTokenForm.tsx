@@ -18,7 +18,7 @@ import {
   TokenListingMediaPanel,
   type TokenListingMediaState,
 } from '@/components/tokens/TokenListingMediaPanel';
-import { TOKEN_MODULE_OFFERS, type TokenModuleId, getTokenModuleDiscountPercent, getTokenModuleEffectivePriceKas, type TokenModulesConfig } from '@/lib/tokens/modules';
+import { TOKEN_MODULE_OFFERS, type TokenModuleId, getTokenModuleDiscountPercent, getTokenModuleEffectivePriceKas, type TokenModulesConfig, DEFAULT_HIGHLIGHT_HALO_COLOR } from '@/lib/tokens/modules';
 import { HubPaymentPanel } from '@/components/payments/HubPaymentPanel';
 import { buildKasKrexCurrencyOptions, formatHubPaymentAmount } from '@/lib/payments/hubPaymentTypes';
 import { filterModulesForAssetKind, filterModuleOffersForListing, isIntegrationModule } from '@/lib/tokens/utilityEligibility';
@@ -31,11 +31,16 @@ import { krexTierDiscountPercent } from '@/lib/chronicles/vault/pricing';
 import type { Token } from '@/lib/tokens/types';
 import type { PublishedTokenListing, TokenAssetKind, TokenOnChainSnapshot, TokenNetworkEntry, TokenPageSectionType } from '@/lib/tokens/listingRecord';
 import { createDefaultPageConfig, applyPageSectionConfig, OVERVIEW_CANVAS_BLOCKS } from '@/lib/tokens/pageConfig';
-import { TOKEN_LISTING_NETWORK_OPTIONS } from '@/lib/tokens/listingNetwork';
+import {
+  TOKEN_LISTING_NETWORK_OPTIONS,
+  getListingNetworkShortTitle,
+  listingNetworkToTokenNetwork,
+  tokenNetworkToListingNetwork,
+} from '@/lib/tokens/listingNetwork';
 import type { TokenListingNetwork } from '@/lib/tokens/listingNetwork';
-import { listingNetworkToTokenNetwork, tokenNetworkToListingNetwork } from '@/lib/tokens/listingNetwork';
 import { TOKEN_CONTENT_LIMITS, getTokenCharacterCount } from '@/lib/tokens/limits';
 import { KxMultiSelectDropdown } from '@/components/ui/KxMultiSelectDropdown';
+import { ToggleSwitch } from '@/components/ui/ToggleSwitch';
 import type { TokenListingDraft } from '@/lib/tokens/publish';
 import { contentForRichEditor } from '@/lib/richText/html';
 import { useTokens } from '@/hooks/useTokens';
@@ -88,6 +93,17 @@ function initSecondaryNetworks(listing?: PublishedTokenListing | null): Secondar
       network: n.network,
       contractAddress: n.contractAddress ?? '',
     }));
+}
+
+function initNetworkOrder(
+  listing: PublishedTokenListing | null | undefined,
+  primary: TokenListingNetwork,
+  secondary: SecondaryNetworkRow[],
+): TokenListingNetwork[] {
+  if (listing?.networks?.length) {
+    return Array.from(new Set(listing.networks.map((n) => n.network)));
+  }
+  return Array.from(new Set([primary, ...secondary.map((row) => row.network)]));
 }
 
 interface CreateTokenFormProps {
@@ -211,6 +227,13 @@ export function CreateTokenForm({ listing, media, onMediaChange, onSuccess, onCa
   const [secondaryNetworks, setSecondaryNetworks] = useState<SecondaryNetworkRow[]>(() =>
     initSecondaryNetworks(listing),
   );
+  const [networkOrder, setNetworkOrder] = useState<TokenListingNetwork[]>(() => {
+    const secondary = initSecondaryNetworks(listing);
+    const primary =
+      listing?.listingNetwork ??
+      tokenNetworkToListingNetwork(listing?.network ?? 'L2', listing?.contractAddress);
+    return initNetworkOrder(listing, primary, secondary);
+  });
 
   const isRealToken = assetKind === 'real';
   const isKrc20Network = listingNetwork === 'krc20';
@@ -522,6 +545,15 @@ export function CreateTokenForm({ listing, media, onMediaChange, onSuccess, onCa
     if (id === 'roadmap_editor') setSectionToggles((prev) => ({ ...prev, roadmap: true }));
     if (id === 'utility_integrations') setSectionToggles((prev) => ({ ...prev, utility: true }));
     if (id === 'on_chain_poll') setSectionToggles((prev) => ({ ...prev, utility: true }));
+    if (id === 'highlighted_profile') {
+      setModulesConfig((prev) => ({
+        ...prev,
+        highlightedProfile: {
+          haloColor: prev.highlightedProfile?.haloColor ?? DEFAULT_HIGHLIGHT_HALO_COLOR,
+          badgePlacement: prev.highlightedProfile?.badgePlacement ?? 'below-title',
+        },
+      }));
+    }
   };
 
   const toggleSection = (type: TokenPageSectionType) => {
@@ -554,9 +586,14 @@ export function CreateTokenForm({ listing, media, onMediaChange, onSuccess, onCa
   };
 
   const selectedNetworkIds = useMemo(() => {
-    const ids = [listingNetwork, ...secondaryNetworks.map((row) => row.network)];
-    return Array.from(new Set(ids));
-  }, [listingNetwork, secondaryNetworks]);
+    const selected = new Set<TokenListingNetwork>([
+      listingNetwork,
+      ...secondaryNetworks.map((row) => row.network),
+    ]);
+    const ordered = networkOrder.filter((id) => selected.has(id));
+    const missing = Array.from(selected).filter((id) => !networkOrder.includes(id));
+    return [...ordered, ...missing];
+  }, [listingNetwork, secondaryNetworks, networkOrder]);
 
   const addressByNetwork = useMemo(() => {
     const map = new Map<TokenListingNetwork, string>();
@@ -585,6 +622,7 @@ export function CreateTokenForm({ listing, media, onMediaChange, onSuccess, onCa
         ? prevPrimaryAddr
         : prevSecondary.find((row) => row.network === nextPrimary)?.contractAddress ?? '';
 
+    setNetworkOrder(next);
     setListingNetwork(nextPrimary);
     setContractAddress(nextPrimaryAddr);
     if (nextPrimary !== prevPrimary) {
@@ -616,7 +654,8 @@ export function CreateTokenForm({ listing, media, onMediaChange, onSuccess, onCa
       network: listingNetwork,
       contractAddress,
     };
-    setSecondaryNetworks((prev) => [demoted, ...prev.filter((row) => row.network !== network)]);
+    // Keep display order stable; only swap primary ownership.
+    setSecondaryNetworks((prev) => [...prev.filter((row) => row.network !== network), demoted]);
     setListingNetwork(network);
     setContractAddress(nextPrimaryAddr);
     setOnChainSnapshot(null);
@@ -801,37 +840,49 @@ export function CreateTokenForm({ listing, media, onMediaChange, onSuccess, onCa
                   {selectedNetworkIds.map((network) => {
                     const isPrimary = network === listingNetwork;
                     const address = addressByNetwork.get(network) ?? '';
-                    const label =
-                      TOKEN_LISTING_NETWORK_OPTIONS.find((opt) => opt.id === network)?.label ?? network;
+                    const title = getListingNetworkShortTitle(network);
                     const hideAddressForPrimaryLookup =
                       isPrimary && isRealToken && (isKrc20Network || isKcc20Network);
+                    const addressLabel =
+                      network === 'krc20'
+                        ? 'Deployer address'
+                        : network === 'l2_kasplex' || network === 'l2_igra'
+                          ? 'Contract address'
+                          : 'Contract / ticker address';
 
                     return (
                       <div
                         key={network}
-                        className="space-y-3 rounded-xl border border-zinc-200 p-4 dark:border-zinc-800"
+                        className={`space-y-3 rounded-xl border border-dashed p-4 transition-colors ${
+                          isPrimary
+                            ? 'border-[color:var(--hub-accent)] bg-[color:var(--hub-accent-muted)]'
+                            : 'border-[color:var(--hub-accent-border)] bg-[color:var(--hub-accent-muted)]/40'
+                        }`}
                       >
-                        <div className="flex flex-wrap items-center justify-between gap-2">
-                          <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">{label}</p>
-                          <label className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-zinc-600 dark:text-zinc-300">
-                            <input
-                              type="radio"
-                              name="token-primary-network"
+                        <div className="flex flex-wrap items-center justify-between gap-3">
+                          <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">{title}</p>
+                          <div
+                            className={`flex items-center gap-2 ${
+                              !isPrimary ? 'opacity-55' : ''
+                            }`}
+                          >
+                            <span className="text-[10px] font-black uppercase tracking-widest text-zinc-500">
+                              Primary
+                            </span>
+                            <ToggleSwitch
                               checked={isPrimary}
-                              disabled={isSubmitting || onChainLocked}
-                              onChange={() => setPrimaryNetwork(network)}
+                              disabled={isSubmitting || onChainLocked || isPrimary}
+                              label={isPrimary ? 'On' : 'Off'}
+                              onChange={(on) => {
+                                if (on) setPrimaryNetwork(network);
+                              }}
                             />
-                            Primary
-                          </label>
+                          </div>
                         </div>
                         {!hideAddressForPrimaryLookup ? (
                           <div>
                             <div className="mb-2 flex items-center justify-between">
-                              <KxFormFieldLabel>
-                                {network === 'l2_kasplex' || network === 'l2_igra'
-                                  ? 'Contract address'
-                                  : 'Contract / ticker address'}
-                              </KxFormFieldLabel>
+                              <KxFormFieldLabel>{addressLabel}</KxFormFieldLabel>
                               <span className="text-xs text-zinc-500">
                                 {address.length} / {TOKEN_CONTENT_LIMITS.contractAddress.max}
                               </span>

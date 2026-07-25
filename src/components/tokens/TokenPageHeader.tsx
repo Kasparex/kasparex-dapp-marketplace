@@ -7,7 +7,7 @@ import type { Token } from '@/lib/tokens/types';
 import { loadTokenFeaturedImageUrl } from '@/lib/tokens/metadata';
 import { TokenLogo } from './TokenLogo';
 import { KxListingFeaturedPlaceholder } from '@/components/kx/KxListingFeaturedPlaceholder';
-import { tokenHasModule } from '@/lib/tokens/modules';
+import { tokenHasModule, DEFAULT_HIGHLIGHT_HALO_COLOR } from '@/lib/tokens/modules';
 import { resolveTokenCreatorWallet } from '@/lib/tokens/creatorWallet';
 import { formatAddress } from '@/lib/vblog/utils';
 import { AuthorInline } from '@/components/ui/AuthorInline';
@@ -38,6 +38,22 @@ function formatTokenType(type: Token['type']): string {
 
 const MAX_HEADER_BADGES = 4;
 
+function hexToRgba(hex: string, alpha: number): string {
+  const raw = hex.replace('#', '').trim();
+  const full =
+    raw.length === 3
+      ? raw
+          .split('')
+          .map((c) => `${c}${c}`)
+          .join('')
+      : raw;
+  if (!/^[0-9a-fA-F]{6}$/.test(full)) return `rgba(2, 171, 184, ${alpha})`;
+  const r = parseInt(full.slice(0, 2), 16);
+  const g = parseInt(full.slice(2, 4), 16);
+  const b = parseInt(full.slice(4, 6), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
 export function TokenPageHeader({ token, onNavigateTab }: TokenPageHeaderProps) {
   const router = useRouter();
   const { state: kaspaState } = useKaspaWallet();
@@ -49,6 +65,9 @@ export function TokenPageHeader({ token, onNavigateTab }: TokenPageHeaderProps) 
   const isWalletConnected = kaspaState.isConnected || isConnected;
   const isVerifiedDeveloper = Boolean(token.listing?.verified && isWalletConnected);
   const isHighlighted = tokenHasModule(token.paidModuleIds, 'highlighted_profile');
+  const highlightConfig = token.modulesConfig?.highlightedProfile;
+  const haloColor = highlightConfig?.haloColor?.trim() || DEFAULT_HIGHLIGHT_HALO_COLOR;
+  const badgePlacement = highlightConfig?.badgePlacement ?? 'below-title';
   const creatorWallet = resolveTokenCreatorWallet(token);
   const networkEntries = getTokenNetworkEntries(token);
   const primaryNetwork = networkEntries.find((e) => e.primary) ?? networkEntries[0];
@@ -135,28 +154,79 @@ export function TokenPageHeader({ token, onNavigateTab }: TokenPageHeaderProps) 
     router.push(`/tokens/dashboard?edit=${encodeURIComponent(token.slug)}`);
   };
 
+  const badgeNodes = badges.slice(0, MAX_HEADER_BADGES).map((b) => {
+    const tone = b.tone ?? 'default';
+    const className =
+      tone === 'player'
+        ? 'rounded-lg border border-cyan-500/35 bg-cyan-500/10 px-3 py-1.5 text-xs font-medium text-cyan-800 dark:text-cyan-200'
+        : tone === 'accent'
+          ? 'rounded-lg border border-[color:var(--hub-accent-border)] bg-[color:var(--hub-accent-muted)] px-3 py-1.5 text-xs font-medium text-[color:var(--hub-accent)]'
+          : 'rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-xs font-medium text-zinc-700 dark:border-zinc-700 dark:bg-zinc-800/50 dark:text-zinc-300';
+    return (
+      <span key={b.key} className={className}>
+        {b.label}
+      </span>
+    );
+  });
+
+  const badgesRow = (
+    <div className="flex min-w-0 flex-wrap gap-2">{badgeNodes}</div>
+  );
+
   return (
     <div
       id="token-header"
       className={`relative mb-10 scroll-mt-24 overflow-hidden rounded-2xl border bg-white select-text dark:bg-zinc-900 ${
-        isHighlighted
-          ? 'border-amber-400/60 shadow-[0_0_40px_-12px_rgba(251,191,36,0.45)]'
-          : 'border-zinc-200 dark:border-zinc-800'
+        isHighlighted ? '' : 'border-zinc-200 dark:border-zinc-800'
       }`}
+      style={
+        isHighlighted
+          ? {
+              borderColor: hexToRgba(haloColor, 0.6),
+              boxShadow: `0 0 40px -12px ${hexToRgba(haloColor, 0.45)}`,
+            }
+          : undefined
+      }
     >
       <div
-        className={`absolute inset-0 bg-gradient-to-br via-transparent to-transparent ${
-          isHighlighted ? 'from-amber-500/10' : 'from-[color:var(--hub-accent-muted)]'
-        }`}
+        className="absolute inset-0 bg-gradient-to-br via-transparent to-transparent"
+        style={{
+          backgroundImage: isHighlighted
+            ? `linear-gradient(to bottom right, ${hexToRgba(haloColor, 0.12)}, transparent, transparent)`
+            : undefined,
+        }}
       />
+      {!isHighlighted ? (
+        <div className="absolute inset-0 bg-gradient-to-br from-[color:var(--hub-accent-muted)] via-transparent to-transparent" />
+      ) : null}
 
       <div className="relative flex min-h-[360px] flex-col lg:flex-row">
         <div className="relative flex w-full flex-1 flex-col p-6 sm:p-8 lg:w-1/2 lg:p-10">
-          <div className="absolute right-6 top-6 z-10 sm:right-8 sm:top-8 lg:right-10 lg:top-10">
-            <TokenNetworkChips token={token} className="justify-end" />
+          <div
+            className={`absolute z-10 ${
+              badgePlacement === 'top-left'
+                ? 'left-6 top-6 sm:left-8 sm:top-8 lg:left-10 lg:top-10'
+                : 'right-6 top-6 sm:right-8 sm:top-8 lg:right-10 lg:top-10'
+            }`}
+          >
+            <div className="flex flex-col items-end gap-2">
+              {isHighlighted && badgePlacement === 'top-right' ? badgesRow : null}
+              {isHighlighted && badgePlacement === 'top-left' ? (
+                <div className="flex flex-col items-start gap-2">
+                  {badgesRow}
+                  <TokenNetworkChips token={token} className="justify-start" />
+                </div>
+              ) : (
+                <TokenNetworkChips token={token} className="justify-end" />
+              )}
+            </div>
           </div>
 
-          <div className="mb-3 flex items-center gap-3 pr-28">
+          <div
+            className={`mb-3 flex items-center gap-3 ${
+              badgePlacement === 'top-left' ? 'pr-8' : 'pr-28'
+            }`}
+          >
             <TokenLogo token={token} size={40} showName={false} showSymbol={false} shape="rounded" className="flex-shrink-0" />
             <span className="hub-tilt-bar h-7 w-1.5 shrink-0 rounded-full" aria-hidden="true" />
             <h1 className="min-w-0 text-3xl font-black leading-tight tracking-tight text-zinc-900 dark:text-white sm:text-4xl">
@@ -174,22 +244,7 @@ export function TokenPageHeader({ token, onNavigateTab }: TokenPageHeaderProps) 
           ) : null}
 
           <div className="mb-5 flex items-center justify-between gap-3">
-            <div className="flex min-w-0 flex-wrap gap-2">
-              {badges.slice(0, MAX_HEADER_BADGES).map((b) => {
-                const tone = b.tone ?? 'default';
-                const className =
-                  tone === 'player'
-                    ? 'rounded-lg border border-cyan-500/35 bg-cyan-500/10 px-3 py-1.5 text-xs font-medium text-cyan-800 dark:text-cyan-200'
-                    : tone === 'accent'
-                      ? 'rounded-lg border border-[color:var(--hub-accent-border)] bg-[color:var(--hub-accent-muted)] px-3 py-1.5 text-xs font-medium text-[color:var(--hub-accent)]'
-                      : 'rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-xs font-medium text-zinc-700 dark:border-zinc-700 dark:bg-zinc-800/50 dark:text-zinc-300';
-                return (
-                  <span key={b.key} className={className}>
-                    {b.label}
-                  </span>
-                );
-              })}
-            </div>
+            {!isHighlighted || badgePlacement === 'below-title' ? badgesRow : <div />}
             <div className="shrink-0">
               <TokenVoteControls token={token} compact />
             </div>

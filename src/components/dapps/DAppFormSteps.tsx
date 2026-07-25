@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { DApp, DAppStatus } from '@/lib/dapps';
 import { Category, categories } from '@/lib/categories';
+import { KxFormDropdown } from '@/components/ui/KxFormDropdown';
 
 interface FormStepProps {
   formData: Partial<DApp>;
@@ -44,17 +45,15 @@ export function BasicInfoStep({ formData, onUpdate }: FormStepProps) {
           <label className="k-label">
             Category <span className="text-red-500">*</span>
           </label>
-          <select
+          <KxFormDropdown
+            ariaLabel="dApp category"
             value={formData.category || 'general'}
-            onChange={(e) => onUpdate({ category: e.target.value as Category })}
-            className="k-select"
-          >
-            {categoryOptions.map((cat) => (
-              <option key={cat.id} value={cat.id}>
-                {cat.emoji} {cat.name}
-              </option>
-            ))}
-          </select>
+            onChange={(next) => onUpdate({ category: next as Category })}
+            options={categoryOptions.map((cat) => ({
+              value: cat.id,
+              label: `${cat.emoji} ${cat.name}`,
+            }))}
+          />
         </div>
 
         <div>
@@ -130,34 +129,24 @@ export function BasicInfoStep({ formData, onUpdate }: FormStepProps) {
           <label className="k-label">
             Status
           </label>
-          <select
+          <KxFormDropdown
+            ariaLabel="dApp status"
             value={formData.status || 'Testnet'}
-            onChange={(e) => onUpdate({ status: e.target.value as DAppStatus })}
-            className="k-select"
-          >
-            {statusOptions.map((status) => (
-              <option key={status} value={status}>
-                {status}
-              </option>
-            ))}
-          </select>
+            onChange={(next) => onUpdate({ status: next as DAppStatus })}
+            options={statusOptions.map((status) => ({ value: status, label: status }))}
+          />
         </div>
 
         <div>
           <label className="k-label">
             Network
           </label>
-          <select
+          <KxFormDropdown
+            ariaLabel="dApp network"
             value={formData.network || 'Testnet'}
-            onChange={(e) => onUpdate({ network: e.target.value })}
-            className="k-select"
-          >
-            {networkOptions.map((network) => (
-              <option key={network} value={network}>
-                {network}
-              </option>
-            ))}
-          </select>
+            onChange={(next) => onUpdate({ network: next })}
+            options={networkOptions.map((network) => ({ value: network, label: network }))}
+          />
         </div>
       </div>
 

@@ -5,9 +5,14 @@ import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 import { TokenRoadmapEditor } from '@/components/tokens/TokenRoadmapEditor';
 import { TokenMarketsEditor } from '@/components/tokens/TokenMarketsEditor';
 import { KxRichTextEditor } from '@/components/ui/KxRichTextEditor';
+import { KxFormDropdown } from '@/components/ui/KxFormDropdown';
+import { KxFormFieldLabel } from '@/components/ui/KxFormFieldLabel';
+import { ToggleSwitch } from '@/components/ui/ToggleSwitch';
 import {
   cleanPollOptions,
+  DEFAULT_HIGHLIGHT_HALO_COLOR,
   defaultTokenPollConfig,
+  type TokenHighlightedBadgePlacement,
   type TokenModuleId,
   type TokenModulesConfig,
 } from '@/lib/tokens/modules';
@@ -35,12 +40,19 @@ type TokenModuleConfigFieldsProps = {
   bare?: boolean;
 };
 
+const BADGE_PLACEMENT_OPTIONS: { value: TokenHighlightedBadgePlacement; label: string }[] = [
+  { value: 'below-title', label: 'Below title' },
+  { value: 'top-right', label: 'Top right' },
+  { value: 'top-left', label: 'Top left' },
+];
+
 function moduleHasConfigFields(moduleId: TokenModuleConfigTarget): boolean {
   return (
     moduleId === 'roadmap_editor' ||
     moduleId === 'timeline_builder' ||
     moduleId === 'on_chain_poll' ||
     moduleId === 'utility_integrations' ||
+    moduleId === 'highlighted_profile' ||
     moduleId === 'covenant_utilities_hub' ||
     moduleId === 'access_gate' ||
     moduleId === 'native_subscriptions' ||
@@ -74,6 +86,8 @@ export function TokenModuleConfigFields({
     (!moduleId || moduleId === 'utility_integrations') &&
     isRealToken &&
     enabledModuleIds.has('utility_integrations');
+  const showHighlighted =
+    (!moduleId || moduleId === 'highlighted_profile') && enabledModuleIds.has('highlighted_profile');
   const showCovenantHub =
     (!moduleId || moduleId === 'covenant_utilities_hub') &&
     isRealToken &&
@@ -95,6 +109,7 @@ export function TokenModuleConfigFields({
     !showRoadmap &&
     !showPoll &&
     !showUtility &&
+    !showHighlighted &&
     !showMarkets &&
     !showCovenantHub &&
     !showAccessGate &&
@@ -105,6 +120,9 @@ export function TokenModuleConfigFields({
 
   const poll = config.poll ?? defaultTokenPollConfig();
   const utilityProducts = config.utilityProducts ?? [];
+  const highlightedProfile = config.highlightedProfile ?? {};
+  const haloColor = highlightedProfile.haloColor?.trim() || DEFAULT_HIGHLIGHT_HALO_COLOR;
+  const badgePlacement = highlightedProfile.badgePlacement ?? 'below-title';
   const covenantTemplates = config.covenantUtilityTemplates ?? COVENANT_UTILITY_TEMPLATES.map((t) => t.id);
   const accessGate = config.accessGate ?? { holderOnly: true };
 
@@ -182,35 +200,118 @@ export function TokenModuleConfigFields({
             {HUB_UTILITY_PRODUCTS.map((product) => {
               const checked = utilityProducts.includes(product.id);
               return (
-                <label
+                <div
                   key={product.id}
-                  className={`flex cursor-pointer items-start gap-3 rounded-xl border p-3 transition ${
+                  className={`flex items-start justify-between gap-3 rounded-xl border border-dashed p-3 transition ${
                     checked
-                      ? 'border-[#02abb8]/40 bg-[#02abb8]/5'
+                      ? 'border-[color:var(--hub-accent)] bg-[color:var(--hub-accent-muted)]'
                       : 'border-zinc-200 dark:border-zinc-700'
                   }`}
                 >
-                  <input
-                    type="checkbox"
-                    className="mt-1"
-                    checked={checked}
-                    disabled={disabled}
-                    onChange={() => {
-                      const next = checked
-                        ? utilityProducts.filter((id) => id !== product.id)
-                        : [...utilityProducts, product.id];
-                      onChange({ ...config, utilityProducts: next });
-                    }}
-                  />
-                  <span>
+                  <span className="min-w-0">
                     <span className="block text-sm font-semibold text-zinc-900 dark:text-zinc-100">
                       {product.label}
                     </span>
                     <span className="block text-xs text-zinc-500 dark:text-zinc-400">{product.description}</span>
                   </span>
-                </label>
+                  <ToggleSwitch
+                    checked={checked}
+                    disabled={disabled}
+                    label={checked ? 'On' : 'Off'}
+                    onChange={(on) => {
+                      const next = on
+                        ? [...utilityProducts, product.id]
+                        : utilityProducts.filter((id) => id !== product.id);
+                      onChange({ ...config, utilityProducts: next });
+                    }}
+                  />
+                </div>
               );
             })}
+          </div>
+        </div>
+      ) : null}
+
+      {showHighlighted ? (
+        <div className={setupShellClass}>
+          {!bare ? <DAppSectionHeader title="Highlighted profile styling" className="mb-1" /> : null}
+          <p className="kx-body-sm">
+            Pick a custom halo color and where badges sit on your token page. Default color is the Hub accent.
+          </p>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div>
+              <KxFormFieldLabel>Halo color</KxFormFieldLabel>
+              <div className="mt-2 flex items-center gap-3">
+                <input
+                  type="color"
+                  value={haloColor}
+                  disabled={disabled}
+                  onChange={(e) =>
+                    onChange({
+                      ...config,
+                      highlightedProfile: {
+                        ...highlightedProfile,
+                        haloColor: e.target.value,
+                      },
+                    })
+                  }
+                  className="h-10 w-14 cursor-pointer rounded-lg border border-zinc-200 bg-transparent p-1 dark:border-zinc-700"
+                  aria-label="Highlighted halo color"
+                />
+                <input
+                  type="text"
+                  value={haloColor}
+                  disabled={disabled}
+                  onChange={(e) =>
+                    onChange({
+                      ...config,
+                      highlightedProfile: {
+                        ...highlightedProfile,
+                        haloColor: e.target.value || DEFAULT_HIGHLIGHT_HALO_COLOR,
+                      },
+                    })
+                  }
+                  className="k-input flex-1 font-mono text-sm"
+                  placeholder={DEFAULT_HIGHLIGHT_HALO_COLOR}
+                />
+                <button
+                  type="button"
+                  disabled={disabled}
+                  onClick={() =>
+                    onChange({
+                      ...config,
+                      highlightedProfile: {
+                        ...highlightedProfile,
+                        haloColor: DEFAULT_HIGHLIGHT_HALO_COLOR,
+                      },
+                    })
+                  }
+                  className="k-control-btn text-xs"
+                >
+                  Accent
+                </button>
+              </div>
+            </div>
+            <div>
+              <KxFormFieldLabel>Badge placement</KxFormFieldLabel>
+              <div className="mt-2">
+                <KxFormDropdown
+                  ariaLabel="Highlighted badge placement"
+                  value={badgePlacement}
+                  disabled={disabled}
+                  options={BADGE_PLACEMENT_OPTIONS}
+                  onChange={(next) =>
+                    onChange({
+                      ...config,
+                      highlightedProfile: {
+                        ...highlightedProfile,
+                        badgePlacement: next as TokenHighlightedBadgePlacement,
+                      },
+                    })
+                  }
+                />
+              </div>
+            </div>
           </div>
         </div>
       ) : null}
@@ -223,31 +324,32 @@ export function TokenModuleConfigFields({
             {COVENANT_UTILITY_TEMPLATES.map((template) => {
               const checked = covenantTemplates.includes(template.id);
               return (
-                <label
+                <div
                   key={template.id}
-                  className={`flex cursor-pointer items-start gap-3 rounded-xl border p-3 transition ${
-                    checked ? 'border-[#02abb8]/40 bg-[#02abb8]/5' : 'border-zinc-200 dark:border-zinc-700'
+                  className={`flex items-start justify-between gap-3 rounded-xl border border-dashed p-3 transition ${
+                    checked
+                      ? 'border-[color:var(--hub-accent)] bg-[color:var(--hub-accent-muted)]'
+                      : 'border-zinc-200 dark:border-zinc-700'
                   }`}
                 >
-                  <input
-                    type="checkbox"
-                    className="mt-1"
-                    checked={checked}
-                    disabled={disabled}
-                    onChange={() => {
-                      const next = checked
-                        ? covenantTemplates.filter((id) => id !== template.id)
-                        : [...covenantTemplates, template.id];
-                      onChange({ ...config, covenantUtilityTemplates: next as CovenantUtilityTemplateId[] });
-                    }}
-                  />
-                  <span>
+                  <span className="min-w-0">
                     <span className="block text-sm font-semibold text-zinc-900 dark:text-zinc-100">
                       {template.label}
                     </span>
                     <span className="block text-xs text-zinc-500 dark:text-zinc-400">{template.description}</span>
                   </span>
-                </label>
+                  <ToggleSwitch
+                    checked={checked}
+                    disabled={disabled}
+                    label={checked ? 'On' : 'Off'}
+                    onChange={(on) => {
+                      const next = on
+                        ? [...covenantTemplates, template.id]
+                        : covenantTemplates.filter((id) => id !== template.id);
+                      onChange({ ...config, covenantUtilityTemplates: next as CovenantUtilityTemplateId[] });
+                    }}
+                  />
+                </div>
               );
             })}
           </div>

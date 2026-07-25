@@ -55,6 +55,18 @@ export type TokenAccessGateConfig = {
   unlockUrl?: string;
 };
 
+export type TokenHighlightedBadgePlacement = 'below-title' | 'top-right' | 'top-left';
+
+export type TokenHighlightedProfileConfig = {
+  /** Halo border / glow color. Defaults to Hub accent. */
+  haloColor?: string;
+  /** Where header badges sit on the token page. */
+  badgePlacement?: TokenHighlightedBadgePlacement;
+};
+
+/** Default highlighted halo (Hub accent). */
+export const DEFAULT_HIGHLIGHT_HALO_COLOR = '#02abb8';
+
 export type TokenModulesConfig = {
   roadmap?: TokenRoadmapMilestone[];
   roadmapIntro?: string;
@@ -62,6 +74,8 @@ export type TokenModulesConfig = {
   markets?: TokenMarketEntry[];
   poll?: TokenPollConfig;
   utilityProducts?: HubUtilityProductId[];
+  /** Highlighted Profile module styling. */
+  highlightedProfile?: TokenHighlightedProfileConfig;
   /** Programmable-only: linked Kasparex covenant dApp templates. */
   covenantUtilityTemplates?: CovenantUtilityTemplateId[];
   /** Programmable-only: gated content rules. */

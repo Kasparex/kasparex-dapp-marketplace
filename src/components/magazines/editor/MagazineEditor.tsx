@@ -35,6 +35,7 @@ import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { KxRichTextEditor } from '@/components/ui/KxRichTextEditor';
 import { KxInFormPremiumRow } from '@/components/ui/KxInFormPremiumRow';
 import { KxFormFieldLabel } from '@/components/ui/KxFormFieldLabel';
+import { KxFormDropdown } from '@/components/ui/KxFormDropdown';
 import { KxFieldCharCount } from '@/components/ui/KxFieldCharCount';
 import { HUB_FORM_LIMITS } from '@/lib/hub/formLimits';
 import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
@@ -451,18 +452,19 @@ export function MagazineEditor() {
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div>
               <KxFormFieldLabel>Existing magazine</KxFormFieldLabel>
-              <select
+              <KxFormDropdown
+                ariaLabel="Existing magazine"
                 value={existingMagazineId}
-                onChange={(e) => setExistingMagazineId(e.target.value)}
-                className="k-select"
-              >
-                <option value="">New magazine (use slug below)</option>
-                {myMagazines.map((m) => (
-                  <option key={m.id} value={m.id}>
-                    {m.name} ({m.slug})
-                  </option>
-                ))}
-              </select>
+                onChange={setExistingMagazineId}
+                placeholder="New magazine (use slug below)"
+                options={[
+                  { value: '', label: 'New magazine (use slug below)' },
+                  ...myMagazines.map((m) => ({
+                    value: m.id,
+                    label: `${m.name} (${m.slug})`,
+                  })),
+                ]}
+              />
             </div>
             <div>
               <KxFormFieldLabel>Issue price (KAS)</KxFormFieldLabel>
@@ -533,16 +535,18 @@ export function MagazineEditor() {
                 className="k-input font-mono text-xs"
               />
               <div className="flex items-center gap-2">
-                <select
+                <KxFormDropdown
+                  ariaLabel="Contributor role"
                   value={c.role}
-                  onChange={(e) => updateContributor(i, { role: e.target.value as ContributorRole })}
-                  className="k-select flex-1"
-                >
-                  <option>Author</option>
-                  <option>Writer</option>
-                  <option>Designer</option>
-                  <option>Editor</option>
-                </select>
+                  onChange={(next) => updateContributor(i, { role: next as ContributorRole })}
+                  className="flex-1"
+                  options={[
+                    { value: 'Author', label: 'Author' },
+                    { value: 'Writer', label: 'Writer' },
+                    { value: 'Designer', label: 'Designer' },
+                    { value: 'Editor', label: 'Editor' },
+                  ]}
+                />
                 <input
                   type="number"
                   min={0}

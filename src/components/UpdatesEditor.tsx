@@ -4,6 +4,7 @@ import { useState, useImperativeHandle, forwardRef } from 'react';
 import type { TimelineEntry, Category, EntryType, EntryStatus, EntryPriority } from '@/lib/updates';
 import { getCategoryLabel } from '@/lib/updates';
 import { useKxSystemDialog } from '@/hooks/useKxSystemDialog';
+import { KxFormDropdown } from '@/components/ui/KxFormDropdown';
 
 interface UpdatesEditorProps {
   onEntryAdded?: () => void;
@@ -232,18 +233,15 @@ export const UpdatesEditor = forwardRef<UpdatesEditorHandle, UpdatesEditorProps>
                 <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
                   Category
                 </label>
-                <select
+                <KxFormDropdown
+                  ariaLabel="Entry category"
                   value={category}
-                  onChange={(e) => setCategory(e.target.value as Category)}
-                  className="w-full px-3 py-2 border border-zinc-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 focus:ring-2 focus:ring-[#02abb8] focus:border-transparent"
-                  required
-                >
-                  {categories.map((cat) => (
-                    <option key={cat} value={cat}>
-                      {getCategoryLabel(cat)}
-                    </option>
-                  ))}
-                </select>
+                  onChange={(next) => setCategory(next as Category)}
+                  options={categories.map((cat) => ({
+                    value: cat,
+                    label: getCategoryLabel(cat),
+                  }))}
+                />
               </div>
 
               <div>
@@ -279,17 +277,15 @@ export const UpdatesEditor = forwardRef<UpdatesEditorHandle, UpdatesEditorProps>
                   <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
                     Type
                   </label>
-                  <select
+                  <KxFormDropdown
+                    ariaLabel="Entry type"
                     value={type}
-                    onChange={(e) => setType(e.target.value as EntryType)}
-                    className="w-full px-3 py-2 border border-zinc-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 focus:ring-2 focus:ring-[#02abb8] focus:border-transparent"
-                  >
-                    {entryTypes.map((t) => (
-                      <option key={t} value={t}>
-                        {t.charAt(0).toUpperCase() + t.slice(1)}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={(next) => setType(next as EntryType)}
+                    options={entryTypes.map((t) => ({
+                      value: t,
+                      label: t.charAt(0).toUpperCase() + t.slice(1),
+                    }))}
+                  />
                 </div>
 
                 <div>
@@ -311,18 +307,19 @@ export const UpdatesEditor = forwardRef<UpdatesEditorHandle, UpdatesEditorProps>
                   <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
                     Status
                   </label>
-                  <select
+                  <KxFormDropdown
+                    ariaLabel="Entry status"
                     value={status}
-                    onChange={(e) => setStatus(e.target.value as EntryStatus | '')}
-                    className="w-full px-3 py-2 border border-zinc-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 focus:ring-2 focus:ring-[#02abb8] focus:border-transparent"
-                  >
-                    <option value="">None</option>
-                    {statuses.map((s) => (
-                      <option key={s} value={s}>
-                        {s.charAt(0).toUpperCase() + s.slice(1).replace('-', ' ')}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={(next) => setStatus(next as EntryStatus | '')}
+                    placeholder="None"
+                    options={[
+                      { value: '', label: 'None' },
+                      ...statuses.map((s) => ({
+                        value: s,
+                        label: s.charAt(0).toUpperCase() + s.slice(1).replace('-', ' '),
+                      })),
+                    ]}
+                  />
                 </div>
               )}
 
@@ -331,18 +328,19 @@ export const UpdatesEditor = forwardRef<UpdatesEditorHandle, UpdatesEditorProps>
                   <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
                     Priority
                   </label>
-                  <select
+                  <KxFormDropdown
+                    ariaLabel="Entry priority"
                     value={priority}
-                    onChange={(e) => setPriority(e.target.value as EntryPriority | '')}
-                    className="w-full px-3 py-2 border border-zinc-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 focus:ring-2 focus:ring-[#02abb8] focus:border-transparent"
-                  >
-                    <option value="">None</option>
-                    {priorities.map((p) => (
-                      <option key={p} value={p}>
-                        {p.charAt(0).toUpperCase() + p.slice(1)}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={(next) => setPriority(next as EntryPriority | '')}
+                    placeholder="None"
+                    options={[
+                      { value: '', label: 'None' },
+                      ...priorities.map((p) => ({
+                        value: p,
+                        label: p.charAt(0).toUpperCase() + p.slice(1),
+                      })),
+                    ]}
+                  />
                 </div>
               )}
 

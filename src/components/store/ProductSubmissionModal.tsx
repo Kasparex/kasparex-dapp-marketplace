@@ -11,6 +11,7 @@ import { extractKaspaTransactionId } from '@/lib/kaspa/transactionId';
 import { creditHubListingEarn } from '@/lib/rewards/creditHubListingEarn';
 import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
+import { KxFormDropdown } from '@/components/ui/KxFormDropdown';
 
 interface ProductSubmissionModalProps {
   isOpen: boolean;
@@ -309,17 +310,12 @@ export function ProductSubmissionModal({
                 <label className="k-label">
                   Category *
                 </label>
-                <select
+                <KxFormDropdown
+                  ariaLabel="Product category"
                   value={formData.category}
-                  onChange={(e) => setFormData({ ...formData, category: e.target.value as ProductCategory })}
-                  className="k-select"
-                >
-                  {categories.map((cat) => (
-                    <option key={cat} value={cat}>
-                      {cat}
-                    </option>
-                  ))}
-                </select>
+                  onChange={(next) => setFormData({ ...formData, category: next as ProductCategory })}
+                  options={categories.map((cat) => ({ value: cat, label: cat }))}
+                />
               </div>
 
               {/* Network */}

@@ -11,6 +11,7 @@ import { parseEther } from 'viem';
 import { getErrorMessage } from '@/lib/utils';
 import { useSafeError } from '@/hooks/useSafeError';
 import Link from 'next/link';
+import { KxFormDropdown } from '@/components/ui/KxFormDropdown';
 
 export function SubscriptionManager() {
   const { dApps } = useMyDApps();
@@ -166,23 +167,24 @@ export function SubscriptionManager() {
         <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
           Select dApp
         </label>
-        <select
+        <KxFormDropdown
+          ariaLabel="Select dApp"
           value={selectedDApp || ''}
-          onChange={(e) => {
-            setSelectedDApp(e.target.value);
+          placeholder="-- Select a dApp --"
+          onChange={(next) => {
+            setSelectedDApp(next || null);
             setMonthlyPrice('');
             setQuarterlyPrice('');
             setYearlyPrice('');
           }}
-          className="w-full px-3 py-2 border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#02abb8]"
-        >
-          <option value="">-- Select a dApp --</option>
-          {dAppsWithContracts.map((dapp) => (
-            <option key={dapp.id} value={dapp.contractAddress}>
-              {dapp.name} ({dapp.contractAddress?.slice(0, 10)}...)
-            </option>
-          ))}
-        </select>
+          options={[
+            { value: '', label: '-- Select a dApp --' },
+            ...dAppsWithContracts.map((dapp) => ({
+              value: dapp.contractAddress || '',
+              label: `${dapp.name} (${dapp.contractAddress?.slice(0, 10)}...)`,
+            })),
+          ]}
+        />
       </div>
 
       {selectedDApp && (

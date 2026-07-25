@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { MyDApp } from '@/hooks/useMyDApps';
 import { getCategoryById } from '@/lib/categories';
 import { DAppQuickActions } from './DAppQuickActions';
+import { KxFormDropdown } from '@/components/ui/KxFormDropdown';
 
 interface MyDAppsListProps {
   dApps: MyDApp[];
@@ -85,20 +86,21 @@ export function MyDAppsList({ dApps, isLoading, isEmpty }: MyDAppsListProps) {
           </div>
         </div>
         <div className="sm:w-48">
-          <select
+          <KxFormDropdown
+            ariaLabel="Filter by status"
             value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="w-full px-4 py-2 border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#02abb8]"
-          >
-            <option value="all">All Status</option>
-            <option value="Mainnet">Mainnet</option>
-            <option value="Testnet">Testnet</option>
-            <option value="Concept">Concept</option>
-            <option value="Prototype">Prototype</option>
-            <option value="U/C">U/C</option>
-            <option value="Suspended">Suspended</option>
-            <option value="Devnet">Devnet</option>
-          </select>
+            onChange={setStatusFilter}
+            options={[
+              { value: 'all', label: 'All Status' },
+              { value: 'Mainnet', label: 'Mainnet' },
+              { value: 'Testnet', label: 'Testnet' },
+              { value: 'Concept', label: 'Concept' },
+              { value: 'Prototype', label: 'Prototype' },
+              { value: 'U/C', label: 'U/C' },
+              { value: 'Suspended', label: 'Suspended' },
+              { value: 'Devnet', label: 'Devnet' },
+            ]}
+          />
         </div>
       </div>
 

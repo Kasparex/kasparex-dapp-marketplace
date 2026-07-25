@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { KxFormFieldLabel } from '@/components/ui/KxFormFieldLabel';
+import { KxFormDropdown } from '@/components/ui/KxFormDropdown';
 import { KxRichTextEditor } from '@/components/ui/KxRichTextEditor';
 import { KX_FORM_ADD_BTN_CLASS } from '@/components/ui/KxLinkRowsEditor';
 import type { TokenRoadmapMilestone } from '@/lib/tokens/modules';
@@ -90,20 +91,20 @@ export function TokenRoadmapEditor({
             </div>
             <div>
               <KxFormFieldLabel>Status</KxFormFieldLabel>
-              <select
-                className="k-input mt-1 w-full"
-                value={milestone.status ?? 'upcoming'}
-                disabled={disabled}
-                onChange={(e) =>
-                  update(index, { status: e.target.value as TokenRoadmapMilestone['status'] })
-                }
-              >
-                {STATUS_OPTIONS.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
+              <div className="mt-1">
+                <KxFormDropdown
+                  ariaLabel={`Milestone ${index + 1} status`}
+                  value={milestone.status ?? 'upcoming'}
+                  disabled={disabled}
+                  options={STATUS_OPTIONS.map((opt) => ({
+                    value: opt.value as string,
+                    label: opt.label,
+                  }))}
+                  onChange={(next) =>
+                    update(index, { status: next as TokenRoadmapMilestone['status'] })
+                  }
+                />
+              </div>
             </div>
           </div>
           <div>

@@ -7,6 +7,7 @@ import { CrowdKasModulesPanel } from '@/components/donations/CrowdKasModulesPane
 import { DonationCategoryField } from '@/components/donations/DonationCategoryField';
 import { CROWDKAS_FORM_PANEL_CLASS, CROWDKAS_PREMIUM_MODULE_CARD_CLASS } from '@/components/donations/crowdkasFormTheme';
 import { KxFormFieldLabel } from '@/components/ui/KxFormFieldLabel';
+import { KxFormDropdown } from '@/components/ui/KxFormDropdown';
 import { KxRichTextEditor } from '@/components/ui/KxRichTextEditor';
 import { KxInFormPremiumRow } from '@/components/ui/KxInFormPremiumRow';
 import { CrowdKasPremiumSectionFields } from '@/components/donations/CrowdKasPremiumSectionFields';
@@ -341,17 +342,18 @@ export function CrowdKasEditCampaignForm<T extends CrowdKasEditFormState>({
             </label>
             {form.l1TipGiftEnabled ? (
               <div className="space-y-2 pt-1">
-                <select
+                <KxFormDropdown
+                  ariaLabel="L1 tip gift type"
                   value={form.l1TipGiftType}
-                  onChange={(e) =>
-                    onFormChange((f) => ({ ...f, l1TipGiftType: e.target.value as 'text' | 'url' | 'ipfs' }))
+                  onChange={(next) =>
+                    onFormChange((f) => ({ ...f, l1TipGiftType: next as 'text' | 'url' | 'ipfs' }))
                   }
-                  className="k-input w-full text-sm"
-                >
-                  <option value="text">Text</option>
-                  <option value="url">URL</option>
-                  <option value="ipfs">IPFS CID</option>
-                </select>
+                  options={[
+                    { value: 'text', label: 'Text' },
+                    { value: 'url', label: 'URL' },
+                    { value: 'ipfs', label: 'IPFS CID' },
+                  ]}
+                />
                 <input
                   type="text"
                   value={form.l1TipGiftLabel}

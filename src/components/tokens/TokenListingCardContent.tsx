@@ -29,7 +29,7 @@ export function TokenListingCardContent({
   return (
     <div className="flex flex-1 flex-col">
       <div className="mb-3 flex items-start gap-3">
-        <TokenLogo token={token} size={48} showName={false} showSymbol={false} shape="rounded" className="flex-shrink-0" />
+        <TokenLogo token={token} size={56} showName={false} showSymbol={false} shape="rounded" className="flex-shrink-0" />
         <div className="min-w-0 flex-1">
           <TokenTitle token={token} size="sm" layout="besideLogo" nameInTooltip />
           {creatorWallet ? (
@@ -44,13 +44,13 @@ export function TokenListingCardContent({
         <TokenVerificationStatusBadge token={token} className="shrink-0" />
       </div>
 
-      <TokenListingBadges token={token} className="mb-3" />
-
       {ownershipLabel ? <div className="mb-2">{ownershipLabel}</div> : null}
 
       <p className="mb-3 line-clamp-3 flex-1 text-sm leading-6 text-zinc-600 dark:text-zinc-400">
         {token.shortDescription || token.description}
       </p>
+
+      <TokenListingBadges token={token} className="mb-3" />
 
       <TokenListingFooterRows token={token} onCategoryFilter={onCategoryFilter} className="mt-auto pt-2" />
 
