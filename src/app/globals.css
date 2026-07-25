@@ -233,7 +233,7 @@
 }
 .kx-listing-card[data-kx-accent="ads"]:hover,
 .kx-listing-card[data-kx-accent="ads"]:focus-visible {
-  border-color: rgb(34, 197, 94) !important; /* green-500 ads listing accent */
+  border-color: rgb(6, 182, 212) !important; /* cyan-500 ads accent */
 }
 .kx-listing-card[data-kx-accent="revenueTree"]:hover,
 .kx-listing-card[data-kx-accent="revenueTree"]:focus-visible {

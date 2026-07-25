@@ -1,7 +1,6 @@
 'use client';
 
 import { Suspense, useMemo, useState, useEffect } from 'react';
-import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { AD_SLOTS } from '@/lib/ads/slots';
 import type { AdEntry, AdFormat, AdSlotId } from '@/lib/ads/types';
@@ -14,9 +13,9 @@ import {
   type AdsSortOption,
 } from '@/components/ads/AdsListingFilterControls';
 import { AdSlider } from '@/components/ads/AdSlider';
+import { AdsSourceSwitcher, type AdsSourceFilter } from '@/components/ads/AdsSourceSwitcher';
 import { HubListingTitleRow } from '@/components/hub/HubListingTitleRow';
 import { HubBenefitsPanel } from '@/components/hub/HubBenefitsPanel';
-import { HubAccentScope } from '@/components/hub/HubAccentScope';
 import { HUB_HALO_DESKTOP_ONLY, HUB_HALO_MOBILE_FALLBACK } from '@/lib/hub/haloHeaders';
 
 function sortAds(ads: AdEntry[], sortBy: AdsSortOption): AdEntry[] {
@@ -46,6 +45,7 @@ function AdsListingPageContent() {
   const [sortBy, setSortBy] = useState<AdsSortOption>('newest');
   const [formatFilter, setFormatFilter] = useState<AdFormat | 'all'>('all');
   const [slotFilter, setSlotFilter] = useState<AdSlotId | 'all'>('all');
+  const [sourceFilter, setSourceFilter] = useState<AdsSourceFilter>('all');
   const [wizardOpen, setWizardOpen] = useState(false);
   const [wizardInitialSlotId, setWizardInitialSlotId] = useState<AdSlotId | undefined>(undefined);
   const [wizardInitialSlotIndex, setWizardInitialSlotIndex] = useState(0);
@@ -92,6 +92,7 @@ function AdsListingPageContent() {
     setFormatFilter('all');
     setSlotFilter('all');
     setSortBy('newest');
+    setSourceFilter('all');
   };
 
   const openCreateWizard = (initialSlotId?: AdSlotId, initialSlotIndex = 0) => {
@@ -102,67 +103,41 @@ function AdsListingPageContent() {
 
   return (
     <>
-      <HubAccentScope projectId="kasparex-ads" className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-        <div className={`mb-6 flex flex-wrap gap-3 ${HUB_HALO_MOBILE_FALLBACK}`}>
-          <button
-            type="button"
-            onClick={() => openCreateWizard()}
-            className="k-cta-primary inline-flex items-center gap-2 px-6 py-2.5 text-sm"
-          >
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>
-            Create ad
-          </button>
-          <Link href="/ads/overview" className="k-control-btn">
-            How it works
-          </Link>
+      <div className="animate-in fade-in slide-in-from-bottom-4 space-y-8 duration-500">
+        <div className={`mb-6 ${HUB_HALO_MOBILE_FALLBACK}`}>
+          <AdsSourceSwitcher value={sourceFilter} onChange={setSourceFilter} />
         </div>
         <div
-          className={`relative mb-10 overflow-hidden rounded-3xl border border-zinc-200 bg-gradient-to-br from-zinc-100 via-emerald-50/40 to-rose-50/30 px-6 py-12 sm:px-8 dark:border-zinc-800/50 dark:from-zinc-950 dark:via-emerald-950/20 dark:to-rose-950/15 ${HUB_HALO_DESKTOP_ONLY}`}
+          className={`relative mb-10 overflow-hidden rounded-3xl border border-zinc-200 bg-gradient-to-br from-zinc-100 via-cyan-50/50 to-teal-50/40 px-6 py-12 sm:px-8 dark:border-zinc-800/50 dark:from-zinc-950 dark:via-cyan-950/25 dark:to-teal-950/20 ${HUB_HALO_DESKTOP_ONLY}`}
         >
           <div className="absolute inset-0 overflow-hidden">
             <div className="absolute right-0 top-0 h-[80%] w-[60%] rounded-full bg-[radial-gradient(ellipse_at_top_right,_var(--hub-accent-muted),transparent_70%)] blur-3xl" />
-            <div className="absolute bottom-0 left-0 h-[60%] w-[50%] rounded-full bg-[radial-gradient(ellipse_at_bottom_left,_rgba(248,113,113,0.12),transparent_70%)] blur-3xl" />
+            <div className="absolute bottom-0 left-0 h-[60%] w-[50%] rounded-full bg-[radial-gradient(ellipse_at_bottom_left,_rgba(94,234,212,0.14),transparent_70%)] blur-3xl" />
           </div>
           <div className="relative z-10 flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between">
             <div className="max-w-2xl">
-              <div className="mb-6 inline-flex gap-2 rounded-full border border-[color:var(--hub-accent-border)] bg-[color:var(--hub-accent-muted)] px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.2em] text-emerald-800 dark:text-[color:var(--hub-accent)]">
+              <div className="mb-6 inline-flex gap-2 rounded-full border border-[color:var(--hub-accent-border)] bg-[color:var(--hub-accent-muted)] px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.2em] text-cyan-800 dark:text-[color:var(--hub-accent-light)]">
                 <span className="relative flex h-2 w-2">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[color:var(--hub-accent)] opacity-75" />
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[color:var(--hub-accent-light)] opacity-75" />
                   <span className="relative inline-flex h-2 w-2 rounded-full bg-[color:var(--hub-accent)]" />
                 </span>
                 Active campaigns
               </div>
               <h1 className="mb-4 text-4xl font-black leading-tight text-zinc-900 dark:text-white sm:text-5xl md:text-6xl">
                 Kasparex{' '}
-                <span className="bg-gradient-to-r from-emerald-500 to-rose-400 bg-clip-text text-transparent dark:from-emerald-300 dark:to-rose-300">
+                <span className="bg-gradient-to-r from-cyan-500 to-teal-300 bg-clip-text text-transparent dark:from-cyan-300 dark:to-teal-200">
                   Ads
                 </span>
               </h1>
-              <p className="kx-body mb-6 max-w-xl leading-relaxed">
+              <p className="kx-body mb-8 max-w-xl leading-relaxed">
                 Browse time-locked ad campaigns across halo, sidebar, and footer placements. Filter by format and slot.
               </p>
-              <div className="flex flex-wrap gap-3">
-                <button
-                  type="button"
-                  onClick={() => openCreateWizard()}
-                  className="k-cta-primary inline-flex items-center gap-2 px-6 py-2.5 text-sm"
-                >
-                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                  </svg>
-                  Create ad
-                </button>
-                <Link href="/ads/overview" className="k-control-btn">
-                  How it works
-                </Link>
-              </div>
+              <AdsSourceSwitcher value={sourceFilter} onChange={setSourceFilter} />
             </div>
             <div className="relative hidden w-[280px] flex-shrink-0 items-center justify-center lg:flex">
               <div className="pointer-events-none relative opacity-90">
                 <div className="h-56 w-48 rotate-3 transform rounded-2xl border-2 border-[color:var(--hub-accent-border)] bg-white/80 shadow-2xl shadow-[color:var(--hub-accent-shadow)] dark:bg-zinc-900/80" />
-                <div className="absolute -bottom-2 -right-2 h-48 w-40 -rotate-6 transform rounded-xl border-2 border-rose-400/25 bg-zinc-100/90 shadow-xl dark:bg-zinc-800/90" />
+                <div className="absolute -bottom-2 -right-2 h-48 w-40 -rotate-6 transform rounded-xl border-2 border-teal-300/30 bg-zinc-100/90 shadow-xl dark:bg-zinc-800/90" />
               </div>
               <div
                 id="ad-slot-ads-halo"
@@ -219,7 +194,7 @@ function AdsListingPageContent() {
             </button>
           </div>
         )}
-      </HubAccentScope>
+      </div>
 
       <CreateAdWizard
         isOpen={wizardOpen}
