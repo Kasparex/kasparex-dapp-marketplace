@@ -10,6 +10,8 @@ export const KASPIRE_CHAIN_ID = 'kaspa:mainnet';
 export const KASPIRE_APP_LINK_BASE = 'https://kaspire.kaslab.space/kaspire/wc';
 export const KASPIRE_DOWNLOAD_URL = 'https://kaspire.kaslab.space/';
 export const KASPIRE_DOCS_URL = 'https://kaspire.kaslab.space/developers';
+/** IRN relay (required by Kaspire protocol v2). */
+export const KASPIRE_RELAY_URL = 'wss://relay.walletconnect.com';
 
 const KASPIRE_METHODS = [
   'kaspa_getAccounts',
@@ -21,6 +23,9 @@ const KASPIRE_METHODS = [
 
 const KASPIRE_EVENTS = ['accountsChanged'] as const;
 
+/** Isolate Kaspire WC storage from RainbowKit / wagmi WalletConnect. */
+const KASPIRE_WC_STORAGE = 'kasparex_kaspire_wc_v1';
+
 type PairingUriHandler = (uri: string) => void;
 
 /** Infer session type from SignClient to avoid dual @walletconnect/types copies. */
@@ -29,6 +34,7 @@ type KaspireSession = ReturnType<KaspireSignClient['session']['getAll']>[number]
 
 let signClientPromise: Promise<KaspireSignClient> | null = null;
 let activeSession: KaspireSession | null = null;
+let pairingCancel: ((reason?: Error) => void) | null = null;
 const accountListeners = new Set<(accounts: string[]) => void>();
 
 function getProjectId(): string {
@@ -58,10 +64,64 @@ function addressFromSession(session: KaspireSession): string | null {
   return caip10ToKaspaAddress(accounts[0]);
 }
 
+function isPublishError(error: unknown): boolean {
+  const msg = error instanceof Error ? error.message : String(error ?? '');
+  return /failed to publish/i.test(msg);
+}
+
+async function ensureRelayerConnected(client: KaspireSignClient): Promise<void> {
+  const relayer = client.core?.relayer;
+  if (!relayer) return;
+  if (relayer.connected) return;
+
+  await new Promise<void>((resolve, reject) => {
+    const timeout = setTimeout(() => {
+      cleanup();
+      reject(
+        new Error(
+          'WalletConnect relay did not connect. Check your network, disable VPN if needed, and try again.',
+        ),
+      );
+    }, 20_000);
+
+    const onConnect = () => {
+      cleanup();
+      resolve();
+    };
+
+    const cleanup = () => {
+      clearTimeout(timeout);
+      try {
+        relayer.events?.removeListener?.('relayer_connect', onConnect);
+        // Older SDKs use EventEmitter-style off/once.
+        (relayer as { off?: (e: string, cb: () => void) => void }).off?.('relayer_connect', onConnect);
+      } catch {
+        /* ignore */
+      }
+    };
+
+    try {
+      relayer.once?.('relayer_connect', onConnect);
+    } catch {
+      relayer.events?.once?.('relayer_connect', onConnect);
+    }
+
+    void Promise.resolve(relayer.transportOpen?.()).catch(() => {
+      /* transportOpen may already be in progress */
+    });
+
+    if (relayer.connected) {
+      cleanup();
+      resolve();
+    }
+  });
+}
+
 async function getSignClient(): Promise<KaspireSignClient> {
   if (!signClientPromise) {
     signClientPromise = SignClient.init({
       projectId: getProjectId(),
+      relayUrl: KASPIRE_RELAY_URL,
       metadata: {
         name: 'Kasparex',
         description: 'Kasparex Hub on Kaspa',
@@ -72,28 +132,41 @@ async function getSignClient(): Promise<KaspireSignClient> {
             : 'https://kasparex.com/favicon.ico',
         ],
       },
-    }).then((client) => {
-      client.on('session_event', ({ params }) => {
-        if (params.event.name !== 'accountsChanged') return;
-        const data = params.event.data;
-        const accounts = Array.isArray(data)
-          ? data.map((item) => {
-              const raw = String(item);
-              return raw.startsWith('kaspa:mainnet:') ? caip10ToKaspaAddress(raw) ?? raw : raw;
-            })
-          : [];
-        accountListeners.forEach((cb) => cb(accounts.filter(Boolean) as string[]));
-      });
-
-      client.on('session_delete', ({ topic }) => {
-        if (activeSession?.topic === topic) {
-          activeSession = null;
-          accountListeners.forEach((cb) => cb([]));
+      // Keep Kaspire pairing state separate from EVM RainbowKit WC.
+      storageOptions: { database: KASPIRE_WC_STORAGE },
+    })
+      .then(async (client) => {
+        try {
+          await ensureRelayerConnected(client);
+        } catch {
+          // Still attach listeners; connect() will retry relay.
         }
-      });
 
-      return client;
-    });
+        client.on('session_event', ({ params }) => {
+          if (params.event.name !== 'accountsChanged') return;
+          const data = params.event.data;
+          const accounts = Array.isArray(data)
+            ? data.map((item) => {
+                const raw = String(item);
+                return raw.startsWith('kaspa:mainnet:') ? caip10ToKaspaAddress(raw) ?? raw : raw;
+              })
+            : [];
+          accountListeners.forEach((cb) => cb(accounts.filter(Boolean) as string[]));
+        });
+
+        client.on('session_delete', ({ topic }) => {
+          if (activeSession?.topic === topic) {
+            activeSession = null;
+            accountListeners.forEach((cb) => cb([]));
+          }
+        });
+
+        return client;
+      })
+      .catch((error) => {
+        signClientPromise = null;
+        throw error;
+      });
   }
   return signClientPromise;
 }
@@ -102,12 +175,42 @@ export function getActiveKaspireSession(): KaspireSession | null {
   return activeSession;
 }
 
+/** Cancel an in-flight pairing (modal Cancel). */
+export function cancelKaspirePairing(): void {
+  const cancel = pairingCancel;
+  pairingCancel = null;
+  cancel?.(new Error('Kaspire pairing cancelled'));
+}
+
 export async function restoreKaspireSession(): Promise<KaspireSession | null> {
   const client = await getSignClient();
   const sessions = client.session.getAll();
   const session = sessions.find((item) => item.namespaces.kaspa?.accounts?.length);
   activeSession = session ?? null;
   return activeSession;
+}
+
+async function proposeKaspireSession(
+  client: KaspireSignClient,
+  methods: string[],
+): Promise<{ uri: string; approval: () => Promise<KaspireSession> }> {
+  await ensureRelayerConnected(client);
+
+  const { uri, approval } = await client.connect({
+    requiredNamespaces: {
+      kaspa: {
+        chains: [KASPIRE_CHAIN_ID],
+        methods,
+        events: [...KASPIRE_EVENTS],
+      },
+    },
+  });
+
+  if (!uri) {
+    throw new Error('WalletConnect did not return a pairing URI');
+  }
+
+  return { uri, approval };
 }
 
 export async function connectKaspireSession(options?: {
@@ -126,24 +229,47 @@ export async function connectKaspireSession(options?: {
     ? [...options.methods]
     : [...KASPIRE_METHODS];
 
-  const { uri, approval } = await client.connect({
-    requiredNamespaces: {
-      kaspa: {
-        chains: [KASPIRE_CHAIN_ID],
-        methods,
-        events: [...KASPIRE_EVENTS],
-      },
-    },
-  });
+  let uri: string;
+  let approval: () => Promise<KaspireSession>;
 
-  if (!uri) {
-    throw new Error('WalletConnect did not return a pairing URI');
+  try {
+    ({ uri, approval } = await proposeKaspireSession(client, methods));
+  } catch (error) {
+    if (!isPublishError(error)) throw error;
+    // Relay hiccup / stale socket: reset client and retry once.
+    signClientPromise = null;
+    try {
+      const retryClient = await getSignClient();
+      ({ uri, approval } = await proposeKaspireSession(retryClient, methods));
+    } catch (retryError) {
+      if (isPublishError(retryError)) {
+        throw new Error(
+          'WalletConnect relay could not publish the pairing. Check your network or VPN, confirm your Reown project ID allowlists this site origin, then try again.',
+        );
+      }
+      throw retryError;
+    }
   }
 
   // Never log the pairing URI. Hand it only to the UI / App Link opener.
   options?.onPairingUri?.(uri);
 
-  const session = await approval();
+  const session = await new Promise<KaspireSession>((resolve, reject) => {
+    pairingCancel = (reason) => {
+      pairingCancel = null;
+      reject(reason ?? new Error('Kaspire pairing cancelled'));
+    };
+    void approval()
+      .then((s) => {
+        pairingCancel = null;
+        resolve(s);
+      })
+      .catch((err) => {
+        pairingCancel = null;
+        reject(err);
+      });
+  });
+
   activeSession = session;
   const address = addressFromSession(session);
   if (!address) {
@@ -153,6 +279,7 @@ export async function connectKaspireSession(options?: {
 }
 
 export async function disconnectKaspireSession(): Promise<void> {
+  cancelKaspirePairing();
   const client = await getSignClient();
   const session = activeSession ?? (await restoreKaspireSession());
   if (!session) {

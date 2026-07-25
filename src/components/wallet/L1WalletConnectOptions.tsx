@@ -8,11 +8,19 @@ import {
   mobileWalletConnectHint,
 } from '@/lib/kaspa/mobileWallet';
 import { useKaspaProviderProbe } from '@/hooks/useKaspaProviderProbe';
-import { L1WalletConnectLabel, type L1WalletProviderId } from '@/components/wallet/L1WalletLogo';
+import {
+  L1WalletConnectBadge,
+  L1WalletConnectLabel,
+  type L1WalletProviderId,
+} from '@/components/wallet/L1WalletLogo';
 import { useIsMobileViewport } from '@/hooks/useIsMobileViewport';
 import { MobileWalletUnavailableNotice } from '@/components/hub/MobileWalletUnavailableNotice';
 import { KaspirePairingModal } from '@/components/wallet/KaspirePairingModal';
-import { isIosUserAgent, KASPIRE_DOWNLOAD_URL } from '@/lib/kaspa/kaspireWc';
+import {
+  cancelKaspirePairing,
+  isIosUserAgent,
+  KASPIRE_DOWNLOAD_URL,
+} from '@/lib/kaspa/kaspireWc';
 
 type ConnectableProvider = L1WalletProviderId;
 
@@ -39,12 +47,6 @@ function providerInstalled(
   return isInstalled('kastle') || (typeof window !== 'undefined' && !!(window as Window & { kastle?: unknown }).kastle);
 }
 
-function providerBadge(provider: ConnectableProvider, isMobile: boolean): string | null {
-  if (provider !== 'kaspire') return null;
-  if (isMobile) return 'Beta';
-  return 'Beta';
-}
-
 function providerSideLabel(
   provider: ConnectableProvider,
   connecting: ConnectableProvider | null,
@@ -52,7 +54,7 @@ function providerSideLabel(
   isMobile: boolean,
 ): string {
   if (connecting === provider) return 'Connecting…';
-  if (provider === 'kaspire') return isMobile ? 'Mobile' : 'QR';
+  if (provider === 'kaspire') return 'Beta';
   return installed ? 'L1' : isMobile ? 'App' : 'Install';
 }
 
@@ -121,7 +123,7 @@ export function L1WalletConnectOptions({
   };
 
   const btnClass = compact
-    ? 'w-full px-3 py-2 text-left text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors disabled:opacity-60'
+    ? 'w-full flex items-center justify-between gap-2 px-3 py-2 text-left text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors disabled:opacity-60'
     : 'w-full flex items-center justify-between gap-3 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-4 py-3 text-left text-sm font-semibold text-zinc-900 dark:text-zinc-100 hover:bg-zinc-50 dark:hover:bg-zinc-800/80 transition-colors disabled:opacity-60';
 
   return (
@@ -144,6 +146,8 @@ export function L1WalletConnectOptions({
                 ? `Get ${KASPA_WALLET_PROVIDERS[provider].name}`
                 : `Install ${KASPA_WALLET_PROVIDERS[provider].name}`;
 
+        const side = providerSideLabel(provider, connecting, installed, onMobile);
+
         return (
           <button
             key={provider}
@@ -156,13 +160,14 @@ export function L1WalletConnectOptions({
               provider={provider}
               label={label}
               logoSize={compact ? 20 : 22}
-              badge={providerBadge(provider, onMobile)}
             />
-            {!compact ? (
+            {provider === 'kaspire' ? (
+              <L1WalletConnectBadge>{connecting === provider ? '…' : 'Beta'}</L1WalletConnectBadge>
+            ) : (
               <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400 shrink-0">
-                {providerSideLabel(provider, connecting, installed, onMobile)}
+                {side}
               </span>
-            ) : null}
+            )}
           </button>
         );
       })}
@@ -197,7 +202,9 @@ export function L1WalletConnectOptions({
       {kaspireUri || connecting === 'kaspire' ? (
         <KaspirePairingModal
           uri={kaspireUri}
+          mode={onMobile ? 'mobile' : 'desktop'}
           onCancel={() => {
+            cancelKaspirePairing();
             setKaspireUri(null);
           }}
         />

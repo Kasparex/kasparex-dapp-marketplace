@@ -1,6 +1,9 @@
 'use client';
 
+import type { ReactNode } from 'react';
+
 export type L1WalletProviderId = 'kasware' | 'kastle' | 'kaspire';
+
 
 const LOGO_SRC: Record<L1WalletProviderId, string> = {
   kasware: '/img/logos/kasware.png',
@@ -36,29 +39,29 @@ export function L1WalletLogo({
   );
 }
 
-/** Logo + wallet name label for connect buttons and dropdown rows. */
+/** Logo + wallet name for connect buttons and dropdown rows. */
 export function L1WalletConnectLabel({
   provider,
   label,
   logoSize = 22,
-  badge,
 }: {
   provider: L1WalletProviderId;
   label: string;
   logoSize?: number;
-  badge?: string | null;
 }) {
   return (
     <span className="flex min-w-0 items-center gap-2.5">
-      <span className="relative shrink-0">
-        <L1WalletLogo provider={provider} size={logoSize} />
-        {badge ? (
-          <span className="pointer-events-none absolute -bottom-1 -right-1 rounded bg-amber-500 px-1 py-px text-[8px] font-bold uppercase leading-none text-zinc-950 shadow-sm">
-            {badge}
-          </span>
-        ) : null}
-      </span>
+      <L1WalletLogo provider={provider} size={logoSize} />
       <span className="truncate">{label}</span>
+    </span>
+  );
+}
+
+/** Right-aligned chip for Beta / QR / status on connect rows. */
+export function L1WalletConnectBadge({ children }: { children: ReactNode }) {
+  return (
+    <span className="shrink-0 rounded-md bg-amber-500/20 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-800 dark:text-amber-300">
+      {children}
     </span>
   );
 }
