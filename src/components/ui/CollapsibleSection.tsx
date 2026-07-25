@@ -30,7 +30,7 @@ export function CollapsibleSection({
         type="button"
         onClick={onToggle}
         onKeyDown={handleKeyDown}
-        className="w-full flex items-center justify-between p-4 sm:p-5 bg-zinc-50 dark:bg-zinc-900/50 hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-colors focus:outline-none focus:ring-2 focus:ring-[#02abb8] focus:ring-inset"
+        className="w-full flex items-center justify-between p-4 sm:p-5 bg-zinc-50 dark:bg-zinc-900/50 hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-colors focus:outline-none focus:ring-2 focus:ring-[color:var(--hub-accent)] focus:ring-inset"
         aria-expanded={isOpen}
         aria-label={`${isOpen ? 'Collapse' : 'Expand'} ${title}`}
       >

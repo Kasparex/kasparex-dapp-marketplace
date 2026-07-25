@@ -43,7 +43,7 @@ export function KxExpandableSection({
       <button
         type="button"
         onClick={() => setExpanded((v) => !v)}
-        className={`mt-2 text-sm font-medium text-[#02abb8] hover:text-[#02919c] transition-colors ${
+        className={`mt-2 text-sm font-medium text-[color:var(--hub-accent)] hover:text-[color:var(--hub-accent-hover)] transition-colors ${
           mobileOnly ? 'md:hidden' : ''
         }`.trim()}
         aria-expanded={expanded}

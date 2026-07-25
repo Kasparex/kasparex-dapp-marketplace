@@ -39,7 +39,7 @@ export function VBlogReaderBenefitsPanel({ className = '' }: { className?: strin
   const unlockPts = computeEarnedHubPoints(HUB_EARN_POINTS.vblogPremiumUnlock, tier);
 
   const buyKrexButtonClass =
-    'shrink-0 k-control-btn !bg-[#e30d1b] !text-white !border-[#e30d1b] hover:!bg-[#c40b17] dark:!bg-[#e30d1b] dark:hover:!bg-[#c40b17]';
+    'shrink-0 k-control-btn hub-cta-btn';
 
   return (
     <>

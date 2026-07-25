@@ -159,7 +159,7 @@ export function ImageUpload({
             onChange={handleUrlChange}
             placeholder={placeholder}
             disabled={disabled || isUploading}
-            className="w-full px-3 py-2 text-sm border border-zinc-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 placeholder-zinc-500 dark:placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-[#02abb8] focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full px-3 py-2 text-sm border border-zinc-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 placeholder-zinc-500 dark:placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-[color:var(--hub-accent)] focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
           />
           <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
             Enter an image URL (http:// or https://) or IPFS CID
@@ -176,10 +176,10 @@ export function ImageUpload({
           className={`
             relative border-2 border-dashed rounded-lg p-6 text-center transition-colors
             ${isDragging
-              ? 'border-[#02abb8] bg-[#02abb8]/10'
+              ? 'border-[color:var(--hub-accent)] bg-[color:var(--hub-accent-muted)]'
               : 'border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900/50'
             }
-            ${disabled || isUploading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:border-[#02abb8]/50'}
+            ${disabled || isUploading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:border-[color:var(--hub-accent-border)]'}
           `}
         >
           <input
@@ -194,7 +194,7 @@ export function ImageUpload({
           
           {isUploading ? (
             <div className="space-y-2">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#02abb8] mx-auto" />
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[color:var(--hub-accent)] mx-auto" />
               <p className="text-sm text-zinc-600 dark:text-zinc-400">Uploading to IPFS...</p>
             </div>
           ) : (
@@ -216,7 +216,7 @@ export function ImageUpload({
               <div className="mt-2">
                 <label
                   htmlFor={`file-input-${label.replace(/\s+/g, '-').toLowerCase()}`}
-                  className="cursor-pointer text-sm font-medium text-[#02abb8] hover:text-[#0299a6]"
+                  className="cursor-pointer text-sm font-medium text-[color:var(--hub-accent)] hover:text-[color:var(--hub-accent-hover)]"
                 >
                   Click to upload
                 </label>

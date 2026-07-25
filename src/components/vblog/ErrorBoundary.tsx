@@ -38,7 +38,7 @@ export class ErrorBoundary extends React.Component<
             <h2 className="text-lg font-semibold text-red-900 dark:text-red-100 mb-2">
               Something went wrong
             </h2>
-            <p className="text-sm text-red-700 dark:text-red-300 mb-4">
+            <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-4">
               {this.state.error?.message || 'An unexpected error occurred'}
             </p>
             {process.env.NODE_ENV === 'development' && this.state.errorInfo && (

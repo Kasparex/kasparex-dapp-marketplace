@@ -42,9 +42,9 @@ export function ProgressBar({
                     w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold transition-colors
                     ${
                       isCompleted
-                        ? 'bg-[#02abb8] text-white'
+                        ? 'bg-[color:var(--hub-accent)] text-white'
                         : isActive
-                        ? 'bg-[#02abb8] text-white ring-2 ring-[#02abb8] ring-offset-2'
+                        ? 'bg-[color:var(--hub-accent)] text-white ring-2 ring-[color:var(--hub-accent)] ring-offset-2'
                         : 'bg-zinc-200 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400'
                     }
                   `}
@@ -75,7 +75,7 @@ export function ProgressBar({
         </div>
         <div className="relative h-2 bg-zinc-200 dark:bg-zinc-800 rounded-full overflow-hidden">
           <div
-            className="absolute top-0 left-0 h-full bg-[#02abb8] transition-all duration-500 ease-out rounded-full"
+            className="absolute top-0 left-0 h-full bg-[color:var(--hub-accent)] transition-all duration-500 ease-out rounded-full"
             style={{ width: `${currentProgress}%` }}
           />
         </div>
@@ -93,7 +93,7 @@ export function ProgressBar({
         </div>
         <div className="relative h-2 bg-zinc-200 dark:bg-zinc-800 rounded-full overflow-hidden">
           <div
-            className="absolute top-0 left-0 h-full bg-[#02abb8] transition-all duration-500 ease-out rounded-full"
+            className="absolute top-0 left-0 h-full bg-[color:var(--hub-accent)] transition-all duration-500 ease-out rounded-full"
             style={{ width: `${currentProgress}%` }}
           />
         </div>

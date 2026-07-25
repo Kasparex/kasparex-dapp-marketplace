@@ -72,7 +72,7 @@ export function VBlogPremiumPoll({
                     role="listitem"
                     className={`relative overflow-hidden rounded-xl border px-4 py-3 transition-colors ${
                       isUserChoice
-                        ? 'border-[#e30d1b]/50 bg-[#e30d1b]/5 dark:bg-[#e30d1b]/10'
+                        ? 'border-[color:var(--hub-accent-border)] bg-[color:var(--hub-accent-muted)] dark:bg-[color:var(--hub-accent-muted)]'
                         : 'border-zinc-200 dark:border-zinc-700 bg-white/80 dark:bg-zinc-950/40'
                     }`}
                   >
@@ -83,7 +83,7 @@ export function VBlogPremiumPoll({
                       </span>
                     </div>
                     <div
-                      className="absolute inset-y-0 left-0 bg-[#e30d1b]/15 dark:bg-[#e30d1b]/20 transition-all duration-500 ease-out"
+                      className="absolute inset-y-0 left-0 bg-[color:var(--hub-accent-muted)] dark:bg-[color:var(--hub-accent-muted)] transition-all duration-500 ease-out"
                       style={{ width: `${pct}%` }}
                       aria-hidden
                     />
@@ -105,15 +105,15 @@ export function VBlogPremiumPoll({
                   onClick={() => onSelectOption(index)}
                   className={`w-full text-left rounded-xl border px-4 py-3.5 transition-all ${
                     isSelected
-                      ? 'border-[#e30d1b] bg-[#e30d1b]/10 dark:bg-[#e30d1b]/15 ring-2 ring-[#e30d1b]/25'
-                      : 'border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-950/50 hover:border-[#e30d1b]/40 hover:bg-zinc-50 dark:hover:bg-zinc-900'
+                      ? 'border-[color:var(--hub-accent)] bg-[color:var(--hub-accent-muted)] dark:bg-[color:var(--hub-accent-muted)] ring-2 ring-[color:var(--hub-accent-border)]'
+                      : 'border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-950/50 hover:border-[color:var(--hub-accent-border)] hover:bg-zinc-50 dark:hover:bg-zinc-900'
                   } disabled:opacity-60 disabled:cursor-not-allowed`}
                 >
                   <span className="flex items-center gap-3">
                     <span
                       className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition-colors ${
                         isSelected
-                          ? 'border-[#e30d1b] bg-[#e30d1b]'
+                          ? 'border-[color:var(--hub-accent)] bg-[color:var(--hub-accent)]'
                           : 'border-zinc-300 dark:border-zinc-600 bg-transparent'
                       }`}
                       aria-hidden
@@ -139,7 +139,7 @@ export function VBlogPremiumPoll({
               {isProcessing ? 'Submitting...' : 'Submit vote'}
             </button>
           ) : hasVoted ? (
-            <p className="mt-4 text-sm font-medium text-[#e30d1b] dark:text-[#ff6b73]">
+            <p className="mt-4 text-sm font-medium text-[color:var(--hub-accent)] dark:text-[color:var(--hub-accent-light)]">
               Thanks for voting. Results update as more readers participate.
             </p>
           ) : (

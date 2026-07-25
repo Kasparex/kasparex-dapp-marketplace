@@ -10,11 +10,11 @@ const ACCENT_STYLES: Record<
 > = {
   default: {
     dropzone:
-      'border-[#02abb8]/35 bg-gradient-to-br from-[#02abb8]/10 via-transparent to-cyan-500/5 hover:border-[#02abb8]/55 hover:from-[#02abb8]/15 dark:from-[#02abb8]/14 dark:to-cyan-950/25 dark:hover:from-[#02abb8]/20',
-    iconWrap: 'bg-[#02abb8]/15 text-[#02abb8] ring-[#02abb8]/10 dark:bg-[#02abb8]/25 dark:ring-[#02abb8]/20',
-    iconText: 'text-[#02abb8]',
-    fileChip: 'border-[#02abb8]/25 bg-[#02abb8]/5 dark:border-[#02abb8]/30 dark:bg-[#02abb8]/10',
-    fileText: 'text-[#02abb8]',
+      'border-[color:var(--hub-accent-border)] bg-gradient-to-br from-[color:var(--hub-accent-muted)] via-transparent to-transparent hover:border-[color:var(--hub-accent-border)] hover:from-[color:var(--hub-accent-muted)]',
+    iconWrap: 'bg-[color:var(--hub-accent-muted)] text-[color:var(--hub-accent)] ring-[color:var(--hub-accent-border)]',
+    iconText: 'text-[color:var(--hub-accent)]',
+    fileChip: 'border-[color:var(--hub-accent-border)] bg-[color:var(--hub-accent-muted)]',
+    fileText: 'text-[color:var(--hub-accent)]',
   },
   emerald: {
     dropzone:

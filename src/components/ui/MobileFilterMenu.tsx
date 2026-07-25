@@ -122,7 +122,7 @@ export function MobileFilterMenu({
         >
           <FilterIcon className="h-5 w-5" />
           {hasActiveFilters ? (
-            <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-[#02abb8] border border-white dark:border-zinc-950" />
+            <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-[color:var(--hub-accent)] border border-white dark:border-zinc-950" />
           ) : null}
         </button>
       </div>

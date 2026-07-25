@@ -37,9 +37,9 @@ export function ToggleSwitch({
         onKeyDown={handleKeyDown}
         className={`
           relative inline-flex h-6 w-11 items-center rounded-full transition-colors
-          focus:outline-none focus:ring-2 focus:ring-[#02abb8] focus:ring-offset-2
+          focus:outline-none focus:ring-2 focus:ring-[color:var(--hub-accent)] focus:ring-offset-2
           disabled:opacity-50 disabled:cursor-not-allowed
-          ${checked ? 'bg-[#02abb8]' : 'bg-zinc-300 dark:bg-zinc-700'}
+          ${checked ? 'bg-[color:var(--hub-accent)]' : 'bg-zinc-300 dark:bg-zinc-700'}
           ${disabled ? '' : 'cursor-pointer'}
         `}
         aria-label={label || 'Toggle'}

@@ -107,7 +107,7 @@ export function KxHubPtsEarnPanel({
 
         <p className={`${KX_TEXT_BODY_SM} text-sm mt-4`}>
           Earned Hub PTS appear in your{' '}
-          <a href="/rewards" className="font-semibold text-[#02abb8] hover:underline">
+          <a href="/rewards" className="font-semibold text-[color:var(--hub-accent)] hover:underline">
             Rewards hub balance
           </a>
           .

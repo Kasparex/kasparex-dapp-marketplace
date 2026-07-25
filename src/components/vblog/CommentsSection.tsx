@@ -257,7 +257,7 @@ export function CommentsSection({ articleId, dappSectionHeader = false }: Commen
                           <div>
                             <Link
                               href={profileUrl}
-                              className="text-base font-medium text-[#e30d1b] hover:text-[#c40b17] hover:underline transition-colors"
+                              className="text-base font-medium text-[color:var(--hub-accent)] hover:text-[color:var(--hub-accent-hover)] hover:underline transition-colors"
                             >
                               {authorDisplay}
                             </Link>
@@ -349,7 +349,7 @@ export function CommentsSection({ articleId, dappSectionHeader = false }: Commen
                     type={hasCredits() ? 'submit' : 'button'}
                     onClick={hasCredits() ? undefined : () => setShowModal(true)}
                     disabled={isSubmitting || (hasCredits() && !newComment.trim())}
-                    className="px-4 py-2 bg-[#e30d1b] hover:bg-[#c40b17] text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-4 py-2 bg-[color:var(--hub-accent)] hover:bg-[color:var(--hub-accent-hover)] text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {isSubmitting ? 'Submitting...' : hasCredits() ? 'Submit Comment' : 'Purchase Credits'}
                   </button>

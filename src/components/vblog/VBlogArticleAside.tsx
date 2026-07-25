@@ -44,7 +44,7 @@ export function VBlogArticleAside({
                     href={l.href}
                     target={l.openInNewTab ? '_blank' : undefined}
                     rel={l.openInNewTab ? 'noopener noreferrer' : undefined}
-                    className="text-base font-semibold text-zinc-800 dark:text-zinc-200 hover:text-[#e30d1b] transition-colors leading-relaxed"
+                    className="text-base font-semibold text-zinc-800 dark:text-zinc-200 hover:text-[color:var(--hub-accent)] transition-colors leading-relaxed"
                   >
                     {l.label}
                   </Link>

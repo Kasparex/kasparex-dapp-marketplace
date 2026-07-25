@@ -17,13 +17,13 @@ function VBlogFeaturedImagePlaceholder({
   if (variant === 'list') {
     return (
       <div
-        className={`flex h-full w-full items-center justify-center bg-gradient-to-br from-[#e30d1b]/15 via-zinc-100 to-zinc-200 dark:from-[#e30d1b]/20 dark:via-zinc-900 dark:to-zinc-950 ${className}`.trim()}
+        className={`flex h-full w-full items-center justify-center bg-gradient-to-br from-[color:var(--hub-accent-muted)] via-zinc-100 to-zinc-200 dark:from-[color:var(--hub-accent-muted)] dark:via-zinc-900 dark:to-zinc-950 ${className}`.trim()}
       >
         <div className="text-center px-4">
-          <div className="mb-2 text-[9px] font-black uppercase tracking-[0.18em] text-[#e30d1b]/80 dark:text-[#ff6b73]/90">
+          <div className="mb-2 text-[9px] font-black uppercase tracking-[0.18em] text-[color:var(--hub-accent)]/80 dark:text-[color:var(--hub-accent-light)]/90">
             vBlog
           </div>
-          <svg className="mx-auto h-7 w-7 text-[#e30d1b]/40 dark:text-[#ff6b73]/50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg className="mx-auto h-7 w-7 text-[color:var(--hub-accent)]/40 dark:text-[color:var(--hub-accent-light)]/50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -39,7 +39,7 @@ function VBlogFeaturedImagePlaceholder({
   if (variant === 'hero') {
     return (
       <div
-        className={`absolute inset-0 flex items-center justify-center bg-gradient-to-br from-[#e30d1b] via-red-700 to-rose-900 ${className}`.trim()}
+        className={`absolute inset-0 flex items-center justify-center bg-gradient-to-br from-[color:var(--hub-accent)] via-teal-600 to-cyan-700 ${className}`.trim()}
       >
         <div className="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]" />
         <div className="relative z-10 px-8 text-center">
@@ -52,7 +52,7 @@ function VBlogFeaturedImagePlaceholder({
 
   return (
     <div
-      className={`flex h-full w-full items-center justify-center bg-gradient-to-br from-[#e30d1b]/15 via-zinc-100 to-zinc-200 dark:from-[#e30d1b]/20 dark:via-zinc-900 dark:to-zinc-950 ${className}`.trim()}
+      className={`flex h-full w-full items-center justify-center bg-gradient-to-br from-[color:var(--hub-accent-muted)] via-zinc-100 to-zinc-200 dark:from-[color:var(--hub-accent-muted)] dark:via-zinc-900 dark:to-zinc-950 ${className}`.trim()}
     >
       <div className="px-6 text-center">
         <div className="mb-3 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 dark:text-zinc-400">vBlog</div>

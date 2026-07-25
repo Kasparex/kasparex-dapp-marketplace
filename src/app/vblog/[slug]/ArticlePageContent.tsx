@@ -7,6 +7,7 @@ import { ArticleDetail, type ArticleContentTab } from '@/components/vblog/Articl
 import { RelatedVBlogArticles } from '@/components/vblog/RelatedVBlogArticles';
 import { VBlogSidebar } from '@/components/vblog/VBlogSidebar';
 import { HubSocialMeta } from '@/components/metadata/HubSocialMeta';
+import { HubAccentScope } from '@/components/hub/HubAccentScope';
 import { useVBlog } from '@/hooks/useVBlog';
 import { notFound } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -72,9 +73,9 @@ export function ArticlePageContent({ slug }: ArticlePageContentProps) {
     return (
       <div className="flex flex-col min-h-screen bg-white dark:bg-zinc-950">
         <Header />
-        <main className="flex-1 flex items-center justify-center">
-          <div className="w-8 h-8 border-4 border-[#e30d1b] border-t-transparent rounded-full animate-spin" />
-        </main>
+        <HubAccentScope projectId="kasparex-vblog" className="flex flex-1 items-center justify-center">
+          <div className="w-8 h-8 border-4 border-[color:var(--hub-accent)] border-t-transparent rounded-full animate-spin" />
+        </HubAccentScope>
         <Footer />
       </div>
     );
@@ -95,7 +96,7 @@ export function ArticlePageContent({ slug }: ArticlePageContentProps) {
       <Header />
 
       <main className="flex-1 min-h-[calc(100vh-4rem)]">
-        <div className="flex h-full min-w-0 flex-col lg:flex-row">
+        <HubAccentScope projectId="kasparex-vblog" className="flex h-full min-w-0 flex-col lg:flex-row">
           <VBlogSidebar
             articles={articles}
             selectedCategory={null}
@@ -118,7 +119,7 @@ export function ArticlePageContent({ slug }: ArticlePageContentProps) {
           <div className="flex-1 w-full min-w-0 p-4 sm:p-6 lg:p-12 overflow-y-auto overflow-x-hidden bg-white dark:bg-zinc-950 text-base sm:text-[17px] border-l border-zinc-200 dark:border-zinc-800">
             <div className="w-full max-w-5xl mx-auto font-sans">
               <nav className="flex items-center gap-2 text-sm text-zinc-500 font-medium mb-8">
-                <Link href="/vblog" className="hover:text-[#e30d1b] transition-colors">Articles</Link>
+                <Link href="/vblog" className="hover:text-[color:var(--hub-accent)] transition-colors">Articles</Link>
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
@@ -135,7 +136,7 @@ export function ArticlePageContent({ slug }: ArticlePageContentProps) {
               <RelatedVBlogArticles article={article} allArticles={articles} />
             </div>
           </div>
-        </div>
+        </HubAccentScope>
       </main>
 
       <Footer />

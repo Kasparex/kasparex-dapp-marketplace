@@ -6,7 +6,7 @@ export function KxCategoryKicker({ children, className = '' }: { children: React
   return (
     <div className={`kx-page-kicker ${className}`.trim()}>
       <div
-        className="h-4 w-1 shrink-0 rounded-full bg-[#02abb8] shadow-[0_0_10px_rgba(2,171,184,0.35)] -skew-y-12"
+        className="hub-tilt-bar-sm h-4 w-1 shrink-0 rounded-full -skew-y-12"
         aria-hidden="true"
       />
       <p className={KX_PANEL_LABEL}>{children}</p>

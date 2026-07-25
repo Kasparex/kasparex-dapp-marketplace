@@ -19,6 +19,7 @@ import { useHubAccess } from '@/hooks/useHubAccess';
 import { useIssueManifest } from '@/hooks/useIssueManifest';
 import { IssueReader } from '@/components/magazines/IssueReader';
 import { DownloadIssuePdfButton } from '@/components/magazines/DownloadIssuePdfButton';
+import { HubAccentScope } from '@/components/hub/HubAccentScope';
 
 export default function IssueDetailPage() {
     const { slug, issueNumber } = useParams();
@@ -102,9 +103,9 @@ export default function IssueDetailPage() {
         return (
             <div className="flex flex-col min-h-screen">
                 <Header />
-                <div className="flex-1 flex items-center justify-center">
-                    <div className="w-12 h-12 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin" />
-                </div>
+                <HubAccentScope projectId="kasparex-magazines" className="flex flex-1 items-center justify-center">
+                    <div className="w-12 h-12 border-4 border-[color:var(--hub-accent)] border-t-transparent rounded-full animate-spin" />
+                </HubAccentScope>
                 <Footer />
             </div>
         );
@@ -115,7 +116,7 @@ export default function IssueDetailPage() {
     return (
         <div className="flex flex-col min-h-screen">
             <Header />
-            <div className="flex flex-1">
+            <HubAccentScope projectId="kasparex-magazines" className="flex flex-1">
                 <MagazinesSidebar
                     mode="issue"
                     currentMagazine={magazine}
@@ -128,11 +129,11 @@ export default function IssueDetailPage() {
                         {/* Breadcrumbs */}
                         <nav className="flex items-center justify-between mb-8">
                             <div className="flex items-center gap-2 text-sm text-zinc-500 font-medium">
-                                <Link href="/magazines" className="hover:text-cyan-500 transition-colors">Magazines</Link>
+                                <Link href="/magazines" className="hover:text-[color:var(--hub-accent)] transition-colors">Magazines</Link>
                                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                                 </svg>
-                                <Link href={`/magazines/${magazine.slug}`} className="hover:text-cyan-500 transition-colors">{magazine.name}</Link>
+                                <Link href={`/magazines/${magazine.slug}`} className="hover:text-[color:var(--hub-accent)] transition-colors">{magazine.name}</Link>
                                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                                 </svg>
@@ -144,7 +145,7 @@ export default function IssueDetailPage() {
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-20 mb-16">
                             {/* Issue visual */}
                             <div className="space-y-6">
-                                <div className="relative aspect-[3/4] rounded-3xl overflow-hidden shadow-2xl shadow-cyan-500/10 border border-zinc-200 dark:border-zinc-800">
+                                <div className="relative aspect-[3/4] rounded-3xl overflow-hidden shadow-2xl shadow-[color:var(--hub-accent-shadow)] border border-zinc-200 dark:border-zinc-800">
                                     <Image
                                         src={issue.coverImage || '/img/placeholder-issue.jpg'}
                                         alt={issue.title}
@@ -176,7 +177,7 @@ export default function IssueDetailPage() {
                             {/* Issue details */}
                             <div className="flex flex-col h-full">
                                 <div className="mb-8">
-                                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-100 dark:bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 text-xs font-black uppercase tracking-widest mb-4">
+                                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[color:var(--hub-accent-muted)] text-[color:var(--hub-accent)] dark:text-[color:var(--hub-accent-light)] text-xs font-black uppercase tracking-widest mb-4">
                                         Issue #{issue.issueNumber} • Published {new Date(issue.publishDate).toLocaleDateString()}
                                     </div>
                                     <h1 className="text-4xl font-black text-zinc-900 dark:text-zinc-100 mb-4 leading-tight">
@@ -224,7 +225,7 @@ export default function IssueDetailPage() {
                                         disabled={issue.isPurchased || isProcessing}
                                         className={`w-full py-4 rounded-xl font-black text-lg shadow-xl transition-all flex items-center justify-center gap-3 ${issue.isPurchased
                                             ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-400 cursor-default'
-                                            : 'bg-gradient-to-r from-cyan-500 to-emerald-500 hover:from-cyan-600 hover:to-emerald-600 text-white shadow-cyan-500/20'
+                                            : 'hub-cta-btn shadow-[color:var(--hub-accent-shadow)]'
                                             }`}
                                     >
                                         {isProcessing ? (
@@ -280,7 +281,7 @@ export default function IssueDetailPage() {
                                                         <div className="text-[10px] text-zinc-500 font-mono">{c.address.substring(0, 10)}...{c.address.substring(c.address.length - 4)}</div>
                                                     </div>
                                                 </div>
-                                                <div className="text-xs font-black text-cyan-600 dark:text-cyan-400">
+                                                <div className="text-xs font-black text-[color:var(--hub-accent)] dark:text-[color:var(--hub-accent-light)]">
                                                     {c.sharePercentage}% <span className="text-[10px] text-zinc-400 font-bold uppercase ml-1">Share</span>
                                                 </div>
                                             </div>
@@ -294,7 +295,7 @@ export default function IssueDetailPage() {
                             <div className="mb-16">
                                 {manifestLoading ? (
                                     <div className="flex justify-center py-16">
-                                        <div className="w-10 h-10 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin" />
+                                        <div className="w-10 h-10 border-4 border-[color:var(--hub-accent)] border-t-transparent rounded-full animate-spin" />
                                     </div>
                                 ) : (
                                     <IssueReader
@@ -316,7 +317,7 @@ export default function IssueDetailPage() {
                         </div>
                     </div>
                 </main>
-            </div>
+            </HubAccentScope>
 
             <Footer />
         </div>

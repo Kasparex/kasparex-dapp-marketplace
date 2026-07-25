@@ -556,7 +556,7 @@ export function CreateAdWizard({
         <div className="px-6 py-4 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0">
             <span
-              className="h-6 w-1 shrink-0 rounded-full bg-[#02abb8] shadow-[0_0_12px_rgba(2,171,184,0.35)] -skew-y-12"
+              className="hub-tilt-bar h-6 w-1 shrink-0 rounded-full -skew-y-12"
               aria-hidden
             />
             <h2 className="text-lg font-bold text-zinc-900 dark:text-zinc-100 truncate">Create ad</h2>
@@ -594,7 +594,7 @@ export function CreateAdWizard({
                       type="button"
                       disabled={connectBusy}
                       onClick={() => void handleWalletConnect(w.id)}
-                      className="w-full text-left px-4 py-3 rounded-xl border border-zinc-200 dark:border-zinc-700 hover:border-[#02abb8]/60 hover:bg-[#02abb8]/5 transition-colors disabled:opacity-50"
+                      className="w-full text-left px-4 py-3 rounded-xl border border-zinc-200 dark:border-zinc-700 hover:border-[color:var(--hub-accent)]/60 hover:bg-[color:var(--hub-accent)]/5 transition-colors disabled:opacity-50"
                     >
                       {walletLogoProvider(w.id) ? (
                         <L1WalletConnectLabel provider={walletLogoProvider(w.id)!} label={`Connect ${w.name}`} />
@@ -614,7 +614,7 @@ export function CreateAdWizard({
                     href={KASPA_WALLET_PROVIDERS.kasware.downloadUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 text-sm font-semibold text-[#02abb8] hover:underline"
+                    className="inline-flex items-center gap-2 text-sm font-semibold text-[color:var(--hub-accent)] hover:underline"
                   >
                     Get KasWare
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -687,7 +687,7 @@ export function CreateAdWizard({
                           }}
                           className={`flex w-full min-h-[3rem] items-center justify-between gap-3 px-4 py-3 text-left text-sm transition-colors ${
                             selected
-                              ? 'bg-[#02abb8]/10 text-[#02abb8] dark:bg-[#02abb8]/20 font-medium'
+                              ? 'bg-[color:var(--hub-accent)]/10 text-[color:var(--hub-accent)] dark:bg-[color:var(--hub-accent)]/20 font-medium'
                               : available
                                 ? 'text-zinc-700 hover:bg-zinc-50 dark:text-zinc-300 dark:hover:bg-zinc-800'
                                 : 'cursor-not-allowed opacity-45 text-zinc-400 dark:text-zinc-600'
@@ -735,7 +735,7 @@ export function CreateAdWizard({
                       </div>
                     ) : (
                       <div className="mt-3 space-y-2">
-                        <div className="relative flex min-h-[10rem] flex-col items-center justify-center gap-2.5 overflow-hidden rounded-xl border-2 border-dashed border-[#02abb8]/35 bg-gradient-to-br from-[#02abb8]/10 via-transparent to-cyan-500/5 px-4 py-7 transition-all hover:border-[#02abb8]/55 hover:from-[#02abb8]/15 dark:from-[#02abb8]/14 dark:to-cyan-950/25 dark:hover:from-[#02abb8]/20">
+                        <div className="relative flex min-h-[10rem] flex-col items-center justify-center gap-2.5 overflow-hidden rounded-xl border-2 border-dashed border-[color:var(--hub-accent)]/35 bg-gradient-to-br from-[#02abb8]/10 via-transparent to-cyan-500/5 px-4 py-7 transition-all hover:border-[color:var(--hub-accent)]/55 hover:from-[#02abb8]/15 dark:from-[#02abb8]/14 dark:to-cyan-950/25 dark:hover:from-[#02abb8]/20">
                           <input
                             ref={ipfsFileInputRef}
                             type="file"
@@ -750,7 +750,7 @@ export function CreateAdWizard({
                             onChange={(e) => setImageFile(e.target.files?.[0] ?? null)}
                           />
                           <div className="pointer-events-none flex flex-col items-center gap-2.5">
-                            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#02abb8]/15 text-[#02abb8] ring-2 ring-[#02abb8]/10 dark:bg-[#02abb8]/25 dark:ring-[#02abb8]/20">
+                            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[color:var(--hub-accent)]/15 text-[color:var(--hub-accent)] ring-2 ring-[#02abb8]/10 dark:bg-[color:var(--hub-accent)]/25 dark:ring-[#02abb8]/20">
                               <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
                                 <path
                                   strokeLinecap="round"
@@ -770,8 +770,8 @@ export function CreateAdWizard({
                           </div>
                         </div>
                         {imageFile ? (
-                          <div className="flex items-center justify-between gap-2 rounded-lg border border-[#02abb8]/25 bg-[#02abb8]/5 px-3 py-2 dark:border-[#02abb8]/30 dark:bg-[#02abb8]/10">
-                            <p className="min-w-0 flex-1 truncate text-xs font-medium text-[#02abb8]" title={imageFile.name}>
+                          <div className="flex items-center justify-between gap-2 rounded-lg border border-[color:var(--hub-accent)]/25 bg-[color:var(--hub-accent)]/5 px-3 py-2 dark:border-[color:var(--hub-accent)]/30 dark:bg-[color:var(--hub-accent)]/10">
+                            <p className="min-w-0 flex-1 truncate text-xs font-medium text-[color:var(--hub-accent)]" title={imageFile.name}>
                               {imageFile.name}
                             </p>
                             <button
@@ -919,7 +919,7 @@ export function CreateAdWizard({
                       <Tooltip content={tierPerksTooltip}>
                         <button
                           type="button"
-                          className="inline-flex shrink-0 rounded p-0.5 text-zinc-500 transition-colors hover:bg-zinc-200/60 hover:text-[#02abb8] dark:text-zinc-400 dark:hover:bg-zinc-800/60 dark:hover:text-[#66dfe8]"
+                          className="inline-flex shrink-0 rounded p-0.5 text-zinc-500 transition-colors hover:bg-zinc-200/60 hover:text-[color:var(--hub-accent)] dark:text-zinc-400 dark:hover:bg-zinc-800/60 dark:hover:text-[#66dfe8]"
                           aria-label="KREX tier discount and Hub Points multiplier"
                         >
                           <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden>
@@ -969,7 +969,7 @@ export function CreateAdWizard({
                     <span className="text-zinc-500">(+{ADS_EXTENDED_EXPOSURE_SECONDS}s, one-time, not discounted)</span>
                   </p>
                 )}
-                <p className="text-base font-bold text-[#02abb8] dark:text-[#02abb8] pt-1 border-t border-zinc-200 dark:border-zinc-600 mt-1 tabular-nums">
+                <p className="text-base font-bold text-[color:var(--hub-accent)] dark:text-[color:var(--hub-accent)] pt-1 border-t border-zinc-200 dark:border-zinc-600 mt-1 tabular-nums">
                   Total: {payLabel}
                 </p>
                 {paymentCurrency === 'KREX' ? (
@@ -1033,12 +1033,12 @@ export function CreateAdWizard({
             <div className="text-center py-4">
               {!txHash ? (
                 <>
-                  <p className="text-[#02abb8] font-medium mb-2">Almost done</p>
+                  <p className="text-[color:var(--hub-accent)] font-medium mb-2">Almost done</p>
                   <p className="text-sm text-zinc-600 dark:text-zinc-400">Confirming payment…</p>
                 </>
               ) : (
                 <>
-                  <p className="text-[#02abb8] font-medium mb-2">Payment sent</p>
+                  <p className="text-[color:var(--hub-accent)] font-medium mb-2">Payment sent</p>
                   <p className="text-xs font-mono text-zinc-600 dark:text-zinc-300 break-all">
                     {extractKaspaTransactionId(txHash) ?? 'Open your wallet history to copy the transaction id.'}
                   </p>
@@ -1106,7 +1106,7 @@ export function CreateAdWizard({
                   type="button"
                   onClick={() => void handlePay()}
                   disabled={isSubmitting || isPayProcessing || !canPay}
-                  className="px-4 py-2 rounded-lg bg-[#02abb8] text-white font-medium text-sm disabled:opacity-50 min-w-[140px]"
+                  className="px-4 py-2 rounded-lg bg-[color:var(--hub-accent)] text-white font-medium text-sm disabled:opacity-50 min-w-[140px]"
                 >
                   {isSubmitting || isPayProcessing ? 'Sending…' : `Pay ${payLabel}`}
                 </button>
@@ -1117,7 +1117,7 @@ export function CreateAdWizard({
             <button
               type="button"
               onClick={() => void handleDone()}
-              className="ml-auto px-4 py-2 rounded-lg bg-[#02abb8] text-white font-medium text-sm"
+              className="ml-auto px-4 py-2 rounded-lg bg-[color:var(--hub-accent)] text-white font-medium text-sm"
             >
               Done
             </button>

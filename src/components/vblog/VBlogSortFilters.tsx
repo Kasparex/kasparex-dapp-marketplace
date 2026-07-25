@@ -70,7 +70,7 @@ function FilterDropdownButton({
     <button
       type="button"
       onClick={onClick}
-      className={`k-control-btn min-w-[170px] ${active ? '!border-[#e30d1b]/40 !text-[#e30d1b]' : ''}`}
+      className={`k-control-btn min-w-[170px] ${active ? '!border-[color:var(--hub-accent-border)] !text-[color:var(--hub-accent)]' : ''}`}
     >
       <span className="truncate">{label}</span>
       <svg className={`w-4 h-4 ml-auto shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -104,7 +104,7 @@ function FilterDropdownOption({
       onClick={onClick}
       className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${
         active
-          ? 'bg-[#e30d1b]/10 text-[#e30d1b] dark:bg-[#e30d1b]/20 font-medium'
+          ? 'bg-[color:var(--hub-accent-muted)] text-[color:var(--hub-accent)] dark:bg-[color:var(--hub-accent-muted)] font-medium'
           : 'text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100'
       }`}
     >

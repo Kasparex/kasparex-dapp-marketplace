@@ -12,7 +12,7 @@ import type { KREXTier } from '@/lib/rewards/types';
 import type { ResolvedPayoutSplit } from '@/lib/vblog/paymentSplit';
 
 const PREMIUM_PREVIEW_FRAME_CLASS =
-  'rounded-xl border-2 border-dashed border-[#e30d1b]/40 dark:border-[#ff6b73]/35 bg-[#e30d1b]/[0.03] dark:bg-[#e30d1b]/[0.06]';
+  'rounded-xl border-2 border-dashed border-[color:var(--hub-accent-border)] dark:border-[color:var(--hub-accent-border)] bg-[color:var(--hub-accent-muted)] dark:bg-[color:var(--hub-accent-muted)]';
 
 type VBlogPremiumSectionGateProps = {
   unlocked: boolean;
@@ -133,7 +133,7 @@ export function VBlogPremiumSectionGate({
           isProcessing ? 'cursor-wait' : 'cursor-pointer'
         }`}
       >
-        <p className="text-xs sm:text-sm font-black uppercase tracking-[0.2em] text-[#e30d1b] dark:text-[#ff6b73] shrink-0">
+        <p className="text-xs sm:text-sm font-black uppercase tracking-[0.2em] text-[color:var(--hub-accent)] dark:text-[color:var(--hub-accent-light)] shrink-0">
           Premium Content
         </p>
 

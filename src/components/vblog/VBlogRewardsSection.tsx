@@ -27,7 +27,7 @@ export function VBlogRewardsSection() {
           <div className="min-w-0">
             <div className="flex items-center gap-3 mb-2">
               <span
-                className="h-7 w-1.5 shrink-0 rounded-full bg-[#e30d1b] shadow-[0_0_10px_rgba(227, 13, 27,0.35)] -skew-y-12"
+                className="hub-tilt-bar h-7 w-1.5 shrink-0 rounded-full -skew-y-12"
                 aria-hidden="true"
               />
               <h3 className="text-2xl sm:text-3xl font-bold text-zinc-900 dark:text-white leading-tight">
@@ -74,8 +74,8 @@ export function VBlogRewardsSection() {
       </div>
 
       {nftStatus && (nftStatus.hasKREXPRIME || nftStatus.hasPIXELKREX) ? (
-        <div className="px-5 py-4 sm:px-6 border-t border-zinc-200 dark:border-zinc-800 bg-[#e30d1b]/5 text-center">
-          <p className="kx-body-sm font-semibold text-[#e30d1b] dark:text-[#ff6b73]">
+        <div className="px-5 py-4 sm:px-6 border-t border-zinc-200 dark:border-zinc-800 bg-[color:var(--hub-accent-muted)] text-center">
+          <p className="kx-body-sm font-semibold text-[color:var(--hub-accent)] dark:text-[color:var(--hub-accent-light)]">
             NFT multiplier active: premium text limits and enhanced on-chain visibility.
           </p>
         </div>

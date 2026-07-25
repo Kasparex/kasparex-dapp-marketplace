@@ -57,7 +57,7 @@ function KxSystemDialogView({
       >
         <div className="px-5 py-4 border-b border-zinc-200 dark:border-zinc-800 flex items-center gap-3">
           <span
-            className="h-6 w-1 shrink-0 rounded-full bg-[#02abb8] shadow-[0_0_12px_rgba(2,171,184,0.35)] -skew-y-12"
+            className="hub-tilt-bar h-6 w-1 shrink-0 rounded-full -skew-y-12"
             aria-hidden
           />
           <h2 id={titleId} className="text-base font-bold text-zinc-900 dark:text-zinc-100">
@@ -70,7 +70,7 @@ function KxSystemDialogView({
             <button
               type="button"
               onClick={() => dismiss(true)}
-              className="rounded-xl bg-[#02abb8] px-5 py-2.5 text-sm font-semibold text-white hover:opacity-90 transition-opacity"
+              className="rounded-xl hub-cta-btn px-5 py-2.5 text-sm font-semibold hover:opacity-90 transition-opacity"
             >
               {okLabel}
             </button>
@@ -95,7 +95,7 @@ function KxSystemDialogView({
           className={`h-6 w-1 shrink-0 rounded-full -skew-y-12 ${
             destructive
               ? 'bg-red-500 shadow-[0_0_12px_rgba(239,68,68,0.35)]'
-              : 'bg-[#02abb8] shadow-[0_0_12px_rgba(2,171,184,0.35)]'
+              : 'bg-[color:var(--hub-accent)] shadow-[0_0_12px_var(--hub-accent-shadow)]'
           }`}
           aria-hidden
         />
@@ -119,7 +119,7 @@ function KxSystemDialogView({
             className={`rounded-xl px-5 py-2.5 text-sm font-semibold text-white transition-opacity hover:opacity-90 ${
               destructive
                 ? 'bg-red-600 hover:bg-red-700'
-                : 'bg-[#02abb8]'
+                : 'bg-[color:var(--hub-accent)]'
             }`}
           >
             {confirmLabel}

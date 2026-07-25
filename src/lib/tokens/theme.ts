@@ -1,14 +1,13 @@
-/** Tokens accent palette (platform cyan, aligned with vBlog / Hub). */
-export const TOKENS_ACCENT = '#02abb8';
-export const TOKENS_ACCENT_HOVER = '#019aa6';
-export const TOKENS_ACCENT_LIGHT = '#66dfe8';
-export const TOKENS_ACCENT_MUTED = 'rgba(2, 171, 184, 0.1)';
-export const TOKENS_ACCENT_BORDER = 'rgba(2, 171, 184, 0.25)';
+/** Tokens accent follows HubAccentScope (kasparex-tokens blue). */
+export const TOKENS_ACCENT = '#3b82f6';
+export const TOKENS_ACCENT_HOVER = '#2563eb';
+export const TOKENS_ACCENT_LIGHT = '#93c5fd';
+export const TOKENS_ACCENT_MUTED = 'rgba(59, 130, 246, 0.1)';
+export const TOKENS_ACCENT_BORDER = 'rgba(59, 130, 246, 0.25)';
 
-/** Primary CTA button classes for Tokens controls. */
-export const TOKENS_CTA_BTN =
-  'k-control-btn !bg-[#02abb8] hover:!bg-[#019aa6] !text-white !border-[#02abb8]/30';
+/** Primary CTA: Hub accent CSS vars. */
+export const TOKENS_CTA_BTN = 'k-control-btn hub-cta-btn !text-white';
 
 /** Gradient text for Tokens headings. */
 export const TOKENS_GRADIENT_TEXT =
-  'text-transparent bg-clip-text bg-gradient-to-r from-cyan-700 via-cyan-600 to-teal-600 dark:from-cyan-300 dark:via-cyan-300 dark:to-teal-300';
+  'text-transparent bg-clip-text bg-gradient-to-r from-blue-700 via-blue-600 to-sky-500 dark:from-blue-300 dark:via-blue-300 dark:to-sky-300';

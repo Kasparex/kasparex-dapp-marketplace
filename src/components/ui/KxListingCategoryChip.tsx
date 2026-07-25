@@ -28,7 +28,7 @@ export function KxListingCategoryChip({
         type="button"
         onClick={onClick}
         title={title}
-        className={`${KX_LISTING_CATEGORY_CHIP} cursor-pointer transition-colors hover:border-[#02abb8]/40 hover:text-[#02abb8] dark:hover:text-[#66dfe8] ${className}`.trim()}
+        className={`${KX_LISTING_CATEGORY_CHIP} cursor-pointer transition-colors hover:border-[color:var(--hub-accent)]/40 hover:text-[color:var(--hub-accent)] dark:hover:text-[color:var(--hub-accent-light)] ${className}`.trim()}
       >
         {inner}
       </button>

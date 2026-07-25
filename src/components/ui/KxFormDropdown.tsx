@@ -88,8 +88,8 @@ export function KxFormDropdown({
                 }}
                 className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${
                   selected
-                    ? 'bg-[#02abb8]/10 text-[#02abb8] dark:bg-[#02abb8]/20 font-semibold'
-                    : 'text-zinc-700 dark:text-zinc-300 hover:bg-[#02abb8]/8 hover:text-[#02abb8] dark:hover:bg-[#02abb8]/15 dark:hover:text-[#66dfe8]'
+                    ? 'bg-[color:var(--hub-accent-muted)] text-[color:var(--hub-accent)] dark:bg-[color:var(--hub-accent-muted)] font-semibold'
+                    : 'text-zinc-700 dark:text-zinc-300 hover:bg-[color:var(--hub-accent-muted)] hover:text-[color:var(--hub-accent)] dark:hover:text-[color:var(--hub-accent-light)]'
                 }`}
               >
                 {opt.label}

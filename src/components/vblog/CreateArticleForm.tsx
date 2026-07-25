@@ -890,7 +890,7 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
           {formQuote.modulesFeeKas > 0 ? (
             <div className="flex justify-between border-t border-zinc-200 dark:border-zinc-700 pt-1.5">
               <span>Modules subtotal</span>
-              <span className="font-semibold text-[#e30d1b]">{formQuote.modulesFeeKas} KAS</span>
+              <span className="font-semibold text-[color:var(--hub-accent)]">{formQuote.modulesFeeKas} KAS</span>
             </div>
           ) : null}
           {formQuote.discountKas > 0 ? (
@@ -906,7 +906,7 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
           <p className="text-xs uppercase tracking-widest text-zinc-500">Total to pay</p>
           <p className="text-2xl font-black text-zinc-900 dark:text-zinc-100">{formQuote.totalKas} KAS</p>
         </div>
-        <div className="rounded-xl bg-[#e30d1b]/10 border border-[#e30d1b]/25 p-3 text-sm text-zinc-700 dark:text-zinc-300">
+        <div className="rounded-xl bg-[color:var(--hub-accent-muted)] border border-[color:var(--hub-accent-border)] p-3 text-sm text-zinc-700 dark:text-zinc-300">
           {isEditMode
             ? 'One Kaspa L1 payment refreshes on-chain metadata. Module and payload growth add to the 1 KAS base fee.'
             : 'One Kaspa L1 payment covers the article and any enabled modules. Ensure your wallet has enough KAS.'}
@@ -928,7 +928,7 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
         <button
           type="submit"
           disabled={isSubmitting || isUploading}
-          className="w-full k-control-btn !bg-[#e30d1b] !text-white !border-[#e30d1b] hover:!bg-[#c40b17] dark:!bg-[#e30d1b] dark:hover:!bg-[#c40b17] disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full k-control-btn hub-cta-btn disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isSubmitting ? (isEditMode ? 'Updating...' : 'Creating...') : (isEditMode ? 'Update Article' : 'Create Article')}
         </button>

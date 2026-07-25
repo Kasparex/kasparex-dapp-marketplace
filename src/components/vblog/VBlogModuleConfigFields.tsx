@@ -195,8 +195,8 @@ export function VBlogModuleConfigFields({
                   aria-pressed={active}
                   className={`rounded-lg border px-3 py-1.5 text-xs font-semibold transition-colors disabled:opacity-50 ${
                     active
-                      ? 'border-[#e30d1b] bg-[#e30d1b]/10 text-[#e30d1b] dark:text-[#ff6b73]'
-                      : 'border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 hover:border-[#e30d1b]/40'
+                      ? 'border-[color:var(--hub-accent)] bg-[color:var(--hub-accent-muted)] text-[color:var(--hub-accent)] dark:text-[color:var(--hub-accent-light)]'
+                      : 'border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 hover:border-[color:var(--hub-accent-border)]'
                   }`}
                 >
                   {currency}

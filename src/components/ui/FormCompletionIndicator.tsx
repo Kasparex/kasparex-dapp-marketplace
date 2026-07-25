@@ -43,7 +43,7 @@ export function FormCompletionIndicator({
               strokeDasharray={circumference}
               strokeDashoffset={offset}
               strokeLinecap="round"
-              className="text-[#02abb8] transition-all duration-300"
+              className="text-[color:var(--hub-accent)] transition-all duration-300"
             />
           </svg>
           <div className="absolute inset-0 flex items-center justify-center">
@@ -73,7 +73,7 @@ export function FormCompletionIndicator({
       </div>
       <div className="relative h-2 bg-zinc-200 dark:bg-zinc-800 rounded-full overflow-hidden">
         <div
-          className="absolute top-0 left-0 h-full bg-[#02abb8] transition-all duration-300 ease-out rounded-full"
+          className="absolute top-0 left-0 h-full bg-[color:var(--hub-accent)] transition-all duration-300 ease-out rounded-full"
           style={{ width: `${percentage}%` }}
         />
       </div>

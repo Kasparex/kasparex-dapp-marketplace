@@ -55,10 +55,10 @@ export const KX_FIELD_MENU = 'k-field-menu';
 export const KX_LABEL = 'k-label';
 
 export const KX_BTN_PRIMARY =
-  'w-full py-2.5 rounded-lg bg-[#02abb8] text-white font-medium hover:bg-[#028a94] transition-colors disabled:opacity-50 disabled:cursor-not-allowed';
+  'w-full py-2.5 rounded-lg bg-[color:var(--hub-accent,#06b6d4)] text-white font-medium hover:bg-[color:var(--hub-accent-hover,#0891b2)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed';
 
 export const KX_BTN_SECONDARY =
-  'w-full py-2.5 rounded-lg border border-[#02abb8] text-[#02abb8] font-medium hover:bg-[#02abb8]/10 transition-colors disabled:opacity-50';
+  'w-full py-2.5 rounded-lg border border-[color:var(--hub-accent,#06b6d4)] text-[color:var(--hub-accent,#06b6d4)] font-medium hover:bg-[color:var(--hub-accent-muted,rgba(6,182,212,0.1))] transition-colors disabled:opacity-50';
 
 export const KX_TAB_SECTION = 'scroll-mt-28 space-y-6';
 
@@ -70,7 +70,7 @@ export const KX_EMPTY_STATE =
 
 /** Dashed informational callout (field context, not post-CTA alerts). */
 export const KX_INFO_DASHED =
-  'rounded-xl border border-dashed border-[#02abb8]/35 bg-[#02abb8]/[0.06] px-3.5 py-3 text-sm leading-snug text-zinc-700 dark:border-[#02abb8]/30 dark:bg-[#02abb8]/10 dark:text-zinc-300';
+  'rounded-xl border border-dashed border-[color:var(--hub-accent-border,rgba(6,182,212,0.35))] bg-[color:var(--hub-accent-muted,rgba(6,182,212,0.06))] px-3.5 py-3 text-sm leading-snug text-zinc-700 dark:text-zinc-300';
 
 export const KX_ASIDE_PANEL = `${KX_PANEL} ${KX_PANEL_PADDING}`;
 

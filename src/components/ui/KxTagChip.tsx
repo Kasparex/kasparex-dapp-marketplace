@@ -5,7 +5,7 @@ export function kxTagChipClass(isSelected: boolean): string {
   return [
     'inline-flex items-center rounded-lg px-2.5 py-1 text-xs font-semibold font-sans transition-all',
     isSelected
-      ? 'bg-[#02abb8] text-white shadow-md shadow-[#02abb8]/20'
+      ? 'bg-[color:var(--hub-accent)] text-white shadow-md shadow-[color:var(--hub-accent-shadow)]'
       : 'border border-zinc-200 bg-zinc-100 text-zinc-600 hover:text-zinc-900 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100',
   ].join(' ');
 }

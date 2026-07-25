@@ -10,6 +10,7 @@ import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { useNFTStatus } from '@/hooks/useNFTStatus';
 import { krexTierDiscountPercent } from '@/lib/chronicles/vault/pricing';
 import { VBlogModuleUnlockCards } from '@/components/vblog/VBlogModuleUnlockCards';
+import { HubAccentScope } from '@/components/hub/HubAccentScope';
 
 export default function VBlogVaultPage() {
   const { articles } = useVBlog();
@@ -23,7 +24,7 @@ export default function VBlogVaultPage() {
       <Header />
 
       <main className="flex-1 min-h-[calc(100vh-4rem)]">
-        <div className="flex flex-col lg:flex-row h-full">
+        <HubAccentScope projectId="kasparex-vblog" className="flex h-full flex-col lg:flex-row">
           <VBlogSidebar
             articles={articles}
             selectedCategory={null}
@@ -35,8 +36,8 @@ export default function VBlogVaultPage() {
 
           <div className="flex-1 min-w-0 p-4 sm:p-6 lg:p-12 overflow-y-auto border-l border-zinc-200 dark:border-zinc-800">
             <div className="max-w-6xl mx-auto space-y-8 text-base sm:text-[17px] text-zinc-700 dark:text-zinc-300">
-              <div className="rounded-2xl border border-[#e30d1b]/20 bg-gradient-to-br from-white via-[#e30d1b]/5 to-transparent dark:from-zinc-900 dark:via-[#e30d1b]/10 dark:to-zinc-950 p-8 sm:p-10">
-                <p className="text-sm font-black uppercase tracking-[0.2em] text-[#e30d1b] mb-4">Vault & unlocks</p>
+              <div className="rounded-2xl border border-[color:var(--hub-accent-border)] bg-gradient-to-br from-white via-[color:var(--hub-accent-muted)] to-transparent dark:from-zinc-900 dark:via-[color:var(--hub-accent-muted)] dark:to-zinc-950 p-8 sm:p-10">
+                <p className="text-sm font-black uppercase tracking-[0.2em] text-[color:var(--hub-accent)] mb-4">Vault & unlocks</p>
                 <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-zinc-900 dark:text-zinc-100 tracking-tight mb-4">
                   Unlock vBlog monetization modules
                 </h1>
@@ -64,7 +65,7 @@ export default function VBlogVaultPage() {
               </div>
 
               <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/80 dark:bg-zinc-900/40 p-6 sm:p-7 space-y-4">
-                <p className="text-sm font-black uppercase tracking-widest text-[#e30d1b]">Current fee model</p>
+                <p className="text-sm font-black uppercase tracking-widest text-[color:var(--hub-accent)]">Current fee model</p>
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 p-4">
                     <p className="text-xs font-black uppercase tracking-widest text-zinc-500 mb-1">Publish article</p>
@@ -85,7 +86,7 @@ export default function VBlogVaultPage() {
               </div>
             </div>
           </div>
-        </div>
+        </HubAccentScope>
       </main>
 
       <Footer />

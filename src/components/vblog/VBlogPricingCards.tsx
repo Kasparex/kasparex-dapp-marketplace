@@ -24,7 +24,7 @@ export function VBlogFeeCard({
         title={title}
         className="mb-0"
         right={
-          <span className="text-base font-bold tabular-nums text-[color:var(--hub-accent,#e30d1b)]">
+          <span className="text-base font-bold tabular-nums text-[color:var(--hub-accent)]">
             {feeKas <= 0 ? 'Free' : `${feeKas} KAS`}
           </span>
         }

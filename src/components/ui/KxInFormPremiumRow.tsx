@@ -26,9 +26,9 @@ export function KxInFormPremiumRow({
   accent?: 'default' | 'hub';
 }) {
   const accentTextClass =
-    accent === 'hub' ? 'text-[color:var(--hub-accent)]' : 'text-[#02abb8]';
+    accent === 'hub' ? 'text-[color:var(--hub-accent)]' : 'text-[color:var(--hub-accent)]';
   const accentToggleOnClass =
-    accent === 'hub' ? 'bg-[color:var(--hub-accent)]' : 'bg-[#02abb8]';
+    accent === 'hub' ? 'bg-[color:var(--hub-accent)]' : 'bg-[color:var(--hub-accent)]';
 
   const shellClass = flat
     ? 'flex flex-wrap items-center gap-3'

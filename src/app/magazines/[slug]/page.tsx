@@ -11,6 +11,7 @@ import { Magazine, MagazineIssue } from '@/lib/magazines/types';
 import { MagazineIssueCard } from '@/components/magazines/MagazineIssueCard';
 import { MagazineDashboardButton } from '@/components/magazines/MagazineDashboardButton';
 import { MagazinesSidebar } from '@/components/magazines/MagazinesSidebar';
+import { HubAccentScope } from '@/components/hub/HubAccentScope';
 
 export default function MagazineDetailPage() {
     const { slug } = useParams();
@@ -38,9 +39,9 @@ export default function MagazineDetailPage() {
         return (
             <div className="flex flex-col min-h-screen">
                 <Header />
-                <div className="flex-1 flex items-center justify-center">
-                    <div className="w-12 h-12 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin" />
-                </div>
+                <HubAccentScope projectId="kasparex-magazines" className="flex flex-1 items-center justify-center">
+                    <div className="w-12 h-12 border-4 border-[color:var(--hub-accent)] border-t-transparent rounded-full animate-spin" />
+                </HubAccentScope>
                 <Footer />
             </div>
         );
@@ -50,7 +51,7 @@ export default function MagazineDetailPage() {
         <div className="flex flex-col min-h-screen">
             <Header />
 
-            <div className="flex flex-1">
+            <HubAccentScope projectId="kasparex-magazines" className="flex flex-1">
                 <MagazinesSidebar
                     mode="issue"
                     currentMagazine={magazine}
@@ -62,7 +63,7 @@ export default function MagazineDetailPage() {
                         {/* Breadcrumbs */}
                         <nav className="flex items-center justify-between mb-8">
                             <div className="flex items-center gap-2 text-sm text-zinc-500 font-medium">
-                                <Link href="/magazines" className="hover:text-cyan-500 transition-colors">Magazines</Link>
+                                <Link href="/magazines" className="hover:text-[color:var(--hub-accent)] transition-colors">Magazines</Link>
                                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                                 </svg>
@@ -74,7 +75,7 @@ export default function MagazineDetailPage() {
                         {/* Magazine Info Header */}
                         <div className="flex flex-col lg:flex-row gap-12 mb-16">
                             <div className="w-full lg:w-1/3 max-w-sm mx-auto lg:mx-0">
-                                <div className="relative aspect-[3/4] rounded-2xl overflow-hidden shadow-2xl shadow-cyan-500/10 border border-zinc-200 dark:border-zinc-800">
+                                <div className="relative aspect-[3/4] rounded-2xl overflow-hidden shadow-2xl shadow-[color:var(--hub-accent-shadow)] border border-zinc-200 dark:border-zinc-800">
                                     <Image
                                         src={magazine.coverImage || '/img/placeholder-magazine.jpg'}
                                         alt={magazine.name}
@@ -113,7 +114,7 @@ export default function MagazineDetailPage() {
                                     </div>
                                 </div>
 
-                                <button className="px-8 py-3 bg-cyan-500 hover:bg-cyan-600 text-white rounded-xl font-bold shadow-lg shadow-cyan-500/20 transition-all">
+                                <button className="px-8 py-3 hub-cta-btn rounded-xl font-bold shadow-lg shadow-[color:var(--hub-accent-shadow)] transition-all">
                                     Follow Magazine
                                 </button>
                             </div>
@@ -140,7 +141,7 @@ export default function MagazineDetailPage() {
                         </div>
                     </div>
                 </main>
-            </div>
+            </HubAccentScope>
 
             <Footer />
         </div>
