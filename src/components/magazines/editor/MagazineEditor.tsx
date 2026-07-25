@@ -414,7 +414,7 @@ export function MagazineEditor() {
             {blocks.map((block) => (
               <div
                 key={block.id}
-                className="group relative flex gap-4 rounded-xl border border-dashed border-zinc-200 p-4 transition-colors hover:border-[#02abb8]/50 dark:border-zinc-800"
+                className="group relative flex gap-4 rounded-xl border border-dashed border-zinc-200 p-4 transition-colors hover:border-[color:var(--hub-accent-border)] dark:border-zinc-800"
               >
                 <div className="min-w-0 flex-1">
                   {block.type === 'header' ? (
@@ -512,8 +512,8 @@ export function MagazineEditor() {
 
         <div className={`${KX_FORM_PANEL} space-y-4`}>
           <DAppSectionHeader title="Revenue split" className="mb-0" />
-          <div className="flex items-center justify-between gap-2 rounded-xl border border-cyan-500/20 bg-cyan-500/5 p-3">
-            <div className="text-xs font-bold text-cyan-700 dark:text-cyan-300">Kasparex treasury (%)</div>
+          <div className="flex items-center justify-between gap-2 rounded-xl border border-[color:var(--hub-accent-border)] bg-[color:var(--hub-accent-muted)] p-3">
+            <div className="text-xs font-bold text-[color:var(--hub-accent)]">Kasparex treasury (%)</div>
             <input
               type="number"
               min={0}

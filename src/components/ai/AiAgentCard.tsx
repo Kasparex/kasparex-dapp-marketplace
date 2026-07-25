@@ -23,7 +23,7 @@ const TOKEN_VARIANT: Record<AiAgent['token'], 'cyan' | 'emerald' | 'violet'> = {
 
 function AgentIcon({ category }: { category: AiAgent['category'] }) {
   const props = {
-    className: 'w-8 h-8 text-cyan-600 dark:text-cyan-400',
+    className: 'w-8 h-8 text-[color:var(--hub-accent)]',
     fill: 'none' as const,
     viewBox: '0 0 24 24',
     stroke: 'currentColor',

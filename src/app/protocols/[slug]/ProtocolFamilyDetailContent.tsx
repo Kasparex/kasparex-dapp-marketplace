@@ -92,15 +92,15 @@ export function ProtocolFamilyDetailContent({ family }: { family: ProtocolFamily
               </nav>
 
               <div
-                className={`relative mb-10 overflow-hidden rounded-3xl border border-zinc-200 bg-gradient-to-br from-zinc-100 via-indigo-50/50 to-amber-50/40 px-6 py-10 sm:px-8 dark:border-zinc-800/50 dark:from-zinc-950 dark:via-indigo-950/25 dark:to-zinc-950 ${HUB_HALO_DESKTOP_ONLY}`}
+                className={`relative mb-10 overflow-hidden rounded-3xl border border-zinc-200 bg-gradient-to-br from-zinc-100 via-cyan-50/50 to-lime-50/40 px-6 py-10 sm:px-8 dark:border-zinc-800/50 dark:from-zinc-950 dark:via-cyan-950/25 dark:to-zinc-950 ${HUB_HALO_DESKTOP_ONLY}`}
               >
                 <div className="absolute inset-0 overflow-hidden">
-                  <div className="absolute right-0 top-0 h-[70%] w-[55%] rounded-full bg-[radial-gradient(ellipse_at_top_right,_rgba(129,140,248,0.16),transparent_70%)] blur-3xl" />
-                  <div className="absolute bottom-0 left-0 h-[50%] w-[40%] rounded-full bg-[radial-gradient(ellipse_at_bottom_left,_rgba(250,204,21,0.1),transparent_70%)] blur-3xl" />
+                  <div className="absolute right-0 top-0 h-[70%] w-[55%] rounded-full bg-[radial-gradient(ellipse_at_top_right,_rgba(6,182,212,0.16),transparent_70%)] blur-3xl" />
+                  <div className="absolute bottom-0 left-0 h-[50%] w-[40%] rounded-full bg-[radial-gradient(ellipse_at_bottom_left,_rgba(132,204,22,0.12),transparent_70%)] blur-3xl" />
                 </div>
                 <div className="relative z-10 flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
                   <div className="min-w-0 flex-1">
-                    <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-[color:var(--hub-accent-border)] bg-[color:var(--hub-accent-muted)] px-3 py-1 text-[10px] font-black uppercase tracking-widest text-indigo-900 dark:text-[color:var(--hub-accent-light)]">
+                    <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-[color:var(--hub-accent-border)] bg-[color:var(--hub-accent-muted)] px-3 py-1 text-[10px] font-black uppercase tracking-widest text-cyan-900 dark:text-[color:var(--hub-accent-light)]">
                       {family.status === 'live' ? 'Live' : family.status === 'preview' ? 'Preview' : 'Planned'}
                     </div>
                     <h1 className="text-3xl font-black leading-tight text-zinc-900 dark:text-white sm:text-4xl md:text-5xl">
@@ -111,7 +111,7 @@ export function ProtocolFamilyDetailContent({ family }: { family: ProtocolFamily
                   <div className="relative hidden h-[160px] w-[200px] shrink-0 lg:block">
                     <div
                       id={`ad-slot-protocol-${family.slug}-halo`}
-                      className="absolute inset-0 flex items-center justify-center overflow-hidden rounded-2xl border border-[color:var(--hub-accent-border)] bg-gradient-to-br from-[color:var(--hub-accent)] to-indigo-800 shadow-lg shadow-[color:var(--hub-accent-shadow)]"
+                      className="absolute inset-0 flex items-center justify-center overflow-hidden rounded-2xl border border-[color:var(--hub-accent-border)] bg-gradient-to-br from-[color:var(--hub-accent)] to-teal-700 shadow-lg shadow-[color:var(--hub-accent-shadow)]"
                     >
                       <AdSlider slotId="HALO_PROTOCOLS_RIGHT" />
                     </div>

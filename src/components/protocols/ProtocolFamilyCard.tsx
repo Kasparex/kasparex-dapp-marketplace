@@ -24,7 +24,7 @@ export function ProtocolFamilyCard({ family }: { family: ProtocolFamily }) {
       className="relative flex h-full min-h-0 flex-col"
     >
       <KxListingCardMedia aspectClass="aspect-[3/2]">
-        <div className="absolute inset-0 bg-gradient-to-br from-[color:var(--hub-accent)] via-indigo-600 to-amber-600 dark:from-indigo-500 dark:via-indigo-700 dark:to-amber-800" />
+        <div className="absolute inset-0 bg-gradient-to-br from-[color:var(--hub-accent)] via-teal-600 to-lime-600 dark:from-cyan-500 dark:via-teal-700 dark:to-lime-800" />
         <div className="pointer-events-none absolute inset-0 opacity-30">
           <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-white/20 blur-2xl" />
           <div className="absolute bottom-0 left-1/4 h-24 w-40 rounded-full bg-black/10 blur-xl" />

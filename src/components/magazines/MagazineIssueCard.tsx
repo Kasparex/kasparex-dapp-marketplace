@@ -37,7 +37,7 @@ export function MagazineIssueCard({ issue, magazineSlug }: MagazineIssueCardProp
             </KxListingCardMedia>
 
             <KxListingCardBody className="flex-1 flex flex-col">
-                <div className="text-xs font-bold text-violet-600 dark:text-violet-400 uppercase tracking-widest mb-1">
+                <div className="mb-1 text-xs font-bold uppercase tracking-widest text-[color:var(--hub-accent)] dark:text-[color:var(--hub-accent-light)]">
                     Issue #{issue.issueNumber}
                 </div>
                 <h4 className="font-bold text-zinc-900 dark:text-zinc-100 mb-2 line-clamp-1">
@@ -54,7 +54,7 @@ export function MagazineIssueCard({ issue, magazineSlug }: MagazineIssueCardProp
                     <span
                         className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${issue.isPurchased
                                 ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400'
-                                : 'bg-violet-500/10 text-violet-700 dark:text-violet-300'
+                                : 'bg-[color:var(--hub-accent-muted)] text-[color:var(--hub-accent)]'
                             }`}
                     >
                         {issue.isPurchased ? 'View' : 'Get Access'}

@@ -6,34 +6,37 @@ import { HUB_HALO_DESKTOP_ONLY } from '@/lib/hub/haloHeaders';
 
 export function AiHeader() {
   return (
-    <div className={`scroll-mt-24 relative mb-10 py-12 px-6 sm:px-8 rounded-3xl overflow-hidden bg-gradient-to-br from-zinc-100 via-cyan-50/50 to-zinc-100 dark:from-zinc-950 dark:via-cyan-950/25 dark:to-zinc-950 border border-zinc-200 dark:border-zinc-800/50 ${HUB_HALO_DESKTOP_ONLY}`}>
+    <div
+      className={`relative mb-10 scroll-mt-24 overflow-hidden rounded-3xl border border-zinc-200 bg-gradient-to-br from-zinc-100 via-purple-50/50 to-cyan-50/40 px-6 py-12 sm:px-8 dark:border-zinc-800/50 dark:from-zinc-950 dark:via-purple-950/25 dark:to-zinc-950 ${HUB_HALO_DESKTOP_ONLY}`}
+    >
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-0 right-0 w-[60%] h-[80%] bg-[radial-gradient(ellipse_at_top_right,_rgba(6,182,212,0.12),transparent_70%)] dark:bg-[radial-gradient(ellipse_at_top_right,_rgba(6,182,212,0.16),transparent_70%)] rounded-full blur-3xl" />
-        <div className="absolute bottom-0 left-0 w-[50%] h-[60%] bg-[radial-gradient(ellipse_at_bottom_left,_rgba(52,211,153,0.09),transparent_70%)] dark:bg-[radial-gradient(ellipse_at_bottom_left,_rgba(52,211,153,0.12),transparent_70%)] rounded-full blur-3xl" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-cyan-500/5 rounded-full blur-3xl" />
-        <div className="absolute top-8 right-12 w-32 h-32 border border-cyan-500/20 rounded-2xl rotate-12" />
-        <div className="absolute bottom-12 right-1/4 w-24 h-24 border border-emerald-400/15 rounded-xl -rotate-6" />
+        <div className="absolute right-0 top-0 h-[80%] w-[60%] rounded-full bg-[radial-gradient(ellipse_at_top_right,_rgba(192,132,252,0.16),transparent_70%)] blur-3xl" />
+        <div className="absolute bottom-0 left-0 h-[60%] w-[50%] rounded-full bg-[radial-gradient(ellipse_at_bottom_left,_rgba(34,211,238,0.12),transparent_70%)] blur-3xl" />
+        <div className="absolute left-1/2 top-1/2 h-96 w-96 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[color:var(--hub-accent-muted)] blur-3xl" />
+        <div className="absolute right-12 top-8 h-32 w-32 rotate-12 rounded-2xl border border-[color:var(--hub-accent-border)]" />
+        <div className="absolute bottom-12 right-1/4 h-24 w-24 -rotate-6 rounded-xl border border-cyan-400/20" />
       </div>
 
-      <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8">
-        <div className="max-w-2xl min-w-0">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/25 text-cyan-800 dark:text-cyan-200 text-[10px] font-black uppercase tracking-[0.2em] mb-6">
+      <div className="relative z-10 flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between">
+        <div className="min-w-0 max-w-2xl">
+          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-[color:var(--hub-accent-border)] bg-[color:var(--hub-accent-muted)] px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.2em] text-purple-900 dark:text-[color:var(--hub-accent-light)]">
             <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-500" />
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[color:var(--hub-accent-light)] opacity-75" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-[color:var(--hub-accent)]" />
             </span>
             Beta
           </div>
 
-          <h1 className="text-4xl sm:text-5xl md:text-6xl font-black text-zinc-900 dark:text-white mb-4 leading-tight">
+          <h1 className="mb-4 text-4xl font-black leading-tight text-zinc-900 dark:text-white sm:text-5xl md:text-6xl">
             Kasparex{' '}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 via-teal-500 to-emerald-500 dark:from-cyan-300 dark:via-teal-300 dark:to-emerald-300">
+            <span className="bg-gradient-to-r from-purple-500 via-fuchsia-400 to-cyan-400 bg-clip-text text-transparent dark:from-purple-300 dark:via-fuchsia-300 dark:to-cyan-300">
               AI
             </span>
           </h1>
 
-          <p className="kx-body max-w-xl leading-relaxed mb-8">
-            Autonomous AI agents built on Kaspa L1 BlockDAG. Build, deploy, and monetise agent workflows with KAS, KREX, and future ARIA utility.
+          <p className="kx-body mb-8 max-w-xl leading-relaxed">
+            Autonomous AI agents built on Kaspa L1 BlockDAG. Build, deploy, and monetise agent workflows with KAS, KREX, and
+            future ARIA utility.
           </p>
 
           <div className="flex flex-wrap items-center gap-3">
@@ -42,7 +45,7 @@ export function AiHeader() {
             </Link>
             <Link
               href="/ai#templates"
-              className="k-control-btn !border-cyan-500/30 !bg-cyan-500/10 !text-cyan-800 dark:!text-cyan-300"
+              className="k-control-btn !border-[color:var(--hub-accent-border)] !bg-[color:var(--hub-accent-muted)] !text-[color:var(--hub-accent)]"
             >
               Explore Templates
             </Link>
@@ -52,17 +55,17 @@ export function AiHeader() {
           </div>
         </div>
 
-        <div className="hidden lg:flex items-center justify-center flex-shrink-0 relative w-[280px] min-h-[200px]">
-          <div className="relative opacity-90 pointer-events-none">
-            <div className="w-48 h-56 rounded-2xl border-2 border-cyan-500/30 bg-white/80 dark:bg-zinc-900/80 shadow-2xl shadow-cyan-500/10 rotate-3 transform" />
-            <div className="absolute -bottom-2 -right-2 w-40 h-48 rounded-xl border-2 border-teal-500/20 bg-zinc-100/90 dark:bg-zinc-800/90 shadow-xl -rotate-6 transform" />
-            <div className="absolute top-4 left-4 right-4 bottom-4 rounded-lg border border-zinc-300 dark:border-zinc-700/50 flex items-center justify-center">
-              <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">AI Agent</span>
+        <div className="relative hidden min-h-[200px] w-[280px] flex-shrink-0 items-center justify-center lg:flex">
+          <div className="pointer-events-none relative opacity-90">
+            <div className="h-56 w-48 rotate-3 transform rounded-2xl border-2 border-[color:var(--hub-accent-border)] bg-white/80 shadow-2xl shadow-[color:var(--hub-accent-shadow)] dark:bg-zinc-900/80" />
+            <div className="absolute -bottom-2 -right-2 h-48 w-40 -rotate-6 transform rounded-xl border-2 border-cyan-400/25 bg-zinc-100/90 shadow-xl dark:bg-zinc-800/90" />
+            <div className="absolute bottom-4 left-4 right-4 top-4 flex items-center justify-center rounded-lg border border-zinc-300 dark:border-zinc-700/50">
+              <span className="text-[10px] font-black uppercase tracking-widest text-zinc-500">AI Agent</span>
             </div>
           </div>
           <div
             id="ad-slot-ai-halo"
-            className="absolute inset-0 flex flex-col items-center justify-center pointer-events-auto scroll-mt-24"
+            className="pointer-events-auto absolute inset-0 flex flex-col items-center justify-center scroll-mt-24"
           >
             <AdSlider slotId="HALO_AI_RIGHT" />
           </div>
