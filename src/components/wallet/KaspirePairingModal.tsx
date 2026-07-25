@@ -95,8 +95,8 @@ export function KaspirePairingModal({
             </div>
             <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
               {mode === 'mobile'
-                ? 'Approve the WalletConnect session in the Kaspire app.'
-                : 'Scan this QR with Kaspire on Android.'}
+                ? 'Opens the installed Kaspire APK for approval (WalletConnect).'
+                : 'Scan this QR with the Kaspire Android app (APK).'}
             </p>
           </div>
         </div>
@@ -118,10 +118,15 @@ export function KaspirePairingModal({
               </div>
             )
           ) : (
-            <div className="w-full rounded-xl border border-teal-500/30 bg-teal-500/5 px-4 py-5 text-center text-sm text-zinc-700 dark:text-zinc-200">
-              {uri
-                ? 'Kaspire should open for approval. If nothing happened, tap Open Kaspire below.'
-                : 'Starting WalletConnect session…'}
+            <div className="w-full space-y-2 rounded-xl border border-teal-500/30 bg-teal-500/5 px-4 py-4 text-center text-sm text-zinc-700 dark:text-zinc-200">
+              <p>
+                {uri
+                  ? 'If Kaspire is installed, it should open for approval. If the website opens instead, install the APK first, then tap Open Kaspire.'
+                  : 'Starting WalletConnect session…'}
+              </p>
+              <p className="text-[11px] leading-snug text-zinc-500 dark:text-zinc-400">
+                Tip: pairing from a desktop QR is the most reliable flow while Kaspire is APK-only (no Play Store listing yet).
+              </p>
             </div>
           )}
 
@@ -130,12 +135,22 @@ export function KaspirePairingModal({
           </p>
 
           {mode === 'mobile' ? (
-            <a
-              href={uri ? buildKaspireAppLink(uri) : KASPIRE_DOWNLOAD_URL}
-              className="w-full rounded-xl bg-teal-600 px-4 py-2.5 text-center text-sm font-semibold text-white hover:bg-teal-700"
-            >
-              Open Kaspire
-            </a>
+            <div className="flex w-full flex-col gap-2">
+              <a
+                href={uri ? buildKaspireAppLink(uri) : KASPIRE_DOWNLOAD_URL}
+                className="w-full rounded-xl bg-teal-600 px-4 py-2.5 text-center text-sm font-semibold text-white hover:bg-teal-700"
+              >
+                Open Kaspire
+              </a>
+              <a
+                href={KASPIRE_DOWNLOAD_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full rounded-xl border border-zinc-200 px-4 py-2 text-center text-sm font-semibold text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800"
+              >
+                Download Kaspire APK
+              </a>
+            </div>
           ) : (
             <a
               href={KASPIRE_DOWNLOAD_URL}
@@ -143,7 +158,7 @@ export function KaspirePairingModal({
               rel="noopener noreferrer"
               className="text-xs font-medium text-teal-700 underline-offset-2 hover:underline dark:text-teal-300"
             >
-              Get Kaspire for Android
+              Download Kaspire APK (Android)
             </a>
           )}
         </div>

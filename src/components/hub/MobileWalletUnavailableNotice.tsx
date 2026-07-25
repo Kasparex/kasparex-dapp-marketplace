@@ -41,7 +41,7 @@ export function MobileWalletUnavailableNotice({
 
   const detail =
     allowKaspireHint && (networks === 'L1' || networks === 'both')
-      ? 'Kaspire (Android) can connect over WalletConnect with a deep link. KasWare and Kastle remain desktop / in-app browser wallets. iPhone L1 connect is not available yet.'
+      ? 'Kaspire connects over WalletConnect from an Android APK (no Play Store app required). Install the APK, then use Open Kaspire, or pair more reliably by scanning the desktop QR from your phone. KasWare and Kastle remain desktop / in-app browser wallets.'
       : DETAIL[networks];
 
   return (

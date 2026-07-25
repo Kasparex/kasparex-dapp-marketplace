@@ -54,7 +54,7 @@ export const MOBILE_DAPP_BROWSER_WALLETS: KaspaWalletProvider[] = ['kastle', 'ka
 export function mobileWalletConnectHint(provider: KaspaWalletProvider): string {
   const name = KASPA_WALLET_PROVIDERS[provider]?.name ?? provider;
   if (provider === 'kaspire') {
-    return `${name} connects over WalletConnect. On Android, Kasparex opens the Kaspire App Link so you can approve the session in-app.`;
+    return `${name} uses WalletConnect with an Android APK (not a Play Store listing). Install the APK, then Open Kaspire from Kasparex, or scan the desktop QR from the phone app.`;
   }
   if (provider === 'kastle') {
     return `Install ${name}, open Kasparex from the wallet's Explore / dApp browser, then tap Connect again. Kastle is the recommended mobile wallet for in-app browsers.`;
