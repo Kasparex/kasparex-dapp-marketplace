@@ -170,7 +170,7 @@ export function useDiamondMining() {
 
   const canPayWithL1 =
     walletState.isConnected &&
-    (walletState.provider === 'kasware' || walletState.provider === 'kastle');
+    (walletState.provider === 'kasware' || walletState.provider === 'kastle' || walletState.provider === 'kaspire');
 
   /** Load wallet-scoped profile before autosave can overwrite storage (Minecore pattern). */
   useLayoutEffect(() => {

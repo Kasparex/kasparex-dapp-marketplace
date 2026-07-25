@@ -1,9 +1,9 @@
 /**
  * Unified Kaspa L1 wallet button:
- * - If disconnected: dropdown to connect KasWare or Kastle
+ * - If disconnected: dropdown to connect KasWare, Kastle, or Kaspire (beta / mobile WC)
  * - If connected:
  *   - KasWare: reuse existing full-feature button
- *   - Kastle: show balance/address + basic actions
+ *   - Kastle / Kaspire: show balance/address + basic actions
  */
  
 'use client';
@@ -45,7 +45,7 @@ import { useRedeemablePointsBreakdown } from '@/hooks/useRedeemablePointsBreakdo
 import { NFTStatusBox } from '@/components/rewards/NFTStatusBox';
 import { useKnsPrimaryName } from '@/hooks/useKnsPrimaryName';
 import { L1WalletConnectOptions } from '@/components/wallet/L1WalletConnectOptions';
-import { L1WalletLogo } from '@/components/wallet/L1WalletLogo';
+import { L1WalletLogo, type L1WalletProviderId } from '@/components/wallet/L1WalletLogo';
 
 const KasWareWalletButton = dynamic(
   () => import('./KasWareWalletButton').then((mod) => ({ default: mod.KasWareWalletButton })),
@@ -64,7 +64,7 @@ export function KaspaL1WalletButton() {
   const { totalRedeemable: hubPts } = useRedeemablePointsBreakdown();
 
   const [open, setOpen] = useState(false);
-  const [connecting, setConnecting] = useState<'kasware' | 'kastle' | null>(null);
+  const [connecting, setConnecting] = useState<L1WalletProviderId | null>(null);
   const [error, setError] = useState<string | null>(null);
   const rootRef = useRef<HTMLDivElement>(null);
   const [isBridgeInfoOpen, setIsBridgeInfoOpen] = useState(false);
@@ -96,7 +96,10 @@ export function KaspaL1WalletButton() {
     return <KasWareWalletButton />;
   }
 
-  const handleConnect = async (provider: 'kasware' | 'kastle') => {
+  const handleConnect = async (
+    provider: L1WalletProviderId,
+    options?: { onPairingUri?: (uri: string) => void },
+  ) => {
     setConnecting(provider);
     setError(null);
     try {
@@ -107,6 +110,7 @@ export function KaspaL1WalletButton() {
           statement: 'Welcome to Kasparex dApps!',
           appName: 'Kasparex dApps',
         },
+        onPairingUri: options?.onPairingUri,
       });
       setOpen(false);
     } catch (err) {
@@ -125,9 +129,11 @@ export function KaspaL1WalletButton() {
     }
   };
 
-  // Kastle connected UI (basic)
-  if (state.isConnected && state.address && state.provider === 'kastle') {
+  // Kastle / Kaspire connected UI (basic)
+  if (state.isConnected && state.address && (state.provider === 'kastle' || state.provider === 'kaspire')) {
     const address = state.address;
+    const connectedProvider = state.provider as 'kastle' | 'kaspire';
+    const providerLabel = connectedProvider === 'kaspire' ? 'Kaspire' : 'Kastle';
     const formatAddressForDisplay = (addr: string): string => formatKaspaAddress(addr).display;
     const displayAddress = maskAddress(shortenAddress(formatAddressForDisplay(address), { head: 10, tail: 8 }), isBalanceVisible);
     const displayBalance = formatBalanceValueForDisplay(balance, false, isBalanceVisible);
@@ -140,12 +146,17 @@ export function KaspaL1WalletButton() {
           type="button"
           onClick={() => setOpen((o) => !o)}
           className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors text-sm font-medium"
-          aria-label="Kastle Wallet"
+          aria-label={`${providerLabel} Wallet`}
         >
           <span className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-cyan-100 dark:bg-cyan-900/30 text-cyan-700 dark:text-cyan-300 rounded-lg border border-cyan-300/50 dark:border-cyan-600/40 shadow-sm">
             L1
-            <L1WalletLogo provider="kastle" size={16} className="rounded-sm" />
-            Kastle
+            <L1WalletLogo provider={connectedProvider} size={16} className="rounded-sm" />
+            {providerLabel}
+            {connectedProvider === 'kaspire' ? (
+              <span className="rounded bg-amber-500/20 px-1 py-px text-[9px] font-bold uppercase text-amber-700 dark:text-amber-300">
+                Beta
+              </span>
+            ) : null}
           </span>
 
           <Avatar address={address} size={20} />

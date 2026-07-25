@@ -532,7 +532,7 @@ export function CreateAdWizard({
   };
 
   const walletLogoProvider = (id: KaspaWalletProvider): L1WalletProviderId | null => {
-    if (id === 'kasware' || id === 'kastle') return id;
+    if (id === 'kasware' || id === 'kastle' || id === 'kaspire') return id;
     return null;
   };
 

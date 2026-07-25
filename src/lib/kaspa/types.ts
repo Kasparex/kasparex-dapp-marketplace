@@ -10,6 +10,7 @@
 export type KaspaWalletProvider = 
   | 'kasware'
   | 'kastle'
+  | 'kaspire'
   | 'kaspium'
   | 'okx'
   | 'safepal'

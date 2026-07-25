@@ -214,7 +214,7 @@ export function MinecoreDashboard(_props: {
   );
 
   const canPayWithL1 =
-    Boolean(wallet.isConnected) && (wallet.provider === 'kasware' || wallet.provider === 'kastle');
+    Boolean(wallet.isConnected) && (wallet.provider === 'kasware' || wallet.provider === 'kastle' || wallet.provider === 'kaspire');
   const kasValid = typeof balanceInKas === 'number' && !Number.isNaN(balanceInKas);
   const kasBalanceNum = kasValid ? balanceInKas : 0;
   const kasBalanceLoading = canPayWithL1 && kasBalanceHookLoading && balanceInKas === null;

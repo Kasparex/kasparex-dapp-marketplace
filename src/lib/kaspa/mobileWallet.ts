@@ -18,6 +18,10 @@ export const MOBILE_L1_WALLET_STORE: Partial<
     android: 'https://docs.kasware.xyz/wallet/',
     web: 'https://docs.kasware.xyz/wallet/',
   },
+  kaspire: {
+    android: 'https://kaspire.kaslab.space/',
+    web: 'https://kaspire.kaslab.space/',
+  },
   kaspium: {
     android: 'https://play.google.com/store/apps/details?id=com.kaspium.wallet',
     ios: 'https://apps.apple.com/app/kaspium-wallet/id6443778154',
@@ -49,11 +53,14 @@ export const MOBILE_DAPP_BROWSER_WALLETS: KaspaWalletProvider[] = ['kastle', 'ka
 
 export function mobileWalletConnectHint(provider: KaspaWalletProvider): string {
   const name = KASPA_WALLET_PROVIDERS[provider]?.name ?? provider;
+  if (provider === 'kaspire') {
+    return `${name} connects over WalletConnect. On Android, Kasparex opens the Kaspire App Link so you can approve the session in-app.`;
+  }
   if (provider === 'kastle') {
-    return `Install ${name}, open Kasparex from the wallet's Explore / dApp browser, then tap Connect again. Kastle is the recommended mobile wallet for dApps.`;
+    return `Install ${name}, open Kasparex from the wallet's Explore / dApp browser, then tap Connect again. Kastle is the recommended mobile wallet for in-app browsers.`;
   }
   if (provider === 'kasware') {
-    return `KasWare on mobile works inside the KasWare app browser (Android). On iPhone, use Kastle for in-app dApp connections.`;
+    return `KasWare on mobile works inside the KasWare app browser (Android). On iPhone, use Kastle for in-app dApp connections, or Kaspire (Android) for WalletConnect.`;
   }
   if (provider === 'okx') {
     return `Open Kasparex inside the OKX Wallet app's dApp browser, then connect from there.`;

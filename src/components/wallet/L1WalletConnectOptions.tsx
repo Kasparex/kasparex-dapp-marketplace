@@ -11,14 +11,19 @@ import { useKaspaProviderProbe } from '@/hooks/useKaspaProviderProbe';
 import { L1WalletConnectLabel, type L1WalletProviderId } from '@/components/wallet/L1WalletLogo';
 import { useIsMobileViewport } from '@/hooks/useIsMobileViewport';
 import { MobileWalletUnavailableNotice } from '@/components/hub/MobileWalletUnavailableNotice';
+import { KaspirePairingModal } from '@/components/wallet/KaspirePairingModal';
+import { isIosUserAgent, KASPIRE_DOWNLOAD_URL } from '@/lib/kaspa/kaspireWc';
 
 type ConnectableProvider = L1WalletProviderId;
 
 export interface L1WalletConnectOptionsProps {
-  onConnect: (provider: ConnectableProvider) => Promise<void>;
+  onConnect: (
+    provider: ConnectableProvider,
+    options?: { onPairingUri?: (uri: string) => void },
+  ) => Promise<void>;
   connecting: ConnectableProvider | null;
   error?: string | null;
-  /** Mobile: show Kastle first (recommended for dApps). */
+  /** Mobile: show Kastle first (recommended for in-app browsers). Kaspire stays available for WC. */
   mobileKastleFirst?: boolean;
   compact?: boolean;
 }
@@ -27,10 +32,28 @@ function providerInstalled(
   provider: ConnectableProvider,
   isInstalled: (id: string) => boolean,
 ): boolean {
+  if (provider === 'kaspire') return true;
   if (provider === 'kasware') {
     return isInstalled('kasware') || (typeof window !== 'undefined' && !!(window as Window & { kasware?: unknown }).kasware);
   }
   return isInstalled('kastle') || (typeof window !== 'undefined' && !!(window as Window & { kastle?: unknown }).kastle);
+}
+
+function providerBadge(provider: ConnectableProvider, isMobile: boolean): string | null {
+  if (provider !== 'kaspire') return null;
+  if (isMobile) return 'Beta';
+  return 'Beta';
+}
+
+function providerSideLabel(
+  provider: ConnectableProvider,
+  connecting: ConnectableProvider | null,
+  installed: boolean,
+  isMobile: boolean,
+): string {
+  if (connecting === provider) return 'Connecting…';
+  if (provider === 'kaspire') return isMobile ? 'Mobile' : 'QR';
+  return installed ? 'L1' : isMobile ? 'App' : 'Install';
 }
 
 export function L1WalletConnectOptions({
@@ -43,21 +66,49 @@ export function L1WalletConnectOptions({
   const { isInstalled } = useKaspaProviderProbe();
   const isMobile = useIsMobileViewport();
   const isMobileUa = isMobileUserAgent();
+  const onMobile = isMobile || isMobileUa;
   const [hintProvider, setHintProvider] = useState<ConnectableProvider | null>(null);
+  const [kaspireUri, setKaspireUri] = useState<string | null>(null);
+  const [iosNotice, setIosNotice] = useState(false);
 
-  const ordered = mobileKastleFirst && (isMobile || isMobileUa)
+  const extensionOrder = mobileKastleFirst && onMobile
     ? (['kastle', 'kasware'] as const)
     : (['kasware', 'kastle'] as const);
 
+  // Kaspire first on mobile (deep link / WC); after extensions on desktop.
+  const ordered: ConnectableProvider[] = onMobile
+    ? ['kaspire', ...extensionOrder]
+    : [...extensionOrder, 'kaspire'];
+
   const handleAction = async (provider: ConnectableProvider) => {
+    if (provider === 'kaspire') {
+      if (isIosUserAgent()) {
+        setIosNotice(true);
+        setHintProvider(null);
+        return;
+      }
+      setIosNotice(false);
+      setHintProvider(null);
+      setKaspireUri(null);
+      try {
+        await onConnect('kaspire', {
+          onPairingUri: (uri) => setKaspireUri(uri),
+        });
+      } finally {
+        setKaspireUri(null);
+      }
+      return;
+    }
+
     const installed = providerInstalled(provider, isInstalled);
     if (installed) {
       setHintProvider(null);
+      setIosNotice(false);
       await onConnect(provider);
       return;
     }
 
-    if (isMobile || isMobileUa) {
+    if (onMobile) {
       setHintProvider(provider);
       window.open(getMobileWalletInstallUrl(provider), '_blank', 'noopener,noreferrer');
       return;
@@ -75,18 +126,23 @@ export function L1WalletConnectOptions({
 
   return (
     <div className="space-y-2">
-      {isMobile || isMobileUa ? (
-        <MobileWalletUnavailableNotice networks="L1" />
+      {onMobile ? (
+        <MobileWalletUnavailableNotice networks="L1" allowKaspireHint />
       ) : null}
 
-      {!(isMobile || isMobileUa)
-        ? ordered.map((provider) => {
+      {ordered.map((provider) => {
+        // Extension wallets stay desktop-oriented; hide their connect rows on mobile.
+        if (onMobile && provider !== 'kaspire') return null;
+
         const installed = providerInstalled(provider, isInstalled);
-        const label = installed
-          ? `Connect ${KASPA_WALLET_PROVIDERS[provider].name}`
-          : isMobile || isMobileUa
-            ? `Get ${KASPA_WALLET_PROVIDERS[provider].name}`
-            : `Install ${KASPA_WALLET_PROVIDERS[provider].name}`;
+        const label =
+          provider === 'kaspire'
+            ? `Connect ${KASPA_WALLET_PROVIDERS.kaspire.name}`
+            : installed
+              ? `Connect ${KASPA_WALLET_PROVIDERS[provider].name}`
+              : onMobile
+                ? `Get ${KASPA_WALLET_PROVIDERS[provider].name}`
+                : `Install ${KASPA_WALLET_PROVIDERS[provider].name}`;
 
         return (
           <button
@@ -96,19 +152,38 @@ export function L1WalletConnectOptions({
             disabled={connecting !== null}
             className={btnClass}
           >
-            <L1WalletConnectLabel provider={provider} label={label} logoSize={compact ? 20 : 22} />
+            <L1WalletConnectLabel
+              provider={provider}
+              label={label}
+              logoSize={compact ? 20 : 22}
+              badge={providerBadge(provider, onMobile)}
+            />
             {!compact ? (
               <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400 shrink-0">
-                {connecting === provider ? 'Connecting…' : installed ? 'L1' : isMobile || isMobileUa ? 'App' : 'Install'}
+                {providerSideLabel(provider, connecting, installed, onMobile)}
               </span>
             ) : null}
           </button>
         );
-      })
-        : null}
+      })}
 
       {connecting ? (
         <p className="px-1 text-xs text-zinc-500">Connecting…</p>
+      ) : null}
+
+      {iosNotice ? (
+        <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 px-3 py-2 text-xs leading-snug text-zinc-600 dark:text-zinc-300">
+          Kaspire WalletConnect is Android-only for now.{' '}
+          <a
+            href={KASPIRE_DOWNLOAD_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-semibold text-teal-700 underline-offset-2 hover:underline dark:text-teal-300"
+          >
+            Learn more
+          </a>
+          . On iPhone you can still browse; use a desktop browser or Android for L1 connect.
+        </div>
       ) : null}
 
       {hintProvider ? (
@@ -118,6 +193,15 @@ export function L1WalletConnectOptions({
       ) : null}
 
       {error ? <p className="text-xs text-red-600 dark:text-red-400 px-0.5">{error}</p> : null}
+
+      {kaspireUri || connecting === 'kaspire' ? (
+        <KaspirePairingModal
+          uri={kaspireUri}
+          onCancel={() => {
+            setKaspireUri(null);
+          }}
+        />
+      ) : null}
     </div>
   );
 }

@@ -20,7 +20,14 @@ import { isSIWKExpired } from './auth';
 
 interface KaspaWalletContextType {
   state: KaspaWalletState & { siwkAuth?: SIWKAuthResult };
-  connect: (provider: KaspaWalletProvider, options?: { enableSIWK?: boolean; siwkParams?: { domain?: string; statement?: string; appName?: string } }) => Promise<void>;
+  connect: (
+    provider: KaspaWalletProvider,
+    options?: {
+      enableSIWK?: boolean;
+      siwkParams?: { domain?: string; statement?: string; appName?: string };
+      onPairingUri?: (uri: string) => void;
+    },
+  ) => Promise<void>;
   disconnect: () => Promise<void>;
   refresh: () => Promise<void>;
   signInWithKaspa: (provider: KaspaWalletProvider, params?: { domain?: string; statement?: string; appName?: string }) => Promise<SIWKAuthResult | null>;
@@ -236,7 +243,11 @@ export function KaspaWalletProvider({ children }: { children: ReactNode }) {
 
   const connect = useCallback(async (
     provider: KaspaWalletProvider,
-    options?: { enableSIWK?: boolean; siwkParams?: { domain?: string; statement?: string; appName?: string } }
+    options?: {
+      enableSIWK?: boolean;
+      siwkParams?: { domain?: string; statement?: string; appName?: string };
+      onPairingUri?: (uri: string) => void;
+    },
   ) => {
     try {
       // Enable SIWK by default unless explicitly disabled
@@ -256,6 +267,7 @@ export function KaspaWalletProvider({ children }: { children: ReactNode }) {
       const newState = await connectKaspaWallet(provider, {
         enableSIWK,
         siwkParams,
+        onPairingUri: options?.onPairingUri,
       });
       
       console.log('Connection result:', { 

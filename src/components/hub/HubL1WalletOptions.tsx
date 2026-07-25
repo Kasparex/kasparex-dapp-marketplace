@@ -4,13 +4,17 @@ import { useState } from 'react';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { getErrorMessage } from '@/lib/utils';
 import { L1WalletConnectOptions } from '@/components/wallet/L1WalletConnectOptions';
+import type { L1WalletProviderId } from '@/components/wallet/L1WalletLogo';
 
 export function HubL1WalletOptions({ onConnected }: { onConnected?: () => void }) {
   const { connect } = useKaspaWallet();
-  const [connecting, setConnecting] = useState<'kasware' | 'kastle' | null>(null);
+  const [connecting, setConnecting] = useState<L1WalletProviderId | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const handleConnect = async (provider: 'kasware' | 'kastle') => {
+  const handleConnect = async (
+    provider: L1WalletProviderId,
+    options?: { onPairingUri?: (uri: string) => void },
+  ) => {
     setConnecting(provider);
     setError(null);
     try {
@@ -21,6 +25,7 @@ export function HubL1WalletOptions({ onConnected }: { onConnected?: () => void }
           statement: 'Welcome to Kasparex!',
           appName: 'Kasparex',
         },
+        onPairingUri: options?.onPairingUri,
       });
       onConnected?.();
     } catch (err) {

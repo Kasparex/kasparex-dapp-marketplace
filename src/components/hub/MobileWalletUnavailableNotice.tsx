@@ -21,15 +21,28 @@ export function MobileWalletUnavailableNotice({
   networks = 'both',
   className = '',
   defaultOpen = false,
+  /** When true, L1 copy mentions Kaspire (Android WalletConnect) as available in beta. */
+  allowKaspireHint = false,
 }: {
   networks?: MobileWalletNetworkHint;
   className?: string;
   defaultOpen?: boolean;
+  allowKaspireHint?: boolean;
 }) {
   const isMobile = useIsMobileViewport();
   const [open, setOpen] = useState(defaultOpen);
 
   if (!isMobile) return null;
+
+  const headline =
+    allowKaspireHint && (networks === 'L1' || networks === 'both')
+      ? 'Mobile L1 connect is in beta (Kaspire / Android)'
+      : HEADLINE[networks];
+
+  const detail =
+    allowKaspireHint && (networks === 'L1' || networks === 'both')
+      ? 'Kaspire (Android) can connect over WalletConnect with a deep link. KasWare and Kastle remain desktop / in-app browser wallets. iPhone L1 connect is not available yet.'
+      : DETAIL[networks];
 
   return (
     <div
@@ -54,10 +67,10 @@ export function MobileWalletUnavailableNotice({
         </span>
         <span className="min-w-0 flex-1">
           <span className="block text-sm font-semibold text-amber-950 dark:text-amber-100">
-            {HEADLINE[networks]}
+            {headline}
           </span>
           <span className="mt-0.5 block text-xs text-amber-900/80 dark:text-amber-200/80">
-            Tap for details. Desktop required for now.
+            {allowKaspireHint ? 'Tap for details.' : 'Tap for details. Desktop required for now.'}
           </span>
         </span>
         <svg
@@ -72,7 +85,7 @@ export function MobileWalletUnavailableNotice({
       </button>
       {open ? (
         <div className="border-t border-amber-500/25 px-3.5 py-3 text-xs leading-relaxed text-amber-950/90 dark:text-amber-100/90">
-          {DETAIL[networks]} You can still browse public content on mobile.
+          {detail} You can still browse public content on mobile.
         </div>
       ) : null}
     </div>

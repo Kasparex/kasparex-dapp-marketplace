@@ -106,7 +106,11 @@ export async function signKrc20Transfer(
     throw new Error('Kastle did not return a transaction id for the KRC-20 transfer.');
   }
 
-  throw new Error(`KRC-20 transfers are not supported for this wallet (${provider}).`);
+  throw new Error(
+    provider === 'kaspire'
+      ? 'Kaspire KRC-20 over WalletConnect is not wired in Hub yet. Use KasWare or Kastle for this transfer, or send native KAS with Kaspire.'
+      : `KRC-20 transfers are not supported for this wallet (${provider}).`,
+  );
 }
 
 export type UtxoEntry = { amount: number | string; [key: string]: unknown };

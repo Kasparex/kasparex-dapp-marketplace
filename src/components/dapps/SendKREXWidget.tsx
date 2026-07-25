@@ -64,7 +64,7 @@ export function SendKREXWidget() {
       setError('Please connect your Kaspa wallet first');
       return;
     }
-    if (state.provider !== 'kasware' && state.provider !== 'kastle') {
+    if (state.provider !== 'kasware' && state.provider !== 'kastle' && state.provider !== 'kaspire') {
       setError('KREX send requires KasWare or Kastle');
       return;
     }

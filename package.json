@@ -57,6 +57,7 @@
     "@rainbow-me/rainbowkit": "^2.2.9",
     "@tanstack/react-query": "^5.81.5",
     "@wagmi/core": "^2.22.1",
+    "@walletconnect/sign-client": "^2.23.10",
     "jspdf": "^4.2.1",
     "leaflet": "^1.9.4",
     "lucide-react": "^1.11.0",

@@ -26,6 +26,7 @@ import {
 } from './sdk';
 import type { SIWKAuthResult } from './auth';
 import { isKasWareConnected } from './kasware';
+import { createKaspireAdapter } from './kaspireWc';
 
 const WALLET_RPC_TIMEOUT_MS = 90_000;
 
@@ -147,6 +148,13 @@ export const KASPA_WALLET_PROVIDERS: Record<KaspaWalletProvider, Omit<KaspaWalle
     name: 'Kastle',
     downloadUrl: 'https://kastle.cc/',
     documentationUrl: 'https://docs.kastle.cc/',
+  },
+  kaspire: {
+    id: 'kaspire',
+    name: 'Kaspire',
+    icon: '/img/logos/kaspire.png',
+    downloadUrl: 'https://kaspire.kaslab.space/',
+    documentationUrl: 'https://kaspire.kaslab.space/developers',
   },
   kaspium: {
     id: 'kaspium',
@@ -677,6 +685,8 @@ export function getWalletProvider(provider: KaspaWalletProvider): ExtendedWallet
       if (!kastle) return null;
       return createKastleAdapter(kastle);
     }
+    case 'kaspire':
+      return createKaspireAdapter();
     case 'kaspium':
       return win.kaspium || null;
     case 'okx':
@@ -706,6 +716,8 @@ export async function connectKaspaWallet(
       statement?: string;
       appName?: string;
     };
+    /** Kaspire WalletConnect: receive pairing URI for QR / App Link (never log it). */
+    onPairingUri?: (uri: string) => void;
   }
 ): Promise<KaspaWalletState & { siwkAuth?: SIWKAuthResult }> {
   try {
@@ -718,6 +730,20 @@ export async function connectKaspaWallet(
 
     // Handle different wallet providers with their specific APIs
     switch (provider) {
+      case 'kaspire': {
+        const { connectKaspireSession } = await import('./kaspireWc');
+        const methods =
+          options?.enableSIWK === false
+            ? (['kaspa_getAccounts', 'kaspa_sendTransaction'] as const)
+            : (['kaspa_getAccounts', 'kaspa_signPersonal', 'kaspa_sendTransaction'] as const);
+        const paired = await connectKaspireSession({
+          onPairingUri: options?.onPairingUri,
+          methods,
+        });
+        address = paired.address;
+        break;
+      }
+
       case 'kasware': {
         if (!win.kasware) {
           throw new Error('KasWare wallet is not installed');
@@ -898,6 +924,12 @@ export async function disconnectKaspaWallet(
   provider: KaspaWalletProvider
 ): Promise<void> {
   try {
+    if (provider === 'kaspire') {
+      const { disconnectKaspireSession } = await import('./kaspireWc');
+      await disconnectKaspireSession();
+      return;
+    }
+
     const walletProvider = getWalletProvider(provider);
     
     if (walletProvider && walletProvider.isConnected()) {
