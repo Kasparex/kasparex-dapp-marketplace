@@ -34,14 +34,26 @@ type KaspireSession = ReturnType<KaspireSignClient['session']['getAll']>[number]
 
 let signClientPromise: Promise<KaspireSignClient> | null = null;
 let activeSession: KaspireSession | null = null;
-let pairingCancel: ((reason?: Error) => void) | null = null;
+/** AbortController for the in-flight pairing (covers propose + approval). */
+let pairingAbort: AbortController | null = null;
 const accountListeners = new Set<(accounts: string[]) => void>();
+
+export function isKaspirePairingCancelled(error: unknown): boolean {
+  const msg = error instanceof Error ? error.message : String(error ?? '');
+  return /kaspire pairing cancelled/i.test(msg);
+}
+
+function throwIfPairingAborted(signal: AbortSignal): void {
+  if (signal.aborted) {
+    throw new Error('Kaspire pairing cancelled');
+  }
+}
 
 function getProjectId(): string {
   const id = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID?.trim();
-  if (!id) {
+  if (!id || id === 'default-project-id') {
     throw new Error(
-      'WalletConnect project ID is missing. Set NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID to connect Kaspire.',
+      'WalletConnect project ID is missing. Set NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID in Vercel (same value RainbowKit already uses for L2).',
     );
   }
   return id;
@@ -69,12 +81,20 @@ function isPublishError(error: unknown): boolean {
   return /failed to publish/i.test(msg);
 }
 
-async function ensureRelayerConnected(client: KaspireSignClient): Promise<void> {
+async function ensureRelayerConnected(
+  client: KaspireSignClient,
+  signal?: AbortSignal,
+): Promise<void> {
   const relayer = client.core?.relayer;
   if (!relayer) return;
   if (relayer.connected) return;
 
   await new Promise<void>((resolve, reject) => {
+    if (signal?.aborted) {
+      reject(new Error('Kaspire pairing cancelled'));
+      return;
+    }
+
     const timeout = setTimeout(() => {
       cleanup();
       reject(
@@ -89,16 +109,23 @@ async function ensureRelayerConnected(client: KaspireSignClient): Promise<void> 
       resolve();
     };
 
+    const onAbort = () => {
+      cleanup();
+      reject(new Error('Kaspire pairing cancelled'));
+    };
+
     const cleanup = () => {
       clearTimeout(timeout);
+      signal?.removeEventListener('abort', onAbort);
       try {
         relayer.events?.removeListener?.('relayer_connect', onConnect);
-        // Older SDKs use EventEmitter-style off/once.
         (relayer as { off?: (e: string, cb: () => void) => void }).off?.('relayer_connect', onConnect);
       } catch {
         /* ignore */
       }
     };
+
+    signal?.addEventListener('abort', onAbort, { once: true });
 
     try {
       relayer.once?.('relayer_connect', onConnect);
@@ -175,11 +202,15 @@ export function getActiveKaspireSession(): KaspireSession | null {
   return activeSession;
 }
 
-/** Cancel an in-flight pairing (modal Cancel). */
+/** Cancel an in-flight pairing (modal Cancel / dropdown close). */
 export function cancelKaspirePairing(): void {
-  const cancel = pairingCancel;
-  pairingCancel = null;
-  cancel?.(new Error('Kaspire pairing cancelled'));
+  const ac = pairingAbort;
+  pairingAbort = null;
+  try {
+    ac?.abort();
+  } catch {
+    /* ignore */
+  }
 }
 
 export async function restoreKaspireSession(): Promise<KaspireSession | null> {
@@ -193,8 +224,11 @@ export async function restoreKaspireSession(): Promise<KaspireSession | null> {
 async function proposeKaspireSession(
   client: KaspireSignClient,
   methods: string[],
+  signal: AbortSignal,
 ): Promise<{ uri: string; approval: () => Promise<KaspireSession> }> {
-  await ensureRelayerConnected(client);
+  throwIfPairingAborted(signal);
+  await ensureRelayerConnected(client, signal);
+  throwIfPairingAborted(signal);
 
   const { uri, approval } = await client.connect({
     requiredNamespaces: {
@@ -205,6 +239,8 @@ async function proposeKaspireSession(
       },
     },
   });
+
+  throwIfPairingAborted(signal);
 
   if (!uri) {
     throw new Error('WalletConnect did not return a pairing URI');
@@ -217,65 +253,91 @@ export async function connectKaspireSession(options?: {
   onPairingUri?: PairingUriHandler;
   methods?: readonly string[];
 }): Promise<{ session: KaspireSession; address: string }> {
-  const client = await getSignClient();
-
-  const existing = await restoreKaspireSession();
-  if (existing) {
-    const address = addressFromSession(existing);
-    if (address) return { session: existing, address };
-  }
-
-  const methods = options?.methods?.length
-    ? [...options.methods]
-    : [...KASPIRE_METHODS];
-
-  let uri: string;
-  let approval: () => Promise<KaspireSession>;
+  // Cancel any previous attempt so only one pairing runs.
+  cancelKaspirePairing();
+  const ac = new AbortController();
+  pairingAbort = ac;
+  const { signal } = ac;
 
   try {
-    ({ uri, approval } = await proposeKaspireSession(client, methods));
-  } catch (error) {
-    if (!isPublishError(error)) throw error;
-    // Relay hiccup / stale socket: reset client and retry once.
-    signClientPromise = null;
-    try {
-      const retryClient = await getSignClient();
-      ({ uri, approval } = await proposeKaspireSession(retryClient, methods));
-    } catch (retryError) {
-      if (isPublishError(retryError)) {
-        throw new Error(
-          'WalletConnect relay could not publish the pairing. Check your network or VPN, confirm your Reown project ID allowlists this site origin, then try again.',
-        );
-      }
-      throw retryError;
+    const client = await getSignClient();
+    throwIfPairingAborted(signal);
+
+    const existing = await restoreKaspireSession();
+    if (existing) {
+      const address = addressFromSession(existing);
+      if (address) return { session: existing, address };
     }
+
+    const methods = options?.methods?.length
+      ? [...options.methods]
+      : [...KASPIRE_METHODS];
+
+    let uri: string;
+    let approval: () => Promise<KaspireSession>;
+
+    try {
+      ({ uri, approval } = await proposeKaspireSession(client, methods, signal));
+    } catch (error) {
+      throwIfPairingAborted(signal);
+      if (!isPublishError(error)) throw error;
+      // Relay hiccup / stale socket: reset client and retry once.
+      signClientPromise = null;
+      try {
+        const retryClient = await getSignClient();
+        ({ uri, approval } = await proposeKaspireSession(retryClient, methods, signal));
+      } catch (retryError) {
+        throwIfPairingAborted(signal);
+        if (isPublishError(retryError)) {
+          throw new Error(
+            'WalletConnect relay could not publish the pairing. Confirm NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID is set in Vercel (same ID RainbowKit uses), that this site origin is allowlisted in WalletConnect Cloud / Reown, then try again without VPN.',
+          );
+        }
+        throw retryError;
+      }
+    }
+
+    throwIfPairingAborted(signal);
+
+    // Never log the pairing URI. Hand it only to the UI / App Link opener.
+    options?.onPairingUri?.(uri);
+
+    const session = await new Promise<KaspireSession>((resolve, reject) => {
+      const onAbort = () => {
+        cleanup();
+        reject(new Error('Kaspire pairing cancelled'));
+      };
+      const cleanup = () => {
+        signal.removeEventListener('abort', onAbort);
+      };
+
+      if (signal.aborted) {
+        reject(new Error('Kaspire pairing cancelled'));
+        return;
+      }
+
+      signal.addEventListener('abort', onAbort, { once: true });
+
+      void approval()
+        .then((s) => {
+          cleanup();
+          resolve(s);
+        })
+        .catch((err) => {
+          cleanup();
+          reject(err);
+        });
+    });
+
+    activeSession = session;
+    const address = addressFromSession(session);
+    if (!address) {
+      throw new Error('Kaspire did not return a Kaspa account');
+    }
+    return { session, address };
+  } finally {
+    if (pairingAbort === ac) pairingAbort = null;
   }
-
-  // Never log the pairing URI. Hand it only to the UI / App Link opener.
-  options?.onPairingUri?.(uri);
-
-  const session = await new Promise<KaspireSession>((resolve, reject) => {
-    pairingCancel = (reason) => {
-      pairingCancel = null;
-      reject(reason ?? new Error('Kaspire pairing cancelled'));
-    };
-    void approval()
-      .then((s) => {
-        pairingCancel = null;
-        resolve(s);
-      })
-      .catch((err) => {
-        pairingCancel = null;
-        reject(err);
-      });
-  });
-
-  activeSession = session;
-  const address = addressFromSession(session);
-  if (!address) {
-    throw new Error('Kaspire did not return a Kaspa account');
-  }
-  return { session, address };
 }
 
 export async function disconnectKaspireSession(): Promise<void> {

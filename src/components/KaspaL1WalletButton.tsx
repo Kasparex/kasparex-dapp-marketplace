@@ -44,8 +44,9 @@ import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { useRedeemablePointsBreakdown } from '@/hooks/useRedeemablePointsBreakdown';
 import { NFTStatusBox } from '@/components/rewards/NFTStatusBox';
 import { useKnsPrimaryName } from '@/hooks/useKnsPrimaryName';
-import { L1WalletConnectOptions } from '@/components/wallet/L1WalletConnectOptions';
+import { L1WalletConnectOptions, abortKaspireConnectIfNeeded } from '@/components/wallet/L1WalletConnectOptions';
 import { L1WalletLogo, type L1WalletProviderId } from '@/components/wallet/L1WalletLogo';
+import { isKaspirePairingCancelled } from '@/lib/kaspa/kaspireWc';
 
 const KasWareWalletButton = dynamic(
   () => import('./KasWareWalletButton').then((mod) => ({ default: mod.KasWareWalletButton })),
@@ -91,6 +92,14 @@ export function KaspaL1WalletButton() {
     };
   }, [open]);
 
+  // Closing the dropdown while Kaspire is pairing must abort and re-enable the button.
+  useEffect(() => {
+    if (open) return;
+    if (connecting !== 'kaspire') return;
+    abortKaspireConnectIfNeeded();
+    setConnecting(null);
+  }, [open, connecting]);
+
   // If KasWare is connected, reuse the existing full-feature UI
   if (state.isConnected && state.provider === 'kasware') {
     return <KasWareWalletButton />;
@@ -114,10 +123,18 @@ export function KaspaL1WalletButton() {
       });
       setOpen(false);
     } catch (err) {
-      setError(getErrorMessage(err, `Failed to connect to ${provider}`));
+      if (!isKaspirePairingCancelled(err)) {
+        setError(getErrorMessage(err, `Failed to connect to ${provider}`));
+      }
     } finally {
       setConnecting(null);
     }
+  };
+
+  const handlePairingCancel = () => {
+    abortKaspireConnectIfNeeded();
+    setConnecting(null);
+    setError(null);
   };
 
   const handleDisconnect = async () => {
@@ -432,13 +449,12 @@ export function KaspaL1WalletButton() {
     );
   }
 
-  // Disconnected UI: dropdown KasWare / Kastle
+  // Disconnected UI: dropdown KasWare / Kastle / Kaspire
   return (
     <div className="relative" ref={rootRef}>
       <button
         onClick={() => setOpen((o) => !o)}
-        className="px-4 py-2 bg-gradient-to-r from-cyan-600 to-teal-600 hover:from-cyan-700 hover:to-teal-700 text-white rounded-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all text-sm font-medium flex items-center gap-2 shadow-lg shadow-cyan-500/15"
-        disabled={connecting !== null}
+        className="px-4 py-2 bg-gradient-to-r from-cyan-600 to-teal-600 hover:from-cyan-700 hover:to-teal-700 text-white rounded-xl transition-all text-sm font-medium flex items-center gap-2 shadow-lg shadow-cyan-500/15"
       >
         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -462,6 +478,7 @@ export function KaspaL1WalletButton() {
               onConnect={handleConnect}
               connecting={connecting}
               error={error}
+              onPairingCancel={handlePairingCancel}
             />
           </div>
         </div>

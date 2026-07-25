@@ -31,6 +31,8 @@ export interface L1WalletConnectOptionsProps {
   ) => Promise<void>;
   connecting: ConnectableProvider | null;
   error?: string | null;
+  /** Called immediately when the Kaspire pairing modal is dismissed (before the async connect settles). */
+  onPairingCancel?: () => void;
   /** Mobile: show Kastle first (recommended for in-app browsers). Kaspire stays available for WC. */
   mobileKastleFirst?: boolean;
   compact?: boolean;
@@ -62,6 +64,7 @@ export function L1WalletConnectOptions({
   onConnect,
   connecting,
   error,
+  onPairingCancel,
   mobileKastleFirst = true,
   compact = false,
 }: L1WalletConnectOptionsProps) {
@@ -72,15 +75,23 @@ export function L1WalletConnectOptions({
   const [hintProvider, setHintProvider] = useState<ConnectableProvider | null>(null);
   const [kaspireUri, setKaspireUri] = useState<string | null>(null);
   const [iosNotice, setIosNotice] = useState(false);
+  /** Local pairing flag so we can close the modal instantly without waiting for parent state. */
+  const [kaspirePairingOpen, setKaspirePairingOpen] = useState(false);
 
   const extensionOrder = mobileKastleFirst && onMobile
     ? (['kastle', 'kasware'] as const)
     : (['kasware', 'kastle'] as const);
 
-  // Kaspire first on mobile (deep link / WC); after extensions on desktop.
   const ordered: ConnectableProvider[] = onMobile
     ? ['kaspire', ...extensionOrder]
     : [...extensionOrder, 'kaspire'];
+
+  const dismissKaspirePairing = () => {
+    cancelKaspirePairing();
+    setKaspireUri(null);
+    setKaspirePairingOpen(false);
+    onPairingCancel?.();
+  };
 
   const handleAction = async (provider: ConnectableProvider) => {
     if (provider === 'kaspire') {
@@ -92,12 +103,14 @@ export function L1WalletConnectOptions({
       setIosNotice(false);
       setHintProvider(null);
       setKaspireUri(null);
+      setKaspirePairingOpen(true);
       try {
         await onConnect('kaspire', {
           onPairingUri: (uri) => setKaspireUri(uri),
         });
       } finally {
         setKaspireUri(null);
+        setKaspirePairingOpen(false);
       }
       return;
     }
@@ -126,6 +139,8 @@ export function L1WalletConnectOptions({
     ? 'w-full flex items-center justify-between gap-2 px-3 py-2 text-left text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors disabled:opacity-60'
     : 'w-full flex items-center justify-between gap-3 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-4 py-3 text-left text-sm font-semibold text-zinc-900 dark:text-zinc-100 hover:bg-zinc-50 dark:hover:bg-zinc-800/80 transition-colors disabled:opacity-60';
 
+  const showKaspireModal = kaspirePairingOpen || kaspireUri !== null || connecting === 'kaspire';
+
   return (
     <div className="space-y-2">
       {onMobile ? (
@@ -133,7 +148,6 @@ export function L1WalletConnectOptions({
       ) : null}
 
       {ordered.map((provider) => {
-        // Extension wallets stay desktop-oriented; hide their connect rows on mobile.
         if (onMobile && provider !== 'kaspire') return null;
 
         const installed = providerInstalled(provider, isInstalled);
@@ -153,7 +167,7 @@ export function L1WalletConnectOptions({
             key={provider}
             type="button"
             onClick={() => void handleAction(provider)}
-            disabled={connecting !== null}
+            disabled={connecting !== null || kaspirePairingOpen}
             className={btnClass}
           >
             <L1WalletConnectLabel
@@ -162,7 +176,9 @@ export function L1WalletConnectOptions({
               logoSize={compact ? 20 : 22}
             />
             {provider === 'kaspire' ? (
-              <L1WalletConnectBadge>{connecting === provider ? '…' : 'Beta'}</L1WalletConnectBadge>
+              <L1WalletConnectBadge>
+                {connecting === provider || kaspirePairingOpen ? '…' : 'Beta'}
+              </L1WalletConnectBadge>
             ) : (
               <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400 shrink-0">
                 {side}
@@ -172,7 +188,7 @@ export function L1WalletConnectOptions({
         );
       })}
 
-      {connecting ? (
+      {connecting && connecting !== 'kaspire' ? (
         <p className="px-1 text-xs text-zinc-500">Connecting…</p>
       ) : null}
 
@@ -199,16 +215,18 @@ export function L1WalletConnectOptions({
 
       {error ? <p className="text-xs text-red-600 dark:text-red-400 px-0.5">{error}</p> : null}
 
-      {kaspireUri || connecting === 'kaspire' ? (
+      {showKaspireModal ? (
         <KaspirePairingModal
           uri={kaspireUri}
           mode={onMobile ? 'mobile' : 'desktop'}
-          onCancel={() => {
-            cancelKaspirePairing();
-            setKaspireUri(null);
-          }}
+          onCancel={dismissKaspirePairing}
         />
       ) : null}
     </div>
   );
+}
+
+/** Cancel any open Kaspire pairing when a parent dropdown closes. */
+export function abortKaspireConnectIfNeeded(): void {
+  cancelKaspirePairing();
 }

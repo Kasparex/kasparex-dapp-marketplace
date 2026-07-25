@@ -3,8 +3,9 @@
 import { useState } from 'react';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { getErrorMessage } from '@/lib/utils';
-import { L1WalletConnectOptions } from '@/components/wallet/L1WalletConnectOptions';
+import { L1WalletConnectOptions, abortKaspireConnectIfNeeded } from '@/components/wallet/L1WalletConnectOptions';
 import type { L1WalletProviderId } from '@/components/wallet/L1WalletLogo';
+import { isKaspirePairingCancelled } from '@/lib/kaspa/kaspireWc';
 
 export function HubL1WalletOptions({ onConnected }: { onConnected?: () => void }) {
   const { connect } = useKaspaWallet();
@@ -29,13 +30,24 @@ export function HubL1WalletOptions({ onConnected }: { onConnected?: () => void }
       });
       onConnected?.();
     } catch (err) {
-      setError(getErrorMessage(err, `Failed to connect to ${provider}`));
+      if (!isKaspirePairingCancelled(err)) {
+        setError(getErrorMessage(err, `Failed to connect to ${provider}`));
+      }
     } finally {
       setConnecting(null);
     }
   };
 
   return (
-    <L1WalletConnectOptions onConnect={handleConnect} connecting={connecting} error={error} />
+    <L1WalletConnectOptions
+      onConnect={handleConnect}
+      connecting={connecting}
+      error={error}
+      onPairingCancel={() => {
+        abortKaspireConnectIfNeeded();
+        setConnecting(null);
+        setError(null);
+      }}
+    />
   );
 }

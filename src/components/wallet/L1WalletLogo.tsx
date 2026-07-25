@@ -57,10 +57,10 @@ export function L1WalletConnectLabel({
   );
 }
 
-/** Right-aligned chip for Beta / QR / status on connect rows. */
+/** Right-aligned chip matching Hub project Beta badge colors. */
 export function L1WalletConnectBadge({ children }: { children: ReactNode }) {
   return (
-    <span className="shrink-0 rounded-md bg-amber-500/20 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-800 dark:text-amber-300">
+    <span className="shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium bg-purple-100/80 dark:bg-purple-900/40 text-purple-800 dark:text-purple-300">
       {children}
     </span>
   );
