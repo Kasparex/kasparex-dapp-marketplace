@@ -317,26 +317,26 @@ export default function KpxToolsPage() {
           <ProtocolsIndexSidebar />
           <div className={HUB_MAIN_COLUMN}>
             <div className={`${HUB_MAIN_INNER} max-w-3xl`}>
-          <div className="mb-6">
-            <nav className="text-sm text-zinc-500 dark:text-zinc-400">
-              <Link href="/protocols" className="font-bold text-[color:var(--hub-accent)] hover:underline">
-                Protocols
-              </Link>
-              <span className="mx-2 text-zinc-400">/</span>
-              <Link href="/protocols/kpx" className="font-bold text-[color:var(--hub-accent)] hover:underline">
-                KPX protocol
-              </Link>
-              <span className="mx-2 text-zinc-400">/</span>
-              <span className="font-semibold text-zinc-800 dark:text-zinc-200">Tools</span>
-            </nav>
-            <h1 className="mt-3 text-2xl font-black leading-tight text-zinc-900 dark:text-zinc-100 sm:text-3xl md:text-4xl">Post identity updates on Kaspa</h1>
-            <p className="kx-body mt-2 leading-relaxed">
-              Fill in the form, review the preview, then confirm in your wallet. Most people send a small amount <strong>to their own address</strong> so the
-              network can attach your update to that payment.
-            </p>
-          </div>
+              <div className="mb-6">
+                <nav className="text-sm text-zinc-500 dark:text-zinc-400">
+                  <Link href="/protocols" className="font-bold text-[color:var(--hub-accent)] hover:underline">
+                    Protocols
+                  </Link>
+                  <span className="mx-2 text-zinc-400">/</span>
+                  <Link href="/protocols/kpx" className="font-bold text-[color:var(--hub-accent)] hover:underline">
+                    KPX protocol
+                  </Link>
+                  <span className="mx-2 text-zinc-400">/</span>
+                  <span className="font-semibold text-zinc-800 dark:text-zinc-200">Tools</span>
+                </nav>
+                <h1 className="mt-3 text-2xl font-black leading-tight text-zinc-900 dark:text-zinc-100 sm:text-3xl md:text-4xl">Post identity updates on Kaspa</h1>
+                <p className="kx-body mt-2 leading-relaxed">
+                  Fill in the form, review the preview, then confirm in your wallet. Most people send a small amount <strong>to their own address</strong> so the
+                  network can attach your update to that payment.
+                </p>
+              </div>
 
-          <div className="space-y-6 rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900 sm:p-6">
+              <div className="space-y-6 rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900 sm:p-6">
             <div className="flex flex-wrap items-baseline gap-2 text-sm text-zinc-600 dark:text-zinc-400">
               <span className="font-bold text-zinc-800 dark:text-zinc-200">Your wallet</span>
               <FieldHint text="This address is used as the owner of the update. Connect KasWare or Kastle from the header first." />
@@ -866,6 +866,7 @@ export default function KpxToolsPage() {
               )}
             </div>
             </div>
+          </div>
           </div>
         </HubPageAccentLayout>
       </main>
