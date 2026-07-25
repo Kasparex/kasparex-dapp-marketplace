@@ -5,18 +5,13 @@ import { Tooltip } from '@/components/ui/Tooltip';
 
 type PillSize = 'md' | 'sm';
 
-const sizeClasses: Record<PillSize, { pill: string; icon: string }> = {
-  md: {
-    pill: 'rounded-md px-2 py-0.5 text-[10px] font-black uppercase tracking-wide',
-    icon: 'h-3 w-3',
-  },
-  sm: {
-    pill: 'rounded px-1.5 py-px text-[9px] font-black uppercase tracking-wide',
-    icon: 'h-2.5 w-2.5',
-  },
+/** Matches `KX_LISTING_CATEGORY_CHIP` shell; color comes from `styleClass`. */
+const sizeClasses: Record<PillSize, string> = {
+  md: 'rounded-lg border px-3 py-1.5 text-xs font-medium',
+  sm: 'rounded-lg border px-2.5 py-1 text-[11px] font-medium',
 };
 
-/** Tier-style pill badge with optional icon (matches Benefits module TierBadge). */
+/** Network / status chip with optional icon (icon omitted for Tokens network badges). */
 export function TokenListingPillBadge({
   label,
   tooltip,
@@ -32,17 +27,13 @@ export function TokenListingPillBadge({
   size?: PillSize;
   className?: string;
 }) {
-  const sizing = sizeClasses[size];
-
   return (
     <Tooltip content={tooltip}>
       <span
-        className={`inline-flex shrink-0 cursor-help items-center gap-1 whitespace-nowrap ${sizing.pill} ${styleClass} ${className}`.trim()}
+        className={`inline-flex shrink-0 cursor-help items-center gap-1.5 whitespace-nowrap ${sizeClasses[size]} ${styleClass} ${className}`.trim()}
         aria-label={tooltip}
       >
-        {icon ? (
-          <span className={`inline-flex shrink-0 items-center justify-center ${sizing.icon}`}>{icon}</span>
-        ) : null}
+        {icon ? <span className="inline-flex shrink-0 items-center justify-center opacity-80">{icon}</span> : null}
         <span>{label}</span>
       </span>
     </Tooltip>

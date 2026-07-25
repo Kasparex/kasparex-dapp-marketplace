@@ -45,21 +45,21 @@ export function getNetworkChipShortLabel(network: TokenListingNetwork): string {
   }
 }
 
-/** Distinct tier-style pill colors per network type (stronger contrast). */
+/** Distinct category-chip style colors per network (no icons). */
 export function getNetworkChipStyleClasses(network: TokenListingNetwork): string {
   switch (network) {
     case 'krc20':
-      return 'bg-amber-200 text-amber-950 dark:bg-amber-500/35 dark:text-amber-100';
+      return 'border-amber-500/35 bg-amber-500/10 text-amber-800 dark:border-amber-400/30 dark:bg-amber-500/15 dark:text-amber-200';
     case 'kcc20':
-      return 'bg-violet-200 text-violet-950 dark:bg-violet-500/35 dark:text-violet-100';
+      return 'border-violet-500/35 bg-violet-500/10 text-violet-800 dark:border-violet-400/30 dark:bg-violet-500/15 dark:text-violet-200';
     case 'kaspa_l1':
-      return 'bg-teal-200 text-teal-950 dark:bg-teal-500/35 dark:text-teal-100';
+      return 'border-teal-500/35 bg-teal-500/10 text-teal-800 dark:border-teal-400/30 dark:bg-teal-500/15 dark:text-teal-200';
     case 'l2_kasplex':
-      return 'bg-sky-200 text-sky-950 dark:bg-sky-500/35 dark:text-sky-100';
+      return 'border-sky-500/35 bg-sky-500/10 text-sky-800 dark:border-sky-400/30 dark:bg-sky-500/15 dark:text-sky-200';
     case 'l2_igra':
-      return 'bg-indigo-200 text-indigo-950 dark:bg-indigo-500/35 dark:text-indigo-100';
+      return 'border-indigo-500/35 bg-indigo-500/10 text-indigo-800 dark:border-indigo-400/30 dark:bg-indigo-500/15 dark:text-indigo-200';
     default:
-      return 'bg-zinc-200 text-zinc-700 dark:bg-zinc-700/60 dark:text-zinc-200';
+      return 'border-zinc-200 bg-zinc-50 text-zinc-700 dark:border-zinc-700 dark:bg-zinc-800/50 dark:text-zinc-300';
   }
 }
 

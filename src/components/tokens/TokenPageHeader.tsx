@@ -37,6 +37,8 @@ function formatTokenType(type: Token['type']): string {
   return type === 'global' ? 'Global' : 'Collab';
 }
 
+const MAX_HEADER_BADGES = 4;
+
 export function TokenPageHeader({ token, onNavigateTab }: TokenPageHeaderProps) {
   const router = useRouter();
   const { state: kaspaState } = useKaspaWallet();
@@ -94,7 +96,10 @@ export function TokenPageHeader({ token, onNavigateTab }: TokenPageHeaderProps) 
           minimumFractionDigits: 2,
           maximumFractionDigits: 6,
         })}`,
-        subValue: token.price.change24h != null ? `${token.price.change24h >= 0 ? '+' : ''}${token.price.change24h.toFixed(2)}% 24h` : undefined,
+        subValue:
+          token.price.change24h != null
+            ? `${token.price.change24h >= 0 ? '+' : ''}${token.price.change24h.toFixed(2)}% 24h`
+            : undefined,
         tooltip: 'Latest market price snapshot when available.',
         accent: 'kas',
         onClick: onNavigateTab ? () => onNavigateTab('markets') : undefined,
@@ -143,7 +148,7 @@ export function TokenPageHeader({ token, onNavigateTab }: TokenPageHeaderProps) 
     badges.push({ key: 'featured', label: 'Featured', tone: 'player' });
   }
   for (const tag of token.tags ?? []) {
-    if (badges.length >= 5) break;
+    if (badges.length >= MAX_HEADER_BADGES) break;
     badges.push({ key: `tag-${tag}`, label: `#${tag}` });
   }
 
@@ -162,9 +167,7 @@ export function TokenPageHeader({ token, onNavigateTab }: TokenPageHeaderProps) 
     >
       <div
         className={`absolute inset-0 bg-gradient-to-br via-transparent to-transparent ${
-          isHighlighted
-            ? 'from-amber-500/10'
-            : 'from-[color:var(--hub-accent-muted,rgba(59,130,246,0.1))]'
+          isHighlighted ? 'from-amber-500/10' : 'from-[color:var(--hub-accent-muted)]'
         }`}
       />
 
@@ -174,7 +177,7 @@ export function TokenPageHeader({ token, onNavigateTab }: TokenPageHeaderProps) 
             <TokenNetworkChips token={token} className="justify-end" />
           </div>
 
-          <p className="mb-3 pr-28 text-[10px] font-black uppercase tracking-[0.2em] text-[color:var(--hub-accent,#3b82f6)]">
+          <p className="mb-3 pr-28 text-[10px] font-black uppercase tracking-[0.2em] text-[color:var(--hub-accent)]">
             Kasparex Tokens · {token.symbol}
           </p>
 
@@ -195,21 +198,26 @@ export function TokenPageHeader({ token, onNavigateTab }: TokenPageHeaderProps) 
             />
           ) : null}
 
-          <div className="mb-5 flex flex-wrap gap-2">
-            {badges.map((b) => {
-              const tone = b.tone ?? 'default';
-              const className =
-                tone === 'player'
-                  ? 'rounded-lg border border-sky-500/35 bg-sky-500/15 px-3 py-1.5 text-xs font-bold text-sky-800 dark:text-sky-200'
-                  : tone === 'accent'
-                    ? 'rounded-lg border border-[color:var(--hub-accent-border,rgba(59,130,246,0.25))] bg-[color:var(--hub-accent-muted,rgba(59,130,246,0.1))] px-3 py-1.5 text-xs font-bold text-[color:var(--hub-accent,#3b82f6)]'
-                    : 'rounded-lg border border-zinc-200 bg-white/90 px-3 py-1.5 text-xs font-bold text-zinc-700 dark:border-zinc-700 dark:bg-zinc-900/70 dark:text-zinc-300';
-              return (
-                <span key={b.key} className={className}>
-                  {b.label}
-                </span>
-              );
-            })}
+          <div className="mb-5 flex items-center justify-between gap-3">
+            <div className="flex min-w-0 flex-wrap gap-2">
+              {badges.slice(0, MAX_HEADER_BADGES).map((b) => {
+                const tone = b.tone ?? 'default';
+                const className =
+                  tone === 'player'
+                    ? 'rounded-lg border border-indigo-500/35 bg-indigo-500/10 px-3 py-1.5 text-xs font-medium text-indigo-800 dark:text-indigo-200'
+                    : tone === 'accent'
+                      ? 'rounded-lg border border-[color:var(--hub-accent-border)] bg-[color:var(--hub-accent-muted)] px-3 py-1.5 text-xs font-medium text-[color:var(--hub-accent)]'
+                      : 'rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-xs font-medium text-zinc-700 dark:border-zinc-700 dark:bg-zinc-800/50 dark:text-zinc-300';
+                return (
+                  <span key={b.key} className={className}>
+                    {b.label}
+                  </span>
+                );
+              })}
+            </div>
+            <div className="shrink-0">
+              <TokenVoteControls token={token} compact />
+            </div>
           </div>
 
           {short ? (
@@ -262,38 +270,42 @@ export function TokenPageHeader({ token, onNavigateTab }: TokenPageHeaderProps) 
             </div>
           </Tooltip>
 
-          <div className="absolute right-4 top-4 z-30 sm:right-6 sm:top-6">
-            <div className="rounded-xl border border-zinc-200 bg-white/90 p-1 backdrop-blur-md dark:border-zinc-800 dark:bg-zinc-900/90">
-              <TokenVoteControls token={token} compact />
+          {isVerifiedDeveloper ? (
+            <div className="absolute right-4 top-4 z-30 flex items-center gap-2 sm:right-6 sm:top-6">
+              <button
+                type="button"
+                onClick={handleEdit}
+                className="rounded-xl border border-zinc-200 bg-white/90 p-2.5 text-zinc-900 backdrop-blur-md transition hover:scale-105 dark:border-zinc-800 dark:bg-zinc-900/90 dark:text-zinc-100"
+                aria-label="Edit token page"
+              >
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                  />
+                </svg>
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowDeleteConfirm(true)}
+                className="rounded-xl bg-red-500 p-2.5 text-white transition hover:scale-105"
+                aria-label="Delete token listing"
+              >
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                  />
+                </svg>
+              </button>
             </div>
-          </div>
+          ) : null}
         </div>
       </div>
-
-      {isVerifiedDeveloper ? (
-        <div className="absolute bottom-4 left-4 z-30 flex items-center gap-2 sm:bottom-6 sm:left-6">
-          <button
-            type="button"
-            onClick={handleEdit}
-            className="rounded-xl border border-zinc-200 bg-white/90 p-2.5 text-zinc-900 backdrop-blur-md transition hover:scale-105 dark:border-zinc-800 dark:bg-zinc-900/90 dark:text-zinc-100"
-            aria-label="Edit token page"
-          >
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-            </svg>
-          </button>
-          <button
-            type="button"
-            onClick={() => setShowDeleteConfirm(true)}
-            className="rounded-xl bg-red-500 p-2.5 text-white transition hover:scale-105"
-            aria-label="Delete token listing"
-          >
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-            </svg>
-          </button>
-        </div>
-      ) : null}
 
       {showDeleteConfirm ? (
         <div className="absolute inset-0 z-40 flex items-center justify-center bg-zinc-900/50 p-4">

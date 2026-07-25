@@ -6,9 +6,7 @@ import { TokenLogo } from '@/components/tokens/TokenLogo';
 import { TokenTitle } from '@/components/tokens/TokenTitle';
 import { TokenListingTopStatus } from '@/components/tokens/TokenListingTopStatus';
 import { TokenListingFooterRows } from '@/components/tokens/TokenListingFooterRows';
-import { AuthorInline } from '@/components/ui/AuthorInline';
-import { resolveTokenCreatorWallet } from '@/lib/tokens/creatorWallet';
-import { formatAddress } from '@/lib/vblog/utils';
+import { TokenListingBadges } from '@/components/tokens/TokenListingBadges';
 
 type TokenListingCardContentProps = {
   token: Token;
@@ -23,22 +21,13 @@ export function TokenListingCardContent({
   footer,
   ownershipLabel,
 }: TokenListingCardContentProps) {
-  const creatorWallet = resolveTokenCreatorWallet(token);
-
   return (
     <div className="flex flex-1 flex-col">
       <div className="mb-3 flex items-start gap-3">
         <TokenLogo token={token} size={64} showName={false} showSymbol={false} shape="rounded" className="flex-shrink-0" />
         <div className="min-w-0 flex-1">
           <TokenTitle token={token} size="sm" layout="besideLogo" />
-          {creatorWallet ? (
-            <AuthorInline
-              address={creatorWallet}
-              displayName={formatAddress(creatorWallet)}
-              href={`/u/${encodeURIComponent(creatorWallet)}`}
-              className="mt-1 min-w-0"
-            />
-          ) : null}
+          <TokenListingBadges token={token} className="mt-2" />
         </div>
         <TokenListingTopStatus token={token} />
       </div>
@@ -47,11 +36,11 @@ export function TokenListingCardContent({
 
       {token.listingNetwork === 'kcc20' || token.onChainSnapshot?.source === 'kcc20' ? (
         <div className="mb-2 flex flex-wrap gap-2">
-          <span className="rounded-md border border-[#02abb8]/30 bg-[#02abb8]/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[#02abb8]">
+          <span className="rounded-lg border border-violet-500/35 bg-violet-500/10 px-2.5 py-1 text-[11px] font-medium text-violet-800 dark:border-violet-400/30 dark:bg-violet-500/15 dark:text-violet-200">
             KCC-20
           </span>
           {token.onChainSnapshot?.templateLabel ? (
-            <span className="rounded-md border border-zinc-200 bg-zinc-100 px-2 py-0.5 text-[10px] font-semibold text-zinc-600 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
+            <span className="rounded-lg border border-zinc-200 bg-zinc-50 px-2.5 py-1 text-[11px] font-medium text-zinc-600 dark:border-zinc-700 dark:bg-zinc-800/50 dark:text-zinc-300">
               {token.onChainSnapshot.templateLabel}
             </span>
           ) : null}

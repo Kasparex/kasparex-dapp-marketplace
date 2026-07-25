@@ -8,7 +8,6 @@ import {
   getNetworkChipTooltip,
 } from '@/lib/tokens/networks';
 import { TokenListingPillBadge } from '@/components/tokens/TokenListingPillBadge';
-import { NetworkBadgeIcon } from '@/components/tokens/tokenNetworkBadgeIcons';
 
 type TokenNetworkChipsProps = {
   token: Token;
@@ -27,8 +26,8 @@ export function TokenNetworkChips({
 
   const layoutClass =
     layout === 'stack'
-      ? 'flex flex-wrap items-end justify-end gap-1'
-      : 'flex flex-wrap items-center gap-1';
+      ? 'flex flex-wrap items-end justify-end gap-1.5'
+      : 'flex flex-wrap items-center gap-1.5';
 
   return (
     <div className={`${layoutClass} ${className}`.trim()}>
@@ -38,7 +37,6 @@ export function TokenNetworkChips({
           label={getNetworkChipShortLabel(entry.network)}
           tooltip={getNetworkChipTooltip(entry.network, entry)}
           styleClass={getNetworkChipStyleClasses(entry.network)}
-          icon={<NetworkBadgeIcon network={entry.network} />}
           size="sm"
         />
       ))}
