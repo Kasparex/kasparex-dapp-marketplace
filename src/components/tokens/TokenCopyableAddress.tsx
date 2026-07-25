@@ -24,7 +24,7 @@ export function TokenCopyableAddress(props: {
       : value;
 
   const textClass =
-    'font-mono text-xs leading-relaxed break-all text-[color:var(--hub-accent,#3b82f6)] hover:underline';
+    'font-mono text-xs leading-relaxed break-all text-[color:var(--hub-accent)] hover:underline';
 
   return (
     <span className={`inline-flex max-w-full items-start gap-1.5 ${className}`.trim()}>

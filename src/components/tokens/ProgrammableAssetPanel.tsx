@@ -87,7 +87,7 @@ export function ProgrammableAssetPanel({ token }: ProgrammableAssetPanelProps) {
           label="Live value"
           value={`${formatKcc20Sompi(liveValue, token.decimals ?? 8)} KAS`}
           hint={templateLabel ?? 'Covenant balance'}
-          valueClassName="text-[color:var(--hub-accent,#3b82f6)]"
+          valueClassName="text-[color:var(--hub-accent)]"
           tooltipTitle="Live value"
           tooltipDescription="On-chain KAS value currently associated with this covenant."
         />
@@ -141,14 +141,14 @@ export function ProgrammableAssetPanel({ token }: ProgrammableAssetPanelProps) {
       </div>
 
       {lastFetched ? (
-        <p className="text-[10px] text-zinc-500">Last refreshed {new Date(lastFetched).toLocaleString()}</p>
+        <p className="text-xs font-medium text-zinc-500">Last refreshed {new Date(lastFetched).toLocaleString()}</p>
       ) : null}
 
       <p className="text-xs text-zinc-500 dark:text-zinc-400">
         Deployed elsewhere?{' '}
         <Link
           href="/tokens/dashboard"
-          className="font-semibold text-[color:var(--hub-accent,#3b82f6)] hover:underline"
+          className="font-semibold text-[color:var(--hub-accent)] hover:underline"
         >
           Connect another covenant
         </Link>{' '}

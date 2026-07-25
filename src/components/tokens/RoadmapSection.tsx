@@ -34,7 +34,7 @@ export function RoadmapSection({ token }: RoadmapSectionProps) {
       case 'completed':
         return 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 border-green-300 dark:border-green-700';
       case 'in-progress':
-        return 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border-blue-300 dark:border-blue-700';
+        return 'border-[color:var(--hub-accent-border)] bg-[color:var(--hub-accent-muted)] text-[color:var(--hub-accent)]';
       case 'upcoming':
         return 'bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border-zinc-300 dark:border-zinc-700';
       default:
@@ -60,7 +60,7 @@ export function RoadmapSection({ token }: RoadmapSectionProps) {
                     event.status === 'completed'
                       ? 'bg-green-500 border-green-600 dark:bg-green-400 dark:border-green-500'
                       : event.status === 'in-progress'
-                        ? 'bg-blue-500 border-blue-600 dark:bg-blue-400 dark:border-blue-500'
+                        ? 'border-[color:var(--hub-accent)] bg-[color:var(--hub-accent)]'
                         : 'bg-zinc-400 border-zinc-500 dark:bg-zinc-500 dark:border-zinc-400'
                   }`}
                 />

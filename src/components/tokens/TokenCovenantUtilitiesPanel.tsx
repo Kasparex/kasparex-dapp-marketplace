@@ -36,13 +36,13 @@ export function TokenCovenantUtilitiesPanel({ token }: { token: Token }) {
           <Link
             key={template.id}
             href={buildCovenantUtilityHref(template, { tokenSlug: token.slug, covenantId })}
-            className="group rounded-xl border border-zinc-200 bg-white p-4 transition hover:border-cyan-500/40 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900"
+            className="group rounded-xl border border-zinc-200 bg-white p-4 transition hover:border-[color:var(--hub-accent-border)] hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900"
           >
             <div className="flex items-start justify-between gap-2">
-              <p className="text-sm font-bold text-zinc-900 dark:text-zinc-100 group-hover:text-[#02abb8]">
+              <p className="text-sm font-semibold text-zinc-900 group-hover:text-[color:var(--hub-accent)] dark:text-zinc-100">
                 {template.label}
               </p>
-              <span className="shrink-0 rounded-md bg-cyan-500/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-cyan-700 dark:text-cyan-300">
+              <span className="shrink-0 rounded-lg bg-[color:var(--hub-accent-muted)] px-2 py-0.5 text-xs font-medium text-[color:var(--hub-accent)]">
                 {template.badge}
               </span>
             </div>

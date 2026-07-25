@@ -88,7 +88,7 @@ export function TokenAside({ token }: { token: Token }) {
                 href={link.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-base font-semibold text-zinc-800 transition-colors hover:text-[color:var(--hub-accent,#3b82f6)] dark:text-zinc-200"
+                className="text-base font-semibold text-zinc-800 transition-colors hover:text-[color:var(--hub-accent)] dark:text-zinc-200"
               >
                 {link.label}
               </Link>

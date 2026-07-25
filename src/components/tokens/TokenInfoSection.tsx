@@ -1,6 +1,6 @@
 /**
  * Token Info Section
- * About copy + supply metadata (protocol boxes live above via TokenProtocolAvailability).
+ * About copy + supply metadata (protocol boxes live below via TokenProtocolAvailability).
  */
 
 'use client';
@@ -42,7 +42,7 @@ export function TokenInfoSection({ token }: TokenInfoSectionProps) {
               hint={token.symbol}
               tooltipTitle="Total supply"
               tooltipDescription="Total token units defined for this listing (minted or capped)."
-              valueClassName="text-[color:var(--hub-accent,#3b82f6)]"
+              valueClassName="text-[color:var(--hub-accent)]"
             />
           ) : null}
           {token.circulatingSupply != null ? (
@@ -52,7 +52,7 @@ export function TokenInfoSection({ token }: TokenInfoSectionProps) {
               hint={token.symbol}
               tooltipTitle="Circulating supply"
               tooltipDescription="Tokens currently in circulation according to listing metadata."
-              valueClassName="text-emerald-600 dark:text-emerald-400"
+              valueClassName="text-[color:var(--hub-accent)]"
             />
           ) : null}
           {token.decimals !== undefined ? (

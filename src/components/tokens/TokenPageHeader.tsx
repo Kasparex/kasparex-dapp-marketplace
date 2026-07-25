@@ -178,7 +178,7 @@ export function TokenPageHeader({ token, onNavigateTab }: TokenPageHeaderProps) 
           </div>
 
           <p className="mb-3 pr-28 text-[10px] font-black uppercase tracking-[0.2em] text-[color:var(--hub-accent)]">
-            Kasparex Tokens · {token.symbol}
+            Kasparex Tokens
           </p>
 
           <div className="mb-3 flex items-center gap-3">
@@ -204,7 +204,7 @@ export function TokenPageHeader({ token, onNavigateTab }: TokenPageHeaderProps) 
                 const tone = b.tone ?? 'default';
                 const className =
                   tone === 'player'
-                    ? 'rounded-lg border border-indigo-500/35 bg-indigo-500/10 px-3 py-1.5 text-xs font-medium text-indigo-800 dark:text-indigo-200'
+                    ? 'rounded-lg border border-cyan-500/35 bg-cyan-500/10 px-3 py-1.5 text-xs font-medium text-cyan-800 dark:text-cyan-200'
                     : tone === 'accent'
                       ? 'rounded-lg border border-[color:var(--hub-accent-border)] bg-[color:var(--hub-accent-muted)] px-3 py-1.5 text-xs font-medium text-[color:var(--hub-accent)]'
                       : 'rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-xs font-medium text-zinc-700 dark:border-zinc-700 dark:bg-zinc-800/50 dark:text-zinc-300';
@@ -229,8 +229,8 @@ export function TokenPageHeader({ token, onNavigateTab }: TokenPageHeaderProps) 
           {deckResources.length > 0 ? (
             <div className="mt-auto space-y-2 pt-2">
               <div className="flex items-center justify-between gap-2">
-                <p className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Token Deck</p>
-                <p className="text-[10px] font-medium text-zinc-400">Quick actions & snapshot</p>
+                <p className="text-xs font-semibold text-zinc-500">Token Deck</p>
+                <p className="text-xs font-medium text-zinc-400">Quick actions & snapshot</p>
               </div>
               <GameDeckResourceRows resources={deckResources} />
             </div>

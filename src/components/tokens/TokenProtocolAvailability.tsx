@@ -89,7 +89,7 @@ export function TokenProtocolAvailability({ token }: { token: Token }) {
               value={available ? 'Available' : 'N/A'}
               valueClassName={
                 available
-                  ? 'text-[color:var(--hub-accent,#3b82f6)]'
+                  ? 'text-[color:var(--hub-accent)]'
                   : 'text-zinc-400 dark:text-zinc-500'
               }
               hint={available ? `${protocol.short} · ${statusHint}` : statusHint}
@@ -110,13 +110,13 @@ export function TokenProtocolAvailability({ token }: { token: Token }) {
                   className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900/60"
                 >
                   <div className="mb-2 flex flex-wrap items-center gap-2">
-                    <span className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+                    <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
                       {getNetworkChipLabel(entry.network)}
                     </span>
                     <span
-                      className={`rounded-md px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${
+                      className={`rounded-lg px-2 py-0.5 text-xs font-medium ${
                         entry.verified
-                          ? 'border border-[color:var(--hub-accent-border)] bg-[color:var(--hub-accent-muted)] text-[color:var(--hub-accent)]'
+                          ? 'bg-[color:var(--hub-accent-muted)] text-[color:var(--hub-accent)]'
                           : 'bg-zinc-200 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400'
                       }`}
                     >

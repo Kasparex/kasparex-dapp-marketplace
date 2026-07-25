@@ -172,8 +172,8 @@ export function TokenDetail({
             <div className="flex min-w-0 flex-col">
                 {contentTab === 'overview' ? (
                   <div id="token-overview" className={`${TOKEN_TAB_SECTION_CLASS} space-y-8 animate-in fade-in duration-300`}>
-                    <TokenProtocolAvailability token={token} />
                     <TokenInfoSection token={token} />
+                    <TokenProtocolAvailability token={token} />
                     <ProgrammableAssetPanel token={token} />
                     {orderedOverviewSubsections.map((type) => renderOverviewSubsection(type))}
                   </div>

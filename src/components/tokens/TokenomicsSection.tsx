@@ -39,7 +39,7 @@ export function TokenomicsSection({ token }: TokenomicsSectionProps) {
               hint={token.symbol}
               tooltipTitle="Total supply"
               tooltipDescription="Full supply figure for this token listing."
-              valueClassName="text-[color:var(--hub-accent,#3b82f6)]"
+              valueClassName="text-[color:var(--hub-accent)]"
             />
           ) : null}
           {token.circulatingSupply != null ? (
@@ -88,7 +88,7 @@ export function TokenomicsSection({ token }: TokenomicsSectionProps) {
                       ) : null}
                     </div>
                     <div className="text-right">
-                      <div className="text-2xl font-bold tabular-nums text-[color:var(--hub-accent,#3b82f6)]">
+                      <div className="text-2xl font-bold tabular-nums text-[color:var(--hub-accent)]">
                         {allocation.percentage}%
                       </div>
                       {amount ? <div className="mt-0.5 text-xs text-zinc-500">{amount}</div> : null}
@@ -96,7 +96,7 @@ export function TokenomicsSection({ token }: TokenomicsSectionProps) {
                   </div>
                   <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800">
                     <div
-                      className="h-2 rounded-full bg-[color:var(--hub-accent,#3b82f6)] transition-all"
+                      className="h-2 rounded-full bg-[color:var(--hub-accent)] transition-all"
                       style={{ width: `${Math.min(100, Math.max(0, allocation.percentage))}%` }}
                     />
                   </div>
