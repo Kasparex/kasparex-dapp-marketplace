@@ -80,7 +80,7 @@ function ContractNode({ data, id }: NodeProps<{ contract: ContractListItem; chai
             href={contract.explorerUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-[10px] font-mono text-[#02abb8] hover:underline truncate block"
+            className="block truncate font-mono text-[10px] text-[color:var(--hub-accent)] hover:underline"
           >
             {contract.address.slice(0, 8)}…{contract.address.slice(-6)}
           </a>

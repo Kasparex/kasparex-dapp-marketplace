@@ -102,7 +102,7 @@ function ContractTableRow({
             href={contract.explorerUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-[#02abb8] hover:underline"
+            className="text-[color:var(--hub-accent)] hover:underline"
           >
             {truncate(contract.address)}
           </a>
@@ -115,7 +115,7 @@ function ContractTableRow({
           {(contract.metadata.linksTo ?? []).map((k) => (
             <span
               key={k}
-              className="inline-flex px-2 py-0.5 rounded text-xs bg-cyan-500/10 text-cyan-700 dark:text-cyan-300 border border-cyan-500/20"
+              className="inline-flex rounded border border-[color:var(--hub-accent-border)] bg-[color:var(--hub-accent-muted)] px-2 py-0.5 text-xs text-[color:var(--hub-accent)]"
             >
               {k}
             </span>
@@ -148,7 +148,7 @@ export function ContractTableView({
         <select
           value={sortBy}
           onChange={(e) => setSortBy(e.target.value as TableSortOption)}
-          className="h-10 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-sm text-zinc-700 dark:text-zinc-300 px-3 focus:outline-none focus:ring-2 focus:ring-[#02abb8]/30 focus:border-[#02abb8]"
+          className="h-10 rounded-xl border border-zinc-200 bg-white px-3 text-sm text-zinc-700 focus:border-[color:var(--hub-accent)] focus:outline-none focus:ring-2 focus:ring-[color:var(--hub-accent-border)] dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-300"
         >
           <option value="name-asc">Name A–Z</option>
           <option value="name-desc">Name Z–A</option>

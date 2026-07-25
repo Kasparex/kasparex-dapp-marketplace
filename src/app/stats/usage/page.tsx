@@ -23,20 +23,16 @@ export default async function UsageMonitorPage({
     <StatsPageShell>
       <StatsHeader
         badge="Internal Ops"
-        headline={
-          <>
-            Usage {statsHeadlineAccent('Monitor')}
-          </>
-        }
+        headline={<>Usage {statsHeadlineAccent('Monitor')}</>}
         description="Sampled API counters for early spike detection. Protected with INTERNAL_STATS_SECRET."
       />
 
       {authed ? (
         <UsageMonitor />
       ) : (
-        <section className={`${STATS_PANEL} p-6 sm:p-8`}>
-          <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">Access required</h2>
-          <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-2 max-w-xl">
+        <section className={`${STATS_PANEL} p-4 sm:p-5`}>
+          <h2 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Access required</h2>
+          <p className="mt-2 max-w-xl text-sm text-zinc-600 dark:text-zinc-400">
             Append <span className="font-mono text-zinc-800 dark:text-zinc-200">?secret=…</span> to the URL and set{' '}
             <span className="font-mono text-zinc-800 dark:text-zinc-200">INTERNAL_STATS_SECRET</span> in the environment.
           </p>

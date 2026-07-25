@@ -1,5 +1,4 @@
 import { Metadata } from 'next';
-import Link from 'next/link';
 import { StatsPageShell } from '@/components/stats/StatsPageShell';
 import { StatsHeader } from '@/components/stats/StatsHeader';
 import { statsHeadlineAccent } from '@/lib/stats/statsUi';
@@ -7,7 +6,8 @@ import { SmartContractsPage } from '@/components/stats/SmartContractsPage';
 
 export const metadata: Metadata = {
   title: 'Smart Contracts',
-  description: 'Tree, table, and flow view of Kasparex smart contracts: addresses, descriptions, and relationships.',
+  description:
+    'Tree, table, and flow view of Kasparex smart contracts: addresses, descriptions, and relationships.',
 };
 
 export default function StatsContractsPage() {
@@ -15,17 +15,8 @@ export default function StatsContractsPage() {
     <StatsPageShell>
       <StatsHeader
         badge="On-chain Registry"
-        headline={
-          <>
-            Smart {statsHeadlineAccent('Contracts')}
-          </>
-        }
+        headline={<>Smart {statsHeadlineAccent('Contracts')}</>}
         description="Explore contracts by flow, tree, or table. Addresses link to the block explorer for the connected network."
-        actions={
-          <Link href="/stats" className="k-control-btn">
-            Back to Stats overview
-          </Link>
-        }
       />
       <SmartContractsPage />
     </StatsPageShell>

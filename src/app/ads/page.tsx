@@ -16,6 +16,7 @@ import {
 import { AdSlider } from '@/components/ads/AdSlider';
 import { HubListingTitleRow } from '@/components/hub/HubListingTitleRow';
 import { HubBenefitsPanel } from '@/components/hub/HubBenefitsPanel';
+import { HubAccentScope } from '@/components/hub/HubAccentScope';
 import { HUB_HALO_DESKTOP_ONLY, HUB_HALO_MOBILE_FALLBACK } from '@/lib/hub/haloHeaders';
 
 function sortAds(ads: AdEntry[], sortBy: AdsSortOption): AdEntry[] {
@@ -101,72 +102,71 @@ function AdsListingPageContent() {
 
   return (
     <>
-      <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <HubAccentScope projectId="kasparex-ads" className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
         <div className={`mb-6 flex flex-wrap gap-3 ${HUB_HALO_MOBILE_FALLBACK}`}>
           <button
             type="button"
             onClick={() => openCreateWizard()}
-            className="inline-flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-cyan-500 to-[#02abb8] hover:from-cyan-600 hover:to-[#029ca8] text-white rounded-xl font-bold text-sm shadow-lg shadow-cyan-500/20 transition-all"
+            className="k-cta-primary inline-flex items-center gap-2 px-6 py-2.5 text-sm"
           >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
             </svg>
             Create ad
           </button>
-          <Link
-            href="/ads/overview"
-            className="inline-flex items-center px-6 py-2.5 border border-zinc-300 dark:border-zinc-600 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-xl font-bold text-sm transition-colors"
-          >
+          <Link href="/ads/overview" className="k-control-btn">
             How it works
           </Link>
         </div>
-        <div className={`relative mb-10 py-12 px-6 sm:px-8 rounded-3xl overflow-hidden bg-gradient-to-br from-zinc-100 via-cyan-50/40 to-zinc-100 dark:from-zinc-950 dark:via-cyan-950/20 dark:to-zinc-950 border border-zinc-200 dark:border-zinc-800/50 ${HUB_HALO_DESKTOP_ONLY}`}>
+        <div
+          className={`relative mb-10 overflow-hidden rounded-3xl border border-zinc-200 bg-gradient-to-br from-zinc-100 via-emerald-50/40 to-rose-50/30 px-6 py-12 sm:px-8 dark:border-zinc-800/50 dark:from-zinc-950 dark:via-emerald-950/20 dark:to-rose-950/15 ${HUB_HALO_DESKTOP_ONLY}`}
+        >
           <div className="absolute inset-0 overflow-hidden">
-            <div className="absolute top-0 right-0 w-[60%] h-[80%] bg-[radial-gradient(ellipse_at_top_right,_rgba(2,171,184,0.12),transparent_70%)] dark:bg-[radial-gradient(ellipse_at_top_right,_rgba(2,171,184,0.15),transparent_70%)] rounded-full blur-3xl" />
-            <div className="absolute bottom-0 left-0 w-[50%] h-[60%] bg-[radial-gradient(ellipse_at_bottom_left,_rgba(2,171,184,0.08),transparent_70%)] dark:bg-[radial-gradient(ellipse_at_bottom_left,_rgba(2,171,184,0.1),transparent_70%)] rounded-full blur-3xl" />
+            <div className="absolute right-0 top-0 h-[80%] w-[60%] rounded-full bg-[radial-gradient(ellipse_at_top_right,_var(--hub-accent-muted),transparent_70%)] blur-3xl" />
+            <div className="absolute bottom-0 left-0 h-[60%] w-[50%] rounded-full bg-[radial-gradient(ellipse_at_bottom_left,_rgba(248,113,113,0.12),transparent_70%)] blur-3xl" />
           </div>
-          <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8">
+          <div className="relative z-10 flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between">
             <div className="max-w-2xl">
-              <div className="inline-flex gap-2 px-3 py-1.5 rounded-full bg-[#02abb8]/10 border border-[#02abb8]/25 text-[#02abb8] text-[10px] font-black uppercase tracking-[0.2em] mb-6">
+              <div className="mb-6 inline-flex gap-2 rounded-full border border-[color:var(--hub-accent-border)] bg-[color:var(--hub-accent-muted)] px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.2em] text-emerald-800 dark:text-[color:var(--hub-accent)]">
                 <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#02abb8] opacity-75" />
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-[#02abb8]" />
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[color:var(--hub-accent)] opacity-75" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-[color:var(--hub-accent)]" />
                 </span>
                 Active campaigns
               </div>
-              <h1 className="text-4xl sm:text-5xl md:text-6xl font-black text-zinc-900 dark:text-white mb-4 leading-tight">
-                Kasparex <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-[#02abb8] dark:from-cyan-400 dark:to-[#02abb8]">Ads</span>
+              <h1 className="mb-4 text-4xl font-black leading-tight text-zinc-900 dark:text-white sm:text-5xl md:text-6xl">
+                Kasparex{' '}
+                <span className="bg-gradient-to-r from-emerald-500 to-rose-400 bg-clip-text text-transparent dark:from-emerald-300 dark:to-rose-300">
+                  Ads
+                </span>
               </h1>
-              <p className="kx-body max-w-xl leading-relaxed mb-6">
+              <p className="kx-body mb-6 max-w-xl leading-relaxed">
                 Browse time-locked ad campaigns across halo, sidebar, and footer placements. Filter by format and slot.
               </p>
               <div className="flex flex-wrap gap-3">
                 <button
                   type="button"
                   onClick={() => openCreateWizard()}
-                  className="inline-flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-cyan-500 to-[#02abb8] hover:from-cyan-600 hover:to-[#029ca8] text-white rounded-xl font-bold text-sm shadow-lg shadow-cyan-500/20 transition-all"
+                  className="k-cta-primary inline-flex items-center gap-2 px-6 py-2.5 text-sm"
                 >
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                   </svg>
                   Create ad
                 </button>
-                <Link
-                  href="/ads/overview"
-                  className="inline-flex items-center px-6 py-2.5 border border-zinc-300 dark:border-zinc-600 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-xl font-bold text-sm transition-colors"
-                >
+                <Link href="/ads/overview" className="k-control-btn">
                   How it works
                 </Link>
               </div>
             </div>
-            <div className="hidden lg:flex items-center justify-center flex-shrink-0 relative w-[280px]">
-              <div className="relative opacity-90 pointer-events-none">
-                <div className="w-48 h-56 rounded-2xl border-2 border-cyan-500/30 bg-white/80 dark:bg-zinc-900/80 shadow-2xl shadow-cyan-500/10 rotate-3 transform" />
-                <div className="absolute -bottom-2 -right-2 w-40 h-48 rounded-xl border-2 border-teal-500/20 bg-zinc-100/90 dark:bg-zinc-800/90 shadow-xl -rotate-6 transform" />
+            <div className="relative hidden w-[280px] flex-shrink-0 items-center justify-center lg:flex">
+              <div className="pointer-events-none relative opacity-90">
+                <div className="h-56 w-48 rotate-3 transform rounded-2xl border-2 border-[color:var(--hub-accent-border)] bg-white/80 shadow-2xl shadow-[color:var(--hub-accent-shadow)] dark:bg-zinc-900/80" />
+                <div className="absolute -bottom-2 -right-2 h-48 w-40 -rotate-6 transform rounded-xl border-2 border-rose-400/25 bg-zinc-100/90 shadow-xl dark:bg-zinc-800/90" />
               </div>
               <div
                 id="ad-slot-ads-halo"
-                className="absolute inset-0 flex flex-col items-center justify-center pointer-events-auto scroll-mt-24"
+                className="pointer-events-auto absolute inset-0 flex flex-col items-center justify-center scroll-mt-24"
               >
                 <AdSlider slotId="HALO_ADS_RIGHT" />
               </div>
@@ -184,7 +184,7 @@ function AdsListingPageContent() {
           benefits={<HubBenefitsPanel variant="compact" scope="ads" className="w-full" />}
         />
 
-        <div className="flex flex-col gap-4 mb-6">
+        <div className="mb-6 flex flex-col gap-4">
           <FilterBar
             search={{ value: searchQuery, onChange: setSearchQuery, placeholder: 'Search campaigns...' }}
             onReset={handleResetFilters}
@@ -208,18 +208,18 @@ function AdsListingPageContent() {
             ))}
           </div>
         ) : (
-          <div className="text-center py-16 rounded-2xl border border-dashed border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50">
+          <div className="rounded-2xl border border-dashed border-zinc-200 bg-zinc-50 py-16 text-center dark:border-zinc-800 dark:bg-zinc-900/50">
             <p className="text-zinc-600 dark:text-zinc-400">No campaigns match your filters.</p>
             <button
               type="button"
               onClick={handleResetFilters}
-              className="mt-3 text-sm text-[#02abb8] hover:underline"
+              className="mt-3 text-sm text-[color:var(--hub-accent)] hover:underline"
             >
               Reset filters
             </button>
           </div>
         )}
-      </div>
+      </HubAccentScope>
 
       <CreateAdWizard
         isOpen={wizardOpen}

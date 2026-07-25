@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { MagazineDashboardButton } from './MagazineDashboardButton';
 import { AdSlider } from '@/components/ads/AdSlider';
 import { HUB_HALO_DESKTOP_ONLY, HUB_HALO_MOBILE_FALLBACK } from '@/lib/hub/haloHeaders';
@@ -7,8 +8,11 @@ import { HUB_HALO_DESKTOP_ONLY, HUB_HALO_MOBILE_FALLBACK } from '@/lib/hub/haloH
 export function MagazineHeader() {
   return (
     <>
-      <div className={`mb-6 ${HUB_HALO_MOBILE_FALLBACK}`}>
+      <div className={`mb-6 flex flex-wrap gap-3 ${HUB_HALO_MOBILE_FALLBACK}`}>
         <MagazineDashboardButton variant="header" />
+        <Link href="/magazines/editor" className="k-control-btn">
+          Create Issue
+        </Link>
       </div>
       <div
         className={`relative mb-12 overflow-hidden rounded-3xl border border-zinc-200 bg-gradient-to-br from-zinc-100 via-amber-50/50 to-orange-50/40 px-6 py-12 sm:px-8 dark:border-zinc-800/50 dark:from-zinc-950 dark:via-amber-950/25 dark:to-zinc-950 ${HUB_HALO_DESKTOP_ONLY}`}
@@ -43,6 +47,9 @@ export function MagazineHeader() {
 
             <div className="flex flex-wrap gap-4">
               <MagazineDashboardButton variant="header" />
+              <Link href="/magazines/editor" className="k-control-btn">
+                Create Issue
+              </Link>
             </div>
           </div>
 

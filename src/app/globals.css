@@ -197,7 +197,7 @@
 }
 .kx-listing-card[data-kx-accent="magazines"]:hover,
 .kx-listing-card[data-kx-accent="magazines"]:focus-visible {
-  border-color: rgb(139, 92, 246) !important; /* violet-500 */
+  border-color: rgb(234, 179, 8) !important; /* yellow-500 magazines accent */
 }
 .kx-listing-card[data-kx-accent="movies"]:hover,
 .kx-listing-card[data-kx-accent="movies"]:focus-visible {
@@ -233,7 +233,7 @@
 }
 .kx-listing-card[data-kx-accent="ads"]:hover,
 .kx-listing-card[data-kx-accent="ads"]:focus-visible {
-  border-color: rgb(236, 72, 153) !important; /* pink-500 */
+  border-color: rgb(34, 197, 94) !important; /* green-500 ads listing accent */
 }
 .kx-listing-card[data-kx-accent="revenueTree"]:hover,
 .kx-listing-card[data-kx-accent="revenueTree"]:focus-visible {

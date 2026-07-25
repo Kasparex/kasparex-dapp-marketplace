@@ -11,6 +11,7 @@ import {
   type ContractMetadataEntry,
 } from '@/lib/contracts/contractsMetadata';
 import { STATS_PANEL } from '@/lib/stats/statsUi';
+import { GameSectionHeader } from '@/components/games/layout/GameSectionHeader';
 import { ContractTableView } from './ContractTableView';
 import { ContractTreeView } from './ContractTreeView';
 import { ContractFlowView } from './ContractFlowView';
@@ -49,23 +50,23 @@ export function SmartContractsPage() {
   return (
     <section className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-1">Contract explorer</h2>
-        <p className="text-sm text-zinc-600 dark:text-zinc-400">
+        <GameSectionHeader title="Contract explorer" />
+        <p className="mb-4 text-sm text-zinc-600 dark:text-zinc-400">
           {contractList.length > 0
             ? `${contractList.length} contract${contractList.length !== 1 ? 's' : ''} on the connected network`
             : 'Connect your wallet and select a supported network'}
         </p>
       </div>
 
-      <div className="flex items-center gap-1 p-1 k-control-group w-fit flex-wrap">
+      <div className="k-control-group flex w-fit flex-wrap items-center gap-1 p-1">
         {TABS.map((t) => (
           <button
             key={t}
             type="button"
             onClick={() => setTab(t)}
-            className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-all ${
+            className={`rounded-xl px-5 py-2.5 text-sm font-bold transition-all ${
               tab === t
-                ? 'bg-zinc-100 dark:bg-zinc-800 text-[#02abb8] shadow-sm'
+                ? 'bg-zinc-100 text-[color:var(--hub-accent)] shadow-sm dark:bg-zinc-800'
                 : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'
             }`}
           >
@@ -81,7 +82,7 @@ export function SmartContractsPage() {
           </p>
         </div>
       ) : (
-        <div className={`${STATS_PANEL} p-4 sm:p-6`}>
+        <div className={`${STATS_PANEL} p-4`}>
           {tab === 'Tree view' && <ContractTreeView contractList={contractList} chainId={chainId} />}
           {tab === 'Table view' && <ContractTableView contractList={contractList} chainId={chainId} />}
           {tab === 'Flow' && <ContractFlowView contractList={contractList} chainId={chainId} />}

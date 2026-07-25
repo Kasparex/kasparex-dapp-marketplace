@@ -1,9 +1,15 @@
 'use client';
 
 import type { ProtocolFamily } from '@/lib/protocolFamilies';
+import { isProtocolFamilyAccessible } from '@/lib/protocolFamilies';
 import { KxListingCard, KxListingCardBody, KxListingCardMedia } from '@/components/kx/KxListingCard';
 import { KxBadge } from '@/components/ui/KxBadge';
+import { KxListingCategoryChip } from '@/components/ui/KxListingCategoryChip';
 import { KX_CARD_EXCERPT } from '@/lib/ui/kxTypography';
+import {
+  KX_LISTING_PLACEHOLDER_GRADIENT,
+  KX_LISTING_PLACEHOLDER_ICON,
+} from '@/lib/ui/kxListingPlaceholder';
 
 function statusLabel(status: ProtocolFamily['status']) {
   switch (status) {
@@ -16,35 +22,55 @@ function statusLabel(status: ProtocolFamily['status']) {
   }
 }
 
+function ProtocolPlaceholderIcon() {
+  return (
+    <svg
+      className={`h-10 w-10 ${KX_LISTING_PLACEHOLDER_ICON}`}
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={1.5}
+      aria-hidden
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M13 10V3L4 14h7v7l9-11h-7z"
+      />
+    </svg>
+  );
+}
+
 export function ProtocolFamilyCard({ family }: { family: ProtocolFamily }) {
+  const accessible = isProtocolFamilyAccessible(family);
   return (
     <KxListingCard
-      href={`/protocols/${family.slug}`}
+      href={accessible ? `/protocols/${family.slug}` : undefined}
+      disabled={!accessible}
       accent="protocols"
-      className="relative flex h-full min-h-0 flex-col"
+      className={`relative flex h-full min-h-0 flex-col${!accessible ? ' opacity-80' : ''}`}
     >
       <KxListingCardMedia aspectClass="aspect-[3/2]">
-        <div className="absolute inset-0 bg-gradient-to-br from-[color:var(--hub-accent)] via-teal-600 to-lime-600 dark:from-cyan-500 dark:via-teal-700 dark:to-lime-800" />
-        <div className="pointer-events-none absolute inset-0 opacity-30">
-          <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-white/20 blur-2xl" />
-          <div className="absolute bottom-0 left-1/4 h-24 w-40 rounded-full bg-black/10 blur-xl" />
+        <div className={`flex h-full w-full items-center justify-center ${KX_LISTING_PLACEHOLDER_GRADIENT}`}>
+          <ProtocolPlaceholderIcon />
         </div>
-        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/10 to-transparent" />
-        <div className="absolute left-3 top-3 z-10 flex flex-wrap gap-2">
-          <KxBadge variant={family.status === 'live' ? 'emerald' : family.status === 'preview' ? 'violet' : 'zinc'}>
+      </KxListingCardMedia>
+      <KxListingCardBody comfortable className="relative z-10 flex min-h-0 flex-1 flex-col">
+        <div className="mb-2 flex items-start justify-between gap-3">
+          <h3 className="min-w-0 text-[17px] font-semibold leading-snug text-zinc-900 dark:text-white">
+            {family.name}
+          </h3>
+          <KxBadge
+            variant={family.status === 'live' ? 'emerald' : family.status === 'preview' ? 'violet' : 'zinc'}
+            className="shrink-0"
+          >
             {statusLabel(family.status)}
           </KxBadge>
         </div>
-        <div className="absolute inset-0 flex items-center justify-center">
-          <span className="text-4xl font-black tracking-tight text-white drop-shadow-sm sm:text-5xl">
-            {family.shortLabel}
-          </span>
+        <p className={`mb-4 flex-1 ${KX_CARD_EXCERPT}`}>{family.description}</p>
+        <div className="mt-auto border-t border-zinc-100 pt-3 dark:border-zinc-800">
+          <KxListingCategoryChip>{family.category}</KxListingCategoryChip>
         </div>
-      </KxListingCardMedia>
-      <KxListingCardBody className="relative z-10 flex min-h-0 flex-1 flex-col">
-        <div className="text-[15px] font-semibold text-zinc-900 dark:text-zinc-100">{family.name}</div>
-        <p className={`mt-1 flex-1 ${KX_CARD_EXCERPT}`}>{family.description}</p>
-        <div className="mt-3 text-sm font-bold text-[color:var(--hub-accent)] group-hover:underline">View protocol hub →</div>
       </KxListingCardBody>
     </KxListingCard>
   );

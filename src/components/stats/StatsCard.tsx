@@ -24,12 +24,12 @@ export function StatsCard({
 }: StatsCardProps) {
   const content = (
     <div
-      className={`${STATS_PANEL} p-5 transition-colors ${
-        href ? 'hover:border-[#02abb8]/40 dark:hover:border-[#02abb8]/40' : ''
+      className={`${STATS_PANEL} p-4 transition-colors ${
+        href ? 'hover:border-[color:var(--hub-accent-border)]' : ''
       } ${className}`}
     >
       <div className="flex flex-col gap-1">
-        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 dark:text-zinc-400 mb-1">
+        <span className="mb-1 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 dark:text-zinc-400">
           {title}
         </span>
         {loading ? (
@@ -37,9 +37,9 @@ export function StatsCard({
         ) : children !== undefined ? (
           children
         ) : (
-          <span className="text-xl font-black text-zinc-900 dark:text-zinc-100 tracking-tight">{value ?? '-'}</span>
+          <span className="text-xl font-black tracking-tight text-zinc-900 dark:text-zinc-100">{value ?? '-'}</span>
         )}
-        {subtitle ? <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">{subtitle}</p> : null}
+        {subtitle ? <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">{subtitle}</p> : null}
       </div>
     </div>
   );

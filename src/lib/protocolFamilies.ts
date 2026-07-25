@@ -10,6 +10,8 @@ export interface ProtocolFamily {
   name: string;
   description: string;
   status: ProtocolFamilyStatus;
+  /** Listing category chip label. */
+  category: string;
 }
 
 export const PROTOCOL_FAMILIES: ProtocolFamily[] = [
@@ -19,6 +21,7 @@ export const PROTOCOL_FAMILIES: ProtocolFamily[] = [
     name: 'KPX protocol',
     description: 'Kaspa-wide payloads for identity, verification, EVM links, and content commits - indexed by Kasparex.',
     status: 'live',
+    category: 'Identity',
   },
   {
     slug: 'ktree',
@@ -26,6 +29,7 @@ export const PROTOCOL_FAMILIES: ProtocolFamily[] = [
     name: 'Ktree protocol',
     description: 'Structured on-chain trees for nested relationships, permissions, and composable namespaces (preview).',
     status: 'preview',
+    category: 'Structure',
   },
   {
     slug: 'kref',
@@ -33,8 +37,14 @@ export const PROTOCOL_FAMILIES: ProtocolFamily[] = [
     name: 'Kref protocol',
     description: 'Lightweight references and resolution rules linking Kaspa state to off-chain and cross-chain assets (planned).',
     status: 'planned',
+    category: 'References',
   },
 ];
+
+/** Only live families are navigable; preview/planned are concept cards only. */
+export function isProtocolFamilyAccessible(family: ProtocolFamily): boolean {
+  return family.status === 'live';
+}
 
 export function getProtocolFamily(slug: string): ProtocolFamily | undefined {
   return PROTOCOL_FAMILIES.find((f) => f.slug === slug);

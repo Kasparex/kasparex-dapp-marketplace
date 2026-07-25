@@ -190,7 +190,7 @@ export function UsageMonitor() {
               onClick={() => setNotifyEnabled((v) => !v)}
               className={`k-control-btn text-xs ${
                 notifyEnabled
-                  ? '!border-[#02abb8]/40 !bg-[#02abb8]/10 !text-[#02abb8]'
+                  ? '!border-[color:var(--hub-accent-border)] !bg-[color:var(--hub-accent-muted)] !text-[color:var(--hub-accent)]'
                   : ''
               }`}
             >

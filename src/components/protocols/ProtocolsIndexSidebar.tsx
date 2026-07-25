@@ -5,7 +5,7 @@ import { UnifiedSidebar } from '@/components/UnifiedSidebar';
 import { SidebarHeader } from '@/components/sidebar/SidebarHeader';
 import { SidebarSection } from '@/components/sidebar/SidebarSection';
 import { SidebarNavItem } from '@/components/sidebar/SidebarNavItem';
-import { PROTOCOL_FAMILIES } from '@/lib/protocolFamilies';
+import { PROTOCOL_FAMILIES, isProtocolFamilyAccessible } from '@/lib/protocolFamilies';
 
 const bookIcon = (
   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -44,16 +44,20 @@ export function ProtocolsIndexSidebar() {
 
       <SidebarSection title="Protocols">
         <nav className="space-y-0.5">
-          {PROTOCOL_FAMILIES.map((f) => (
-            <SidebarNavItem
-              key={f.slug}
-              href={`/protocols/${f.slug}`}
-              label={f.shortLabel}
-              icon={protocolIcon}
-              count={f.status}
-              active={pathname === `/protocols/${f.slug}`}
-            />
-          ))}
+          {PROTOCOL_FAMILIES.map((f) => {
+            const accessible = isProtocolFamilyAccessible(f);
+            return (
+              <SidebarNavItem
+                key={f.slug}
+                href={accessible ? `/protocols/${f.slug}` : undefined}
+                label={f.shortLabel}
+                icon={protocolIcon}
+                count={accessible ? f.status : 'idea'}
+                active={accessible && pathname === `/protocols/${f.slug}`}
+                className={!accessible ? 'pointer-events-none opacity-50' : undefined}
+              />
+            );
+          })}
         </nav>
       </SidebarSection>
     </UnifiedSidebar>

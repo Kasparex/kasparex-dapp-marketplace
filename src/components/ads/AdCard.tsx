@@ -78,8 +78,8 @@ export function AdCard({ ad, onEdit, onDelete, embedded = false }: AdCardProps) 
   const shellClass = embedded
     ? 'rounded-xl bg-transparent'
     : featured && accent
-      ? 'rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/85 shadow-lg shadow-black/12 dark:shadow-black/45 hover:border-pink-500 hover:shadow-xl hover:shadow-pink-500/10'
-      : 'rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/50 hover:border-pink-500 hover:shadow-xl hover:shadow-pink-500/10';
+      ? 'rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/85 shadow-lg shadow-black/12 dark:shadow-black/45 hover:border-[color:var(--hub-accent)] hover:shadow-xl hover:shadow-[color:var(--hub-accent-shadow)]'
+      : 'rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/50 hover:border-[color:var(--hub-accent)] hover:shadow-xl hover:shadow-[color:var(--hub-accent-shadow)]';
 
   const hoverGradient = (
     <div className="pointer-events-none absolute inset-0 z-[15] rounded-t-xl bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
@@ -180,7 +180,7 @@ export function AdCard({ ad, onEdit, onDelete, embedded = false }: AdCardProps) 
           <div className="h-1.5 w-full rounded-full bg-zinc-200 dark:bg-zinc-800 overflow-hidden">
             <div
               className={`h-full rounded-full bg-gradient-to-r transition-all duration-500 ${
-                featured && accent ? accent.progressBarClass : 'from-pink-500 to-fuchsia-500'
+                featured && accent ? accent.progressBarClass : 'from-[color:var(--hub-accent)] to-[color:var(--hub-accent-light)]'
               }`}
               style={{ width: `${progressPercent}%` }}
             />

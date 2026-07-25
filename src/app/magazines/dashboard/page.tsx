@@ -21,17 +21,26 @@ import { HubAccentScope } from '@/components/hub/HubAccentScope';
 import { HubDashboardPageHeader } from '@/components/hub/HubDashboardPageHeader';
 import { HubPointsEarnBadge } from '@/components/hub/HubPointsEarnBadge';
 import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
+import { MagazineEditor } from '@/components/magazines/editor/MagazineEditor';
+import { VBlogFeeCard } from '@/components/vblog/VBlogPricingCards';
+import { applyKrexFeeDiscount } from '@/lib/hub/applyKrexFeeDiscount';
+import { HUB_DELETE_FEE_KAS } from '@/lib/hub/paidDelete';
 import {
   KX_DASHBOARD_TAB_SHELL,
   KX_DASHBOARD_TAB_BTN,
   KX_DASHBOARD_TAB_BTN_ACTIVE,
 } from '@/lib/hub/shellTokens';
 
+const MAGAZINE_LISTING_FEE_KAS = 50;
+const MAGAZINE_EDIT_FEE_KAS = 1;
+
+type MagazinesDashboardTab = 'create' | 'reader' | 'creator' | 'revenue';
+
 export default function MagazinesDashboardPage() {
     const { state: walletState } = useKaspaWallet();
     const [ownedIssues, setOwnedIssues] = useState<MagazineIssue[]>([]);
     const [myMagazines, setMyMagazines] = useState<Magazine[]>([]);
-    const [activeTab, setActiveTab] = useState<'reader' | 'creator' | 'revenue'>('reader');
+    const [activeTab, setActiveTab] = useState<MagazinesDashboardTab>('create');
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
@@ -131,6 +140,13 @@ export default function MagazinesDashboardPage() {
                         <div className={`${KX_DASHBOARD_TAB_SHELL} mb-8`}>
                             <button
                                 type="button"
+                                onClick={() => setActiveTab('create')}
+                                className={`${KX_DASHBOARD_TAB_BTN} ${activeTab === 'create' ? KX_DASHBOARD_TAB_BTN_ACTIVE : ''}`}
+                            >
+                                Create Issue
+                            </button>
+                            <button
+                                type="button"
                                 onClick={() => setActiveTab('reader')}
                                 className={`${KX_DASHBOARD_TAB_BTN} ${activeTab === 'reader' ? KX_DASHBOARD_TAB_BTN_ACTIVE : ''}`}
                             >
@@ -141,7 +157,7 @@ export default function MagazinesDashboardPage() {
                                 onClick={() => setActiveTab('creator')}
                                 className={`${KX_DASHBOARD_TAB_BTN} ${activeTab === 'creator' ? KX_DASHBOARD_TAB_BTN_ACTIVE : ''}`}
                             >
-                                Creator Center
+                                My Publications
                             </button>
                             <button
                                 type="button"
@@ -152,6 +168,8 @@ export default function MagazinesDashboardPage() {
                             </button>
                         </div>
 
+                        {activeTab !== 'create' ? (
+                          <>
                         {/* Rewards Status Card */}
                         <div className="bg-gradient-to-br from-zinc-900 to-black text-white rounded-3xl p-8 mb-8 border border-zinc-800 relative overflow-hidden">
                             <div
@@ -203,13 +221,41 @@ export default function MagazinesDashboardPage() {
                             </div>
                           </div>
                         </div>
+                          </>
+                        ) : null}
 
-                        {isLoading ? (
+                        {isLoading && activeTab !== 'create' ? (
                             <div className="flex items-center justify-center py-24">
-                                <div className="w-12 h-12 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin" />
+                                <div className="w-12 h-12 border-4 border-[color:var(--hub-accent)] border-t-transparent rounded-full animate-spin" />
                             </div>
                         ) : (
                             <>
+                                {activeTab === 'create' && (
+                                    <div className="space-y-8">
+                                        <div id="magazines-dashboard-pricing" className="mb-8 grid scroll-mt-24 grid-cols-1 gap-4 md:grid-cols-3">
+                                            <VBlogFeeCard
+                                                title="Listing Fee"
+                                                feeKas={applyKrexFeeDiscount(MAGAZINE_LISTING_FEE_KAS, krexTier)}
+                                                basePoints={HUB_EARN_POINTS.magazineIssuePublish}
+                                                tier={krexTier}
+                                            />
+                                            <VBlogFeeCard
+                                                title="Edit / Update"
+                                                feeKas={applyKrexFeeDiscount(MAGAZINE_EDIT_FEE_KAS, krexTier)}
+                                                tier={krexTier}
+                                            />
+                                            <VBlogFeeCard
+                                                title="Delete Fee"
+                                                feeKas={applyKrexFeeDiscount(HUB_DELETE_FEE_KAS.magazineIssues, krexTier)}
+                                                tier={krexTier}
+                                            />
+                                        </div>
+                                        <div id="magazines-dashboard-create" className="scroll-mt-24">
+                                            <MagazineEditor />
+                                        </div>
+                                    </div>
+                                )}
+
                                 {activeTab === 'reader' && (
                                     <div className="space-y-8">
                                         <div className="flex items-center justify-between">
@@ -242,9 +288,13 @@ export default function MagazinesDashboardPage() {
                                     <div className="space-y-8">
                                         <div className="flex items-center justify-between">
                                             <h2 className="text-2xl font-black text-zinc-900 dark:text-zinc-100">My Publications</h2>
-                                            <Link href="/magazines/editor" className="inline-flex px-6 py-2 bg-gradient-to-r from-cyan-500 to-emerald-500 text-white rounded-xl text-sm font-bold hover:shadow-lg shadow-cyan-500/20 transition-all">
+                                            <button
+                                              type="button"
+                                              onClick={() => setActiveTab('create')}
+                                              className="inline-flex rounded-xl bg-gradient-to-r from-[color:var(--hub-accent)] to-orange-400 px-6 py-2 text-sm font-bold text-white transition-all hover:shadow-lg"
+                                            >
                                                 + Create New Issue
-                                            </Link>
+                                            </button>
                                         </div>
 
                                         {myMagazines.length > 0 ? (
