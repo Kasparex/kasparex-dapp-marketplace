@@ -114,7 +114,7 @@ export function KaspirePairingModal({
               />
             ) : (
               <div className="flex h-[240px] w-[240px] flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-zinc-300 px-4 text-center text-xs text-zinc-500 dark:border-zinc-600">
-                {!uri ? 'Starting WalletConnect…' : qrError ?? 'Preparing QR…'}
+                {!uri ? 'Creating pairing QR…' : qrError ?? 'Preparing QR…'}
               </div>
             )
           ) : (

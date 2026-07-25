@@ -81,67 +81,18 @@ function isPublishError(error: unknown): boolean {
   return /failed to publish/i.test(msg);
 }
 
-async function ensureRelayerConnected(
-  client: KaspireSignClient,
-  signal?: AbortSignal,
-): Promise<void> {
+/** Soft nudge for the relay socket. Never block pairing for long. */
+async function nudgeRelayer(client: KaspireSignClient): Promise<void> {
   const relayer = client.core?.relayer;
-  if (!relayer) return;
-  if (relayer.connected) return;
-
-  await new Promise<void>((resolve, reject) => {
-    if (signal?.aborted) {
-      reject(new Error('Kaspire pairing cancelled'));
-      return;
-    }
-
-    const timeout = setTimeout(() => {
-      cleanup();
-      reject(
-        new Error(
-          'WalletConnect relay did not connect. Check your network, disable VPN if needed, and try again.',
-        ),
-      );
-    }, 20_000);
-
-    const onConnect = () => {
-      cleanup();
-      resolve();
-    };
-
-    const onAbort = () => {
-      cleanup();
-      reject(new Error('Kaspire pairing cancelled'));
-    };
-
-    const cleanup = () => {
-      clearTimeout(timeout);
-      signal?.removeEventListener('abort', onAbort);
-      try {
-        relayer.events?.removeListener?.('relayer_connect', onConnect);
-        (relayer as { off?: (e: string, cb: () => void) => void }).off?.('relayer_connect', onConnect);
-      } catch {
-        /* ignore */
-      }
-    };
-
-    signal?.addEventListener('abort', onAbort, { once: true });
-
-    try {
-      relayer.once?.('relayer_connect', onConnect);
-    } catch {
-      relayer.events?.once?.('relayer_connect', onConnect);
-    }
-
-    void Promise.resolve(relayer.transportOpen?.()).catch(() => {
-      /* transportOpen may already be in progress */
-    });
-
-    if (relayer.connected) {
-      cleanup();
-      resolve();
-    }
-  });
+  if (!relayer || relayer.connected) return;
+  try {
+    await Promise.race([
+      Promise.resolve(relayer.transportOpen?.()).then(() => undefined),
+      new Promise<void>((resolve) => setTimeout(resolve, 1500)),
+    ]);
+  } catch {
+    /* connect() will surface relay errors */
+  }
 }
 
 async function getSignClient(): Promise<KaspireSignClient> {
@@ -162,12 +113,8 @@ async function getSignClient(): Promise<KaspireSignClient> {
       // Keep Kaspire pairing state separate from EVM RainbowKit WC.
       storageOptions: { database: KASPIRE_WC_STORAGE },
     })
-      .then(async (client) => {
-        try {
-          await ensureRelayerConnected(client);
-        } catch {
-          // Still attach listeners; connect() will retry relay.
-        }
+      .then((client) => {
+        void nudgeRelayer(client);
 
         client.on('session_event', ({ params }) => {
           if (params.event.name !== 'accountsChanged') return;
@@ -221,27 +168,63 @@ export async function restoreKaspireSession(): Promise<KaspireSession | null> {
   return activeSession;
 }
 
+async function disconnectAllKaspireSessions(client: KaspireSignClient): Promise<void> {
+  const sessions = client.session.getAll().filter((item) => item.namespaces.kaspa?.accounts?.length);
+  await Promise.all(
+    sessions.map(async (session) => {
+      try {
+        await client.disconnect({
+          topic: session.topic,
+          reason: { code: 6000, message: 'Starting a new Kasparex pairing' },
+        });
+      } catch {
+        /* ignore stale sessions */
+      }
+    }),
+  );
+  activeSession = null;
+}
+
 async function proposeKaspireSession(
   client: KaspireSignClient,
   methods: string[],
   signal: AbortSignal,
 ): Promise<{ uri: string; approval: () => Promise<KaspireSession> }> {
   throwIfPairingAborted(signal);
-  await ensureRelayerConnected(client, signal);
+  await nudgeRelayer(client);
   throwIfPairingAborted(signal);
 
-  const { uri, approval } = await client.connect({
-    requiredNamespaces: {
-      kaspa: {
-        chains: [KASPIRE_CHAIN_ID],
-        methods,
-        events: [...KASPIRE_EVENTS],
+  const connectResult = await Promise.race([
+    client.connect({
+      requiredNamespaces: {
+        kaspa: {
+          chains: [KASPIRE_CHAIN_ID],
+          methods,
+          events: [...KASPIRE_EVENTS],
+        },
       },
-    },
-  });
+    }),
+    new Promise<never>((_, reject) => {
+      const onAbort = () => reject(new Error('Kaspire pairing cancelled'));
+      if (signal.aborted) {
+        onAbort();
+        return;
+      }
+      signal.addEventListener('abort', onAbort, { once: true });
+      setTimeout(() => {
+        signal.removeEventListener('abort', onAbort);
+        reject(
+          new Error(
+            'WalletConnect took too long to create a pairing QR. Check your network and try again.',
+          ),
+        );
+      }, 25_000);
+    }),
+  ]);
 
   throwIfPairingAborted(signal);
 
+  const { uri, approval } = connectResult;
   if (!uri) {
     throw new Error('WalletConnect did not return a pairing URI');
   }
@@ -263,11 +246,10 @@ export async function connectKaspireSession(options?: {
     const client = await getSignClient();
     throwIfPairingAborted(signal);
 
-    const existing = await restoreKaspireSession();
-    if (existing) {
-      const address = addressFromSession(existing);
-      if (address) return { session: existing, address };
-    }
+    // Always start a fresh pairing so the QR / App Link is shown.
+    // Restoring a prior session silently left the modal stuck on "Starting…".
+    await disconnectAllKaspireSessions(client);
+    throwIfPairingAborted(signal);
 
     const methods = options?.methods?.length
       ? [...options.methods]
@@ -285,6 +267,7 @@ export async function connectKaspireSession(options?: {
       signClientPromise = null;
       try {
         const retryClient = await getSignClient();
+        await disconnectAllKaspireSessions(retryClient);
         ({ uri, approval } = await proposeKaspireSession(retryClient, methods, signal));
       } catch (retryError) {
         throwIfPairingAborted(signal);
