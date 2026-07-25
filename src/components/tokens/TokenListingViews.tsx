@@ -15,6 +15,7 @@ import { Tooltip } from '@/components/ui/Tooltip';
 import { AuthorInline } from '@/components/ui/AuthorInline';
 import { resolveTokenCreatorWallet } from '@/lib/tokens/creatorWallet';
 import { formatAddress } from '@/lib/vblog/utils';
+import { TOKEN_MEDIA_BADGE_CLASS } from '@/components/tokens/TokenListingPillBadge';
 
 function EmptyState() {
   return (
@@ -61,11 +62,11 @@ export function TokenListingCardGrid({
           <KxListingCardMedia aspectClass="aspect-[16/9]">
             <TokenFeaturedMedia token={token} />
             <div className="absolute left-2 top-2 z-10">
-              <TokenNetworkChips token={token} />
+              <TokenNetworkChips token={token} size="media" />
             </div>
             {token.listing?.featured ? (
               <Tooltip content="Premium featured listing">
-                <span className="absolute right-2 top-2 z-10 rounded-md bg-zinc-900/75 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-white">
+                <span className={`absolute right-2 top-2 z-10 ${TOKEN_MEDIA_BADGE_CLASS} bg-zinc-900/75 text-white`}>
                   Featured
                 </span>
               </Tooltip>

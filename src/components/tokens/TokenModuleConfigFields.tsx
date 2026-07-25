@@ -8,6 +8,7 @@ import { KxRichTextEditor } from '@/components/ui/KxRichTextEditor';
 import {
   cleanPollOptions,
   defaultTokenPollConfig,
+  type TokenModuleId,
   type TokenModulesConfig,
 } from '@/lib/tokens/modules';
 import { HUB_UTILITY_PRODUCTS } from '@/lib/tokens/utilityRegistry';
@@ -18,6 +19,8 @@ import {
   type CovenantUtilityTemplateId,
 } from '@/lib/programmable/covenantUtilities';
 
+export type TokenModuleConfigTarget = TokenModuleId | 'markets';
+
 type TokenModuleConfigFieldsProps = {
   config: TokenModulesConfig;
   onChange: (config: TokenModulesConfig) => void;
@@ -26,7 +29,28 @@ type TokenModuleConfigFieldsProps = {
   listingNetwork?: import('@/lib/tokens/listingNetwork').TokenListingNetwork;
   marketsSectionEnabled?: boolean;
   disabled?: boolean;
+  /** When set, render only this module/section config (for nested dashed cards). */
+  moduleId?: TokenModuleConfigTarget;
+  /** Strip outer panel chrome when nested inside a premium module card. */
+  bare?: boolean;
 };
+
+function moduleHasConfigFields(moduleId: TokenModuleConfigTarget): boolean {
+  return (
+    moduleId === 'roadmap_editor' ||
+    moduleId === 'timeline_builder' ||
+    moduleId === 'on_chain_poll' ||
+    moduleId === 'utility_integrations' ||
+    moduleId === 'covenant_utilities_hub' ||
+    moduleId === 'access_gate' ||
+    moduleId === 'native_subscriptions' ||
+    moduleId === 'markets'
+  );
+}
+
+export function tokenModuleHasConfigFields(moduleId: TokenModuleId): boolean {
+  return moduleHasConfigFields(moduleId);
+}
 
 export function TokenModuleConfigFields({
   config,
@@ -36,17 +60,36 @@ export function TokenModuleConfigFields({
   listingNetwork,
   marketsSectionEnabled = false,
   disabled,
+  moduleId,
+  bare = false,
 }: TokenModuleConfigFieldsProps) {
   const isProgrammable = isProgrammableListingNetwork(listingNetwork);
+
   const showRoadmap =
-    enabledModuleIds.has('roadmap_editor') || enabledModuleIds.has('timeline_builder');
-  const showPoll = isRealToken && enabledModuleIds.has('on_chain_poll');
-  const showUtility = isRealToken && enabledModuleIds.has('utility_integrations');
-  const showCovenantHub = isRealToken && isProgrammable && enabledModuleIds.has('covenant_utilities_hub');
-  const showAccessGate = isRealToken && isProgrammable && enabledModuleIds.has('access_gate');
+    (!moduleId || moduleId === 'roadmap_editor' || moduleId === 'timeline_builder') &&
+    (enabledModuleIds.has('roadmap_editor') || enabledModuleIds.has('timeline_builder'));
+  const showPoll =
+    (!moduleId || moduleId === 'on_chain_poll') && isRealToken && enabledModuleIds.has('on_chain_poll');
+  const showUtility =
+    (!moduleId || moduleId === 'utility_integrations') &&
+    isRealToken &&
+    enabledModuleIds.has('utility_integrations');
+  const showCovenantHub =
+    (!moduleId || moduleId === 'covenant_utilities_hub') &&
+    isRealToken &&
+    isProgrammable &&
+    enabledModuleIds.has('covenant_utilities_hub');
+  const showAccessGate =
+    (!moduleId || moduleId === 'access_gate') &&
+    isRealToken &&
+    isProgrammable &&
+    enabledModuleIds.has('access_gate');
   const showSubscriptions =
-    isRealToken && isProgrammable && enabledModuleIds.has('native_subscriptions');
-  const showMarkets = marketsSectionEnabled;
+    (!moduleId || moduleId === 'native_subscriptions') &&
+    isRealToken &&
+    isProgrammable &&
+    enabledModuleIds.has('native_subscriptions');
+  const showMarkets = (!moduleId || moduleId === 'markets') && marketsSectionEnabled;
 
   if (
     !showRoadmap &&
@@ -65,11 +108,15 @@ export function TokenModuleConfigFields({
   const covenantTemplates = config.covenantUtilityTemplates ?? COVENANT_UTILITY_TEMPLATES.map((t) => t.id);
   const accessGate = config.accessGate ?? { holderOnly: true };
 
+  const setupShellClass = bare
+    ? 'mt-5 space-y-3 border-t border-zinc-200 pt-5 dark:border-zinc-700'
+    : 'space-y-4 rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900';
+
   return (
-    <div className="space-y-4" id="tokens-dashboard-module-config">
+    <div className={bare ? undefined : 'space-y-4'} id={bare ? undefined : 'tokens-dashboard-module-config'}>
       {showRoadmap ? (
-        <div className="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900 space-y-4">
-          <DAppSectionHeader title="Roadmap content" className="mb-1" />
+        <div className={setupShellClass}>
+          {!bare ? <DAppSectionHeader title="Roadmap content" className="mb-1" /> : null}
           <p className="kx-body-sm">Milestones appear on the Roadmap tab after publish.</p>
           <TokenRoadmapEditor
             intro={config.roadmapIntro ?? ''}
@@ -84,8 +131,8 @@ export function TokenModuleConfigFields({
       ) : null}
 
       {showMarkets ? (
-        <div className="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900 space-y-4" id="tokens-dashboard-markets">
-          <DAppSectionHeader title="Markets content" className="mb-1" />
+        <div className={setupShellClass} id={bare ? undefined : 'tokens-dashboard-markets'}>
+          {!bare ? <DAppSectionHeader title="Markets content" className="mb-1" /> : null}
           <p className="kx-body-sm">Build a custom list of CEX and DEX marketplaces for your token.</p>
           <TokenMarketsEditor
             markets={config.markets ?? []}
@@ -96,8 +143,8 @@ export function TokenModuleConfigFields({
       ) : null}
 
       {showPoll ? (
-        <div className="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900 space-y-4">
-          <DAppSectionHeader title="Community poll" className="mb-1" />
+        <div className={setupShellClass}>
+          {!bare ? <DAppSectionHeader title="Community poll" className="mb-1" /> : null}
           <div>
             <label className="k-label">Question</label>
             <KxRichTextEditor
@@ -128,8 +175,8 @@ export function TokenModuleConfigFields({
       ) : null}
 
       {showUtility ? (
-        <div className="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900 space-y-4">
-          <DAppSectionHeader title="Hub utility products" className="mb-1" />
+        <div className={setupShellClass}>
+          {!bare ? <DAppSectionHeader title="Hub utility products" className="mb-1" /> : null}
           <p className="kx-body-sm">Select Kasparex products where your token should appear in payment flows.</p>
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             {HUB_UTILITY_PRODUCTS.map((product) => {
@@ -169,8 +216,8 @@ export function TokenModuleConfigFields({
       ) : null}
 
       {showCovenantHub ? (
-        <div className="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900 space-y-4">
-          <DAppSectionHeader title="Covenant utilities hub" className="mb-1" />
+        <div className={setupShellClass}>
+          {!bare ? <DAppSectionHeader title="Covenant utilities hub" className="mb-1" /> : null}
           <p className="kx-body-sm">Choose which Kasparex covenant tools to surface on your token page.</p>
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             {COVENANT_UTILITY_TEMPLATES.map((template) => {
@@ -208,8 +255,8 @@ export function TokenModuleConfigFields({
       ) : null}
 
       {showAccessGate ? (
-        <div className="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900 space-y-4">
-          <DAppSectionHeader title="Access gate rules" className="mb-1" />
+        <div className={setupShellClass}>
+          {!bare ? <DAppSectionHeader title="Access gate rules" className="mb-1" /> : null}
           <label className="flex items-center gap-2 text-sm text-zinc-700 dark:text-zinc-300">
             <input
               type="checkbox"
@@ -269,8 +316,8 @@ export function TokenModuleConfigFields({
       ) : null}
 
       {showSubscriptions ? (
-        <div className="rounded-2xl border border-dashed border-zinc-300 bg-zinc-50 p-5 dark:border-zinc-700 dark:bg-zinc-900/50 space-y-3">
-          <DAppSectionHeader title="Native subscriptions" className="mb-1" />
+        <div className={setupShellClass}>
+          {!bare ? <DAppSectionHeader title="Native subscriptions" className="mb-1" /> : null}
           <p className="kx-body-sm">
             Placeholder for recurring access plans. Billing activates when KCC-20 payment rails are live in Hub
             products.

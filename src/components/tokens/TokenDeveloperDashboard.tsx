@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { CreateTokenForm } from '@/components/tokens/CreateTokenForm';
+import { TokenAuthorPricing } from '@/components/tokens/TokenAuthorPricing';
 import { TokenListingArchive } from '@/components/tokens/TokenListingArchive';
 import {
   EMPTY_TOKEN_LISTING_MEDIA,
@@ -19,6 +20,11 @@ import { useKxSystemDialog } from '@/hooks/useKxSystemDialog';
 import { Alert } from '@/components/Alert';
 import { useIsMobileViewport } from '@/hooks/useIsMobileViewport';
 import { MobileWalletUnavailableNotice } from '@/components/hub/MobileWalletUnavailableNotice';
+import {
+  KX_DASHBOARD_TAB_BTN,
+  KX_DASHBOARD_TAB_BTN_ACTIVE,
+  KX_DASHBOARD_TAB_SHELL,
+} from '@/lib/hub/shellTokens';
 
 function mediaFromListing(listing: PublishedTokenListing | null): TokenListingMediaState {
   if (!listing) return { ...EMPTY_TOKEN_LISTING_MEDIA };
@@ -161,11 +167,7 @@ export function TokenDeveloperDashboard() {
   };
 
   const tabClass = (tab: typeof activeTab) =>
-    `px-6 py-2.5 rounded-xl text-sm font-semibold transition-all ${
-      activeTab === tab
-        ? 'bg-white dark:bg-zinc-800 text-[#02abb8] dark:text-[#66dfe8] shadow-lg shadow-black/5 border border-zinc-200 dark:border-zinc-700'
-        : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'
-    }`;
+    `${KX_DASHBOARD_TAB_BTN} ${activeTab === tab ? KX_DASHBOARD_TAB_BTN_ACTIVE : ''}`.trim();
 
   return (
     <div className="space-y-8">
@@ -199,14 +201,20 @@ export function TokenDeveloperDashboard() {
         </Alert>
       ) : null}
 
-      <div className="flex flex-wrap items-center gap-1 p-1 bg-zinc-100 dark:bg-zinc-900 rounded-2xl w-fit border border-zinc-200 dark:border-zinc-800">
+      <div className={KX_DASHBOARD_TAB_SHELL}>
         <button type="button" onClick={() => setActiveTab('create')} className={tabClass('create')}>
-          {editingListing ? 'Edit listing' : 'Create listing'}
+          {editingListing ? 'Edit listing' : 'List a Token'}
         </button>
         <button type="button" onClick={() => setActiveTab('archive')} className={tabClass('archive')}>
           My tokens ({authorListings.length})
         </button>
       </div>
+
+      {activeTab === 'create' ? (
+        <div id="tokens-dashboard-pricing" className="scroll-mt-24">
+          <TokenAuthorPricing />
+        </div>
+      ) : null}
 
       <div className="min-h-[400px]">
         {activeTab === 'create' ? (

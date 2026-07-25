@@ -37,8 +37,9 @@ export function TokenAuthorPricing() {
   return (
     <div className="mt-10">
       <p className="mb-4 text-sm text-zinc-600 dark:text-zinc-400">
-        Deployer ownership verify is <span className="font-semibold text-[#02abb8]">free</span> (wallet
-        signature after publish). Module and listing fees appear in the breakdown when you publish.
+        Fee boxes below update with your KREX tier discount and Hub points multiplier. Deployer ownership verify is{' '}
+        <span className="font-semibold text-[#02abb8]">free</span> (wallet signature after publish). Module fees appear in
+        the calculation rail when you publish.
       </p>
       <TokenPricingCards />
     </div>

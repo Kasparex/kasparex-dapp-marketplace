@@ -14,12 +14,15 @@ type TokenNetworkChipsProps = {
   className?: string;
   /** stack: column under verification badge. inline: horizontal row. */
   layout?: 'inline' | 'stack';
+  /** media: same size/caps as Featured overlay on listing cards. */
+  size?: 'md' | 'sm' | 'media';
 };
 
 export function TokenNetworkChips({
   token,
   className = '',
   layout = 'inline',
+  size = 'md',
 }: TokenNetworkChipsProps) {
   const entries = getTokenNetworkEntries(token);
   if (entries.length === 0) return null;
@@ -37,7 +40,7 @@ export function TokenNetworkChips({
           label={getNetworkChipShortLabel(entry.network)}
           tooltip={getNetworkChipTooltip(entry.network, entry)}
           styleClass={getNetworkChipStyleClasses(entry.network)}
-          size="sm"
+          size={size}
         />
       ))}
     </div>

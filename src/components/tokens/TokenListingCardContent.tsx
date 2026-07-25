@@ -29,7 +29,7 @@ export function TokenListingCardContent({
   return (
     <div className="flex flex-1 flex-col">
       <div className="mb-3 flex items-start gap-3">
-        <TokenLogo token={token} size={64} showName={false} showSymbol={false} shape="rounded" className="flex-shrink-0" />
+        <TokenLogo token={token} size={52} showName={false} showSymbol={false} shape="rounded" className="flex-shrink-0" />
         <div className="min-w-0 flex-1">
           <TokenTitle token={token} size="sm" layout="besideLogo" nameInTooltip />
           {creatorWallet ? (
