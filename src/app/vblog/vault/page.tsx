@@ -35,8 +35,8 @@ export default function VBlogVaultPage() {
 
           <div className="flex-1 min-w-0 p-4 sm:p-6 lg:p-12 overflow-y-auto border-l border-zinc-200 dark:border-zinc-800">
             <div className="max-w-6xl mx-auto space-y-8 text-base sm:text-[17px] text-zinc-700 dark:text-zinc-300">
-              <div className="rounded-2xl border border-cyan-500/20 bg-gradient-to-br from-white via-cyan-500/5 to-transparent dark:from-zinc-900 dark:via-cyan-500/10 dark:to-zinc-950 p-8 sm:p-10">
-                <p className="text-sm font-black uppercase tracking-[0.2em] text-[#02abb8] mb-4">Vault & unlocks</p>
+              <div className="rounded-2xl border border-[#e30d1b]/20 bg-gradient-to-br from-white via-[#e30d1b]/5 to-transparent dark:from-zinc-900 dark:via-[#e30d1b]/10 dark:to-zinc-950 p-8 sm:p-10">
+                <p className="text-sm font-black uppercase tracking-[0.2em] text-[#e30d1b] mb-4">Vault & unlocks</p>
                 <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-zinc-900 dark:text-zinc-100 tracking-tight mb-4">
                   Unlock vBlog monetization modules
                 </h1>
@@ -64,7 +64,7 @@ export default function VBlogVaultPage() {
               </div>
 
               <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/80 dark:bg-zinc-900/40 p-6 sm:p-7 space-y-4">
-                <p className="text-sm font-black uppercase tracking-widest text-[#02abb8]">Current fee model</p>
+                <p className="text-sm font-black uppercase tracking-widest text-[#e30d1b]">Current fee model</p>
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 p-4">
                     <p className="text-xs font-black uppercase tracking-widest text-zinc-500 mb-1">Publish article</p>

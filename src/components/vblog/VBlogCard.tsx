@@ -32,7 +32,7 @@ function CategoryIcon() {
 function ArticleIcon() {
   return (
     <svg
-      className="h-8 w-8 text-cyan-600 dark:text-cyan-400"
+      className="h-8 w-8 text-[#e30d1b] dark:text-[#ff6b73]"
       fill="none"
       viewBox="0 0 24 24"
       stroke="currentColor"

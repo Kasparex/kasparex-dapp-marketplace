@@ -185,7 +185,7 @@ export function CommentCreditsModal({ isOpen, onClose }: CommentCreditsModalProp
                       </span>
                     )}
                     {nftStatus.hasDiamondNFT && (
-                      <span className="px-2.5 py-1 rounded-lg bg-cyan-500/15 text-cyan-800 dark:text-cyan-300 text-xs font-semibold">
+                      <span className="px-2.5 py-1 rounded-lg bg-[#e30d1b]/15 text-red-800 dark:text-red-300 text-xs font-semibold">
                         Diamond NFT - 20% off
                       </span>
                     )}
@@ -211,13 +211,13 @@ export function CommentCreditsModal({ isOpen, onClose }: CommentCreditsModalProp
                         onClick={() => setSelectedPackage(pkg)}
                         className={`p-4 rounded-2xl border transition-all text-left ${
                           isSelected
-                            ? 'border-[#02abb8] bg-[#02abb8]/10 dark:bg-[#02abb8]/20'
+                            ? 'border-[#e30d1b] bg-[#e30d1b]/10 dark:bg-[#e30d1b]/20'
                             : 'border-zinc-200 dark:border-zinc-700 hover:border-zinc-300 dark:hover:border-zinc-600'
                         }`}
                       >
                         <div className="text-2xl font-black text-zinc-900 dark:text-zinc-100">{pkg.credits}</div>
                         <div className="text-xs text-zinc-500 dark:text-zinc-400">credits</div>
-                        <div className="mt-2 text-sm font-bold text-[#02abb8] tabular-nums">
+                        <div className="mt-2 text-sm font-bold text-[#e30d1b] tabular-nums">
                           {formatPrice(packagePriceKas)}
                         </div>
                         {discount > 0 && (
@@ -289,7 +289,7 @@ export function CommentCreditsModal({ isOpen, onClose }: CommentCreditsModalProp
               type="button"
               onClick={() => void handlePurchase()}
               disabled={isProcessing}
-              className="px-4 py-2 rounded-lg bg-[#02abb8] text-white font-medium text-sm disabled:opacity-50 min-w-[140px]"
+              className="px-4 py-2 rounded-lg bg-[#e30d1b] text-white font-medium text-sm disabled:opacity-50 min-w-[140px]"
             >
               {isProcessing ? 'Sending…' : `Pay ${payLabel}`}
             </button>
@@ -298,7 +298,7 @@ export function CommentCreditsModal({ isOpen, onClose }: CommentCreditsModalProp
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-lg bg-[#02abb8] text-white font-medium text-sm"
+              className="px-4 py-2 rounded-lg bg-[#e30d1b] text-white font-medium text-sm"
             >
               Close
             </button>

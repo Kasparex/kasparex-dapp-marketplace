@@ -56,7 +56,7 @@ export function CommentsInfoModal({ isOpen, onClose }: CommentsInfoModalProps) {
                 </div>
                 <div className="grid grid-cols-[1fr_auto_auto] gap-2 px-4 py-3 text-zinc-700 dark:text-zinc-300">
                   <span>100M+ KREX holders</span>
-                  <span className="text-right text-[#02abb8] font-semibold">Unlimited</span>
+                  <span className="text-right text-[#e30d1b] font-semibold">Unlimited</span>
                   <span className="text-zinc-500">-</span>
                 </div>
               </div>
@@ -84,7 +84,7 @@ export function CommentsInfoModal({ isOpen, onClose }: CommentsInfoModalProps) {
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 rounded-lg bg-[#02abb8] text-white font-medium text-sm"
+            className="px-4 py-2 rounded-lg bg-[#e30d1b] text-white font-medium text-sm"
           >
             Close
           </button>

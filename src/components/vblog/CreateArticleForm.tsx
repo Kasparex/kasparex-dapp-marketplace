@@ -875,7 +875,7 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
 
       <HubAsideRail adSlotId="HALO_VBLOG_RIGHT" adId="ad-slot-vblog-article-form-rail">
         <VBlogDashboardBenefitsPanel />
-        <aside className="flex flex-col bg-gradient-to-b from-white to-zinc-50 dark:from-zinc-900 dark:to-zinc-900/80 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 space-y-4 shadow-[0_10px_30px_-18px_rgba(2,171,184,0.4)]">
+        <aside className="flex flex-col bg-gradient-to-b from-white to-zinc-50 dark:from-zinc-900 dark:to-zinc-900/80 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 space-y-4 shadow-[0_10px_30px_-18px_rgba(227, 13, 27,0.4)]">
         <DAppSectionHeader title="Calculation breakdown" className="mb-1" />
         <div className="space-y-1.5 text-xs text-zinc-600 dark:text-zinc-400">
           <div className="flex justify-between"><span>Base fee</span><span className="font-semibold text-zinc-900 dark:text-zinc-100">{formQuote.baseFeeKas} KAS</span></div>
@@ -890,7 +890,7 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
           {formQuote.modulesFeeKas > 0 ? (
             <div className="flex justify-between border-t border-zinc-200 dark:border-zinc-700 pt-1.5">
               <span>Modules subtotal</span>
-              <span className="font-semibold text-[#02abb8]">{formQuote.modulesFeeKas} KAS</span>
+              <span className="font-semibold text-[#e30d1b]">{formQuote.modulesFeeKas} KAS</span>
             </div>
           ) : null}
           {formQuote.discountKas > 0 ? (
@@ -906,7 +906,7 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
           <p className="text-xs uppercase tracking-widest text-zinc-500">Total to pay</p>
           <p className="text-2xl font-black text-zinc-900 dark:text-zinc-100">{formQuote.totalKas} KAS</p>
         </div>
-        <div className="rounded-xl bg-[#02abb8]/10 border border-[#02abb8]/25 p-3 text-sm text-zinc-700 dark:text-zinc-300">
+        <div className="rounded-xl bg-[#e30d1b]/10 border border-[#e30d1b]/25 p-3 text-sm text-zinc-700 dark:text-zinc-300">
           {isEditMode
             ? 'One Kaspa L1 payment refreshes on-chain metadata. Module and payload growth add to the 1 KAS base fee.'
             : 'One Kaspa L1 payment covers the article and any enabled modules. Ensure your wallet has enough KAS.'}
@@ -928,7 +928,7 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
         <button
           type="submit"
           disabled={isSubmitting || isUploading}
-          className="w-full k-control-btn !bg-[#02abb8] !text-white !border-[#02abb8] hover:!bg-[#028a94] dark:!bg-[#02abb8] dark:hover:!bg-[#028a94] disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full k-control-btn !bg-[#e30d1b] !text-white !border-[#e30d1b] hover:!bg-[#c40b17] dark:!bg-[#e30d1b] dark:hover:!bg-[#c40b17] disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isSubmitting ? (isEditMode ? 'Updating...' : 'Creating...') : (isEditMode ? 'Update Article' : 'Create Article')}
         </button>

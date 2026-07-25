@@ -73,7 +73,7 @@ export function ArticlePageContent({ slug }: ArticlePageContentProps) {
       <div className="flex flex-col min-h-screen bg-white dark:bg-zinc-950">
         <Header />
         <main className="flex-1 flex items-center justify-center">
-          <div className="w-8 h-8 border-4 border-[#02abb8] border-t-transparent rounded-full animate-spin" />
+          <div className="w-8 h-8 border-4 border-[#e30d1b] border-t-transparent rounded-full animate-spin" />
         </main>
         <Footer />
       </div>
@@ -118,7 +118,7 @@ export function ArticlePageContent({ slug }: ArticlePageContentProps) {
           <div className="flex-1 w-full min-w-0 p-4 sm:p-6 lg:p-12 overflow-y-auto overflow-x-hidden bg-white dark:bg-zinc-950 text-base sm:text-[17px] border-l border-zinc-200 dark:border-zinc-800">
             <div className="w-full max-w-5xl mx-auto font-sans">
               <nav className="flex items-center gap-2 text-sm text-zinc-500 font-medium mb-8">
-                <Link href="/vblog" className="hover:text-[#02abb8] transition-colors">Articles</Link>
+                <Link href="/vblog" className="hover:text-[#e30d1b] transition-colors">Articles</Link>
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>

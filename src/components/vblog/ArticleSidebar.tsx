@@ -79,7 +79,7 @@ function CopyableMonoValue({ value, copyLabel, href }: { value: string; copyLabe
           href={href}
           target="_blank"
           rel="noopener noreferrer"
-          className="font-mono text-[12px] leading-relaxed text-[#02abb8] hover:underline break-all"
+          className="font-mono text-[12px] leading-relaxed text-[#e30d1b] hover:underline break-all"
         >
           {value}
         </a>
@@ -101,13 +101,13 @@ export function VBlogAuthorCard({ article, compact = false }: { article: VBlogAr
   return (
     <div className={`rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 ${compact ? 'p-5' : 'p-6 sm:p-8'}`}>
       <div className="flex items-start gap-4">
-        <Avatar address={authorAddress} size={compact ? 48 : 56} className="ring-2 ring-cyan-500/20 shrink-0" />
+        <Avatar address={authorAddress} size={compact ? 48 : 56} className="ring-2 ring-[#e30d1b]/20 shrink-0" />
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2 mb-1">
             <KxBadge variant={source === 'kasparex' ? 'cyan' : 'zinc'}>{source === 'kasparex' ? 'Kasparex' : 'Community'}</KxBadge>
             <span className="text-xs font-medium text-zinc-500">{article.category}</span>
           </div>
-          <Link href={authorProfileUrl} className="text-lg font-bold text-zinc-900 dark:text-white hover:text-[#02abb8] transition-colors">
+          <Link href={authorProfileUrl} className="text-lg font-bold text-zinc-900 dark:text-white hover:text-[#e30d1b] transition-colors">
             {authorDisplay}
           </Link>
           {!compact ? <p className="mt-2 kx-body leading-relaxed">{article.description}</p> : null}
@@ -130,7 +130,7 @@ export function VBlogAuthorCard({ article, compact = false }: { article: VBlogAr
                   target="_blank"
                   rel="noreferrer"
                   title={entry.label}
-                  className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-950 text-zinc-600 dark:text-zinc-300 hover:text-[#02abb8] hover:border-[#02abb8]/40 transition-colors"
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-950 text-zinc-600 dark:text-zinc-300 hover:text-[#e30d1b] hover:border-[#e30d1b]/40 transition-colors"
                 >
                   {meta.icon}
                 </a>
@@ -210,15 +210,15 @@ export function ArticleSidebar({
       body: (
         <>
           <div className="flex items-start gap-3">
-            <Avatar address={authorAddress} size={44} className="ring-2 ring-cyan-500/20 shrink-0" />
+            <Avatar address={authorAddress} size={44} className="ring-2 ring-[#e30d1b]/20 shrink-0" />
             <div className="min-w-0">
-              <Link href={authorProfileUrl} className="text-base font-bold text-zinc-900 dark:text-white hover:text-[#02abb8] transition-colors">
+              <Link href={authorProfileUrl} className="text-base font-bold text-zinc-900 dark:text-white hover:text-[#e30d1b] transition-colors">
                 {authorDisplay}
               </Link>
               <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
                 {source === 'kasparex' ? 'Kasparex author' : 'Community author'}
               </p>
-              <Link href={authorProfileUrl} className="mt-2 inline-flex text-sm font-semibold text-[#02abb8] hover:underline">
+              <Link href={authorProfileUrl} className="mt-2 inline-flex text-sm font-semibold text-[#e30d1b] hover:underline">
                 Open profile
               </Link>
             </div>
@@ -236,7 +236,7 @@ export function ArticleSidebar({
                       target="_blank"
                       rel="noreferrer"
                       title={entry.label}
-                      className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-zinc-600 dark:text-zinc-300 hover:text-[#02abb8] hover:border-[#02abb8]/40 transition-colors"
+                      className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-zinc-600 dark:text-zinc-300 hover:text-[#e30d1b] hover:border-[#e30d1b]/40 transition-colors"
                     >
                       {meta.icon}
                     </a>
@@ -248,7 +248,7 @@ export function ArticleSidebar({
           {tipBoxEnabled ? (
             <div id="article-tip-box" className="mt-4 pt-4 border-t border-zinc-100 dark:border-zinc-800">
               <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
-                <p className="text-sm font-semibold text-[#02abb8] dark:text-[#66dfe8]">Support the author</p>
+                <p className="text-sm font-semibold text-[#e30d1b] dark:text-[#ff6b73]">Support the author</p>
                 {tipHubPointsBase > 0 ? (
                   <HubPointsEarnRow label="Earn:" basePoints={tipHubPointsBase} tier={tipHubPointsTier} />
                 ) : null}

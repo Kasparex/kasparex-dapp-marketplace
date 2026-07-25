@@ -50,7 +50,7 @@ export function ArticleList({ articles, onEdit, onDelete, deleteFeeKas }: Articl
               <button
                 type="button"
                 onClick={() => onEdit(article)}
-                className="flex-1 k-control-btn justify-center !bg-[#02abb8] !text-white !border-[#02abb8] hover:!bg-[#028a94]"
+                className="flex-1 k-control-btn justify-center !bg-[#e30d1b] !text-white !border-[#e30d1b] hover:!bg-[#c40b17]"
               >
                 Edit
               </button>

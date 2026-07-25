@@ -66,7 +66,7 @@ export function VBlogModuleUnlockCards({
   return (
     <section className={`space-y-4 ${className}`}>
       <div className="flex items-center justify-between gap-3">
-        <p className="text-base font-black uppercase tracking-widest text-[#02abb8] dark:text-[#4db8d4]">{title}</p>
+        <p className="text-base font-black uppercase tracking-widest text-[#e30d1b] dark:text-[#ff6b73]">{title}</p>
         <span className="text-sm font-bold text-zinc-500 dark:text-zinc-400">
           KREX {tier} | Combined discount {combinedDiscountPct}%
         </span>
@@ -138,7 +138,7 @@ export function VBlogModuleUnlockCards({
             </span>
           ) : null}
           {nftDiscountPct > 0 ? (
-            <span className="px-2 py-0.5 rounded-full bg-cyan-500/15 border border-cyan-500/25 text-cyan-700 dark:text-cyan-300 font-bold">
+            <span className="px-2 py-0.5 rounded-full bg-[#e30d1b]/15 border border-[#e30d1b]/25 text-red-700 dark:text-red-300 font-bold">
               NFT -{nftDiscountPct}%
             </span>
           ) : null}

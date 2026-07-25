@@ -35,7 +35,7 @@ export function ArticlePublicPreview({ article }: ArticlePublicPreviewProps) {
   return (
     <article className="max-w-5xl mx-auto font-sans">
       <div id="article-header" className="relative mb-10 rounded-2xl overflow-hidden bg-zinc-50/80 dark:bg-zinc-900/45 border border-zinc-200 dark:border-zinc-800 select-text">
-        <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-br from-[#e30d1b]/5 via-transparent to-transparent" />
 
         <div className="relative flex flex-col lg:flex-row min-h-[320px]">
           <div className="flex-1 p-8 sm:p-10 lg:p-12 flex flex-col justify-center">
@@ -49,10 +49,10 @@ export function ArticlePublicPreview({ article }: ArticlePublicPreviewProps) {
             <div className="grid w-full gap-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
               <div className="flex min-w-0 flex-wrap items-center gap-8">
                 <div className="flex items-center gap-3">
-                  <Avatar address={authorAddress} size={44} className="ring-2 ring-cyan-500/20" />
+                  <Avatar address={authorAddress} size={44} className="ring-2 ring-[#e30d1b]/20" />
                   <div className="flex flex-col">
                     <span className="text-[10px] font-semibold uppercase tracking-wide text-zinc-400">By</span>
-                    <Link href={authorProfileUrl} className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 hover:text-[#02abb8] transition-colors">
+                    <Link href={authorProfileUrl} className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 hover:text-[#e30d1b] transition-colors">
                       {authorDisplay}
                     </Link>
                   </div>

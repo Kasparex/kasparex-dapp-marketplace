@@ -210,7 +210,7 @@ export function ArticleDetail({
       label: 'Comments',
       icon: <IconComments />,
       rightAdornment: commentCount > 0 ? (
-        <span className="inline-flex min-w-[1.25rem] items-center justify-center rounded-full bg-[#02abb8]/15 px-1.5 py-0.5 text-[10px] font-black text-[#02abb8]">
+        <span className="inline-flex min-w-[1.25rem] items-center justify-center rounded-full bg-[#e30d1b]/15 px-1.5 py-0.5 text-[10px] font-black text-[#e30d1b]">
           {commentCount}
         </span>
       ) : null,
@@ -485,7 +485,7 @@ export function ArticleDetail({
   return (
     <article className="w-full min-w-0 max-w-full font-sans">
       <div id="article-header" className="relative mb-10 rounded-2xl overflow-hidden bg-zinc-50/80 dark:bg-zinc-900/45 border border-zinc-200 dark:border-zinc-800 select-text">
-        <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-br from-[#e30d1b]/5 via-transparent to-transparent" />
 
         <div className="relative flex min-h-[360px] min-w-0 flex-col lg:flex-row">
           <div className="flex min-w-0 flex-1 flex-col justify-center p-8 sm:p-10 lg:p-12">
@@ -498,10 +498,10 @@ export function ArticleDetail({
 
             <div className="flex min-w-0 flex-wrap items-end gap-6">
               <Link href={authorProfileUrl} className="group flex items-center gap-3">
-                <Avatar address={authorAddress} size={44} className="ring-2 ring-cyan-500/20" />
+                <Avatar address={authorAddress} size={44} className="ring-2 ring-[#e30d1b]/20" />
                 <div className="flex flex-col">
                   <span className="text-[10px] font-semibold uppercase tracking-wide text-zinc-400">By</span>
-                  <span className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 group-hover:text-[#02abb8] transition-colors">
+                  <span className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 group-hover:text-[#e30d1b] transition-colors">
                     {authorDisplay}
                   </span>
                 </div>

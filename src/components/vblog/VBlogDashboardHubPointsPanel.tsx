@@ -14,10 +14,10 @@ export function VBlogDashboardHubPointsPanel({ className = '' }: { className?: s
 
   return (
     <aside
-      className={`w-full xl:w-[280px] shrink-0 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-gradient-to-br from-white via-zinc-50 to-[#02abb8]/5 dark:from-zinc-900 dark:via-zinc-900 dark:to-[#02abb8]/10 p-3.5 shadow-lg ${className}`.trim()}
+      className={`w-full xl:w-[280px] shrink-0 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-gradient-to-br from-white via-zinc-50 to-[#e30d1b]/5 dark:from-zinc-900 dark:via-zinc-900 dark:to-[#e30d1b]/10 p-3.5 shadow-lg ${className}`.trim()}
       aria-label="Hub Points and multiplier summary"
     >
-      <p className="text-[11px] font-black uppercase tracking-[0.16em] text-[#02abb8] dark:text-[#66dfe8] mb-1">
+      <p className="text-[11px] font-black uppercase tracking-[0.16em] text-[#e30d1b] dark:text-[#ff6b73] mb-1">
         Hub rewards
       </p>
       <h2 className="text-sm font-bold text-zinc-900 dark:text-zinc-100 leading-snug mb-3">
@@ -27,7 +27,7 @@ export function VBlogDashboardHubPointsPanel({ className = '' }: { className?: s
       <div className="space-y-2 text-sm">
         <div className="flex items-center justify-between gap-2">
           <span className="text-zinc-600 dark:text-zinc-400">Total redeemable</span>
-          <span className="font-bold tabular-nums text-[#02abb8]">
+          <span className="font-bold tabular-nums text-[#e30d1b]">
             {kasAddr ? formatLargeNumber(totalRedeemable) : '—'}
           </span>
         </div>

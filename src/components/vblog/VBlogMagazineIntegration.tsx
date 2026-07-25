@@ -157,8 +157,8 @@ export function VBlogMagazineIntegration({
 
       {selectedMagId && selectedIssueNum > 0 ? (
         <div className="space-y-3">
-          <div className="p-3 bg-[#02abb8]/10 rounded-xl border border-[#02abb8]/25">
-            <div className="flex items-center gap-2 text-sm font-bold text-[#02abb8] dark:text-[#66dfe8]">
+          <div className="p-3 bg-[#e30d1b]/10 rounded-xl border border-[#e30d1b]/25">
+            <div className="flex items-center gap-2 text-sm font-bold text-[#e30d1b] dark:text-[#ff6b73]">
               <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                 <path
                   fillRule="evenodd"
@@ -179,7 +179,7 @@ export function VBlogMagazineIntegration({
                 href={guide.issueHref}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-block text-sm font-bold text-[#02abb8] hover:underline"
+                className="inline-block text-sm font-bold text-[#e30d1b] hover:underline"
               >
                 View magazine {publishedIssue ? 'issue' : 'page'}
               </Link>
@@ -197,8 +197,8 @@ export function VBlogMagazineIntegration({
   return (
     <div className="bg-zinc-50 dark:bg-zinc-900/50 rounded-2xl p-6 border border-zinc-200 dark:border-zinc-800 space-y-4">
       <div className="flex items-center gap-2">
-        <div className="w-8 h-8 rounded-full bg-[#02abb8]/10 flex items-center justify-center">
-          <svg className="w-4 h-4 text-[#02abb8]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <div className="w-8 h-8 rounded-full bg-[#e30d1b]/10 flex items-center justify-center">
+          <svg className="w-4 h-4 text-[#e30d1b]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
