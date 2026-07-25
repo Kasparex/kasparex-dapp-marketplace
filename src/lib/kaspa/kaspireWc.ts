@@ -4,7 +4,6 @@
  */
 
 import { SignClient } from '@walletconnect/sign-client';
-import type { SessionTypes } from '@walletconnect/types';
 import type { KaspaTransactionRequest, KaspaWalletProviderInterface } from './types';
 
 export const KASPIRE_CHAIN_ID = 'kaspa:mainnet';
@@ -24,10 +23,12 @@ const KASPIRE_EVENTS = ['accountsChanged'] as const;
 
 type PairingUriHandler = (uri: string) => void;
 
+/** Infer session type from SignClient to avoid dual @walletconnect/types copies. */
 type KaspireSignClient = Awaited<ReturnType<typeof SignClient.init>>;
+type KaspireSession = ReturnType<KaspireSignClient['session']['getAll']>[number];
 
 let signClientPromise: Promise<KaspireSignClient> | null = null;
-let activeSession: SessionTypes.Struct | null = null;
+let activeSession: KaspireSession | null = null;
 const accountListeners = new Set<(accounts: string[]) => void>();
 
 function getProjectId(): string {
@@ -51,7 +52,7 @@ export function caip10ToKaspaAddress(caip10: string): string | null {
   return `kaspa:${parts.slice(2).join(':')}`;
 }
 
-function addressFromSession(session: SessionTypes.Struct): string | null {
+function addressFromSession(session: KaspireSession): string | null {
   const accounts = session.namespaces.kaspa?.accounts ?? [];
   if (!accounts.length) return null;
   return caip10ToKaspaAddress(accounts[0]);
@@ -97,11 +98,11 @@ async function getSignClient(): Promise<KaspireSignClient> {
   return signClientPromise;
 }
 
-export function getActiveKaspireSession(): SessionTypes.Struct | null {
+export function getActiveKaspireSession(): KaspireSession | null {
   return activeSession;
 }
 
-export async function restoreKaspireSession(): Promise<SessionTypes.Struct | null> {
+export async function restoreKaspireSession(): Promise<KaspireSession | null> {
   const client = await getSignClient();
   const sessions = client.session.getAll();
   const session = sessions.find((item) => item.namespaces.kaspa?.accounts?.length);
@@ -112,7 +113,7 @@ export async function restoreKaspireSession(): Promise<SessionTypes.Struct | nul
 export async function connectKaspireSession(options?: {
   onPairingUri?: PairingUriHandler;
   methods?: readonly string[];
-}): Promise<{ session: SessionTypes.Struct; address: string }> {
+}): Promise<{ session: KaspireSession; address: string }> {
   const client = await getSignClient();
 
   const existing = await restoreKaspireSession();
