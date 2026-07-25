@@ -24,14 +24,14 @@ export function ProtocolFamilyCard({ family }: { family: ProtocolFamily }) {
       className="relative flex h-full min-h-0 flex-col"
     >
       <KxListingCardMedia aspectClass="aspect-[3/2]">
-        <div className="absolute inset-0 bg-gradient-to-br from-[#02abb8] via-cyan-600 to-teal-800 dark:from-[#02919c] dark:via-cyan-800 dark:to-teal-950" />
+        <div className="absolute inset-0 bg-gradient-to-br from-[color:var(--hub-accent)] via-indigo-600 to-amber-600 dark:from-indigo-500 dark:via-indigo-700 dark:to-amber-800" />
         <div className="pointer-events-none absolute inset-0 opacity-30">
           <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-white/20 blur-2xl" />
           <div className="absolute bottom-0 left-1/4 h-24 w-40 rounded-full bg-black/10 blur-xl" />
         </div>
         <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/10 to-transparent" />
         <div className="absolute left-3 top-3 z-10 flex flex-wrap gap-2">
-          <KxBadge variant={family.status === 'live' ? 'emerald' : family.status === 'preview' ? 'cyan' : 'zinc'}>
+          <KxBadge variant={family.status === 'live' ? 'emerald' : family.status === 'preview' ? 'violet' : 'zinc'}>
             {statusLabel(family.status)}
           </KxBadge>
         </div>
@@ -43,10 +43,8 @@ export function ProtocolFamilyCard({ family }: { family: ProtocolFamily }) {
       </KxListingCardMedia>
       <KxListingCardBody className="relative z-10 flex min-h-0 flex-1 flex-col">
         <div className="text-[15px] font-semibold text-zinc-900 dark:text-zinc-100">{family.name}</div>
-        <p className={`mt-1 flex-1 ${KX_CARD_EXCERPT}`}>
-          {family.description}
-        </p>
-        <div className="mt-3 text-sm font-bold text-[#02abb8] group-hover:underline">View protocol hub →</div>
+        <p className={`mt-1 flex-1 ${KX_CARD_EXCERPT}`}>{family.description}</p>
+        <div className="mt-3 text-sm font-bold text-[color:var(--hub-accent)] group-hover:underline">View protocol hub →</div>
       </KxListingCardBody>
     </KxListingCard>
   );

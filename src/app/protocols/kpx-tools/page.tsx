@@ -24,6 +24,9 @@ import { isStorageMassErrorMessage } from '@/lib/kaspa/tx-mass-mode';
 import { FieldHint } from '@/components/ui/FieldHint';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { gameTooltipRich } from '@/components/games/gameTooltipRich';
+import { ProtocolsIndexSidebar } from '@/components/protocols/ProtocolsIndexSidebar';
+import { HubPageAccentLayout } from '@/components/hub/HubPageAccentLayout';
+import { HUB_MAIN_COLUMN, HUB_MAIN_INNER, HUB_PAGE_BG } from '@/lib/hub/hubLayout';
 
 type KpxKind = 'pf' | 'ver' | 'lnk' | 'cm';
 
@@ -307,30 +310,33 @@ export default function KpxToolsPage() {
   const explorerTx = txHash ? `https://explorer.kaspa.org/transactions/${txHash}` : null;
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className={`flex min-h-screen flex-col ${HUB_PAGE_BG}`}>
       <Header />
-      <main className="flex-1">
-        <div className="mx-auto w-full max-w-3xl p-4 sm:p-6 lg:p-10">
+      <main className={`flex min-h-[calc(100vh-4rem)] flex-1 flex-col lg:flex-row ${HUB_PAGE_BG}`}>
+        <HubPageAccentLayout projectId="kasparex-protocols">
+          <ProtocolsIndexSidebar />
+          <div className={HUB_MAIN_COLUMN}>
+            <div className={`${HUB_MAIN_INNER} max-w-3xl`}>
           <div className="mb-6">
             <nav className="text-sm text-zinc-500 dark:text-zinc-400">
-              <Link href="/protocols" className="font-bold text-[#02abb8] hover:underline">
+              <Link href="/protocols" className="font-bold text-[color:var(--hub-accent)] hover:underline">
                 Protocols
               </Link>
               <span className="mx-2 text-zinc-400">/</span>
-              <Link href="/protocols/kpx" className="font-bold text-[#02abb8] hover:underline">
+              <Link href="/protocols/kpx" className="font-bold text-[color:var(--hub-accent)] hover:underline">
                 KPX protocol
               </Link>
               <span className="mx-2 text-zinc-400">/</span>
               <span className="font-semibold text-zinc-800 dark:text-zinc-200">Tools</span>
             </nav>
-            <h1 className="mt-3 text-2xl sm:text-3xl font-black text-zinc-900 dark:text-zinc-100">Post identity updates on Kaspa</h1>
-            <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
+            <h1 className="mt-3 text-2xl font-black leading-tight text-zinc-900 dark:text-zinc-100 sm:text-3xl md:text-4xl">Post identity updates on Kaspa</h1>
+            <p className="kx-body mt-2 leading-relaxed">
               Fill in the form, review the preview, then confirm in your wallet. Most people send a small amount <strong>to their own address</strong> so the
               network can attach your update to that payment.
             </p>
           </div>
 
-          <div className="space-y-6 rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
+          <div className="space-y-6 rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900 sm:p-6">
             <div className="flex flex-wrap items-baseline gap-2 text-sm text-zinc-600 dark:text-zinc-400">
               <span className="font-bold text-zinc-800 dark:text-zinc-200">Your wallet</span>
               <FieldHint text="This address is used as the owner of the update. Connect KasWare or Kastle from the header first." />
@@ -438,7 +444,7 @@ export default function KpxToolsPage() {
                     </div>
                     <button
                       type="button"
-                      className={`k-control-btn h-8 px-3 text-xs ${highMassMode ? 'border-[#02abb8]/50 bg-[#02abb8]/10 font-black' : ''}`}
+                      className={`k-control-btn h-8 px-3 text-xs ${highMassMode ? 'border-[color:var(--hub-accent-border)] bg-[color:var(--hub-accent-muted)] font-black' : ''}`}
                       onClick={() => {
                         setHighMassMode((v) => {
                           const next = !v;
@@ -660,7 +666,7 @@ export default function KpxToolsPage() {
             {sendErr ? <p className="text-sm font-semibold text-red-700 dark:text-red-300">{sendErr}</p> : null}
             {explorerTx ? (
               <p className="text-sm">
-                <a href={explorerTx} className="font-bold text-[#02abb8] hover:underline" target="_blank" rel="noreferrer">
+                <a href={explorerTx} className="font-bold text-[color:var(--hub-accent)] hover:underline" target="_blank" rel="noreferrer">
                   View transaction on Kaspa explorer
                 </a>
               </p>
@@ -687,7 +693,7 @@ export default function KpxToolsPage() {
               >
                 <button
                   type="button"
-                  className="k-control-btn border-[#02abb8]/50 bg-[#02abb8]/10 font-black hover:bg-[#02abb8]/20"
+                  className="k-control-btn border-[color:var(--hub-accent-border)] bg-[color:var(--hub-accent-muted)] font-black hover:bg-[color:var(--hub-accent-muted)]"
                   onClick={handleBroadcast}
                   disabled={busy}
                 >
@@ -696,9 +702,9 @@ export default function KpxToolsPage() {
               </Tooltip>
             </div>
 
-            <div className="rounded-xl border border-dashed border-[#02abb8]/30 bg-[#02abb8]/5 p-4 dark:border-[#02abb8]/25 dark:bg-[#02abb8]/10">
+            <div className="rounded-xl border border-dashed border-[color:var(--hub-accent-border)] bg-[color:var(--hub-accent-muted)] p-4">
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <div className="flex items-center gap-1.5 text-xs font-black uppercase tracking-widest text-[#02abb8]">
+                <div className="flex items-center gap-1.5 text-xs font-black uppercase tracking-widest text-[color:var(--hub-accent)]">
                   <span>Live readout (advanced)</span>
                   <FieldHint text="Shows what the Kasparex indexer last saw for your address on the network you selected. Useful after you send an update." />
                 </div>
@@ -859,8 +865,9 @@ export default function KpxToolsPage() {
                 </div>
               )}
             </div>
+            </div>
           </div>
-        </div>
+        </HubPageAccentLayout>
       </main>
       <Footer />
     </div>

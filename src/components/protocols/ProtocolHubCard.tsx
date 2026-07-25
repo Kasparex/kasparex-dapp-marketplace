@@ -12,25 +12,25 @@ export function ProtocolHubCard({ item }: { item: ProtocolHubItem }) {
   const body = (
     <KxListingCardBody>
       <div className="mb-2 flex flex-wrap items-center gap-2">
-        <KxBadge variant="cyan">{protocolHubBucketLabel(item.bucket)}</KxBadge>
-        <KxBadge variant={item.maturity === 'stable' ? 'emerald' : item.maturity === 'beta' ? 'violet' : 'zinc'}>
+        <KxBadge variant="violet">{protocolHubBucketLabel(item.bucket)}</KxBadge>
+        <KxBadge variant={item.maturity === 'stable' ? 'emerald' : item.maturity === 'beta' ? 'amber' : 'zinc'}>
           {item.maturity}
         </KxBadge>
         {item.suite === 'kpx' ? <KxBadge variant="zinc">kpx</KxBadge> : null}
       </div>
-      <h3 className="text-base font-black text-zinc-900 dark:text-zinc-100 leading-snug">{item.title}</h3>
+      <h3 className="text-base font-black leading-snug text-zinc-900 dark:text-zinc-100">{item.title}</h3>
       {item.subtitle ? (
         <p className="mt-1 text-xs font-semibold text-zinc-500 dark:text-zinc-400">{item.subtitle}</p>
       ) : null}
       <p className={`mt-2 ${KX_CARD_EXCERPT}`}>{item.description}</p>
-      <div className="mt-3 text-xs font-bold text-[#02abb8]">
+      <div className="mt-3 text-xs font-bold text-[color:var(--hub-accent)]">
         {isApi ? 'Open API response →' : 'Open →'}
       </div>
     </KxListingCardBody>
   );
 
   return (
-    <KxListingCard href={item.href} accent="hub" className="h-full hover:border-[#02abb8]/35">
+    <KxListingCard href={item.href} accent="protocols" className="h-full hover:border-[color:var(--hub-accent-border)]">
       {body}
     </KxListingCard>
   );

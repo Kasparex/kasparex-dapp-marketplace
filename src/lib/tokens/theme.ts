@@ -1,13 +1,13 @@
-/** Tokens accent follows HubAccentScope (kasparex-tokens blue). */
-export const TOKENS_ACCENT = '#3b82f6';
-export const TOKENS_ACCENT_HOVER = '#2563eb';
-export const TOKENS_ACCENT_LIGHT = '#93c5fd';
-export const TOKENS_ACCENT_MUTED = 'rgba(59, 130, 246, 0.1)';
-export const TOKENS_ACCENT_BORDER = 'rgba(59, 130, 246, 0.25)';
+/** Tokens accent: light indigo + teal (HubAccentScope). */
+export const TOKENS_ACCENT = '#6366f1';
+export const TOKENS_ACCENT_HOVER = '#4f46e5';
+export const TOKENS_ACCENT_LIGHT = '#2dd4bf';
+export const TOKENS_ACCENT_MUTED = 'rgba(99, 102, 241, 0.1)';
+export const TOKENS_ACCENT_BORDER = 'rgba(99, 102, 241, 0.25)';
 
 /** Primary CTA: Hub accent CSS vars. */
 export const TOKENS_CTA_BTN = 'k-control-btn hub-cta-btn !text-white';
 
-/** Gradient text for Tokens headings. */
+/** Gradient text: indigo → teal. */
 export const TOKENS_GRADIENT_TEXT =
-  'text-transparent bg-clip-text bg-gradient-to-r from-blue-700 via-blue-600 to-sky-500 dark:from-blue-300 dark:via-blue-300 dark:to-sky-300';
+  'text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-indigo-500 to-teal-500 dark:from-indigo-300 dark:via-indigo-300 dark:to-teal-300';

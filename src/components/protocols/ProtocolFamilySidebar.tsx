@@ -18,7 +18,7 @@ export function ProtocolFamilySidebar({ slug, name }: { slug: ProtocolFamilySlug
   return (
     <UnifiedSidebar
       storageKeyPrefix={`protocol-${slug}`}
-      header={(onHide) => <SidebarHeader backHref="/protocols" backLabel="All protocols" onHide={onHide} />}
+      header={(onHide) => <SidebarHeader backHref="/protocols" backLabel="Back to Protocols" onHide={onHide} />}
     >
       <SidebarSection title="Protocol">
         <p className="px-2 text-sm font-semibold text-zinc-800 dark:text-zinc-100">{name}</p>
