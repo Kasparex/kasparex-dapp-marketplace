@@ -3,7 +3,6 @@
 import type { Token } from '@/lib/tokens/types';
 import { TokenCategoryBadge } from '@/components/tokens/TokenCategoryBadge';
 import { TokenVoteControls } from '@/components/tokens/TokenVoteControls';
-import { TokenListingTopStatus } from '@/components/tokens/TokenListingTopStatus';
 
 type TokenListingFooterRowsProps = {
   token: Token;
@@ -12,7 +11,7 @@ type TokenListingFooterRowsProps = {
   showCategory?: boolean;
 };
 
-/** Category (left), network/verification badges (center), vote controls (right). */
+/** Category (left), vote controls (right). Network chips live on featured media. */
 export function TokenListingFooterRow({
   token,
   onCategoryFilter,
@@ -21,15 +20,12 @@ export function TokenListingFooterRow({
 }: TokenListingFooterRowsProps) {
   return (
     <div
-      className={`grid grid-cols-[1fr_auto_1fr] items-center gap-2 border-t border-zinc-100 pt-3 dark:border-zinc-800 ${className}`.trim()}
+      className={`flex items-center justify-between gap-3 border-t border-zinc-100 pt-3 dark:border-zinc-800 ${className}`.trim()}
     >
-      <div className="min-w-0 justify-self-start">
+      <div className="min-w-0">
         {showCategory ? <TokenCategoryBadge token={token} onFilter={onCategoryFilter} /> : null}
       </div>
-      <div className="justify-self-center px-1">
-        <TokenListingTopStatus token={token} layout="inline" />
-      </div>
-      <div className="shrink-0 justify-self-end">
+      <div className="shrink-0">
         <TokenVoteControls token={token} compact />
       </div>
     </div>

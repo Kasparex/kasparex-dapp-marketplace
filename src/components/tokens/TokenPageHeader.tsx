@@ -20,7 +20,6 @@ import {
 } from '@/components/games/panels/GameDeckPanel';
 import { TokenVoteControls } from '@/components/tokens/TokenVoteControls';
 import { TokenNetworkChips } from '@/components/tokens/TokenNetworkChips';
-import { formatLargeNumber } from '@/lib/rewards/calculator';
 import {
   getNetworkChipShortLabel,
   getTokenNetworkEntries,
@@ -64,26 +63,6 @@ export function TokenPageHeader({ token, onNavigateTab }: TokenPageHeaderProps) 
         value: getNetworkChipShortLabel(primaryNetwork.network),
         description: primaryNetwork.verified ? 'Verified on-chain' : 'Listed',
         tooltip: 'Primary deployment network for this token listing.',
-        accent: 'diamonds',
-      });
-    }
-
-    if (token.circulatingSupply != null) {
-      rows.push({
-        id: 'circulating',
-        label: 'Circulating',
-        value: formatLargeNumber(token.circulatingSupply),
-        subValue: token.symbol,
-        tooltip: 'Circulating supply reported for this listing.',
-        accent: 'diamonds',
-      });
-    } else if (token.totalSupply != null) {
-      rows.push({
-        id: 'supply',
-        label: 'Total supply',
-        value: formatLargeNumber(token.totalSupply),
-        subValue: token.symbol,
-        tooltip: 'Total supply reported for this listing.',
         accent: 'diamonds',
       });
     }
@@ -159,7 +138,7 @@ export function TokenPageHeader({ token, onNavigateTab }: TokenPageHeaderProps) 
   return (
     <div
       id="token-header"
-      className={`relative mb-10 scroll-mt-24 overflow-hidden rounded-2xl border bg-zinc-50/80 select-text dark:bg-zinc-900/45 ${
+      className={`relative mb-10 scroll-mt-24 overflow-hidden rounded-2xl border bg-white select-text dark:bg-zinc-900 ${
         isHighlighted
           ? 'border-amber-400/60 shadow-[0_0_40px_-12px_rgba(251,191,36,0.45)]'
           : 'border-zinc-200 dark:border-zinc-800'
@@ -177,11 +156,7 @@ export function TokenPageHeader({ token, onNavigateTab }: TokenPageHeaderProps) 
             <TokenNetworkChips token={token} className="justify-end" />
           </div>
 
-          <p className="mb-3 pr-28 text-[10px] font-black uppercase tracking-[0.2em] text-[color:var(--hub-accent)]">
-            Kasparex Tokens
-          </p>
-
-          <div className="mb-3 flex items-center gap-3">
+          <div className="mb-3 flex items-center gap-3 pr-28">
             <TokenLogo token={token} size={40} showName={false} showSymbol={false} shape="rounded" className="flex-shrink-0" />
             <span className="hub-tilt-bar h-7 w-1.5 shrink-0 rounded-full" aria-hidden="true" />
             <h1 className="min-w-0 text-3xl font-black leading-tight tracking-tight text-zinc-900 dark:text-white sm:text-4xl">

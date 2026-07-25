@@ -183,7 +183,7 @@
 }
 .kx-listing-card[data-kx-accent="tokens"]:hover,
 .kx-listing-card[data-kx-accent="tokens"]:focus-visible {
-  border-color: rgb(20, 184, 166) !important; /* teal-500 tokens accent */
+  border-color: rgb(2, 171, 184) !important; /* Kasparex cyan tokens accent */
 }
 .kx-listing-card[data-kx-accent="games"]:hover,
 .kx-listing-card[data-kx-accent="games"]:focus-visible,

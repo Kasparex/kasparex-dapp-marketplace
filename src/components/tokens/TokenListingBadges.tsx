@@ -1,12 +1,51 @@
 'use client';
 
+import type { ReactNode } from 'react';
 import type { Token } from '@/lib/tokens/types';
 import { Tooltip } from '@/components/ui/Tooltip';
 
-const INACTIVE =
-  'inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-zinc-200 bg-zinc-100 text-zinc-400 opacity-70 dark:border-zinc-700 dark:bg-zinc-800/50 dark:text-zinc-500';
+const INACTIVE = 'text-zinc-300 dark:text-zinc-600';
 
-function IconButton({
+/** Fixed catalog so every card shows the full icon set (active vs gray). */
+const UTILITY_SLOTS = [
+  {
+    id: 'Payments',
+    label: 'Payments',
+    activeClass: 'text-rose-500 dark:text-rose-400',
+    Icon: LayersIcon,
+    aliases: ['Payments', 'dApps', 'Donations', 'Crowdfunding'],
+  },
+  {
+    id: 'Swaps',
+    label: 'Swaps',
+    activeClass: 'text-amber-500 dark:text-amber-400',
+    Icon: StarIcon,
+    aliases: ['Swaps', 'Native L1'],
+  },
+  {
+    id: 'Store',
+    label: 'Store',
+    activeClass: 'text-cyan-500 dark:text-cyan-400',
+    Icon: GiftIcon,
+    aliases: ['Store', 'Publishing', 'Games'],
+  },
+  {
+    id: 'Rewards',
+    label: 'Rewards',
+    activeClass: 'text-violet-500 dark:text-violet-400',
+    Icon: TrophyIcon,
+    aliases: ['Rewards', 'Redemptions', 'Tier Benefits'],
+  },
+  {
+    id: 'Hub Points',
+    label: 'Hub Points',
+    activeClass: 'text-lime-600 dark:text-lime-400',
+    Icon: SparkIcon,
+    aliases: ['Hub Points', 'vBlog Tips', 'Tips'],
+  },
+] as const;
+
+function IconGlyph({
   label,
   active,
   activeClass,
@@ -15,16 +54,14 @@ function IconButton({
   label: string;
   active: boolean;
   activeClass: string;
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
   return (
     <Tooltip content={label}>
       <span
-        className={
-          active
-            ? `inline-flex h-8 w-8 shrink-0 cursor-help items-center justify-center rounded-lg border ${activeClass}`
-            : `${INACTIVE} cursor-help`
-        }
+        className={`inline-flex h-4 w-4 shrink-0 cursor-help items-center justify-center ${
+          active ? activeClass : INACTIVE
+        }`}
         aria-label={label}
       >
         {children}
@@ -35,7 +72,7 @@ function IconButton({
 
 function ShieldCheckIcon() {
   return (
-    <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.25} aria-hidden>
+    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.25} aria-hidden>
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -47,7 +84,7 @@ function ShieldCheckIcon() {
 
 function ZapIcon() {
   return (
-    <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden>
+    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden>
       <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
     </svg>
   );
@@ -55,7 +92,7 @@ function ZapIcon() {
 
 function LayersIcon() {
   return (
-    <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden>
+    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden>
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -67,7 +104,7 @@ function LayersIcon() {
 
 function StarIcon() {
   return (
-    <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden>
+    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden>
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -79,7 +116,7 @@ function StarIcon() {
 
 function GiftIcon() {
   return (
-    <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden>
+    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden>
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -89,22 +126,31 @@ function GiftIcon() {
   );
 }
 
-const UTILITY_ICON_STYLES = [
-  {
-    activeClass: 'border-rose-500/35 bg-rose-500/10 text-rose-700 dark:border-rose-400/30 dark:bg-rose-500/15 dark:text-rose-300',
-    Icon: LayersIcon,
-  },
-  {
-    activeClass: 'border-amber-500/35 bg-amber-500/10 text-amber-700 dark:border-amber-400/30 dark:bg-amber-500/15 dark:text-amber-300',
-    Icon: StarIcon,
-  },
-  {
-    activeClass: 'border-cyan-500/35 bg-cyan-500/10 text-cyan-700 dark:border-cyan-400/30 dark:bg-cyan-500/15 dark:text-cyan-300',
-    Icon: GiftIcon,
-  },
-];
+function TrophyIcon() {
+  return (
+    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden>
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M16.5 18.75h-9m9 0a3 3 0 013 3h-15a3 3 0 013-3m9 0v-4.5A3.375 3.375 0 0012.75 10.5h-1.5A3.375 3.375 0 007.5 14.25v4.5m9-12.75h.008v.008H16.5V6zm-9 0h.008v.008H7.5V6z"
+      />
+    </svg>
+  );
+}
 
-/** Status icon row under logo/title: distinct colors and icons per badge type. */
+function SparkIcon() {
+  return (
+    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden>
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456z"
+      />
+    </svg>
+  );
+}
+
+/** Bare status icons (DApps-style): no wrappers; inactive icons stay gray. */
 export function TokenListingBadges({
   token,
   className = '',
@@ -115,31 +161,36 @@ export function TokenListingBadges({
   const listing = token.listing;
   const verified = Boolean(listing?.verified);
   const instantUtility = Boolean(listing?.instantUtility);
-  const utilityTips = listing?.utilityBadges ?? [];
+  const utilityTips = new Set(listing?.utilityBadges ?? []);
 
   return (
-    <div className={`flex flex-wrap items-center gap-1.5 ${className}`.trim()}>
-      <IconButton
+    <div className={`flex flex-wrap items-center gap-2.5 ${className}`.trim()}>
+      <IconGlyph
         label="Verified project"
         active={verified}
-        activeClass="border-emerald-500/40 bg-emerald-500/15 text-emerald-700 dark:border-emerald-400/35 dark:bg-emerald-500/20 dark:text-emerald-300"
+        activeClass="text-emerald-500 dark:text-emerald-400"
       >
         <ShieldCheckIcon />
-      </IconButton>
-      <IconButton
+      </IconGlyph>
+      <IconGlyph
         label="Instant utility enabled in Kasparex Hub"
         active={instantUtility}
-        activeClass="border-indigo-500/40 bg-indigo-500/15 text-indigo-700 dark:border-indigo-400/35 dark:bg-indigo-500/20 dark:text-indigo-300"
+        activeClass="text-[color:var(--hub-accent)]"
       >
         <ZapIcon />
-      </IconButton>
-      {utilityTips.map((badge, index) => {
-        const style = UTILITY_ICON_STYLES[index % UTILITY_ICON_STYLES.length];
-        const Icon = style.Icon;
+      </IconGlyph>
+      {UTILITY_SLOTS.map((slot) => {
+        const Icon = slot.Icon;
+        const active = slot.aliases.some((alias) => utilityTips.has(alias));
         return (
-          <IconButton key={badge} label={`Utility: ${badge}`} active activeClass={style.activeClass}>
+          <IconGlyph
+            key={slot.id}
+            label={slot.label}
+            active={active}
+            activeClass={slot.activeClass}
+          >
             <Icon />
-          </IconButton>
+          </IconGlyph>
         );
       })}
     </div>

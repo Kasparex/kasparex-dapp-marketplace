@@ -18,19 +18,19 @@ export function TokensHero({ sourceFilter, onSourceFilterChange }: TokensHeroPro
         <TokenSourceSwitcher value={sourceFilter} onChange={onSourceFilterChange} />
       </div>
       <div
-        className={`relative mb-8 overflow-hidden rounded-3xl border border-zinc-200 bg-gradient-to-br from-zinc-100 via-teal-50/50 to-cyan-50/40 px-6 py-12 sm:px-8 dark:border-zinc-800/50 dark:from-zinc-950 dark:via-teal-950/25 dark:to-cyan-950/20 ${HUB_HALO_DESKTOP_ONLY}`}
+        className={`relative mb-8 overflow-hidden rounded-3xl border border-zinc-200 bg-gradient-to-br from-zinc-100 via-cyan-50/45 to-[#ace1af]/25 px-6 py-12 sm:px-8 dark:border-zinc-800/50 dark:from-zinc-950 dark:via-cyan-950/25 dark:to-[#ace1af]/10 ${HUB_HALO_DESKTOP_ONLY}`}
       >
         <div className="absolute inset-0 overflow-hidden">
           <div className="absolute right-0 top-0 h-[80%] w-[60%] rounded-full bg-[radial-gradient(ellipse_at_top_right,_var(--hub-accent-muted),transparent_70%)] blur-3xl" />
-          <div className="absolute bottom-0 left-0 h-[60%] w-[50%] rounded-full bg-[radial-gradient(ellipse_at_bottom_left,_rgba(34,211,238,0.14),transparent_70%)] blur-3xl" />
+          <div className="absolute bottom-0 left-0 h-[60%] w-[50%] rounded-full bg-[radial-gradient(ellipse_at_bottom_left,_rgba(172,225,175,0.22),transparent_70%)] blur-3xl" />
           <div className="absolute left-1/2 top-1/2 h-96 w-96 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[color:var(--hub-accent-muted)] blur-3xl" />
           <div className="absolute right-12 top-8 hidden h-32 w-32 rotate-12 rounded-2xl border border-[color:var(--hub-accent-border)] sm:block" />
-          <div className="absolute bottom-12 right-1/4 hidden h-24 w-24 -rotate-6 rounded-xl border border-cyan-400/20 sm:block" />
+          <div className="absolute bottom-12 right-1/4 hidden h-24 w-24 -rotate-6 rounded-xl border border-[#ace1af]/35 sm:block" />
         </div>
 
         <div className="relative z-10 flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between">
           <div className="max-w-2xl">
-            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-[color:var(--hub-accent-border)] bg-[color:var(--hub-accent-muted)] px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.2em] text-teal-900 dark:text-[color:var(--hub-accent-light)]">
+            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-[color:var(--hub-accent-border)] bg-[color:var(--hub-accent-muted)] px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.2em] text-cyan-950 dark:text-[color:var(--hub-accent-light)]">
               <span className="relative flex h-2 w-2">
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[color:var(--hub-accent-light)] opacity-75" />
                 <span className="relative inline-flex h-2 w-2 rounded-full bg-[color:var(--hub-accent)]" />

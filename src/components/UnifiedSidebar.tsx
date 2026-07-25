@@ -150,7 +150,7 @@ export function UnifiedSidebar({
         data-open={isOpen ? 'open' : 'closed'}
         className={`
           fixed lg:sticky top-16 lg:top-0 left-0 z-40
-          h-[calc(100vh-4rem)] lg:h-screen
+          h-[calc(100vh-4rem)] lg:h-auto lg:min-h-full lg:self-stretch
           bg-white dark:bg-zinc-950
           border-r border-zinc-200 dark:border-zinc-800
           transform transition-all duration-300 ease-in-out

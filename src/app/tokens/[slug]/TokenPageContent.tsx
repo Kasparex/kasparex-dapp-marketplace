@@ -60,7 +60,7 @@ export function TokenPageContent({ slug, serverToken }: TokenPageContentProps) {
   return (
     <div className="flex min-h-screen flex-col bg-zinc-50 dark:bg-zinc-950">
       <Header />
-      <main className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+      <main className="flex flex-1 flex-col lg:flex-row">
         <TokenLandingPage token={token} pageConfig={pageConfig} />
       </main>
       <Footer />

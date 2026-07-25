@@ -60,9 +60,12 @@ export function TokenListingCardGrid({
         <KxListingCard key={token.id} href={`/tokens/${token.slug}`} accent="tokens" className="flex h-full flex-col">
           <KxListingCardMedia aspectClass="aspect-[16/9]">
             <TokenFeaturedMedia token={token} />
+            <div className="absolute left-2 top-2 z-10">
+              <TokenNetworkChips token={token} />
+            </div>
             {token.listing?.featured ? (
               <Tooltip content="Premium featured listing">
-                <span className="absolute top-2 right-2 rounded-md bg-zinc-900/75 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-white">
+                <span className="absolute right-2 top-2 z-10 rounded-md bg-zinc-900/75 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-white">
                   Featured
                 </span>
               </Tooltip>

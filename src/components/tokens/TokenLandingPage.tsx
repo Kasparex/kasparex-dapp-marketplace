@@ -5,7 +5,8 @@ import type { TokenPageConfig } from '@/lib/tokens/listingRecord';
 import { TokenSidebar } from './TokenSidebar';
 import { TokenDetail, type TokenContentTab } from './TokenDetail';
 import { canShowUtilityTab } from '@/lib/tokens/utilityEligibility';
-import { HubAccentScope } from '@/components/hub/HubAccentScope';
+import { HubPageAccentLayout } from '@/components/hub/HubPageAccentLayout';
+import { HUB_MAIN_COLUMN, HUB_MAIN_INNER } from '@/lib/hub/hubLayout';
 import { useCallback, useState } from 'react';
 
 interface TokenLandingPageProps {
@@ -45,7 +46,7 @@ export function TokenLandingPage({ token, pageConfig }: TokenLandingPageProps) {
   }, []);
 
   return (
-    <HubAccentScope projectId="kasparex-tokens" className="flex min-h-0 w-full min-w-0 flex-1 flex-col overflow-hidden bg-zinc-50 dark:bg-zinc-950 lg:flex-row">
+    <HubPageAccentLayout projectId="kasparex-tokens">
       <TokenSidebar
         token={token}
         activeTab={contentTab}
@@ -55,8 +56,8 @@ export function TokenLandingPage({ token, pageConfig }: TokenLandingPageProps) {
         pageConfig={pageConfig}
       />
 
-      <main className="min-h-[calc(100vh-4rem)] flex-1 min-w-0 overflow-x-hidden overflow-y-auto border-l border-zinc-200 dark:border-zinc-800">
-        <div className="mx-auto w-full min-w-0 max-w-6xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8 lg:pl-6">
+      <div className={HUB_MAIN_COLUMN}>
+        <div className={`${HUB_MAIN_INNER} max-w-6xl`}>
           <TokenDetail
             token={token}
             contentTab={contentTab}
@@ -64,7 +65,7 @@ export function TokenLandingPage({ token, pageConfig }: TokenLandingPageProps) {
             pageConfig={pageConfig}
           />
         </div>
-      </main>
-    </HubAccentScope>
+      </div>
+    </HubPageAccentLayout>
   );
 }

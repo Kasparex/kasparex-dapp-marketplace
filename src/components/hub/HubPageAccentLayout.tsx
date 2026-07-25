@@ -14,7 +14,7 @@ export function HubPageAccentLayout(props: {
   return (
     <HubAccentScope
       projectId={projectId}
-      className={`flex min-h-0 w-full flex-1 flex-col lg:flex-row ${className}`.trim()}
+      className={`flex min-h-[calc(100vh-4rem)] w-full min-w-0 flex-1 flex-col lg:min-h-[calc(100vh-4rem)] lg:flex-row lg:items-stretch ${className}`.trim()}
     >
       {children}
     </HubAccentScope>
