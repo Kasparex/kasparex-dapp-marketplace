@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1785029562-827460e",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Sync hub content: 2026-07-26T01:32:29.087Z (by Kasparex)",
+      "date": "2026-07-26T03:32:29+02:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1784843544-3d838ce",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Remove in-game Diamond Refinement panels, add shared activity dots, D/min, and fix favicon override. (by Kasparex)",
