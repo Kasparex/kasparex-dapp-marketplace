@@ -31,6 +31,9 @@ export function KaspirePairingModal({
       return;
     }
     let cancelled = false;
+    // Kaspire is not in Reown WalletGuide. QR must encode the HTTPS App Link,
+    // not the raw wc: URI (that opens MetaMask / generic WC pickers).
+    const kaspireLink = buildKaspireAppLink(uri);
     void (async () => {
       try {
         const mod = await import('qrcode');
@@ -38,10 +41,11 @@ export function KaspirePairingModal({
         if (typeof toDataURL !== 'function') {
           throw new Error('QR generator unavailable');
         }
-        const url = await toDataURL(uri, {
+        const url = await toDataURL(kaspireLink, {
           width: 240,
           margin: 2,
           color: { dark: '#09090b', light: '#ffffff' },
+          // App Link is longer than a raw wc: URI; keep it scannable.
           errorCorrectionLevel: 'M',
         });
         if (!cancelled) {
@@ -51,7 +55,7 @@ export function KaspirePairingModal({
       } catch {
         if (!cancelled) {
           setQrDataUrl(null);
-          setQrError('Could not render QR. Use the App Link below from your Android phone.');
+          setQrError('Could not render QR. Open the App Link on Android instead.');
         }
       }
     })();
@@ -95,8 +99,8 @@ export function KaspirePairingModal({
             </div>
             <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
               {mode === 'mobile'
-                ? 'Opens the installed Kaspire APK for approval (WalletConnect).'
-                : 'Scan this QR with the Kaspire Android app (APK).'}
+                ? 'Opens the installed Kaspire APK via the verified App Link.'
+                : 'Scan with your phone camera or Kaspire. This QR opens Kaspire (not MetaMask).'}
             </p>
           </div>
         </div>

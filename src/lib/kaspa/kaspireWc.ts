@@ -60,6 +60,8 @@ function getProjectId(): string {
 }
 
 export function buildKaspireAppLink(uri: string): string {
+  // Dedicated Kaspire App Link. Do not put the raw wc: URI in a QR code:
+  // Kaspire is not in Reown WalletGuide, so generic WC scanners offer MetaMask etc.
   return `${KASPIRE_APP_LINK_BASE}?uri=${encodeURIComponent(uri)}`;
 }
 

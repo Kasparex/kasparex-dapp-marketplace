@@ -233,7 +233,7 @@ export function L1WalletConnectOptions({
             Mobile wallets
           </p>
           <p className="px-1 pb-1.5 text-[10px] leading-snug text-zinc-500 dark:text-zinc-500">
-            Android APK via WalletConnect QR. Install Kaspire on your phone, then scan.
+            Android APK via Kaspire App Link QR. Install Kaspire, then scan with your phone.
           </p>
           <KaspireWalletRow
             connecting={connecting}
