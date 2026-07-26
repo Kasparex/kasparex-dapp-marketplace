@@ -8,6 +8,7 @@ import {
   DEFAULT_PROGRAMMABLE_NETWORK,
   kascovCovenantExplorerUrl,
   kascovDecodeUrl,
+  kcc20InfoBase,
   programmableCovenantExplorerUrl,
 } from '@/lib/programmable/config';
 import { covenantLiveValueSompi, resolveCovenantDetail } from '@/lib/programmable/covenantRead';
@@ -57,13 +58,22 @@ export function ProgrammableAssetPanel({ token }: ProgrammableAssetPanelProps) {
 
   const kaspaComUrl = programmableCovenantExplorerUrl(covenantId, networkId);
   const kascovUrl = kascovCovenantExplorerUrl(covenantId, networkId);
+  const kcc20InfoUrl = networkId === 'mainnet' ? kcc20InfoBase() : null;
+  const sourceHint =
+    readSource === 'kcc20Info'
+      ? 'via kcc20.info'
+      : readSource === 'kaspaCom'
+        ? 'via KaspaCom'
+        : readSource === 'kascov'
+          ? 'via kascov'
+          : networkId;
 
   return (
     <section className="scroll-mt-28 space-y-4">
       <GameOverviewTitleBlock
         kicker="Programmable"
         title="L1 covenant asset"
-        subtitle={`Linked KCC-20 on ${networkId}. Status is fetched on demand from the KaspaCom covenant indexer (kascov fallback).`}
+        subtitle={`Linked KCC-20 on ${networkId}. Status is fetched on demand from public covenant indexers (kcc20.info / KaspaCom / kascov).`}
         as="h3"
         compact
       />
@@ -72,7 +82,7 @@ export function ProgrammableAssetPanel({ token }: ProgrammableAssetPanelProps) {
         <TokenStatCard
           label="Status"
           value={status}
-          hint={readSource ? `via ${readSource}` : networkId}
+          hint={sourceHint}
           valueClassName={
             status === 'active'
               ? 'text-emerald-600 dark:text-emerald-400'
@@ -127,6 +137,11 @@ export function ProgrammableAssetPanel({ token }: ProgrammableAssetPanelProps) {
         <a href={kascovUrl} target="_blank" rel="noopener noreferrer" className="k-control-btn text-sm">
           View on kascov
         </a>
+        {kcc20InfoUrl ? (
+          <a href={kcc20InfoUrl} target="_blank" rel="noopener noreferrer" className="k-control-btn text-sm">
+            View on kcc20.info
+          </a>
+        ) : null}
         <a href={kascovDecodeUrl()} target="_blank" rel="noopener noreferrer" className="k-control-btn text-sm">
           Script decoder
         </a>

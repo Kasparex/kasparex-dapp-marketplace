@@ -1,6 +1,7 @@
 /**
  * Programmable L1 asset config (KCC-20 / covenant tokens).
- * Read-only enrichment via KaspaCom indexer with kascov fallback; no Hub indexer.
+ * Read-only enrichment: kcc20.info for KCC20 token projections (mainnet),
+ * KaspaCom indexer then kascov for covenant detail. Hub does not run an indexer.
  */
 
 export type ProgrammableNetworkId = 'testnet-10' | 'mainnet';
@@ -9,6 +10,19 @@ export type ProgrammableNetworkId = 'testnet-10' | 'mainnet';
 export const KASCOV_BASE_URL =
   (typeof process !== 'undefined' && process.env.NEXT_PUBLIC_KASCOV_BASE?.trim()) ||
   'https://kascov.io';
+
+/** Independent mainnet KCC20 / covenant indexer. Override with NEXT_PUBLIC_KCC20_INFO_BASE. */
+export const KCC20_INFO_BASE_URL =
+  (typeof process !== 'undefined' && process.env.NEXT_PUBLIC_KCC20_INFO_BASE?.trim()) ||
+  'https://kcc20.info';
+
+export function kcc20InfoBase(): string {
+  return KCC20_INFO_BASE_URL.replace(/\/$/, '');
+}
+
+export function kcc20InfoDocsUrl(): string {
+  return `${kcc20InfoBase()}/docs`;
+}
 
 /**
  * Default for indexer / explorer links when no wallet address is available.

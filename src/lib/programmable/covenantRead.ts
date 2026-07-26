@@ -1,5 +1,6 @@
 /**
- * Unified covenant reads: KaspaCom indexer first, kascov fallback.
+ * Unified covenant reads: KaspaCom indexer → kascov → kcc20.info (mainnet).
+ * Token metadata prefers kcc20.info via kcc20Lookup; this path keeps live KAS/value fields.
  * Client-side only; short in-memory cache per session.
  */
 
@@ -8,6 +9,11 @@ import {
   fetchKaspaComCovenantById,
   fetchKaspaComCovenantIdFromTx,
 } from './kaspaComIndexerClient';
+import {
+  fetchKcc20InfoCovenant,
+  fetchKcc20InfoCovenantIdFromTx,
+  type Kcc20InfoCovenant,
+} from './kcc20InfoClient';
 import {
   extractKascovTemplateLabel,
   fetchKascovCovenant,
@@ -46,6 +52,18 @@ function parseSompi(value: number | string | null | undefined): number | undefin
   if (typeof value === 'number' && Number.isFinite(value)) return Math.max(0, Math.floor(value));
   const parsed = Number.parseInt(String(value), 10);
   return Number.isFinite(parsed) ? Math.max(0, parsed) : undefined;
+}
+
+function mapKcc20InfoCovenant(detail: Kcc20InfoCovenant): CovenantReadDetail {
+  const events = detail.events ?? [];
+  const genesis = events.find((e) => e.kind === 'genesis');
+  return {
+    source: 'kcc20Info',
+    covenant_id: detail.covenant_id,
+    status: detail.active === false ? 'burned' : 'active',
+    event_count: events.length,
+    genesis_txid: genesis?.tx_id ?? events[0]?.tx_id ?? null,
+  };
 }
 
 function mapKaspaComDetail(detail: KaspaComCovenantDetail): CovenantReadDetail | null {
@@ -112,10 +130,20 @@ export async function resolveCovenantDetail(
   }
 
   const fromKascov = await fetchKascovCovenant(id, network);
-  if (!fromKascov?.covenant_id) return null;
-  const mappedKascov = mapKascovDetail(fromKascov);
-  writeCache(network, mappedKascov);
-  return mappedKascov;
+  if (fromKascov?.covenant_id) {
+    const mappedKascov = mapKascovDetail(fromKascov);
+    writeCache(network, mappedKascov);
+    return mappedKascov;
+  }
+
+  const fromKcc20Info = await fetchKcc20InfoCovenant(id, network);
+  if (fromKcc20Info) {
+    const mapped = mapKcc20InfoCovenant(fromKcc20Info);
+    writeCache(network, mapped);
+    return mapped;
+  }
+
+  return null;
 }
 
 export async function resolveCovenantIdFromTx(
@@ -124,6 +152,9 @@ export async function resolveCovenantIdFromTx(
 ): Promise<{ covenantId: string; source: CovenantReadSource } | null> {
   const id = txid.trim().toLowerCase();
   if (!/^[a-f0-9]{64}$/.test(id)) return null;
+
+  const fromKcc20Info = await fetchKcc20InfoCovenantIdFromTx(id, network);
+  if (fromKcc20Info) return { covenantId: fromKcc20Info, source: 'kcc20Info' };
 
   const fromKaspaCom = await fetchKaspaComCovenantIdFromTx(id, network);
   if (fromKaspaCom) return { covenantId: fromKaspaCom, source: 'kaspaCom' };

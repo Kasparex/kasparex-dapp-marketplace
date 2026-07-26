@@ -1,8 +1,8 @@
 import type { ProgrammableNetworkId } from './config';
 
-export type CovenantReadSource = 'kaspaCom' | 'kascov';
+export type CovenantReadSource = 'kcc20Info' | 'kaspaCom' | 'kascov';
 
-/** Normalized covenant read model used across KaspaCom indexer and kascov fallback. */
+/** Normalized covenant read model used across kcc20.info, KaspaCom, and kascov. */
 export type CovenantReadDetail = {
   source: CovenantReadSource;
   covenant_id: string;

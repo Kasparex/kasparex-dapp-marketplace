@@ -88,8 +88,9 @@ export function Kcc20ConnectField({
           Covenant id or genesis tx <span className="text-red-500">*</span>
         </KxFormFieldLabel>
         <p className="kx-body-sm mb-2">
-          Paste the KCC-20 covenant id from your launchpad, or the genesis transaction id. Kasparex reads
-          public KaspaCom indexer data (kascov fallback); nothing is deployed from this form.
+          Paste the KCC-20 covenant id from your launchpad, or the genesis transaction id. On mainnet,
+          Kasparex prefers kcc20.info token data (KaspaCom / kascov fallback). Nothing is deployed from
+          this form.
         </p>
         <input
           type="text"
@@ -136,11 +137,35 @@ export function Kcc20ConnectField({
           <p className="mt-1 text-sm font-semibold text-zinc-700 dark:text-zinc-300">{displayResult.name}</p>
           <div className="mt-2 grid grid-cols-2 gap-2 text-xs text-zinc-500 dark:text-zinc-400">
             <span>Status: {displayResult.status ?? 'unknown'}</span>
-            <span>
-              Live: {formatKcc20Sompi(displayResult.liveValueSompi ?? displayResult.minted, displayResult.decimals ?? 8)} KAS
-            </span>
+            {displayResult.holderTotal != null ? (
+              <span>Holders: {displayResult.holderTotal.toLocaleString()}</span>
+            ) : (
+              <span>
+                Live:{' '}
+                {formatKcc20Sompi(
+                  displayResult.liveValueSompi ?? displayResult.minted,
+                  displayResult.decimals ?? 8,
+                )}{' '}
+                KAS
+              </span>
+            )}
+            {displayResult.maxSupply ? (
+              <span className="col-span-2">
+                Supply: {formatKcc20Sompi(displayResult.maxSupply, displayResult.decimals ?? 8)}
+              </span>
+            ) : null}
             {displayResult.templateLabel ? (
               <span className="col-span-2">Template: {displayResult.templateLabel}</span>
+            ) : null}
+            {displayResult.readSource ? (
+              <span className="col-span-2">
+                Source:{' '}
+                {displayResult.readSource === 'kcc20Info'
+                  ? 'kcc20.info'
+                  : displayResult.readSource === 'kaspaCom'
+                    ? 'KaspaCom'
+                    : 'kascov'}
+              </span>
             ) : null}
             <span className="col-span-2 truncate font-mono text-[10px]" title={displayResult.covenantId}>
               Covenant: {displayResult.covenantId}
