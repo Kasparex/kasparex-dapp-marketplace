@@ -4,6 +4,7 @@
 
 import { DEFAULT_PROGRAMMABLE_NETWORK, type ProgrammableNetworkId } from '@/lib/programmable/config';
 import { resolveCovenantDetail } from '@/lib/programmable/covenantRead';
+import type { CovenantReadSource } from '@/lib/programmable/types';
 import type { CovenantVault, CovenantVaultKind } from '../types';
 
 export type ImportedCovenantVault = Pick<
@@ -19,7 +20,7 @@ export type ImportedCovenantVault = Pick<
   | 'deadlineAt'
   | 'memo'
 > & {
-  source: 'kaspaCom' | 'kascov';
+  source: CovenantReadSource;
   genesisTxid?: string;
   covenantAddress?: string | null;
   templateLabel?: string;
