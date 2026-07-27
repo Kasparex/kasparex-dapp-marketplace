@@ -38,6 +38,8 @@ type TokenModuleConfigFieldsProps = {
   moduleId?: TokenModuleConfigTarget;
   /** Strip outer panel chrome when nested inside a premium module card. */
   bare?: boolean;
+  /** Covenant id for one-click KRON market prefill. */
+  covenantId?: string | null;
 };
 
 const BADGE_PLACEMENT_OPTIONS: { value: TokenHighlightedBadgePlacement; label: string }[] = [
@@ -74,6 +76,7 @@ export function TokenModuleConfigFields({
   disabled,
   moduleId,
   bare = false,
+  covenantId = null,
 }: TokenModuleConfigFieldsProps) {
   const isProgrammable = isProgrammableListingNetwork(listingNetwork);
 
@@ -156,6 +159,7 @@ export function TokenModuleConfigFields({
             markets={config.markets ?? []}
             onChange={(markets) => onChange({ ...config, markets })}
             disabled={disabled}
+            covenantId={covenantId}
           />
         </div>
       ) : null}

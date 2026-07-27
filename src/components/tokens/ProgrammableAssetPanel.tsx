@@ -11,6 +11,7 @@ import {
   kcc20InfoBase,
   programmableCovenantExplorerUrl,
 } from '@/lib/programmable/config';
+import { kronTokenUrl } from '@/lib/programmable/kron';
 import { covenantLiveValueSompi, resolveCovenantDetail } from '@/lib/programmable/covenantRead';
 import { isProgrammableToken, resolveProgrammableCovenantId } from '@/lib/programmable/eligibility';
 import type { CovenantReadSource } from '@/lib/programmable/types';
@@ -58,6 +59,7 @@ export function ProgrammableAssetPanel({ token }: ProgrammableAssetPanelProps) {
 
   const kaspaComUrl = programmableCovenantExplorerUrl(covenantId, networkId);
   const kascovUrl = kascovCovenantExplorerUrl(covenantId, networkId);
+  const kronUrl = networkId === 'mainnet' ? kronTokenUrl(covenantId) : null;
   const kcc20InfoUrl = networkId === 'mainnet' ? kcc20InfoBase() : null;
   const sourceHint =
     readSource === 'kcc20Info'
@@ -131,6 +133,11 @@ export function ProgrammableAssetPanel({ token }: ProgrammableAssetPanelProps) {
       </div>
 
       <div className="flex flex-wrap gap-2">
+        {kronUrl ? (
+          <a href={kronUrl} target="_blank" rel="noopener noreferrer" className="k-control-btn text-sm hub-sidebar-action-active">
+            Trade on KRON
+          </a>
+        ) : null}
         <a href={kaspaComUrl} target="_blank" rel="noopener noreferrer" className="k-control-btn text-sm">
           View on KaspaCom
         </a>

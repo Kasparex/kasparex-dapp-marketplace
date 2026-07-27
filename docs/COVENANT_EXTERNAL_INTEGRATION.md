@@ -42,7 +42,7 @@ External repos can mirror types from `src/lib/programmability/types.ts`:
 - `CovenantTxRequest`, `CovenantBinding`, `UtxoOutpoint`
 - Artifact layout in `public/covenant/*.json`
 
-**Programmable token listings (KCC-20):** connect by covenant id in the Tokens Dashboard; read-only enrichment via [kascov](https://kascov.io). See [PROGRAMMABLE_TOKEN_UAAS.md](./PROGRAMMABLE_TOKEN_UAAS.md) and [KASCOV_TEMPLATE_MAP.md](./KASCOV_TEMPLATE_MAP.md). No Hub indexer.
+**Programmable token listings (KCC-20):** connect by covenant id in the Tokens Dashboard; read-only enrichment via [kascov](https://kascov.io) / KaspaCom / kcc20.info. External launchpad: [KRON](https://kron.technology) (`src/lib/programmable/kron.ts`). See [PROGRAMMABLE_TOKEN_UAAS.md](./PROGRAMMABLE_TOKEN_UAAS.md) and [KASCOV_TEMPLATE_MAP.md](./KASCOV_TEMPLATE_MAP.md). No Hub indexer.
 
 No npm package yet; copy types or consume artifacts JSON from a deployed Hub URL.
 

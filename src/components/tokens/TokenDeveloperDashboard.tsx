@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { CreateTokenForm } from '@/components/tokens/CreateTokenForm';
 import { TokenAuthorPricing } from '@/components/tokens/TokenAuthorPricing';
@@ -47,6 +47,9 @@ function mediaFromListing(listing: PublishedTokenListing | null): TokenListingMe
 export function TokenDeveloperDashboard() {
   const searchParams = useSearchParams();
   const editId = searchParams.get('edit');
+  const covenantParam = searchParams.get('covenant');
+  const fromParam = searchParams.get('from');
+  const networkParam = searchParams.get('network');
   const isMobile = useIsMobileViewport();
   const { state: kaspaState } = useKaspaWallet();
   const { address: evmAddress } = useAccount();
@@ -71,6 +74,29 @@ export function TokenDeveloperDashboard() {
 
   const authorListings = walletAddress ? getAuthorListings(walletAddress) : [];
   const claimableSeeds = getClaimableSeedsForWallet(kaspaState.address);
+
+  const connectPrefill = useMemo(() => {
+    const id = (covenantParam ?? '').trim().toLowerCase();
+    if (!/^[a-f0-9]{64}$/.test(id)) return null;
+    const network =
+      networkParam === 'testnet-10' || networkParam === 'mainnet'
+        ? networkParam
+        : fromParam === 'kron'
+          ? 'mainnet'
+          : undefined;
+    return {
+      covenantId: id,
+      network: network as 'mainnet' | 'testnet-10' | undefined,
+      fromKron: fromParam === 'kron',
+    };
+  }, [covenantParam, fromParam, networkParam]);
+
+  useEffect(() => {
+    if (connectPrefill && !editId) {
+      setActiveTab('create');
+      setEditingListing(null);
+    }
+  }, [connectPrefill, editId]);
 
   useEffect(() => {
     if (!editId) return;
@@ -241,6 +267,7 @@ export function TokenDeveloperDashboard() {
                 onMediaChange={setMedia}
                 onSuccess={handlePublishSuccess}
                 onCancelEdit={editingListing ? () => setEditingListing(null) : undefined}
+                connectPrefill={editingListing ? null : connectPrefill}
               />
             )}
           </div>

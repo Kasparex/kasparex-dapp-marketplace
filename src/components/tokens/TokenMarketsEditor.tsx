@@ -5,6 +5,7 @@ import { KxRichTextEditor } from '@/components/ui/KxRichTextEditor';
 import { KxSegmentToggle } from '@/components/ui/KxSegmentToggle';
 import { KX_FORM_ADD_BTN_CLASS } from '@/components/ui/KxLinkRowsEditor';
 import type { TokenMarketEntry } from '@/lib/tokens/modules';
+import { kronMarketEntry } from '@/lib/programmable/kron';
 import { contentForRichEditor } from '@/lib/richText/html';
 
 function emptyMarket(): TokenMarketEntry {
@@ -15,10 +16,22 @@ type TokenMarketsEditorProps = {
   markets: TokenMarketEntry[];
   onChange: (markets: TokenMarketEntry[]) => void;
   disabled?: boolean;
+  /** When set, shows one-click KRON market prefill. */
+  covenantId?: string | null;
 };
 
-export function TokenMarketsEditor({ markets, onChange, disabled }: TokenMarketsEditorProps) {
+export function TokenMarketsEditor({
+  markets,
+  onChange,
+  disabled,
+  covenantId,
+}: TokenMarketsEditorProps) {
   const items = markets.length > 0 ? markets : [emptyMarket()];
+  const hasKron = items.some(
+    (m) =>
+      m.url.toLowerCase().includes('kron.technology/token/') ||
+      m.name.trim().toLowerCase() === 'kron',
+  );
 
   const update = (index: number, patch: Partial<TokenMarketEntry>) => {
     const next = [...items];
@@ -26,8 +39,31 @@ export function TokenMarketsEditor({ markets, onChange, disabled }: TokenMarkets
     onChange(next);
   };
 
+  const addKronMarket = () => {
+    if (!covenantId || hasKron) return;
+    const kron = kronMarketEntry(covenantId);
+    const filled = items.filter((m) => m.name.trim() || m.url.trim());
+    onChange([...filled, kron]);
+  };
+
   return (
     <div className="space-y-4">
+      {covenantId ? (
+        <div className="rounded-xl border border-zinc-200 bg-zinc-50/80 p-3 dark:border-zinc-700 dark:bg-zinc-800/40">
+          <p className="text-xs text-zinc-600 dark:text-zinc-400">
+            Link the KRON L1 launchpad / DEX trade page for this covenant.
+          </p>
+          <button
+            type="button"
+            disabled={disabled || hasKron || items.length >= 20}
+            onClick={addKronMarket}
+            className={`${KX_FORM_ADD_BTN_CLASS} mt-2 disabled:opacity-50`}
+          >
+            {hasKron ? 'KRON market already added' : 'Add KRON market'}
+          </button>
+        </div>
+      ) : null}
+
       {items.map((market, index) => (
         <div
           key={index}
@@ -50,7 +86,7 @@ export function TokenMarketsEditor({ markets, onChange, disabled }: TokenMarkets
             <input
               type="text"
               className="k-input mt-1 w-full"
-              placeholder="e.g. KaspaSwap"
+              placeholder="e.g. KRON"
               value={market.name}
               disabled={disabled}
               onChange={(e) => update(index, { name: e.target.value })}

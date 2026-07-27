@@ -52,6 +52,7 @@ import type { Kcc20TokenInfo } from '@/lib/tokens/kcc20Lookup';
 import { formatKrc20Supply } from '@/lib/tokens/krc20Lookup';
 import { formatKcc20Sompi } from '@/lib/tokens/kcc20Lookup';
 import type { ProgrammableNetworkId } from '@/lib/programmable/config';
+import { kronMarketEntry, normalizeKcc20ConnectPaste } from '@/lib/programmable/kron';
 import { fetchL2TokenInfo, formatL2Supply } from '@/lib/tokens/l2TokenLookup';
 import {
   buildNetworkEntries,
@@ -112,6 +113,12 @@ interface CreateTokenFormProps {
   onMediaChange: (next: TokenListingMediaState) => void;
   onSuccess?: (listing: PublishedTokenListing) => void;
   onCancelEdit?: () => void;
+  /** Prefill from dashboard deep-link (e.g. return from KRON with covenant id). */
+  connectPrefill?: {
+    covenantId: string;
+    network?: ProgrammableNetworkId;
+    fromKron?: boolean;
+  } | null;
 }
 
 function parseSupplyNumber(raw: string | undefined, decimals: number): number | undefined {
@@ -181,7 +188,14 @@ function buildFormDraft(args: {
   };
 }
 
-export function CreateTokenForm({ listing, media, onMediaChange, onSuccess, onCancelEdit }: CreateTokenFormProps) {
+export function CreateTokenForm({
+  listing,
+  media,
+  onMediaChange,
+  onSuccess,
+  onCancelEdit,
+  connectPrefill = null,
+}: CreateTokenFormProps) {
   const isEditMode = Boolean(listing);
   const { tier, balance: krexBalance } = useKREXBalance();
   const { snapshot: pricingSnapshot } = usePricingSnapshot(['KREX']);
@@ -198,11 +212,17 @@ export function CreateTokenForm({ listing, media, onMediaChange, onSuccess, onCa
   const [shortDescription, setShortDescription] = useState(listing?.shortDescription ?? '');
   const [tags, setTags] = useState((listing?.tags ?? []).join(', '));
   const [category, setCategory] = useState(listing?.category ?? 'Other');
-  const [listingNetwork, setListingNetwork] = useState<TokenListingNetwork>(
-    listing?.listingNetwork ?? tokenNetworkToListingNetwork(listing?.network ?? 'L2', listing?.contractAddress),
-  );
+  const [assetKind, setAssetKind] = useState<TokenAssetKind>(() => {
+    if (listing?.assetKind) return listing.assetKind;
+    if (connectPrefill?.covenantId) return 'real';
+    return 'fictional';
+  });
+  const [listingNetwork, setListingNetwork] = useState<TokenListingNetwork>(() => {
+    if (listing?.listingNetwork) return listing.listingNetwork;
+    if (connectPrefill?.covenantId) return 'kcc20';
+    return tokenNetworkToListingNetwork(listing?.network ?? 'L2', listing?.contractAddress);
+  });
   const [contractAddress, setContractAddress] = useState(listing?.contractAddress ?? '');
-  const [assetKind, setAssetKind] = useState<TokenAssetKind>(listing?.assetKind ?? 'fictional');
   const [onChainSnapshot, setOnChainSnapshot] = useState<TokenOnChainSnapshot | null>(listing?.onChainSnapshot ?? null);
   const [deployerAddress, setDeployerAddress] = useState(listing?.deployerAddress ?? '');
   const [tokenDecimals, setTokenDecimals] = useState<number | undefined>(listing?.decimals);
@@ -214,14 +234,21 @@ export function CreateTokenForm({ listing, media, onMediaChange, onSuccess, onCa
   const [kcc20Selected, setKcc20Selected] = useState<Kcc20TokenInfo | null>(
     listing?.onChainSnapshot?.source === 'kcc20' ? (listing.onChainSnapshot as Kcc20TokenInfo) : null,
   );
-  const [kcc20ConnectInput, setKcc20ConnectInput] = useState(
-    listing?.onChainSnapshot?.source === 'kcc20'
-      ? (listing.onChainSnapshot.covenantId ?? listing.contractAddress ?? '')
-      : '',
-  );
+  const [kcc20ConnectInput, setKcc20ConnectInput] = useState(() => {
+    if (listing?.onChainSnapshot?.source === 'kcc20') {
+      return listing.onChainSnapshot.covenantId ?? listing.contractAddress ?? '';
+    }
+    if (connectPrefill?.covenantId) {
+      return normalizeKcc20ConnectPaste(connectPrefill.covenantId);
+    }
+    return '';
+  });
   const [programmableNetwork, setProgrammableNetwork] = useState<ProgrammableNetworkId>(
-    (listing?.onChainSnapshot?.networkId as ProgrammableNetworkId | undefined) ?? 'testnet-10',
+    (listing?.onChainSnapshot?.networkId as ProgrammableNetworkId | undefined) ??
+      connectPrefill?.network ??
+      (connectPrefill?.fromKron ? 'mainnet' : 'testnet-10'),
   );
+  const [kcc20AutoLookup] = useState(() => Boolean(connectPrefill?.covenantId && !listing));
   const [l2LookupLoading, setL2LookupLoading] = useState(false);
   const [l2LookupError, setL2LookupError] = useState<string | null>(null);
   const [secondaryNetworks, setSecondaryNetworks] = useState<SecondaryNetworkRow[]>(() =>
@@ -231,7 +258,9 @@ export function CreateTokenForm({ listing, media, onMediaChange, onSuccess, onCa
     const secondary = initSecondaryNetworks(listing);
     const primary =
       listing?.listingNetwork ??
-      tokenNetworkToListingNetwork(listing?.network ?? 'L2', listing?.contractAddress);
+      (connectPrefill?.covenantId
+        ? 'kcc20'
+        : tokenNetworkToListingNetwork(listing?.network ?? 'L2', listing?.contractAddress));
     return initNetworkOrder(listing, primary, secondary);
   });
 
@@ -283,7 +312,20 @@ export function CreateTokenForm({ listing, media, onMediaChange, onSuccess, onCa
     setTokenDecimals(dec);
     setMaxSupply(parseSupplyNumber(info.maxSupply, dec));
     setTotalSupply(parseSupplyNumber(info.minted, dec));
-    setSectionToggles((prev) => ({ ...prev, tokenomics: true, utility: true }));
+    setSectionToggles((prev) => ({ ...prev, tokenomics: true, utility: true, markets: true }));
+    setModulesConfig((prev) => {
+      const existing = (prev.markets ?? []).filter((m) => m.name.trim() || m.url.trim());
+      const kron = kronMarketEntry(info.covenantId);
+      const hasKron = existing.some(
+        (m) =>
+          m.url.toLowerCase().includes('kron.technology/token/') ||
+          m.name.trim().toLowerCase() === 'kron',
+      );
+      return {
+        ...prev,
+        markets: hasKron ? existing : [...existing, kron],
+      };
+    });
   }, []);
 
   const lookupL2Contract = useCallback(async () => {
@@ -933,6 +975,7 @@ export function CreateTokenForm({ listing, media, onMediaChange, onSuccess, onCa
                 selected={kcc20Selected}
                 network={programmableNetwork}
                 onNetworkChange={setProgrammableNetwork}
+                autoLookup={kcc20AutoLookup}
               />
             ) : (
               <div>
@@ -1166,6 +1209,11 @@ export function CreateTokenForm({ listing, media, onMediaChange, onSuccess, onCa
                 isRealToken={isRealToken}
                 listingNetwork={listingNetwork}
                 marketsSectionEnabled
+                covenantId={
+                  onChainSnapshot?.source === 'kcc20'
+                    ? onChainSnapshot.covenantId ?? contractAddress
+                    : null
+                }
                 disabled={isSubmitting}
               />
             ) : null}
