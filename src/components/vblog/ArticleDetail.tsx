@@ -23,13 +23,12 @@ import { SidePanelCollapsedContentWrap } from '@/components/layout/SidePanelColl
 import { useVBlogRightPanelOpen } from '@/hooks/useVBlogRightPanelOpen';
 import { getVBlogPlatformFeeBps, getVBlogTreasuryL1Address } from '@/lib/vblog/config';
 import { normalizeKaspaAddress } from '@/lib/kaspa/sdk';
-import { sendKaspaTransaction } from '@/lib/kaspa/wallet';
+import { formatKaspaWalletError } from '@/lib/kaspa/formatWalletError';
 import type { KaspaWalletProvider } from '@/lib/kaspa/types';
-import { kasToSompi } from '@/lib/ads/config';
-import { buildVBlogPremiumUnlockPayloadHex, buildVBlogPremiumUnlockPlainNote, utf8ToHex } from '@/lib/vblog/payloadHex';
-import { extractKaspaTransactionId } from '@/lib/kaspa/transactionId';
+import { buildVBlogPremiumUnlockPayloadHex, utf8ToHex } from '@/lib/vblog/payloadHex';
 import { computeVBlogReaderPaymentSplit } from '@/lib/vblog/readerPricing';
 import { resolvePremiumPayoutSplits, splitAuthorKasByPercent } from '@/lib/vblog/paymentSplit';
+import { parseJsonResponse, sendVBlogReaderKasTx } from '@/lib/vblog/sendReaderPaymentTx';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { useNFTStatus } from '@/hooks/useNFTStatus';
 import { appendHubActivityEarn } from '@/lib/rewards/appendHubActivityEarn';
@@ -241,13 +240,12 @@ export function ArticleDetail({
     const authorShare = payment.totalKas > 0 ? payment.authorKas / payment.totalKas : 1;
     const platformShare = payment.totalKas > 0 ? payment.platformKas / payment.totalKas : 0;
 
+    // Apply Tier discount to token amounts (listAmount is still the undiscounted token qty).
+    const discountFactor =
+      kasEquivalent > 0 ? Math.min(1, Math.max(0, payment.totalKas / kasEquivalent)) : 1;
+    const effectiveTokenAmount = listAmount * discountFactor;
+
     if (currency === 'KAS') {
-      const note = buildVBlogPremiumUnlockPlainNote({
-        articleId: article.id,
-        moduleId,
-        payerAddress,
-        amountKas: payment.totalKas,
-      });
       const payload = buildVBlogPremiumUnlockPayloadHex({
         articleId: article.id,
         moduleId,
@@ -257,28 +255,22 @@ export function ArticleDetail({
 
       const authorTxHashes: string[] = [];
       for (const split of authorSplits) {
-        const authorTx = await sendKaspaTransaction(kaspaState.provider as KaspaWalletProvider, {
+        const authorTx = await sendVBlogReaderKasTx({
+          provider: kaspaState.provider as KaspaWalletProvider,
           to: split.address,
-          amount: String(kasToSompi(split.kas)),
-          note,
-          payload,
+          amountKas: split.kas,
+          payloadHex: payload,
         });
-        if (authorTx.status === 'failed' || !authorTx.txHash) {
-          throw new Error(authorTx.error ?? 'Author payout transaction failed');
-        }
-        authorTxHashes.push(extractKaspaTransactionId(authorTx.txHash) ?? authorTx.txHash);
+        authorTxHashes.push(authorTx.txHash);
       }
 
-      const platformTx = await sendKaspaTransaction(kaspaState.provider as KaspaWalletProvider, {
+      const platformTx = await sendVBlogReaderKasTx({
+        provider: kaspaState.provider as KaspaWalletProvider,
         to: getVBlogTreasuryL1Address(),
-        amount: String(kasToSompi(payment.platformKas)),
-        note: `${note}:fee`,
-        payload,
+        amountKas: payment.platformKas,
+        payloadHex: payload,
       });
-      if (platformTx.status === 'failed' || !platformTx.txHash) {
-        throw new Error(platformTx.error ?? 'Platform fee transaction failed');
-      }
-      const platformTxHash = extractKaspaTransactionId(platformTx.txHash) ?? platformTx.txHash;
+      const platformTxHash = platformTx.txHash;
 
       const verifyRes = await fetch('/api/vblog/modules/verify', {
         method: 'POST',
@@ -295,7 +287,7 @@ export function ArticleDetail({
           platformTxHash,
         }),
       });
-      const verifyJson = (await verifyRes.json()) as { ok?: boolean; error?: string; points?: number };
+      const verifyJson = await parseJsonResponse<{ ok?: boolean; error?: string; points?: number }>(verifyRes);
       if (!verifyJson.ok) throw new Error(verifyJson.error ?? 'Verification failed');
       return { authorTxHashes, platformTxHash, payment, payerAddress };
     }
@@ -304,7 +296,9 @@ export function ArticleDetail({
       const authorTxHashes: string[] = [];
       for (const split of authorSplits) {
         const portion =
-          payment.authorKas > 0 ? listAmount * authorShare * (split.kas / payment.authorKas) : listAmount * authorShare;
+          payment.authorKas > 0
+            ? effectiveTokenAmount * authorShare * (split.kas / payment.authorKas)
+            : effectiveTokenAmount * authorShare;
         const hash = await transferKrc20(kaspaState.provider as KaspaWalletProvider, {
           tick: currency,
           amount: portion,
@@ -313,7 +307,7 @@ export function ArticleDetail({
         });
         authorTxHashes.push(hash);
       }
-      const platformToken = listAmount * platformShare;
+      const platformToken = effectiveTokenAmount * platformShare;
       let platformTxHash = authorTxHashes[0] ?? '';
       if (platformToken > 1e-9) {
         platformTxHash = await transferKrc20(kaspaState.provider as KaspaWalletProvider, {
@@ -330,7 +324,9 @@ export function ArticleDetail({
     const authorTxHashes: string[] = [];
     for (const split of authorSplits) {
       const portion =
-        payment.authorKas > 0 ? listAmount * authorShare * (split.kas / payment.authorKas) : listAmount * authorShare;
+        payment.authorKas > 0
+          ? effectiveTokenAmount * authorShare * (split.kas / payment.authorKas)
+          : effectiveTokenAmount * authorShare;
       const hash = await transferKrc20(kaspaState.provider as KaspaWalletProvider, {
         tick,
         amount: portion,
@@ -338,7 +334,7 @@ export function ArticleDetail({
       });
       authorTxHashes.push(hash);
     }
-    const platformToken = listAmount * platformShare;
+    const platformToken = effectiveTokenAmount * platformShare;
     let platformTxHash = authorTxHashes[0] ?? '';
     if (platformToken > 1e-9) {
       platformTxHash = await transferKrc20(kaspaState.provider as KaspaWalletProvider, {
@@ -375,7 +371,7 @@ export function ArticleDetail({
       );
       setRefreshTick((x) => x + 1);
     } catch (e) {
-      setActionError(e instanceof Error ? e.message : 'Unlock failed');
+      setActionError(formatKaspaWalletError(e) || 'Unlock failed');
     } finally {
       setIsProcessingAction(false);
     }
@@ -410,7 +406,7 @@ export function ArticleDetail({
       });
       setRefreshTick((x) => x + 1);
     } catch (e) {
-      setActionError(e instanceof Error ? e.message : 'Tip failed');
+      setActionError(formatKaspaWalletError(e) || 'Tip failed');
     } finally {
       setIsProcessingAction(false);
     }
@@ -434,16 +430,13 @@ export function ArticleDetail({
       setIsProcessingAction(true);
       const payerAddress = normalizeKaspaAddress(kaspaState.address);
       const note = `kvb1:receipt:${article.id}:${payerAddress}:${Date.now()}`;
-      const tx = await sendKaspaTransaction(kaspaState.provider as KaspaWalletProvider, {
+      const receiptTx = await sendVBlogReaderKasTx({
+        provider: kaspaState.provider as KaspaWalletProvider,
         to: getVBlogTreasuryL1Address(),
-        amount: String(kasToSompi(1)),
-        note,
-        payload: utf8ToHex(note),
+        amountKas: 1,
+        payloadHex: utf8ToHex(note),
       });
-      if (tx.status === 'failed' || !tx.txHash) {
-        throw new Error(tx.error ?? 'Reading receipt failed');
-      }
-      const txHash = extractKaspaTransactionId(tx.txHash) ?? tx.txHash;
+      const txHash = receiptTx.txHash;
       saveReadingReceipt({
         articleId: article.id,
         wallet: payerAddress,
@@ -455,7 +448,7 @@ export function ArticleDetail({
       });
       setRefreshTick((x) => x + 1);
     } catch (e) {
-      setActionError(e instanceof Error ? e.message : 'Receipt failed');
+      setActionError(formatKaspaWalletError(e) || 'Receipt failed');
     } finally {
       setIsProcessingAction(false);
     }

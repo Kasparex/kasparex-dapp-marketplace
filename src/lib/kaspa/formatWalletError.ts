@@ -75,7 +75,8 @@ export function formatKaspaWalletError(err: unknown): string {
 
 function storageMassHelp(): string {
   return (
-    'Storage mass exceeds maximum. This often happens when your wallet has many small UTXOs (common after a KREX transfer). ' +
-    'Compound UTXOs in KasWare (Wallet > UTXO > Compound), then retry.'
+    'Storage mass exceeds maximum. This often happens when your wallet has many small UTXOs (common after a KREX transfer), or when a payment output is very small. ' +
+    'Compound UTXOs in KasWare (Wallet > UTXO > Compound), then retry. ' +
+    'If High-mass mode is available in KPX Tools, enable it before retrying.'
   );
 }

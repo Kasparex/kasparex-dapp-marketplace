@@ -13,10 +13,8 @@ import {
 } from '@/lib/vblog/data';
 import { VBlogArticle, VBlogComment } from '@/lib/vblog/types';
 import { useKaspaWallet } from '@/lib/kaspa/context';
-import { sendKaspaTransaction } from '@/lib/kaspa/wallet';
 import type { KaspaWalletProvider } from '@/lib/kaspa/types';
-import { extractKaspaTransactionId } from '@/lib/kaspa/transactionId';
-import { kasToSompi } from '@/lib/ads/config';
+import { formatKaspaWalletError } from '@/lib/kaspa/formatWalletError';
 import { getVBlogTreasuryL1Address } from '@/lib/vblog/config';
 import { useVBlogPricing } from '@/hooks/useVBlogPricing';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
@@ -29,7 +27,6 @@ import { executeHubPaidDelete, HUB_DELETE_FEE_KAS } from '@/lib/hub/paidDelete';
 import {
   splitPayloadToHexChunks,
   buildVBlogCommitPayloadHex,
-  buildVBlogCommitPlainNote,
   buildVBlogDeletePayloadHex,
   buildVBlogDeletePlainNote,
   computeVBlogRootHash,
@@ -45,6 +42,7 @@ import {
   onHubContentVisibilityRefresh,
 } from '@/lib/hub/contentSync';
 import { collectVblogMediaCids } from '@/lib/ipfs/cidUtils';
+import { parseJsonResponse, sendVBlogReaderKasTx } from '@/lib/vblog/sendReaderPaymentTx';
 
 /**
  * Hook for managing vBlog data
@@ -118,15 +116,7 @@ export function useVBlog() {
     const chunkCount = chunkHexList.length;
     const rootHash = computeVBlogRootHash(chunkHexList);
     const treasury = getVBlogTreasuryL1Address();
-    const paymentKas = Math.max(0.01, Math.ceil(args.totalKas * 100) / 100);
-    const commitNote = buildVBlogCommitPlainNote({
-      articleId: args.articleId,
-      op: args.op,
-      chunkTotal: chunkCount,
-      rootHash,
-      contentHash: args.contentHash,
-      version: 1,
-    });
+    const paymentKas = Math.max(0.02, Math.ceil(args.totalKas * 100) / 100);
     const commitPayload = buildVBlogCommitPayloadHex({
       articleId: args.articleId,
       op: args.op,
@@ -135,16 +125,18 @@ export function useVBlog() {
       contentHash: args.contentHash,
       version: 1,
     });
-    const commitTx = await sendKaspaTransaction(kaspaState.provider as KaspaWalletProvider, {
-      to: treasury,
-      amount: String(kasToSompi(paymentKas)),
-      note: commitNote,
-      payload: commitPayload,
-    });
-    if (commitTx.status === 'failed' || !commitTx.txHash) {
-      throw new Error(commitTx.error ?? 'Commit transaction failed');
+    let commitTxHash: string;
+    try {
+      const commitTx = await sendVBlogReaderKasTx({
+        provider: kaspaState.provider as KaspaWalletProvider,
+        to: treasury,
+        amountKas: paymentKas,
+        payloadHex: commitPayload,
+      });
+      commitTxHash = commitTx.txHash;
+    } catch (e) {
+      throw new Error(formatKaspaWalletError(e) || 'Commit transaction failed');
     }
-    const commitTxHash = extractKaspaTransactionId(commitTx.txHash) ?? commitTx.txHash;
 
     let verified = false;
     let lastError = 'Verification failed.';
@@ -164,12 +156,12 @@ export function useVBlog() {
             requiredTotalKas: args.totalKas,
           }),
         });
-        const verifyJson = (await verifyRes.json()) as {
+        const verifyJson = await parseJsonResponse<{
           ok?: boolean;
           error?: string;
           ptsIngest?: string;
           ptsIngestError?: string;
-        };
+        }>(verifyRes);
         if (verifyJson.ok) {
           verified = true;
           if (verifyJson.ptsIngest === 'failed') {
@@ -181,8 +173,8 @@ export function useVBlog() {
           break;
         }
         lastError = verifyJson.error ?? lastError;
-      } catch {
-        lastError = 'Verification endpoint unavailable.';
+      } catch (e) {
+        lastError = e instanceof Error ? e.message : 'Verification endpoint unavailable.';
       }
       if (attempt < 9) {
         await new Promise((r) => setTimeout(r, 1400 + attempt * 450));
