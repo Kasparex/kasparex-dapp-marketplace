@@ -10,7 +10,8 @@ export function isStorageMassErrorMessage(msg: string): boolean {
 }
 
 export function retryKasCandidates(baseKas: number, highMassMode: boolean): number[] {
-  const ladder = highMassMode ? [2, 5, 10, 20, 30] : [baseKas, 0.2, 0.5, 1, 2, 5, 10];
+  // Prefer mass-safe rungs (1+ KAS). Tiny ladder steps were useless for fragmented wallets.
+  const ladder = highMassMode ? [2, 5, 10, 20, 30] : [baseKas, 1, 2, 5, 10, 20];
   const unique: number[] = [];
   for (const x of ladder) {
     const v = Number.isFinite(x) ? Number(x.toFixed(8)) : 0;

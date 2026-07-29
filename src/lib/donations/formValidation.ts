@@ -33,11 +33,12 @@ function validatePremiumSectionModules(
 ): string | null {
   if (!modules?.premiumSectionEnabled) return null;
   if (!htmlToPlainText(modules.premiumSectionContent ?? '').trim()) {
-    return 'Premium section needs content.';
+    return 'Premium section needs content before you can enable and pay for it.';
   }
   const price = Number(modules.premiumSectionPriceKas);
-  if (!Number.isFinite(price) || price <= 0) {
-    return 'Premium section unlock price must be greater than 0 KAS.';
+  const minList = 2;
+  if (!Number.isFinite(price) || price < minList) {
+    return `Premium section unlock price must be at least ${minList} KAS.`;
   }
   const splits = resolveCrowdKasPremiumPayoutSplits(modules, fallbackAuthor);
   return validatePayoutSplitRows(

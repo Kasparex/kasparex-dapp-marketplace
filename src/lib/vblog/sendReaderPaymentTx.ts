@@ -8,6 +8,7 @@ import {
 } from '@/lib/kaspa/tx-mass-mode';
 import type { KaspaWalletProvider } from '@/lib/kaspa/types';
 import { sendKaspaTransaction } from '@/lib/kaspa/wallet';
+import { VBLOG_READER_MIN_OUTPUT_KAS } from '@/lib/vblog/readerPricing';
 
 /**
  * Send a reader unlock / tip KAS payment with on-chain payload binding.
@@ -21,7 +22,7 @@ export async function sendVBlogReaderKasTx(args: {
   amountKas: number;
   payloadHex: string;
 }): Promise<{ txHash: string; paidKas: number }> {
-  const baseKas = Math.max(0.02, Number(args.amountKas.toFixed(8)));
+  const baseKas = Math.max(VBLOG_READER_MIN_OUTPUT_KAS, Number(args.amountKas.toFixed(8)));
   const highMass = readHighMassMode();
   const candidates = retryKasCandidates(baseKas, highMass);
   let lastErr: string | null = null;

@@ -34,8 +34,9 @@ import { HubAsideRail } from '@/components/hub/HubAsideRail';
 import { DEFAULT_VBLOG_CATEGORIES, addAuthorCustomCategory, isCustomCategory } from '@/lib/vblog/categories';
 import { cleanVBlogSocialLinks, vBlogSocialLinksToRows, VBLOG_SOCIAL_LABEL_MAX } from '@/lib/vblog/socialLinks';
 import { cleanPollOptions, defaultPollOptions } from '@/components/vblog/VBlogPollOptionsEditor';
-import { cleanPayoutSplitRows, payoutSplitRowsFromModules, validatePayoutSplitRows, DEFAULT_PAYOUT_SPLIT_ROWS } from '@/lib/vblog/paymentSplit';
+import { cleanPayoutSplitRows, payoutSplitRowsFromModules, DEFAULT_PAYOUT_SPLIT_ROWS } from '@/lib/vblog/paymentSplit';
 import type { PayoutSplitRow } from '@/components/vblog/VBlogModuleConfigFields';
+import { validateVBlogModulesForPublish } from '@/lib/vblog/formValidation';
 import { KxLinkRowsEditor, type KxLinkRow } from '@/components/ui/KxLinkRowsEditor';
 import { IPFS_MAX_UPLOAD_MB } from '@/lib/ipfs/limits';
 import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
@@ -423,42 +424,30 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
       return;
     }
 
-    if (premiumSectionEnabled) {
-      if (!htmlToPlainText(premiumSectionContent).trim()) {
-        setError('Premium section needs content.');
-        return;
-      }
-      const splitErr = validatePayoutSplitRows(resolvedPremiumPayoutSplits);
-      if (splitErr) {
-        setError(splitErr);
-        return;
-      }
-      const price = Number(premiumSectionPriceKas);
-      if (!Number.isFinite(price) || price <= 0) {
-        setError('Premium section unlock price must be greater than 0 KAS.');
-        return;
-      }
-    }
-    if (tipToRevealEnabled && !htmlToPlainText(tipToRevealContent).trim()) {
-      setError('Tip-to-reveal bonus content is required when enabled.');
-      return;
-    }
-    if (tipToRevealEnabled) {
-      const threshold = Number(tipToRevealThresholdKas);
-      if (!Number.isFinite(threshold) || threshold <= 0) {
-        setError('Tip-to-reveal threshold must be greater than 0 KAS.');
-        return;
-      }
-    }
-    if (premiumPollEnabled) {
-      const options = cleanPollOptions(pollOptions);
-      if (!pollQuestion.trim() || options.length < 2) {
-        setError('Premium poll requires a question and at least 2 options.');
-        return;
-      }
-    }
-    if (magazineIntegrationEnabled && (!linkedMagazineId || !linkedIssueNumber)) {
-      setError('Magazine integration requires a target magazine and issue number.');
+    const tipPresetNums = tipBoxPresets
+      .split(',')
+      .map((v) => Number(v.trim()))
+      .filter((n) => Number.isFinite(n) && n > 0);
+    const modulesErr = validateVBlogModulesForPublish({
+      premiumSectionEnabled,
+      premiumSectionContent,
+      premiumSectionPriceKas,
+      premiumPayoutSplits: resolvedPremiumPayoutSplits,
+      tipBoxEnabled,
+      tipBoxPresets: tipPresetNums,
+      tipBoxCurrencies: tipBoxCurrencies,
+      tipToRevealEnabled,
+      tipToRevealContent,
+      tipToRevealThresholdKas,
+      premiumPollEnabled,
+      pollQuestion,
+      pollOptions: cleanPollOptions(pollOptions),
+      magazineIntegrationEnabled,
+      linkedMagazineId,
+      linkedIssueNumber,
+    });
+    if (modulesErr) {
+      setError(modulesErr);
       return;
     }
 

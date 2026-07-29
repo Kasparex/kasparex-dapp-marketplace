@@ -226,7 +226,12 @@ export async function verifyVBlogModulePaymentSplit(input: VerifyModulePaymentIn
   }
 
   const authorHashes = input.authorTxHashes.filter(Boolean);
-  if (authorHashes.length === 0 || !input.platformTxHash) {
+  if (authorHashes.length === 0) {
+    return { ok: false, error: 'Missing payment transaction hashes' };
+  }
+
+  const expectsPlatform = Number(input.expectedPlatformKas) > 1e-9;
+  if (expectsPlatform && !input.platformTxHash) {
     return { ok: false, error: 'Missing payment transaction hashes' };
   }
 
@@ -240,16 +245,21 @@ export async function verifyVBlogModulePaymentSplit(input: VerifyModulePaymentIn
     paidAuthorSompi += sumPaidToRecipientSet(authorTx, recipientNorms);
   }
 
+  const authorMin = kasToSompi(input.expectedAuthorKas);
+  if (paidAuthorSompi < authorMin) return { ok: false, error: 'Author payout underpaid' };
+
+  if (!expectsPlatform) {
+    return { ok: true };
+  }
+
   const platformTx = await getRestTransactionById(input.platformTxHash, { maxAttempts: 6, delayMs: 1200 });
   if (!platformTx) return { ok: false, error: 'Payment transaction not found yet' };
   if (!txAffirmsModulePayer(platformTx, payerNorm, input.articleId, input.moduleId)) {
     return { ok: false, error: 'Payer mismatch in payment split' };
   }
 
-  const authorMin = kasToSompi(input.expectedAuthorKas);
   const platformMin = kasToSompi(input.expectedPlatformKas);
   const paidPlatform = txPaysAddressSompi(platformTx, treasuryNorm);
-  if (paidAuthorSompi < authorMin) return { ok: false, error: 'Author payout underpaid' };
   if (paidPlatform < platformMin) return { ok: false, error: 'Platform fee underpaid' };
 
   return { ok: true };

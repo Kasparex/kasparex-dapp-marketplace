@@ -38,6 +38,8 @@ export async function POST(request: NextRequest) {
       .filter(Boolean);
 
     const platformTxHash = extractKaspaTransactionId(body.platformTxHash ?? '') ?? '';
+    const expectedPlatformKas = Number(body.expectedPlatformKas);
+    const expectsPlatform = Number.isFinite(expectedPlatformKas) && expectedPlatformKas > 1e-9;
 
     if (
       !body.payerAddress ||
@@ -45,9 +47,9 @@ export async function POST(request: NextRequest) {
       !body.moduleId ||
       !body.expectedAuthorAddress ||
       !Number.isFinite(Number(body.expectedAuthorKas)) ||
-      !Number.isFinite(Number(body.expectedPlatformKas)) ||
+      !Number.isFinite(expectedPlatformKas) ||
       authorTxHashes.length === 0 ||
-      !platformTxHash
+      (expectsPlatform && !platformTxHash)
     ) {
       return NextResponse.json({ ok: false, error: 'Missing fields' }, { status: 400 });
     }
@@ -58,7 +60,7 @@ export async function POST(request: NextRequest) {
       moduleId: body.moduleId,
       expectedAuthorAddress: body.expectedAuthorAddress,
       expectedAuthorKas: Number(body.expectedAuthorKas),
-      expectedPlatformKas: Number(body.expectedPlatformKas),
+      expectedPlatformKas,
       authorTxHashes,
       authorRecipientAddresses: body.authorRecipientAddresses,
       platformTxHash,

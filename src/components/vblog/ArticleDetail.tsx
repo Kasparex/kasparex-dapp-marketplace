@@ -228,7 +228,12 @@ export function ArticleDetail({
     const kasEquivalent =
       toKasEq(listAmount, currency, pricingSnapshot) ??
       (currency === 'KREX' ? krexToKasAmount(listAmount) : listAmount);
-    const payment = computeVBlogReaderPaymentSplit(kasEquivalent, krexTier, nftStatus, getVBlogPlatformFeeBps());
+    const isTip = moduleId === 'tip_box' || moduleId === 'tip_to_reveal_unlock';
+    // Tips: no KREX tier discount, 100% to author (no platform fee / no second tx).
+    const payment = computeVBlogReaderPaymentSplit(kasEquivalent, krexTier, nftStatus, {
+      applyKrexDiscount: !isTip,
+      platformFeeBps: isTip ? 0 : getVBlogPlatformFeeBps(),
+    });
     const payoutSplits =
       moduleId === 'premium_unlock'
         ? resolvePremiumPayoutSplits(article.modules, article.author)
@@ -253,6 +258,18 @@ export function ArticleDetail({
         amountKas: payment.totalKas,
       });
 
+      // Platform fee first so a mass failure cannot leave the author paid without unlock.
+      let platformTxHash = '';
+      if (payment.platformKas > 1e-9) {
+        const platformTx = await sendVBlogReaderKasTx({
+          provider: kaspaState.provider as KaspaWalletProvider,
+          to: getVBlogTreasuryL1Address(),
+          amountKas: payment.platformKas,
+          payloadHex: payload,
+        });
+        platformTxHash = platformTx.txHash;
+      }
+
       const authorTxHashes: string[] = [];
       for (const split of authorSplits) {
         const authorTx = await sendVBlogReaderKasTx({
@@ -263,14 +280,9 @@ export function ArticleDetail({
         });
         authorTxHashes.push(authorTx.txHash);
       }
-
-      const platformTx = await sendVBlogReaderKasTx({
-        provider: kaspaState.provider as KaspaWalletProvider,
-        to: getVBlogTreasuryL1Address(),
-        amountKas: payment.platformKas,
-        payloadHex: payload,
-      });
-      const platformTxHash = platformTx.txHash;
+      if (!platformTxHash) {
+        platformTxHash = authorTxHashes[0] ?? '';
+      }
 
       const verifyRes = await fetch('/api/vblog/modules/verify', {
         method: 'POST',
@@ -284,7 +296,7 @@ export function ArticleDetail({
           expectedPlatformKas: payment.platformKas,
           authorTxHashes,
           authorRecipientAddresses: payoutSplits.map((s) => s.address),
-          platformTxHash,
+          platformTxHash: payment.platformKas > 1e-9 ? platformTxHash : '',
         }),
       });
       const verifyJson = await parseJsonResponse<{ ok?: boolean; error?: string; points?: number }>(verifyRes);
@@ -293,6 +305,16 @@ export function ArticleDetail({
     }
 
     if (!isBuiltinStoreCurrency(currency)) {
+      const platformToken = effectiveTokenAmount * platformShare;
+      let platformTxHash = '';
+      if (platformToken > 1e-9) {
+        platformTxHash = await transferKrc20(kaspaState.provider as KaspaWalletProvider, {
+          tick: currency,
+          amount: platformToken,
+          to: getVBlogTreasuryL1Address(),
+          decimals: integratedTokenDecimals(currency),
+        });
+      }
       const authorTxHashes: string[] = [];
       for (const split of authorSplits) {
         const portion =
@@ -307,20 +329,20 @@ export function ArticleDetail({
         });
         authorTxHashes.push(hash);
       }
-      const platformToken = effectiveTokenAmount * platformShare;
-      let platformTxHash = authorTxHashes[0] ?? '';
-      if (platformToken > 1e-9) {
-        platformTxHash = await transferKrc20(kaspaState.provider as KaspaWalletProvider, {
-          tick: currency,
-          amount: platformToken,
-          to: getVBlogTreasuryL1Address(),
-          decimals: integratedTokenDecimals(currency),
-        });
-      }
+      if (!platformTxHash) platformTxHash = authorTxHashes[0] ?? '';
       return { authorTxHashes, platformTxHash, payment, payerAddress };
     }
 
     const tick = currency;
+    const platformToken = effectiveTokenAmount * platformShare;
+    let platformTxHash = '';
+    if (platformToken > 1e-9) {
+      platformTxHash = await transferKrc20(kaspaState.provider as KaspaWalletProvider, {
+        tick,
+        amount: platformToken,
+        to: getVBlogTreasuryL1Address(),
+      });
+    }
     const authorTxHashes: string[] = [];
     for (const split of authorSplits) {
       const portion =
@@ -334,15 +356,7 @@ export function ArticleDetail({
       });
       authorTxHashes.push(hash);
     }
-    const platformToken = effectiveTokenAmount * platformShare;
-    let platformTxHash = authorTxHashes[0] ?? '';
-    if (platformToken > 1e-9) {
-      platformTxHash = await transferKrc20(kaspaState.provider as KaspaWalletProvider, {
-        tick,
-        amount: platformToken,
-        to: getVBlogTreasuryL1Address(),
-      });
-    }
+    if (!platformTxHash) platformTxHash = authorTxHashes[0] ?? '';
     return { authorTxHashes, platformTxHash, payment, payerAddress };
   };
 

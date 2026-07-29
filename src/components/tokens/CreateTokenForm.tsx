@@ -19,6 +19,7 @@ import {
   type TokenListingMediaState,
 } from '@/components/tokens/TokenListingMediaPanel';
 import { TOKEN_MODULE_OFFERS, type TokenModuleId, getTokenModuleDiscountPercent, getTokenModuleEffectivePriceKas, type TokenModulesConfig, DEFAULT_HIGHLIGHT_HALO_COLOR } from '@/lib/tokens/modules';
+import { validateTokenModulesForPublish } from '@/lib/tokens/formValidation';
 import { HubPaymentPanel } from '@/components/payments/HubPaymentPanel';
 import { buildKasKrexCurrencyOptions, formatHubPaymentAmount } from '@/lib/payments/hubPaymentTypes';
 import { filterModulesForAssetKind, filterModuleOffersForListing, isIntegrationModule } from '@/lib/tokens/utilityEligibility';
@@ -732,6 +733,16 @@ export function CreateTokenForm({
     }
     if (!canPublish) {
       setError('Publishing requires a connected Kaspa L1 wallet for the listing payment.');
+      return;
+    }
+
+    const modulesErr = validateTokenModulesForPublish({
+      enabledModuleIds: enabledModules,
+      modulesConfig,
+      marketsSectionEnabled: Boolean(sectionToggles.markets),
+    });
+    if (modulesErr) {
+      setError(modulesErr);
       return;
     }
 

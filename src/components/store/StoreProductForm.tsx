@@ -201,6 +201,11 @@ export function StoreProductForm({ product }: StoreProductFormProps) {
     e.preventDefault();
     if (!canSubmit || !state.address || !state.provider || !resolvedThumbnailCid) return;
 
+    if (enabledModules.buyer_support && !buyerSupportUrl.trim()) {
+      setError('Buyer support URL is required when the Buyer Support module is enabled.');
+      return;
+    }
+
     setIsProcessing(true);
     setError(null);
     setStep('payment');

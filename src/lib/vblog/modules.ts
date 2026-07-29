@@ -116,7 +116,7 @@ export function getVBlogModuleEffectivePriceKas(
 ): number {
   const discount = getVBlogModuleCombinedDiscountPercent(tier, nft);
   const factor = 1 - discount / 100;
-  return Math.max(0.02, Math.round(baseKas * factor * 100) / 100);
+  return Math.max(1, Math.round(baseKas * factor * 100) / 100);
 }
 
 export type VBlogModuleAddonLine = {

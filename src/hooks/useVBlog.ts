@@ -116,7 +116,7 @@ export function useVBlog() {
     const chunkCount = chunkHexList.length;
     const rootHash = computeVBlogRootHash(chunkHexList);
     const treasury = getVBlogTreasuryL1Address();
-    const paymentKas = Math.max(0.02, Math.ceil(args.totalKas * 100) / 100);
+    const paymentKas = Math.max(1, Math.ceil(args.totalKas * 100) / 100);
     const commitPayload = buildVBlogCommitPayloadHex({
       articleId: args.articleId,
       op: args.op,
