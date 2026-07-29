@@ -241,10 +241,68 @@ export const HUB_FLOW_PRESETS = {
       tooltip: 'Payment finished successfully.',
     },
   ] satisfies HubFlowStep[],
+
+  /**
+   * Reader premium unlock (author payout + optional Hub fee).
+   * Prefer buildHubReaderUnlockFlowSteps() when author split count varies.
+   */
+  hubReaderUnlock: buildHubReaderUnlockFlowSteps({ authorSignCount: 1, hasPlatformFee: true }),
 } as const;
 
 export type HubFlowPresetKey = keyof typeof HUB_FLOW_PRESETS;
 
 export function getHubFlowPreset(key: HubFlowPresetKey): HubFlowStep[] {
   return [...HUB_FLOW_PRESETS[key]];
+}
+
+/** Reader unlock / tip: Review → Pay Author (×N) → Pay Fee? → Verify → Complete */
+export function buildHubReaderUnlockFlowSteps(args?: {
+  authorSignCount?: number;
+  hasPlatformFee?: boolean;
+}): HubFlowStep[] {
+  const authorCount = Math.max(1, Math.floor(args?.authorSignCount ?? 1));
+  const hasFee = args?.hasPlatformFee !== false;
+  const totalPrompts = authorCount + (hasFee ? 1 : 0);
+
+  const authorLabel = authorCount > 1 ? `Pay Author ×${authorCount}` : 'Pay Author';
+  const authorTooltip =
+    authorCount > 1
+      ? `${authorCount} author payout signatures (${promptOf(1, totalPrompts)} through ${promptOf(authorCount, totalPrompts)}).`
+      : `${promptOf(1, totalPrompts)}: send the author payout in your Kaspa wallet.`;
+
+  const steps: HubFlowStep[] = [
+    {
+      id: 'review',
+      label: 'Review',
+      tooltip: 'Confirm unlock price, currency, and fee breakdown before paying.',
+    },
+    {
+      id: 'pay-author',
+      label: authorLabel,
+      tooltip: authorTooltip,
+    },
+  ];
+
+  if (hasFee) {
+    steps.push({
+      id: 'pay-fee',
+      label: 'Pay Fee',
+      tooltip: `${promptOf(totalPrompts, totalPrompts)}: confirm the Hub platform fee to treasury.`,
+    });
+  }
+
+  steps.push(
+    {
+      id: 'verify',
+      label: 'Verify',
+      tooltip: 'Confirms payments on Kaspa L1, then unlocks content in this browser.',
+    },
+    {
+      id: 'complete',
+      label: 'Complete',
+      tooltip: 'Unlocked. You can keep reading premium content on this device.',
+    },
+  );
+
+  return steps;
 }

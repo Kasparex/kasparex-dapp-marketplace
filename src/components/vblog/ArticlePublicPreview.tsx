@@ -95,6 +95,8 @@ export function ArticlePublicPreview({ article }: ArticlePublicPreviewProps) {
             previewHtml={article.modules.premiumSectionContent ?? ''}
             listPriceKas={premiumPricing.listKas}
             effectivePriceKas={premiumPricing.totalKas}
+            authorKas={premiumPricing.authorKas}
+            platformKas={premiumPricing.platformKas}
             discountPercent={premiumPricing.discountPercent}
             hubPointsBase={HUB_EARN_POINTS.vblogPremiumUnlock}
             tier={krexTier}

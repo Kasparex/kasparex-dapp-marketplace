@@ -20,6 +20,8 @@ import { vBlogSocialLinkUrl } from '@/lib/vblog/socialLinks';
 import type { VBlogSocialLink } from '@/lib/vblog/types';
 import { getSocialLinkIconMeta } from '@/lib/socialLinkIcons';
 import { HubPointsEarnRow } from '@/components/hub/HubPointsEarnBadge';
+import { HubFlowProgress } from '@/components/hub/HubFlowProgress';
+import { getHubFlowPreset } from '@/lib/hub/hubFlowProgress';
 import type { KREXTier } from '@/lib/rewards/types';
 import type { PricingSnapshot } from '@/lib/pricing/types';
 import {
@@ -152,6 +154,7 @@ interface ArticleSidebarProps {
   onCustomTipChange?: (value: string) => void;
   onTip?: (amount: number, currency: string) => void;
   isProcessingAction?: boolean;
+  tipFlowComplete?: boolean;
   isWalletConnected?: boolean;
   tipHubPointsBase?: number;
   tipHubPointsTier?: KREXTier;
@@ -167,6 +170,7 @@ export function ArticleSidebar({
   onCustomTipChange,
   onTip,
   isProcessingAction = false,
+  tipFlowComplete = false,
   isWalletConnected = false,
   tipHubPointsBase = 0,
   tipHubPointsTier = 'Tier0',
@@ -299,6 +303,13 @@ export function ArticleSidebar({
                 >
                   Custom tip
                 </button>
+              </div>
+              <div className="mt-3">
+                <HubFlowProgress
+                  steps={getHubFlowPreset('hubPay')}
+                  busy={isProcessingAction}
+                  complete={tipFlowComplete}
+                />
               </div>
             </div>
           ) : null}

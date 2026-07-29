@@ -22,6 +22,8 @@ import {
   resolveCrowdKasPremiumPayoutSplits,
 } from '@/lib/donations/premiumSection';
 import { CrowdKasPremiumSectionGate } from '@/components/donations/CrowdKasPremiumSectionGate';
+import { reportHubFlowStep } from '@/lib/hub/hubFlowProgress';
+import { formatKaspaWalletError } from '@/lib/kaspa/formatWalletError';
 import { buildKasKrexCurrencyOptions } from '@/lib/payments/hubPaymentTypes';
 import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
 import { appendHubActivityEarn } from '@/lib/rewards/appendHubActivityEarn';
@@ -50,6 +52,8 @@ export function CrowdKasPremiumSectionUnlock({
 
   const [premiumCurrency, setPremiumCurrency] = useState('KAS');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [flowComplete, setFlowComplete] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
   const [refreshTick, setRefreshTick] = useState(0);
 
   const discountPercent = getVBlogModuleDiscountPercent(tier);
@@ -97,7 +101,10 @@ export function CrowdKasPremiumSectionUnlock({
     });
 
     setIsProcessing(true);
+    setActionError(null);
+    setFlowComplete(false);
     try {
+      reportHubFlowStep('sign-pay', 'hubPay', 'Approve the creator payout in your wallet');
       let primaryTxHash = '';
       for (const split of authorSplits) {
         const txRes = await sendKaspaTransaction(kaspaState.provider as KaspaWalletProvider, {
@@ -113,6 +120,7 @@ export function CrowdKasPremiumSectionUnlock({
 
       const destForRecord = authorSplits[0]?.address ?? campaign.l1Address?.trim();
       if (destForRecord) {
+        reportHubFlowStep('sign-pay', 'hubPay', 'Confirming payment on Kaspa L1…');
         for (let attempt = 0; attempt < 12; attempt++) {
           try {
             const res = await fetch('/api/donations/l1-tip/record', {
@@ -146,8 +154,12 @@ export function CrowdKasPremiumSectionUnlock({
         idempotencyKey: `crowdkas:premium:${campaignId}:${primaryTxHash}`,
         meta: { campaignId },
       });
+      setFlowComplete(true);
+      reportHubFlowStep('complete', 'hubPay');
       setRefreshTick((x) => x + 1);
       onDonationRecorded?.();
+    } catch (e) {
+      setActionError(formatKaspaWalletError(e) || 'Unlock failed');
     } finally {
       setIsProcessing(false);
     }
@@ -187,11 +199,13 @@ export function CrowdKasPremiumSectionUnlock({
       tier={tier}
       isProcessing={isProcessing}
       isWalletConnected={kaspaState.isConnected && Boolean(donorL2)}
-      payoutSplits={payoutSplits}
       paymentCurrencies={paymentCurrencies}
       selectedCurrency={premiumCurrency}
       onCurrencyChange={setPremiumCurrency}
       pricingSnapshot={pricingSnapshot}
+      flowBusy={isProcessing}
+      flowComplete={flowComplete && unlocked}
+      actionError={actionError}
       onUnlock={() => void handleUnlock()}
     />
   );

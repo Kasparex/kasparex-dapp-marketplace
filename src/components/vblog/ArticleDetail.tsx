@@ -29,6 +29,17 @@ import { buildVBlogPremiumUnlockPayloadHex, utf8ToHex } from '@/lib/vblog/payloa
 import { computeVBlogReaderPaymentSplit } from '@/lib/vblog/readerPricing';
 import { resolvePremiumPayoutSplits, splitAuthorKasByPercent } from '@/lib/vblog/paymentSplit';
 import { parseJsonResponse, sendVBlogReaderKasTx } from '@/lib/vblog/sendReaderPaymentTx';
+import {
+  clearPendingVBlogReaderPayment,
+  loadPendingVBlogReaderPayment,
+  savePendingVBlogReaderPayment,
+} from '@/lib/vblog/pendingReaderPayment';
+import {
+  buildHubReaderUnlockFlowSteps,
+  getHubFlowPreset,
+  reportHubFlowStep,
+} from '@/lib/hub/hubFlowProgress';
+import { HubFlowProgress } from '@/components/hub/HubFlowProgress';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { useNFTStatus } from '@/hooks/useNFTStatus';
 import { appendHubActivityEarn } from '@/lib/rewards/appendHubActivityEarn';
@@ -107,6 +118,7 @@ export function ArticleDetail({
   const [customTipKas, setCustomTipKas] = useState('25');
   const [actionError, setActionError] = useState<string | null>(null);
   const [isProcessingAction, setIsProcessingAction] = useState(false);
+  const [flowComplete, setFlowComplete] = useState(false);
   const [refreshTick, setRefreshTick] = useState(0);
   const [selectedPollOption, setSelectedPollOption] = useState(0);
   const [featuredLightboxOpen, setFeaturedLightboxOpen] = useState(false);
@@ -216,6 +228,26 @@ export function ArticleDetail({
     },
   ];
 
+  const premiumUnlockFlowSteps = useMemo(
+    () =>
+      buildHubReaderUnlockFlowSteps({
+        authorSignCount: Math.max(1, premiumPayoutSplits.length),
+        hasPlatformFee: premiumPricing.platformKas > 1e-9,
+      }),
+    [premiumPayoutSplits.length, premiumPricing.platformKas],
+  );
+
+  const hasPendingPremiumPayment = useMemo(() => {
+    if (!kaspaState.address || premiumUnlockEntitled) return false;
+    try {
+      const payer = normalizeKaspaAddress(kaspaState.address);
+      const pending = loadPendingVBlogReaderPayment(article.id, 'premium_unlock', payer);
+      return Boolean(pending && (pending.authorTxHashes.length > 0 || pending.platformTxHash));
+    } catch {
+      return false;
+    }
+  }, [kaspaState.address, article.id, premiumUnlockEntitled, refreshTick]);
+
   const performSplitPayment = async (
     moduleId: 'premium_unlock' | 'tip_to_reveal_unlock' | 'tip_box',
     listAmount: number,
@@ -229,7 +261,6 @@ export function ArticleDetail({
       toKasEq(listAmount, currency, pricingSnapshot) ??
       (currency === 'KREX' ? krexToKasAmount(listAmount) : listAmount);
     const isTip = moduleId === 'tip_box' || moduleId === 'tip_to_reveal_unlock';
-    // Tips: no KREX tier discount, 100% to author (no platform fee / no second tx).
     const payment = computeVBlogReaderPaymentSplit(kasEquivalent, krexTier, nftStatus, {
       applyKrexDiscount: !isTip,
       platformFeeBps: isTip ? 0 : getVBlogPlatformFeeBps(),
@@ -244,11 +275,31 @@ export function ArticleDetail({
     const authorSplits = splitAuthorKasByPercent(payment.authorKas, payoutSplits);
     const authorShare = payment.totalKas > 0 ? payment.authorKas / payment.totalKas : 1;
     const platformShare = payment.totalKas > 0 ? payment.platformKas / payment.totalKas : 0;
-
-    // Apply Tier discount to token amounts (listAmount is still the undiscounted token qty).
     const discountFactor =
       kasEquivalent > 0 ? Math.min(1, Math.max(0, payment.totalKas / kasEquivalent)) : 1;
     const effectiveTokenAmount = listAmount * discountFactor;
+
+    const pending = loadPendingVBlogReaderPayment(article.id, moduleId, payerAddress);
+    let authorTxHashes = [...(pending?.authorTxHashes ?? [])];
+    let platformTxHash = pending?.platformTxHash ?? '';
+
+    const persistPending = () => {
+      savePendingVBlogReaderPayment({
+        articleId: article.id,
+        moduleId,
+        payerAddress,
+        currency,
+        expectedAuthorKas: payment.authorKas,
+        expectedPlatformKas: payment.platformKas,
+        expectedAuthorAddress: payoutSplits[0].address,
+        authorRecipientAddresses: payoutSplits.map((s) => s.address),
+        authorTxHashes,
+        platformTxHash,
+        updatedAt: new Date().toISOString(),
+      });
+    };
+
+    reportHubFlowStep('review', isTip ? 'hubPay' : 'hubReaderUnlock');
 
     if (currency === 'KAS') {
       const payload = buildVBlogPremiumUnlockPayloadHex({
@@ -258,9 +309,32 @@ export function ArticleDetail({
         amountKas: payment.totalKas,
       });
 
-      // Platform fee first so a mass failure cannot leave the author paid without unlock.
-      let platformTxHash = '';
-      if (payment.platformKas > 1e-9) {
+      // Author first: if funds run out on the Hub fee, we can still resume / unlock after author is paid.
+      if (authorTxHashes.length < authorSplits.length) {
+        reportHubFlowStep(
+          isTip ? 'sign-pay' : 'pay-author',
+          isTip ? 'hubPay' : 'hubReaderUnlock',
+          authorSplits.length > 1
+            ? `Author payout ${authorTxHashes.length + 1} of ${authorSplits.length}`
+            : isTip
+              ? 'Approve the tip in your wallet'
+              : 'Approve the author payout in your wallet',
+        );
+        for (let i = authorTxHashes.length; i < authorSplits.length; i++) {
+          const split = authorSplits[i];
+          const authorTx = await sendVBlogReaderKasTx({
+            provider: kaspaState.provider as KaspaWalletProvider,
+            to: split.address,
+            amountKas: split.kas,
+            payloadHex: payload,
+          });
+          authorTxHashes.push(authorTx.txHash);
+          persistPending();
+        }
+      }
+
+      if (payment.platformKas > 1e-9 && !platformTxHash) {
+        reportHubFlowStep('pay-fee', 'hubReaderUnlock', 'Approve the Hub fee in your wallet');
         const platformTx = await sendVBlogReaderKasTx({
           provider: kaspaState.provider as KaspaWalletProvider,
           to: getVBlogTreasuryL1Address(),
@@ -268,22 +342,13 @@ export function ArticleDetail({
           payloadHex: payload,
         });
         platformTxHash = platformTx.txHash;
-      }
-
-      const authorTxHashes: string[] = [];
-      for (const split of authorSplits) {
-        const authorTx = await sendVBlogReaderKasTx({
-          provider: kaspaState.provider as KaspaWalletProvider,
-          to: split.address,
-          amountKas: split.kas,
-          payloadHex: payload,
-        });
-        authorTxHashes.push(authorTx.txHash);
+        persistPending();
       }
       if (!platformTxHash) {
         platformTxHash = authorTxHashes[0] ?? '';
       }
 
+      reportHubFlowStep('verify', isTip ? 'hubPay' : 'hubReaderUnlock', 'Confirming payments on Kaspa L1…');
       const verifyRes = await fetch('/api/vblog/modules/verify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -301,68 +366,72 @@ export function ArticleDetail({
       });
       const verifyJson = await parseJsonResponse<{ ok?: boolean; error?: string; points?: number }>(verifyRes);
       if (!verifyJson.ok) throw new Error(verifyJson.error ?? 'Verification failed');
+
+      clearPendingVBlogReaderPayment(article.id, moduleId, payerAddress);
+      reportHubFlowStep('complete', isTip ? 'hubPay' : 'hubReaderUnlock');
       return { authorTxHashes, platformTxHash, payment, payerAddress };
     }
 
-    if (!isBuiltinStoreCurrency(currency)) {
+    // Token paths: same author-first order + pending resume by hash count.
+    const sendTokenLegs = async (
+      transfer: (args: { amount: number; to: string }) => Promise<string>,
+    ) => {
+      if (authorTxHashes.length < authorSplits.length) {
+        reportHubFlowStep(
+          isTip ? 'sign-pay' : 'pay-author',
+          isTip ? 'hubPay' : 'hubReaderUnlock',
+          'Approve the author token transfer',
+        );
+        for (let i = authorTxHashes.length; i < authorSplits.length; i++) {
+          const split = authorSplits[i];
+          const portion =
+            payment.authorKas > 0
+              ? effectiveTokenAmount * authorShare * (split.kas / payment.authorKas)
+              : effectiveTokenAmount * authorShare;
+          const hash = await transfer({ amount: portion, to: split.address });
+          authorTxHashes.push(hash);
+          persistPending();
+        }
+      }
       const platformToken = effectiveTokenAmount * platformShare;
-      let platformTxHash = '';
-      if (platformToken > 1e-9) {
-        platformTxHash = await transferKrc20(kaspaState.provider as KaspaWalletProvider, {
-          tick: currency,
+      if (platformToken > 1e-9 && !platformTxHash) {
+        reportHubFlowStep('pay-fee', 'hubReaderUnlock', 'Approve the Hub fee token transfer');
+        platformTxHash = await transfer({
           amount: platformToken,
           to: getVBlogTreasuryL1Address(),
-          decimals: integratedTokenDecimals(currency),
         });
-      }
-      const authorTxHashes: string[] = [];
-      for (const split of authorSplits) {
-        const portion =
-          payment.authorKas > 0
-            ? effectiveTokenAmount * authorShare * (split.kas / payment.authorKas)
-            : effectiveTokenAmount * authorShare;
-        const hash = await transferKrc20(kaspaState.provider as KaspaWalletProvider, {
-          tick: currency,
-          amount: portion,
-          to: split.address,
-          decimals: integratedTokenDecimals(currency),
-        });
-        authorTxHashes.push(hash);
+        persistPending();
       }
       if (!platformTxHash) platformTxHash = authorTxHashes[0] ?? '';
+      clearPendingVBlogReaderPayment(article.id, moduleId, payerAddress);
+      reportHubFlowStep('complete', isTip ? 'hubPay' : 'hubReaderUnlock');
       return { authorTxHashes, platformTxHash, payment, payerAddress };
+    };
+
+    if (!isBuiltinStoreCurrency(currency)) {
+      return sendTokenLegs(async ({ amount, to }) =>
+        transferKrc20(kaspaState.provider as KaspaWalletProvider, {
+          tick: currency,
+          amount,
+          to,
+          decimals: integratedTokenDecimals(currency),
+        }),
+      );
     }
 
-    const tick = currency;
-    const platformToken = effectiveTokenAmount * platformShare;
-    let platformTxHash = '';
-    if (platformToken > 1e-9) {
-      platformTxHash = await transferKrc20(kaspaState.provider as KaspaWalletProvider, {
-        tick,
-        amount: platformToken,
-        to: getVBlogTreasuryL1Address(),
-      });
-    }
-    const authorTxHashes: string[] = [];
-    for (const split of authorSplits) {
-      const portion =
-        payment.authorKas > 0
-          ? effectiveTokenAmount * authorShare * (split.kas / payment.authorKas)
-          : effectiveTokenAmount * authorShare;
-      const hash = await transferKrc20(kaspaState.provider as KaspaWalletProvider, {
-        tick,
-        amount: portion,
-        to: split.address,
-      });
-      authorTxHashes.push(hash);
-    }
-    if (!platformTxHash) platformTxHash = authorTxHashes[0] ?? '';
-    return { authorTxHashes, platformTxHash, payment, payerAddress };
+    return sendTokenLegs(async ({ amount, to }) =>
+      transferKrc20(kaspaState.provider as KaspaWalletProvider, {
+        tick: currency,
+        amount,
+        to,
+      }),
+    );
   };
 
   const handlePremiumUnlock = async () => {
     try {
       setActionError(null);
+      setFlowComplete(false);
       setIsProcessingAction(true);
       const payAmount =
         premiumCurrency === 'KAS'
@@ -383,9 +452,19 @@ export function ArticleDetail({
         `vbu:premium:${txs.authorTxHashes[0]}`,
         { articleId: article.id },
       );
+      setFlowComplete(true);
       setRefreshTick((x) => x + 1);
     } catch (e) {
-      setActionError(formatKaspaWalletError(e) || 'Unlock failed');
+      const msg = formatKaspaWalletError(e) || 'Unlock failed';
+      const lower = msg.toLowerCase();
+      if (lower.includes('insufficient')) {
+        setActionError(
+          `${msg} If a previous wallet prompt already succeeded, tap Continue unlock after funding your wallet. Completed steps are not charged again.`,
+        );
+      } else {
+        setActionError(msg);
+      }
+      setRefreshTick((x) => x + 1);
     } finally {
       setIsProcessingAction(false);
     }
@@ -394,7 +473,9 @@ export function ArticleDetail({
   const handleTip = async (amount: number, currency: string = 'KAS') => {
     try {
       setActionError(null);
+      setFlowComplete(false);
       setIsProcessingAction(true);
+      reportHubFlowStep('sign-pay', 'hubPay');
       const txs = await performSplitPayment('tip_box', amount, currency);
       const walletKey = txs.payerAddress;
       const amountKas = txs.payment.totalKas;
@@ -418,6 +499,8 @@ export function ArticleDetail({
         articleId: article.id,
         amountKas,
       });
+      setFlowComplete(true);
+      reportHubFlowStep('complete', 'hubPay');
       setRefreshTick((x) => x + 1);
     } catch (e) {
       setActionError(formatKaspaWalletError(e) || 'Tip failed');
@@ -441,7 +524,9 @@ export function ArticleDetail({
     if (!kaspaState.address || !kaspaState.provider || !kaspaState.isConnected) return;
     try {
       setActionError(null);
+      setFlowComplete(false);
       setIsProcessingAction(true);
+      reportHubFlowStep('sign-pay', 'hubPay', 'Approve the 1 KAS reading receipt');
       const payerAddress = normalizeKaspaAddress(kaspaState.address);
       const note = `kvb1:receipt:${article.id}:${payerAddress}:${Date.now()}`;
       const receiptTx = await sendVBlogReaderKasTx({
@@ -460,6 +545,8 @@ export function ArticleDetail({
       creditReaderEarn('vblog_reading_receipt', HUB_EARN_POINTS.vblogReadingReceipt, `vbu:receipt:${txHash}`, {
         articleId: article.id,
       });
+      setFlowComplete(true);
+      reportHubFlowStep('complete', 'hubPay');
       setRefreshTick((x) => x + 1);
     } catch (e) {
       setActionError(formatKaspaWalletError(e) || 'Receipt failed');
@@ -592,6 +679,7 @@ export function ArticleDetail({
               onCustomTipChange={setCustomTipKas}
               onTip={(amount, currency) => void handleTip(amount, currency)}
               isProcessingAction={isProcessingAction}
+              tipFlowComplete={flowComplete}
               isWalletConnected={kaspaState.isConnected}
               tipHubPointsBase={HUB_EARN_POINTS.vblogTip}
               tipHubPointsTier={krexTier}
@@ -605,7 +693,7 @@ export function ArticleDetail({
         >
           <SidePanelCollapsedContentWrap panelOpen={rightOpen}>
             <div className="flex min-w-0 flex-col space-y-6">
-                {actionError ? (
+                {actionError && !article.modules?.premiumSectionEnabled ? (
                   <p className="text-sm text-red-600 dark:text-red-300">{actionError}</p>
                 ) : null}
 
@@ -629,16 +717,22 @@ export function ArticleDetail({
                         previewHtml={article.modules.premiumSectionContent ?? ''}
                         listPriceKas={premiumPricing.listKas}
                         effectivePriceKas={premiumPricing.totalKas}
+                        authorKas={premiumPricing.authorKas}
+                        platformKas={premiumPricing.platformKas}
                         discountPercent={premiumPricing.discountPercent}
                         hubPointsBase={HUB_EARN_POINTS.vblogPremiumUnlock}
                         tier={krexTier}
                         isProcessing={isProcessingAction}
                         isWalletConnected={kaspaState.isConnected}
-                        payoutSplits={premiumPayoutSplits}
+                        hasPendingPayment={hasPendingPremiumPayment}
                         paymentCurrencies={premiumCurrencies}
                         selectedCurrency={premiumCurrency}
                         onCurrencyChange={setPremiumCurrency}
                         pricingSnapshot={pricingSnapshot}
+                        flowSteps={premiumUnlockFlowSteps}
+                        flowBusy={isProcessingAction}
+                        flowComplete={flowComplete && premiumUnlockEntitled}
+                        actionError={actionError}
                         onUnlock={() => {
                           if (!kaspaState.isConnected) {
                             setShowConnectWallet(true);
@@ -696,11 +790,11 @@ export function ArticleDetail({
                     ) : null}
 
                     {article.modules?.readingReceiptsEnabled ? (
-                      <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 p-5 sm:p-6 bg-zinc-50/80 dark:bg-zinc-900/40">
+                      <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 p-5 sm:p-6 bg-zinc-50/80 dark:bg-zinc-900/40 space-y-3">
                         <DAppSectionHeader title="Reading receipts + badges" className="mb-0" />
-                        <p className="mt-2 kx-body">Current streak: {receiptBadge.streak} day(s) | Badge: {receiptBadge.badge}</p>
-                        <p className="mt-1 text-xs text-zinc-500">On-chain receipt cost: 1 KAS</p>
-                        <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
+                        <p className="kx-body">Current streak: {receiptBadge.streak} day(s) | Badge: {receiptBadge.badge}</p>
+                        <p className="text-xs text-zinc-500">On-chain receipt cost: 1 KAS</p>
+                        <div className="flex flex-wrap items-center justify-between gap-2">
                           <button disabled={isProcessingAction || !kaspaState.isConnected} onClick={() => void handleReadingReceipt()} className="k-control-btn">
                             Record on-chain reading receipt
                           </button>
@@ -710,6 +804,11 @@ export function ArticleDetail({
                             tier={krexTier}
                           />
                         </div>
+                        <HubFlowProgress
+                          steps={getHubFlowPreset('hubPay')}
+                          busy={isProcessingAction}
+                          complete={flowComplete}
+                        />
                       </div>
                     ) : null}
 
