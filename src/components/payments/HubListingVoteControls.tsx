@@ -66,35 +66,36 @@ function recordEntityId(raw: Record<string, unknown>): string {
 function readVotes(storageKey: string, entityId: string): HubListingVoteRecord[] {
   if (typeof window === 'undefined') return [];
   const all = safeParse<Record<string, unknown>[]>(localStorage.getItem(storageKey), []);
-  return all
-    .map((raw) => {
-      const id = recordEntityId(raw);
-      if (id !== entityId) return null;
-      const wallet = typeof raw.wallet === 'string' ? raw.wallet : '';
-      const vote = raw.vote === 'up' || raw.vote === 'down' ? raw.vote : null;
-      if (!wallet || !vote) return null;
-      const rail = raw.rail === 'l2' || raw.rail === 'l1' ? raw.rail : undefined;
-      const txHash = typeof raw.txHash === 'string' ? raw.txHash : undefined;
-      if (rail === 'l2') {
-        return {
-          entityId: id,
-          wallet,
-          vote,
-          votedAt: typeof raw.votedAt === 'string' ? raw.votedAt : '',
-          rail,
-        } satisfies HubListingVoteRecord;
-      }
-      if (!txHash?.trim()) return null;
-      return {
+  const out: HubListingVoteRecord[] = [];
+  for (const raw of all) {
+    const id = recordEntityId(raw);
+    if (id !== entityId) continue;
+    const wallet = typeof raw.wallet === 'string' ? raw.wallet : '';
+    const vote = raw.vote === 'up' || raw.vote === 'down' ? raw.vote : null;
+    if (!wallet || !vote) continue;
+    const rail = raw.rail === 'l2' || raw.rail === 'l1' ? raw.rail : undefined;
+    const txHash = typeof raw.txHash === 'string' ? raw.txHash.trim() : '';
+    if (rail === 'l2') {
+      out.push({
         entityId: id,
         wallet,
         vote,
         votedAt: typeof raw.votedAt === 'string' ? raw.votedAt : '',
-        txHash,
-        rail: rail ?? 'l1',
-      } satisfies HubListingVoteRecord;
-    })
-    .filter((v): v is HubListingVoteRecord => Boolean(v));
+        rail: 'l2',
+      });
+      continue;
+    }
+    if (!txHash) continue;
+    out.push({
+      entityId: id,
+      wallet,
+      vote,
+      votedAt: typeof raw.votedAt === 'string' ? raw.votedAt : '',
+      txHash,
+      rail: rail ?? 'l1',
+    });
+  }
+  return out;
 }
 
 function voteForWallet(
