@@ -18,8 +18,7 @@ function isPublicVerifiedListing(listing: PublishedTokenListing): boolean {
   if (listing.assetKind !== 'real') return false;
   if (listing.ownership !== 'deployer_verified') return false;
   const status = listing.status;
-  if (status === 'archived' || status === 'rejected') return false;
-  return true;
+  return status === 'verified' || status === 'published';
 }
 
 function resolveKcc20CovenantId(listing: PublishedTokenListing): string | null {
