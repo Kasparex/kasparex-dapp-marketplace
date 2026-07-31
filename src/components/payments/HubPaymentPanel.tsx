@@ -161,8 +161,16 @@ export function HubPaymentPanel({
       </div>
 
       <div className="space-y-3 rounded-xl border border-zinc-200 p-3 dark:border-zinc-700">
+        <div>
+          <p className="text-xs uppercase tracking-widest text-zinc-500">{totalLabel ?? 'Total to pay'}</p>
+          <p className="text-2xl font-black text-zinc-900 dark:text-zinc-100 tabular-nums">{totalDisplay}</p>
+          {totalSubtitle ? (
+            <p className="mt-1 text-xs leading-snug text-zinc-500 dark:text-zinc-400">{totalSubtitle}</p>
+          ) : null}
+        </div>
+
         {showCatalog ? (
-          <div>
+          <div className="border-t border-zinc-200 pt-3 dark:border-zinc-700">
             <p className="mb-2 text-xs uppercase tracking-widest text-zinc-500">Pay with</p>
             <HubPaymentCurrencyCatalogTrigger
               entries={resolvedCatalog}
@@ -177,7 +185,7 @@ export function HubPaymentPanel({
         ) : null}
 
         {showDropdown ? (
-          <div>
+          <div className="border-t border-zinc-200 pt-3 dark:border-zinc-700">
             <p className="mb-2 text-xs uppercase tracking-widest text-zinc-500">Pay with</p>
             <HubPaymentCurrencyDropdown
               value={selectedCurrencyId}
@@ -190,9 +198,7 @@ export function HubPaymentPanel({
         ) : null}
 
         {splitLegs && splitLegs.length > 0 ? (
-          <div
-            className={`space-y-1.5${showCatalog || showDropdown ? ' border-t border-zinc-200 pt-3 dark:border-zinc-700' : ''}`}
-          >
+          <div className="space-y-1.5 border-t border-zinc-200 pt-3 dark:border-zinc-700">
             <p className="text-xs uppercase tracking-widest text-zinc-500">Payment split</p>
             {splitLegs.map((leg) => (
               <div
@@ -211,20 +217,6 @@ export function HubPaymentPanel({
             </p>
           </div>
         ) : null}
-
-        <div
-          className={
-            showCatalog || showDropdown || (splitLegs && splitLegs.length > 0)
-              ? 'border-t border-zinc-200 pt-3 dark:border-zinc-700'
-              : ''
-          }
-        >
-          <p className="text-xs uppercase tracking-widest text-zinc-500">{totalLabel ?? 'Total to pay'}</p>
-          <p className="text-2xl font-black text-zinc-900 dark:text-zinc-100 tabular-nums">{totalDisplay}</p>
-          {totalSubtitle ? (
-            <p className="mt-1 text-xs leading-snug text-zinc-500 dark:text-zinc-400">{totalSubtitle}</p>
-          ) : null}
-        </div>
       </div>
 
       {discountNote ? (

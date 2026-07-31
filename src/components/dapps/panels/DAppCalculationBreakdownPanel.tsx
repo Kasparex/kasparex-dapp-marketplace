@@ -203,8 +203,14 @@ export const DAppCalculationBreakdownPanel = memo(function DAppCalculationBreakd
           </div>
 
           <div className="space-y-3 rounded-xl border border-zinc-200 p-3 dark:border-zinc-700">
+            <div>
+              <p className="text-xs uppercase tracking-widest text-zinc-500">Total to pay</p>
+              <p className="text-2xl font-black text-zinc-900 dark:text-zinc-100 tabular-nums">
+                {formatPayAmount(quote.totalKas)}
+              </p>
+            </div>
             {showPayWith ? (
-              <div>
+              <div className="border-t border-zinc-200 pt-3 dark:border-zinc-700">
                 <p className="mb-2 text-xs uppercase tracking-widest text-zinc-500">Pay with</p>
                 <HubPaymentCurrencyCatalogTrigger
                   entries={catalogEntries}
@@ -216,9 +222,7 @@ export const DAppCalculationBreakdownPanel = memo(function DAppCalculationBreakd
               </div>
             ) : null}
             {showSplit ? (
-              <div
-                className={`space-y-1.5${showPayWith ? ' border-t border-zinc-200 pt-3 dark:border-zinc-700' : ''}`}
-              >
+              <div className="space-y-1.5 border-t border-zinc-200 pt-3 dark:border-zinc-700">
                 <p className="text-xs uppercase tracking-widest text-zinc-500">Payment split</p>
                 {splitLegs!.map((leg) => (
                   <div
@@ -238,16 +242,6 @@ export const DAppCalculationBreakdownPanel = memo(function DAppCalculationBreakd
                 </p>
               </div>
             ) : null}
-            <div
-              className={
-                showPayWith || showSplit ? 'border-t border-zinc-200 pt-3 dark:border-zinc-700' : ''
-              }
-            >
-              <p className="text-xs uppercase tracking-widest text-zinc-500">Total to pay</p>
-              <p className="text-2xl font-black text-zinc-900 dark:text-zinc-100 tabular-nums">
-                {formatPayAmount(quote.totalKas)}
-              </p>
-            </div>
           </div>
 
           {infoText ? (

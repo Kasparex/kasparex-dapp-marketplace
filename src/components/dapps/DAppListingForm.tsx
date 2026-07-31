@@ -586,7 +586,7 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
           </div>
 
           <div className="k-form-group">
-            <KxTagsField value={tags} onChange={setTags} hint="Select up to 3 tags." />
+            <KxTagsField value={tags} onChange={setTags} />
           </div>
 
           <div className="k-form-group">

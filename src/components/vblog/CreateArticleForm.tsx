@@ -739,7 +739,6 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
               value={tags}
               onChange={setTags}
               disabled={isSubmitting}
-              hint="Select up to 3 tags. Search suggestions or add your own."
             />
           </div>
         </div>

@@ -444,7 +444,6 @@ export function ChroniclesListingForm({ onSubmitted }: { onSubmitted?: () => voi
             <KxTagsField
               value={tags}
               onChange={setTags}
-              hint="Select up to 3 tags."
             />
           </div>
         </div>

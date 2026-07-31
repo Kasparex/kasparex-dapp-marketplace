@@ -447,7 +447,6 @@ export function StoreProductForm({ product }: StoreProductFormProps) {
               value={tags}
               onChange={setTags}
               disabled={isProcessing}
-              hint="Select up to 3 tags. They appear on the product page and help buyers find your listing in the Store sidebar filter."
             />
           </div>
 

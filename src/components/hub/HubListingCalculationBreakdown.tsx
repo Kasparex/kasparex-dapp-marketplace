@@ -152,8 +152,12 @@ export function HubListingCalculationBreakdown({
       </div>
 
       <div className="space-y-3 rounded-xl border border-zinc-200 p-3 dark:border-zinc-800">
+        <div>
+          <p className="text-xs uppercase tracking-widest text-zinc-500">Total to pay</p>
+          <p className="text-2xl font-black tabular-nums text-zinc-900 dark:text-zinc-100">{totalDisplay}</p>
+        </div>
         {showPayBox ? (
-          <div>
+          <div className="border-t border-zinc-200 pt-3 dark:border-zinc-800">
             <p className="mb-2 text-xs uppercase tracking-widest text-zinc-500">Pay with</p>
             <HubPaymentCurrencyCatalogTrigger
               entries={catalogEntries}
@@ -163,9 +167,7 @@ export function HubListingCalculationBreakdown({
           </div>
         ) : null}
         {showSplit ? (
-          <div
-            className={`space-y-1.5${showPayBox ? ' border-t border-zinc-200 pt-3 dark:border-zinc-800' : ''}`}
-          >
+          <div className="space-y-1.5 border-t border-zinc-200 pt-3 dark:border-zinc-800">
             <p className="text-xs uppercase tracking-widest text-zinc-500">Payment split</p>
             {splitLegs!.map((leg) => (
               <div
@@ -185,14 +187,6 @@ export function HubListingCalculationBreakdown({
             </p>
           </div>
         ) : null}
-        <div
-          className={
-            showPayBox || showSplit ? 'border-t border-zinc-200 pt-3 dark:border-zinc-800' : ''
-          }
-        >
-          <p className="text-xs uppercase tracking-widest text-zinc-500">Total to pay</p>
-          <p className="text-2xl font-black tabular-nums text-zinc-900 dark:text-zinc-100">{totalDisplay}</p>
-        </div>
       </div>
 
       {footerNote ? (
