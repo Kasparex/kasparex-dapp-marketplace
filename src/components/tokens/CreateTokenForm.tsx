@@ -35,7 +35,7 @@ import { mergePricingTickers } from '@/lib/pricing';
 import { TokenModuleConfigFields, tokenModuleHasConfigFields } from '@/components/tokens/TokenModuleConfigFields';
 import { krexTierDiscountPercent } from '@/lib/chronicles/vault/pricing';
 import type { Token } from '@/lib/tokens/types';
-import type { PublishedTokenListing, TokenAssetKind, TokenOnChainSnapshot, TokenNetworkEntry, TokenPageSectionType, TokenOwnershipProof } from '@/lib/tokens/listingRecord';
+import type { PublishedTokenListing, TokenAssetKind, TokenOnChainSnapshot, TokenNetworkEntry, TokenPageSectionType, TokenOwnershipProof, TokenOwnershipStatus } from '@/lib/tokens/listingRecord';
 import { getTokensTreasuryL1Address } from '@/lib/tokens/config';
 import { createDefaultPageConfig, applyPageSectionConfig, OVERVIEW_CANVAS_BLOCKS } from '@/lib/tokens/pageConfig';
 import {
@@ -816,7 +816,7 @@ export function CreateTokenForm({
         modulesConfig,
         paymentCurrency: paymentOption.id,
         ownershipProof: ownershipProof ?? undefined,
-        ownership: primaryOwnershipVerified ? 'deployer_verified' : 'none',
+        ownership: (primaryOwnershipVerified ? 'deployer_verified' : 'none') as TokenOwnershipStatus,
       };
       const result = listing
         ? await updateExistingListing(listing.id, input, kaspaState.address!)
