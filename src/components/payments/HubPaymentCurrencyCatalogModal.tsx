@@ -4,13 +4,19 @@ import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { KxModalShell } from '@/components/ui/KxModalShell';
 import { KxModalHeader } from '@/components/payments/KxPaymentUi';
+import { Tooltip } from '@/components/ui/Tooltip';
+import { KREXBuyWizard } from '@/components/rewards/KREXBuyWizard';
 import type { HubCurrencyCatalogEntry } from '@/lib/payments/currencyCatalog';
 import { catalogEntryToOption } from '@/lib/payments/currencyCatalog';
 import type { HubPaymentCurrencyOption } from '@/lib/payments/hubPaymentTypes';
 import { prefetchImageUrls } from '@/lib/hub/aggressiveCache';
 
-type NetworkFilter = 'all' | 'kaspa_l1' | 'l2';
-type DexFilter = 'all' | 'native' | 'kron' | 'kaspacom' | 'zealous';
+type NetworkFilter = 'all' | 'kcc20_l1' | 'krc20_l1' | 'kasplex_l2' | 'igra_l2';
+type DexFilter = 'all' | 'kron' | 'kcom' | 'zelous';
+
+const BUY_KAS_URL = 'https://kaspa.org/hodl#buy';
+const INTEGRATE_TOKEN_TOOLTIP =
+  'If you are a token creator on Kaspa, you can integrate your token into Kasparex Hub.';
 
 function entryMatchesQuery(entry: HubCurrencyCatalogEntry, query: string): boolean {
   const q = query.trim().toLowerCase();
@@ -79,6 +85,7 @@ export function HubPaymentCurrencyCatalogModal({
   const [query, setQuery] = useState('');
   const [networkFilter, setNetworkFilter] = useState<NetworkFilter>('all');
   const [dexFilter, setDexFilter] = useState<DexFilter>('all');
+  const [krexBuyOpen, setKrexBuyOpen] = useState(false);
 
   useEffect(() => {
     if (!isOpen) {
@@ -93,7 +100,7 @@ export function HubPaymentCurrencyCatalogModal({
   const filtered = useMemo(() => {
     return entries.filter((entry) => {
       if (!entryMatchesQuery(entry, query)) return false;
-      if (networkFilter !== 'all' && (entry.networkTag ?? 'kaspa_l1') !== networkFilter) return false;
+      if (networkFilter !== 'all' && entry.networkTag !== networkFilter) return false;
       if (dexFilter !== 'all' && (entry.dexTag ?? 'other') !== dexFilter) return false;
       return true;
     });
@@ -103,96 +110,132 @@ export function HubPaymentCurrencyCatalogModal({
   const tokenRows = filtered.filter((e) => e.kind !== 'kas');
 
   return (
-    <KxModalShell isOpen={isOpen} onClose={onClose} panelClassName="max-w-lg" labelledBy="hub-pay-currency-title">
-      <KxModalHeader title={title} subtitle={subtitle} onClose={onClose} />
-      <div className="space-y-3 border-b border-zinc-200 px-4 py-3 dark:border-zinc-800 sm:px-6">
-        <label className="sr-only" htmlFor="hub-pay-currency-search">
-          Search currencies
-        </label>
-        <input
-          id="hub-pay-currency-search"
-          type="search"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search by name, ticker, or covenant…"
-          className="k-input w-full text-sm"
-          autoFocus
-        />
-        <div className="space-y-2">
-          <div className="flex flex-wrap items-center gap-1.5">
-            <span className="mr-1 text-[10px] font-semibold uppercase tracking-widest text-zinc-500">Network</span>
-            <FilterChip label="All" active={networkFilter === 'all'} onClick={() => setNetworkFilter('all')} />
-            <FilterChip
-              label="Kaspa L1"
-              active={networkFilter === 'kaspa_l1'}
-              onClick={() => setNetworkFilter('kaspa_l1')}
-            />
-            <FilterChip label="L2" active={networkFilter === 'l2'} onClick={() => setNetworkFilter('l2')} />
-          </div>
-          <div className="flex flex-wrap items-center gap-1.5">
-            <span className="mr-1 text-[10px] font-semibold uppercase tracking-widest text-zinc-500">DEX</span>
-            <FilterChip label="All" active={dexFilter === 'all'} onClick={() => setDexFilter('all')} />
-            <FilterChip label="Native" active={dexFilter === 'native'} onClick={() => setDexFilter('native')} />
-            <FilterChip label="KRON" active={dexFilter === 'kron'} onClick={() => setDexFilter('kron')} />
-            <FilterChip
-              label="KaspaCom"
-              active={dexFilter === 'kaspacom'}
-              disabled
-              onClick={() => setDexFilter('kaspacom')}
-            />
-            <FilterChip
-              label="Zealous"
-              active={dexFilter === 'zealous'}
-              disabled
-              onClick={() => setDexFilter('zealous')}
-            />
+    <>
+      <KxModalShell
+        isOpen={isOpen}
+        onClose={onClose}
+        panelClassName="max-w-lg flex max-h-[min(90vh,640px)] flex-col"
+        labelledBy="hub-pay-currency-title"
+      >
+        <KxModalHeader title={title} subtitle={subtitle} onClose={onClose} />
+        <div className="shrink-0 space-y-3 border-b border-zinc-200 px-4 py-3 dark:border-zinc-800 sm:px-6">
+          <label className="sr-only" htmlFor="hub-pay-currency-search">
+            Search currencies
+          </label>
+          <input
+            id="hub-pay-currency-search"
+            type="search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search by name, ticker, or covenant…"
+            className="k-input w-full text-sm"
+            autoFocus
+          />
+          <div className="space-y-2">
+            <div className="flex flex-wrap items-center gap-1.5">
+              <span className="mr-1 text-[10px] font-semibold uppercase tracking-widest text-zinc-500">
+                Network
+              </span>
+              <FilterChip label="All" active={networkFilter === 'all'} onClick={() => setNetworkFilter('all')} />
+              <FilterChip
+                label="KCC20 L1"
+                active={networkFilter === 'kcc20_l1'}
+                onClick={() => setNetworkFilter('kcc20_l1')}
+              />
+              <FilterChip
+                label="KRC20 L1"
+                active={networkFilter === 'krc20_l1'}
+                onClick={() => setNetworkFilter('krc20_l1')}
+              />
+              <FilterChip
+                label="KASPLEX L2"
+                active={networkFilter === 'kasplex_l2'}
+                onClick={() => setNetworkFilter('kasplex_l2')}
+              />
+              <FilterChip
+                label="IGRA L2"
+                active={networkFilter === 'igra_l2'}
+                onClick={() => setNetworkFilter('igra_l2')}
+              />
+            </div>
+            <div className="flex flex-wrap items-center gap-1.5">
+              <span className="mr-1 text-[10px] font-semibold uppercase tracking-widest text-zinc-500">DEX</span>
+              <FilterChip label="ALL" active={dexFilter === 'all'} onClick={() => setDexFilter('all')} />
+              <FilterChip label="KRON" active={dexFilter === 'kron'} onClick={() => setDexFilter('kron')} />
+              <FilterChip label="KCOM" active={dexFilter === 'kcom'} onClick={() => setDexFilter('kcom')} />
+              <FilterChip label="ZELOUS" active={dexFilter === 'zelous'} onClick={() => setDexFilter('zelous')} />
+            </div>
           </div>
         </div>
-      </div>
-      <div id="hub-pay-currency-title" className="max-h-[min(70vh,520px)] space-y-4 overflow-y-auto px-4 py-3 sm:px-6">
-        {filtered.length === 0 ? (
-          <p className="py-8 text-center text-sm text-zinc-600 dark:text-zinc-400">
-            No currencies match your search or filters.
-          </p>
-        ) : (
-          <>
-            {nativeKas.length > 0 ? (
-              <section className="space-y-2">
-                <p className="text-[11px] font-semibold uppercase tracking-widest text-zinc-500">Network</p>
-                {nativeKas.map((entry) => (
-                  <CurrencyRow
-                    key={entry.id}
-                    entry={entry}
-                    selected={entry.id === selectedId}
-                    onSelect={() => {
-                      onSelect(catalogEntryToOption(entry));
-                      onClose();
-                    }}
-                  />
-                ))}
-              </section>
-            ) : null}
-            {tokenRows.length > 0 ? (
-              <section className="space-y-2">
-                <p className="text-[11px] font-semibold uppercase tracking-widest text-zinc-500">Tokens</p>
-                {tokenRows.map((entry) => (
-                  <CurrencyRow
-                    key={entry.id}
-                    entry={entry}
-                    selected={entry.id === selectedId}
-                    onSelect={() => {
-                      if (entry.status === 'locked') return;
-                      onSelect(catalogEntryToOption(entry));
-                      onClose();
-                    }}
-                  />
-                ))}
-              </section>
-            ) : null}
-          </>
-        )}
-      </div>
-    </KxModalShell>
+        <div
+          id="hub-pay-currency-title"
+          className="min-h-0 flex-1 space-y-4 overflow-y-auto px-4 py-3 sm:px-6"
+        >
+          {filtered.length === 0 ? (
+            <p className="py-8 text-center text-sm text-zinc-600 dark:text-zinc-400">
+              No currencies match your search or filters.
+            </p>
+          ) : (
+            <>
+              {nativeKas.length > 0 ? (
+                <section className="space-y-2">
+                  <p className="text-[11px] font-semibold uppercase tracking-widest text-zinc-500">Network</p>
+                  {nativeKas.map((entry) => (
+                    <CurrencyRow
+                      key={entry.id}
+                      entry={entry}
+                      selected={entry.id === selectedId}
+                      onSelect={() => {
+                        onSelect(catalogEntryToOption(entry));
+                        onClose();
+                      }}
+                    />
+                  ))}
+                </section>
+              ) : null}
+              {tokenRows.length > 0 ? (
+                <section className="space-y-2">
+                  <p className="text-[11px] font-semibold uppercase tracking-widest text-zinc-500">Tokens</p>
+                  {tokenRows.map((entry) => (
+                    <CurrencyRow
+                      key={entry.id}
+                      entry={entry}
+                      selected={entry.id === selectedId}
+                      onSelect={() => {
+                        if (entry.status === 'locked') return;
+                        onSelect(catalogEntryToOption(entry));
+                        onClose();
+                      }}
+                    />
+                  ))}
+                </section>
+              ) : null}
+            </>
+          )}
+        </div>
+        <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 border-t border-zinc-200 bg-white px-4 py-3 dark:border-zinc-800 dark:bg-zinc-900 sm:px-6">
+          <div className="flex flex-wrap items-center gap-2">
+            <a
+              href={BUY_KAS_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="k-control-btn text-xs"
+            >
+              Buy KAS
+            </a>
+            <button type="button" className="k-control-btn text-xs" onClick={() => setKrexBuyOpen(true)}>
+              Buy KREX
+            </button>
+          </div>
+          <Tooltip content={INTEGRATE_TOKEN_TOOLTIP}>
+            <Link href="/tokens/dashboard" className="k-control-btn text-xs" onClick={onClose}>
+              Integrate token
+            </Link>
+          </Tooltip>
+        </div>
+      </KxModalShell>
+      <KREXBuyWizard isOpen={krexBuyOpen} onClose={() => setKrexBuyOpen(false)} />
+    </>
   );
 }
 

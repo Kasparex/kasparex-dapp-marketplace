@@ -21,12 +21,12 @@ export const baseTokenLogos: Record<string, BaseTokenLogo> = {
   kas: {
     tokenId: 'kas',
     symbol: 'KAS',
-    logoCid: 'bafkreic47gu2dsvtxxpucuokfzti2ax5b6k2jcr5xzncianhyasexr4mki',
+    logoUrl: '/img/tokens/kas.png',
   },
   krex: {
     tokenId: 'krex',
     symbol: 'KREX',
-    logoCid: 'bafybeiayxmg22jnhh3ekdscsrcglczhe6xra632xhvophe3opn77smvily',
+    logoUrl: '/img/tokens/krex.png',
   },
   grid: {
     tokenId: 'grid',

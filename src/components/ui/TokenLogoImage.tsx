@@ -30,8 +30,11 @@ export function TokenLogoImage({ tokenId, size = 24, className = '' }: TokenLogo
     );
   }
 
-  // Convert CID to URL if needed
-  const imageUrl = logoUrl.startsWith('http') ? logoUrl : getTokenImageUrl(logoUrl) || logoUrl;
+  // Local path / absolute URL as-is; otherwise resolve CID via gateway
+  const imageUrl =
+    logoUrl.startsWith('http') || logoUrl.startsWith('/')
+      ? logoUrl
+      : getTokenImageUrl(logoUrl) || logoUrl;
 
   return (
     <Image

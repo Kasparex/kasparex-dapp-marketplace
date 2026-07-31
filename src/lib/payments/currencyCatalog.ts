@@ -27,10 +27,10 @@ export type HubCurrencyCatalogEntry = HubPaymentCurrencyOption & {
   amountLabel?: string;
   /** Extra searchable text (name, covenant id, …). */
   searchText?: string;
-  /** Filter chip: settlement network. */
-  networkTag?: 'kaspa_l1' | 'l2';
+  /** Filter chip: settlement network / standard. */
+  networkTag?: 'native_l1' | 'kcc20_l1' | 'krc20_l1' | 'kasplex_l2' | 'igra_l2';
   /** Filter chip: venue / DEX affinity. */
-  dexTag?: 'native' | 'kron' | 'kaspacom' | 'zealous' | 'other';
+  dexTag?: 'native' | 'kron' | 'kcom' | 'zelous' | 'other';
   /** Optional logo URL (Tokens listing / base logos). */
   imageUrl?: string;
 };
@@ -115,7 +115,7 @@ export function buildHubCurrencyCatalog(args: BuildCurrencyCatalogArgs): HubCurr
         status: 'available',
         detail,
         amountLabel,
-        networkTag: 'kaspa_l1',
+        networkTag: opt.kind === 'kas' ? 'native_l1' : 'krc20_l1',
         dexTag: 'native',
         imageUrl: imageUrls[opt.id] ?? imageUrls[opt.id.toLowerCase()],
         balanceLabel:
@@ -134,7 +134,7 @@ export function buildHubCurrencyCatalog(args: BuildCurrencyCatalogArgs): HubCurr
       ...opt,
       status: 'available',
       detail: 'KRC-20 · Kaspa L1',
-      networkTag: 'kaspa_l1',
+      networkTag: 'krc20_l1',
       dexTag: 'native',
       searchText: `${token.symbol ?? ''} ${token.listingSlug ?? ''}`.trim() || undefined,
       imageUrl: imageUrls[opt.id] ?? imageUrls[tick] ?? imageUrls[token.listingSlug],
@@ -153,7 +153,7 @@ export function buildHubCurrencyCatalog(args: BuildCurrencyCatalogArgs): HubCurr
       ...opt,
       status: 'available',
       detail: 'KCC-20 · Kaspa L1 covenant',
-      networkTag: 'kaspa_l1',
+      networkTag: 'kcc20_l1',
       dexTag: 'kron',
       actionHref: kronTokenUrl(token.covenantId),
       actionLabel: 'Trade on KRON',
@@ -174,7 +174,7 @@ export function buildHubCurrencyCatalog(args: BuildCurrencyCatalogArgs): HubCurr
       ...buildKrc20CurrencyOption(upper),
       status: 'locked',
       detail: 'Unlock this ticker in Tokens Hub Utility',
-      networkTag: 'kaspa_l1',
+      networkTag: 'krc20_l1',
       dexTag: 'native',
       actionHref: '/tokens/dashboard',
       actionLabel: 'Open Tokens',
