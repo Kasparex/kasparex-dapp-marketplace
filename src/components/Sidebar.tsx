@@ -163,15 +163,29 @@ export function Sidebar({
       storageKeyPrefix="dapps"
       header={(onHide) => <SidebarHeader backHref={backHref} backLabel={backLabel} onHide={onHide} />}
     >
-      <div className="mb-8">
-        <div className="space-y-2">
-          <Link href="/dapps/dashboard" className="k-control-btn w-full">
-            Dashboard
-          </Link>
-          <Link href="/dapp-modules" className="k-control-btn w-full">
-            Modules
-          </Link>
-        </div>
+      <div className="mb-6 px-1">
+        <Link
+          href="/dapps/dashboard"
+          className={`k-control-btn w-full justify-center gap-2 ${
+            pathname.startsWith('/dapps/dashboard') ? 'hub-sidebar-action-active' : ''
+          }`}
+        >
+          <svg
+            className={`h-3.5 w-3.5 ${pathname.startsWith('/dapps/dashboard') ? 'text-white' : ''}`}
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            aria-hidden="true"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+            />
+          </svg>
+          Dashboard
+        </Link>
       </div>
 
       <SidebarCategories

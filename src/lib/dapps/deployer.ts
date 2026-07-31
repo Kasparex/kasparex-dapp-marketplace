@@ -4,7 +4,7 @@ import { useProfile } from '@/hooks/useProfile';
 import { getAdminAddresses } from '@/lib/admin';
 import type { DApp } from '@/lib/dapps';
 import { getDAppNetworkType } from '@/lib/dapps';
-import { getKasparexGamesAuthorWallet } from '@/lib/gamesAuthors';
+import { getKasparexGamesAuthorWallet } from '@/lib/games/author';
 
 const PLACEHOLDER_DEVELOPER_NAMES = new Set(['kasparex', 'community', 'unknown', '']);
 

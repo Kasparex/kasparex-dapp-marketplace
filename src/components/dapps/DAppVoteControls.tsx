@@ -12,7 +12,7 @@ import {
   getHubTreasuryAddress,
   HUB_PAYMENT_MIN_LEG_KAS,
 } from '@/lib/payments/paymentPlan';
-import { getKasparexGamesAuthorWallet } from '@/lib/gamesAuthors';
+import { getKasparexGamesAuthorWallet } from '@/lib/games/author';
 
 export type DAppListingVote = 'up' | 'down';
 

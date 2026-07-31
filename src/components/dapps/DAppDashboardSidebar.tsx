@@ -20,7 +20,7 @@ const SIDEBAR_BTN_ICON = 'w-3.5 h-3.5';
 const SIDEBAR_BTN_ICON_ACTIVE = 'w-3.5 h-3.5 text-white';
 
 const DASHBOARD_SECTIONS: Array<{
-  id: DAppDashboardTab | 'pricing' | 'modules';
+  id: DAppDashboardTab | 'pricing';
   label: string;
   tab: DAppDashboardTab;
   anchor?: string;
@@ -28,7 +28,6 @@ const DASHBOARD_SECTIONS: Array<{
 }> = [
   { id: 'create', label: 'List a DApp', tab: 'create', anchor: 'dapps-dashboard-create', icon: 'form' },
   { id: 'pricing', label: 'Fees & rewards', tab: 'create', anchor: 'dapps-dashboard-pricing', icon: 'pricing' },
-  { id: 'modules', label: 'Premium modules', tab: 'create', anchor: 'dapps-dashboard-modules', icon: 'modules' },
   { id: 'listings', label: 'My Listings', tab: 'listings', icon: 'listings' },
 ];
 
@@ -90,7 +89,7 @@ export function DAppDashboardSidebar({
               icon={HUB_DASHBOARD_NAV_ICONS[item.icon]}
               active={
                 item.tab === dashboardTab &&
-                (item.id === 'pricing' || item.id === 'modules'
+                (item.id === 'pricing'
                   ? dashboardTab === 'create'
                   : item.id === dashboardTab || (dashboardTab === 'create' && item.id === 'create'))
               }
