@@ -44,8 +44,8 @@ export function DAppsWithSidebarLayout<T extends string>({
           rightOpen={rightOpen}
           onToggle={() => setRightOpen(!rightOpen)}
           sidebar={sidebar}
-          mainColClass="lg:col-span-7"
-          asideColClass="lg:col-span-5"
+          mainColClass="lg:col-span-8"
+          asideColClass="lg:col-span-4"
           hideToggle
         >
           <DAppsMainContent>{main}</DAppsMainContent>

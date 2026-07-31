@@ -3,34 +3,47 @@
 import { useProfile } from '@/hooks/useProfile';
 import { getAdminAddresses } from '@/lib/admin';
 import type { DApp } from '@/lib/dapps';
+import { getDAppNetworkType } from '@/lib/dapps';
+import { getKasparexGamesAuthorWallet } from '@/lib/gamesAuthors';
 
 const PLACEHOLDER_DEVELOPER_NAMES = new Set(['kasparex', 'community', 'unknown', '']);
 
 /**
  * Resolve the publisher/deployer of a dApp for the standard author credit.
  *
- * Priority for the wallet: community lister (submitterAddress) -> on-chain deployer ->
- * developer field when it is a wallet -> the Kasparex owner wallet for official listings.
- * `name` is only returned when a real custom developer name is set (overriding the address).
+ * Priority: community lister (submitterAddress) -> L1 official Kasparex treasury ->
+ * L2 on-chain deployer / developer 0x / admin. `name` is only returned when a real
+ * custom developer name is set (overriding the address).
  */
 export function resolveDAppAuthor(dapp: DApp): { wallet: string | null; name?: string } {
   const developer = dapp.developer?.trim();
+  const isPlaceholder =
+    !developer ||
+    developer.startsWith('0x') ||
+    PLACEHOLDER_DEVELOPER_NAMES.has(developer.toLowerCase());
+  const name = isPlaceholder ? undefined : developer;
+
+  const submitter = dapp.directoryListing?.submitterAddress?.trim();
+  if (submitter) {
+    return { wallet: submitter, name };
+  }
+
+  // Official L1 dApps credit the Kasparex treasury (Kaspa L1), not the EVM admin.
+  if (getDAppNetworkType(dapp) === 'L1') {
+    return { wallet: getKasparexGamesAuthorWallet(), name };
+  }
+
+  // L2: deployer / developer wallet / Kasparex admin.
   const officialDeployer =
     dapp.source !== 'directory' ? getAdminAddresses()[0] ?? null : null;
 
   const wallet =
-    dapp.directoryListing?.submitterAddress ||
     dapp.deployerAddress ||
     (developer && developer.startsWith('0x') ? developer : null) ||
     officialDeployer ||
     null;
 
-  const isPlaceholder =
-    !developer ||
-    developer.startsWith('0x') ||
-    PLACEHOLDER_DEVELOPER_NAMES.has(developer.toLowerCase());
-
-  return { wallet, name: isPlaceholder ? undefined : developer };
+  return { wallet, name };
 }
 
 /**

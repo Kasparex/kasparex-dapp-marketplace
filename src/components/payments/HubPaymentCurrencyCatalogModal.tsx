@@ -219,9 +219,11 @@ export function HubPaymentCurrencyCatalogModal({
               href={BUY_KAS_URL}
               target="_blank"
               rel="noopener noreferrer"
-              className="k-control-btn text-xs"
+              className="k-control-btn inline-flex items-center gap-1.5 text-xs"
+              title="Opens in a new tab"
             >
               Buy KAS
+              <span aria-hidden="true">↗</span>
             </a>
             <button type="button" className="k-control-btn text-xs" onClick={() => setKrexBuyOpen(true)}>
               Buy KREX

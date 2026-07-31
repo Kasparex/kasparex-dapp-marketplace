@@ -3,11 +3,16 @@
 import { useState } from 'react';
 import type { DApp } from '@/lib/dapps';
 import { useKaspaWallet } from '@/lib/kaspa/context';
-import { sendKaspaTransaction } from '@/lib/kaspa/wallet';
 import type { KaspaWalletProvider } from '@/lib/kaspa/types';
-import { kasToSompi } from '@/lib/ads/config';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { resolveDAppAuthor } from '@/lib/dapps/deployer';
+import { payKasPaymentPlan } from '@/lib/payments/kasMultiOutPay';
+import {
+  buildCreatorPlatformPlan,
+  getHubTreasuryAddress,
+  HUB_PAYMENT_MIN_LEG_KAS,
+} from '@/lib/payments/paymentPlan';
+import { getKasparexGamesAuthorWallet } from '@/lib/gamesAuthors';
 
 export type DAppListingVote = 'up' | 'down';
 
@@ -20,7 +25,12 @@ type DAppListingVoteRecord = {
 };
 
 const DAPP_LISTING_VOTE_KEY = 'dapps_listing_votes';
-const DAPP_LISTING_VOTE_FEE_KAS = 1;
+const DAPP_LISTING_VOTE_AUTHOR_KAS = HUB_PAYMENT_MIN_LEG_KAS;
+const DAPP_LISTING_VOTE_PLATFORM_KAS = HUB_PAYMENT_MIN_LEG_KAS;
+const DAPP_LISTING_VOTE_FEE_KAS = DAPP_LISTING_VOTE_AUTHOR_KAS + DAPP_LISTING_VOTE_PLATFORM_KAS;
+
+const VOTE_TOOLTIP = `Vote with KAS. Payment goes to the author's wallet with a Hub payment split. Change returns to your wallet. (${DAPP_LISTING_VOTE_FEE_KAS} KAS per vote)`;
+const CONNECT_TOOLTIP = 'Connect your Kaspa wallet to vote with KAS';
 
 function safeParse<T>(value: string | null, fallback: T): T {
   if (!value) return fallback;
@@ -56,6 +66,17 @@ function saveVote(record: DAppListingVoteRecord): void {
   localStorage.setItem(DAPP_LISTING_VOTE_KEY, JSON.stringify(next));
 }
 
+function isKaspaPayee(address: string): boolean {
+  const t = address.trim().toLowerCase();
+  if (!t || t.startsWith('0x')) return false;
+  return t.startsWith('kaspa:') || t.startsWith('kaspatest:') || t.length >= 48;
+}
+
+function resolveVoteAuthorPayee(authorWallet: string): string {
+  if (isKaspaPayee(authorWallet)) return authorWallet.trim();
+  return getHubTreasuryAddress().trim() || getKasparexGamesAuthorWallet();
+}
+
 export function DAppVoteControls({ dapp, compact = false }: { dapp: DApp; compact?: boolean }) {
   const { state: kaspaState } = useKaspaWallet();
   const wallet = kaspaState.address?.trim() || null;
@@ -69,21 +90,29 @@ export function DAppVoteControls({ dapp, compact = false }: { dapp: DApp; compac
 
   if (!creatorWallet) return null;
 
-  const voteHint = `Vote with KAS to support this dApp. Payment goes to the creator wallet (${DAPP_LISTING_VOTE_FEE_KAS} KAS per vote).`;
-
   const castVote = async (vote: DAppListingVote) => {
     if (!wallet || !kaspaState.provider || !kaspaState.isConnected) return;
     if (busy || currentVote === vote) return;
 
     setBusy(true);
     try {
-      const result = await sendKaspaTransaction(kaspaState.provider as KaspaWalletProvider, {
-        to: creatorWallet.replace(/^kaspa:/, ''),
-        amount: String(kasToSompi(DAPP_LISTING_VOTE_FEE_KAS)),
+      const authorPayee = resolveVoteAuthorPayee(creatorWallet);
+      const platformAddress = getHubTreasuryAddress().trim() || getKasparexGamesAuthorWallet();
+      const plan = buildCreatorPlatformPlan({
+        creatorAddress: authorPayee,
+        creatorKas: DAPP_LISTING_VOTE_AUTHOR_KAS,
+        creatorLabel: 'Author',
+        platformKas: DAPP_LISTING_VOTE_PLATFORM_KAS,
+        platformAddress,
         note: `DApp vote:${vote}:${dapp.slug || dapp.name}`,
       });
-      if (result.status === 'failed' || !result.txHash) {
-        throw new Error(result.error ?? 'KAS vote payment failed');
+      const result = await payKasPaymentPlan(
+        kaspaState.provider as KaspaWalletProvider,
+        plan,
+        wallet,
+      );
+      if (!result.txHash) {
+        throw new Error('KAS vote payment failed');
       }
       saveVote({
         dappId: dapp.id,
@@ -109,7 +138,7 @@ export function DAppVoteControls({ dapp, compact = false }: { dapp: DApp; compac
 
   return (
     <div className={`flex items-center gap-1.5 ${compact ? '' : 'mt-1'}`}>
-      <Tooltip content={wallet ? voteHint : 'Connect your Kaspa wallet to vote with KAS'}>
+      <Tooltip content={wallet ? VOTE_TOOLTIP : CONNECT_TOOLTIP}>
         <button
           type="button"
           aria-label="Upvote"
@@ -123,7 +152,7 @@ export function DAppVoteControls({ dapp, compact = false }: { dapp: DApp; compac
       <span className="min-w-[1.5rem] text-center text-xs font-bold tabular-nums text-zinc-600 dark:text-zinc-300">
         {score}
       </span>
-      <Tooltip content={wallet ? voteHint : 'Connect your Kaspa wallet to vote with KAS'}>
+      <Tooltip content={wallet ? VOTE_TOOLTIP : CONNECT_TOOLTIP}>
         <button
           type="button"
           aria-label="Downvote"
