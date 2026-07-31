@@ -11,9 +11,11 @@ import {
   paymentPlanPrimaryAddress,
   type PaymentPlan,
 } from '@/lib/payments/paymentPlan';
+import { payHubTokenRailKasFee } from '@/lib/payments/tokenRailKasFee';
 import { resolveTokenAmountFromKas } from '@/lib/pricing/registry';
 import type { PricingSnapshot } from '@/lib/pricing/types';
 import type { HubPaymentCurrencyOption } from '@/lib/payments/hubPaymentTypes';
+import { extractKaspaTransactionId } from '@/lib/kaspa/transactionId';
 
 export type HubPayParams = {
   /** Preferred: full multi-leg plan (KAS rail). */
@@ -84,12 +86,20 @@ export function useHubPayment() {
             );
           }
           if (amount == null || amount <= 0) throw new Error('Invalid token amount');
-          return await transferKrc20(state.provider, {
+          const tokenTx = await transferKrc20(state.provider, {
             tick: currency.tick ?? currency.id,
             amount,
             to: treasury,
             decimals: currency.decimals ?? 8,
           });
+          await payHubTokenRailKasFee({
+            provider: state.provider,
+            senderAddress: state.address,
+            treasuryAddress: treasury,
+            note: params.note,
+            payloadHex: params.payloadHex,
+          });
+          return extractKaspaTransactionId(tokenTx) ?? tokenTx;
         }
 
         if (currency.kind === 'krex') {
@@ -107,11 +117,19 @@ export function useHubPayment() {
               '',
             );
           if (!treasury) throw new Error('Recipient address is not configured');
-          return await transferKrc20(state.provider, {
+          const tokenTx = await transferKrc20(state.provider, {
             tick: 'KREX',
             amount: amountKrex,
             to: treasury,
           });
+          await payHubTokenRailKasFee({
+            provider: state.provider,
+            senderAddress: state.address,
+            treasuryAddress: treasury,
+            note: params.note,
+            payloadHex: params.payloadHex,
+          });
+          return extractKaspaTransactionId(tokenTx) ?? tokenTx;
         }
 
         // KAS rail: prefer explicit plan, else build platform fee plan from amount + to.

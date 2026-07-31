@@ -1,3 +1,16 @@
+import { payKasPaymentPlan } from '@/lib/payments/kasMultiOutPay';
+import { buildHubPlatformFeePlan } from '@/lib/payments/paymentPlan';
+import { transferKrc20 } from '@/lib/payments/krc20Payment';
+import { payHubTokenRailKasFee } from '@/lib/payments/tokenRailKasFee';
+import { resolveTokenAmountFromKas } from '@/lib/pricing/registry';
+import type { PricingSnapshot } from '@/lib/pricing/types';
+import type { HubPaymentCurrencyOption } from '@/lib/payments/hubPaymentTypes';
+import { buildCanonicalGenesisPayload } from './payload';
+import {
+  buildCapsuleCommitPayloadHex,
+  buildCapsuleCommitPlainNote,
+} from './payloadHex';
+import { getKaspaCapsuleTreasuryL1Address } from './config';
 import { extractKaspaTransactionId } from '@/lib/kaspa/transactionId';
 import type { KaspaWalletProvider } from '@/lib/kaspa/types';
 import {
@@ -8,18 +21,6 @@ import {
   splitPayloadToHexChunks,
   computeVBlogRootHash,
 } from '@/lib/vblog/payloadHex';
-import { payKasPaymentPlan } from '@/lib/payments/kasMultiOutPay';
-import { buildHubPlatformFeePlan } from '@/lib/payments/paymentPlan';
-import { transferKrc20 } from '@/lib/payments/krc20Payment';
-import { resolveTokenAmountFromKas } from '@/lib/pricing/registry';
-import type { PricingSnapshot } from '@/lib/pricing/types';
-import type { HubPaymentCurrencyOption } from '@/lib/payments/hubPaymentTypes';
-import { buildCanonicalGenesisPayload } from './payload';
-import {
-  buildCapsuleCommitPayloadHex,
-  buildCapsuleCommitPlainNote,
-} from './payloadHex';
-import { getKaspaCapsuleTreasuryL1Address } from './config';
 
 export type KaspaCapsulePaymentResult = {
   txHash: string;
@@ -27,6 +28,8 @@ export type KaspaCapsulePaymentResult = {
   contentHash: string;
   chunkCount: number;
   payloadBytes: number;
+  /** Present when fee settled in KRC-20 / KREX before the Hub KAS fee step. */
+  tokenTxHash?: string;
 };
 
 export function createCapsuleMessageId(): string {
@@ -80,18 +83,27 @@ export async function sendKaspaCapsulePayment(args: {
     if (kind === 'krex' && args.krexBalance != null && args.krexBalance + 1e-12 < amount) {
       throw new Error('Insufficient KREX balance');
     }
-    const txHash = await transferKrc20(args.provider, {
+    const tokenTx = await transferKrc20(args.provider, {
       tick,
       amount,
       to: treasury,
       decimals: currency?.decimals ?? 8,
     });
+    // Second step: Hub KAS fee + L1 commit payload (token transfers cannot carry Hub multi-out).
+    const feeTx = await payHubTokenRailKasFee({
+      provider: args.provider,
+      senderAddress: args.author,
+      treasuryAddress: treasury,
+      note: commitNote,
+      payloadHex: commitPayload,
+    });
     return {
-      txHash,
+      txHash: feeTx,
       messageId,
       contentHash,
       chunkCount,
       payloadBytes,
+      tokenTxHash: extractKaspaTransactionId(tokenTx) ?? tokenTx,
     };
   }
 

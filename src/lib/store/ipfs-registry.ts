@@ -66,7 +66,7 @@ export async function fetchProductRegistry(
 ): Promise<ProductRegistry | null> {
   const registryCID = cid || getRegistryCID();
   if (!registryCID) {
-    // Don't warn if no CID - this is expected when using demo products
+    // Don't warn if no CID - registry may be empty on first visit
     return null;
   }
 
@@ -79,7 +79,7 @@ export async function fetchProductRegistry(
     return registry;
   } catch (error) {
     console.error('Failed to fetch product registry:', error);
-    // Return null to allow fallback to demo products
+    // Return null when registry is unavailable
     return null;
   }
 }

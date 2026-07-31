@@ -18,8 +18,10 @@ import type { Product } from '@/lib/store/types';
 import { transferKrc20 } from '@/lib/payments/krc20Payment';
 import { payKasPaymentPlan } from '@/lib/payments/kasMultiOutPay';
 import { buildCreatorPlatformPlan } from '@/lib/payments/paymentPlan';
+import { payHubTokenRailKasFee } from '@/lib/payments/tokenRailKasFee';
 import { resolveTokenAmountFromKas, toKasEq } from '@/lib/pricing/registry';
 import type { PricingSnapshot } from '@/lib/pricing/types';
+import { extractKaspaTransactionId } from '@/lib/kaspa/transactionId';
 
 const STORE_TREASURY_ADDRESS = process.env.NEXT_PUBLIC_STORE_TREASURY_ADDRESS || '';
 
@@ -105,6 +107,13 @@ export function useStoreProductPurchase(product: Product) {
               to: STORE_TREASURY_ADDRESS,
             });
           }
+          await payHubTokenRailKasFee({
+            provider: state.provider,
+            senderAddress: state.address,
+            treasuryAddress: STORE_TREASURY_ADDRESS,
+            note: `Store purchase fee ${product.id}`,
+          });
+          purchaseTxHash = extractKaspaTransactionId(purchaseTxHash) ?? purchaseTxHash;
         } else if (payCurrency === 'KREX') {
           if (krexL1Balance + 1e-12 < totalPay) {
             throw new Error('Insufficient KREX balance for this purchase');
@@ -126,6 +135,13 @@ export function useStoreProductPurchase(product: Product) {
               to: STORE_TREASURY_ADDRESS,
             });
           }
+          await payHubTokenRailKasFee({
+            provider: state.provider,
+            senderAddress: state.address,
+            treasuryAddress: STORE_TREASURY_ADDRESS,
+            note: `Store purchase fee ${product.id}`,
+          });
+          purchaseTxHash = extractKaspaTransactionId(purchaseTxHash) ?? purchaseTxHash;
         } else {
           const plan = buildCreatorPlatformPlan({
             creatorAddress: product.sellerAddress,

@@ -207,7 +207,8 @@ export function HubPaymentPanel({
                 </div>
               ))}
               <p className="pt-1 text-[11px] text-zinc-500">
-                One transaction. Change returns to your wallet.
+                One transaction when paying with KAS. Token / KREX rails add a second Hub KAS fee
+                step. Change returns to your wallet.
               </p>
             </div>
           ) : null}

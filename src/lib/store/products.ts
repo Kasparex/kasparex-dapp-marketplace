@@ -11,27 +11,10 @@ import {
   createEmptyProductRegistry,
 } from './ipfs-registry';
 import type { Product, ProductRegistry, ProductRegistryEntry } from './types';
-import { demoProducts } from './demo-products';
 import { syncHubContentItem } from '@/lib/hub/contentSync';
 import { finalizeHubContentDelete } from '@/lib/hub/paidDelete';
 import { upsertHubStoreProduct, removeHubStoreProduct, getHubSyncedStoreProducts } from './hubSync';
 import { collectStoreMediaCids } from '@/lib/ipfs/cidUtils';
-
-function buildDemoProducts(): Product[] {
-  // Deterministic IDs/slugs so routes remain stable across refreshes
-  const baseTime = Date.now() - 1000 * 60 * 60 * 24 * 30; // ~30 days ago
-  return demoProducts.map((p, idx) => {
-    const slug = generateSlug(p.title);
-    return {
-      ...p,
-      id: `demo-${slug}`,
-      slug,
-      createdAt: baseTime + idx * 1000 * 60 * 60 * 6,
-      purchaseCount: [12, 4, 27, 2, 9, 6, 18, 3][idx] ?? 0,
-      listingFeePaid: true,
-    };
-  });
-}
 
 /**
  * Generate UUID
@@ -52,119 +35,125 @@ export function generateSlug(title: string): string {
     .replace(/^-+|-+$/g, ''); // Remove leading/trailing hyphens
 }
 
+function mergeProductLists(...lists: Product[][]): Product[] {
+  const productMap = new Map<string, Product>();
+  for (const list of lists) {
+    for (const p of list) {
+      if (p.status !== 'active') continue;
+      productMap.set(p.slug, p);
+    }
+  }
+  return Array.from(productMap.values());
+}
+
+async function fetchActiveRegistryProducts(registry: ProductRegistry): Promise<Product[]> {
+  const active = registry.products.filter((entry) => entry.status === 'active');
+  const results = await Promise.all(
+    active.map(async (entry) => {
+      try {
+        return await fetchProduct(entry.productCid);
+      } catch {
+        return null;
+      }
+    }),
+  );
+  return results.filter((p): p is Product => Boolean(p && p.status === 'active'));
+}
+
 /**
- * Get all products from registry
+ * Get all products from registry (parallel IPFS fetch) + Hub local cache.
  */
 export async function getAllProducts(): Promise<Product[]> {
+  const hubLocal = getHubSyncedStoreProducts();
   const registry = await fetchProductRegistry();
-  
-  // Always include demo products for testing
-  const demoProducts = buildDemoProducts();
-  
+
   if (!registry || registry.products.length === 0) {
-    const hubOnly = getHubSyncedStoreProducts();
-    if (hubOnly.length) {
-      const productMap = new Map<string, Product>();
-      demoProducts.forEach((p) => productMap.set(p.slug, p));
-      hubOnly.forEach((p) => productMap.set(p.slug, p));
-      return Array.from(productMap.values());
-    }
-    return demoProducts;
+    return hubLocal;
   }
 
-  // Fetch full product data for each entry
-  const products: Product[] = [];
-  for (const entry of registry.products) {
-    if (entry.status === 'active') {
-      const product = await fetchProduct(entry.productCid);
-      if (product) {
-        products.push(product);
-      }
-    }
+  const fromRegistry = await fetchActiveRegistryProducts(registry);
+  for (const product of fromRegistry) {
+    upsertHubStoreProduct(product);
   }
 
-  // Merge with demo products, avoiding duplicates by slug
-  const productMap = new Map<string, Product>();
-  
-  // Add demo products first
-  demoProducts.forEach(p => productMap.set(p.slug, p));
-  
-  // Add registry products (will overwrite demo products with same slug)
-  products.forEach(p => productMap.set(p.slug, p));
-
-  getHubSyncedStoreProducts().forEach((p) => {
-    if (!productMap.has(p.slug)) productMap.set(p.slug, p);
-  });
-  
-  return Array.from(productMap.values());
+  return mergeProductLists(hubLocal, fromRegistry);
 }
 
 /**
  * Get product by slug
  */
 export async function getProductBySlug(slug: string): Promise<Product | null> {
-  // Try to fetch from registry (checks localStorage first for new products)
+  const hubHit = getHubSyncedStoreProducts().find((p) => p.slug === slug);
+  if (hubHit) return hubHit;
+
   const registry = await fetchProductRegistry();
-  
+
   if (registry && registry.products.length > 0) {
     const entry = registry.products.find((p) => p.slug === slug && p.status === 'active');
-    
+
     if (entry) {
       const product = await fetchProduct(entry.productCid);
       if (product) {
+        upsertHubStoreProduct(product);
         return product;
       }
     }
   }
-  
-  // Fall back to demo products
-  const demoProducts = buildDemoProducts();
-  const demoProduct = demoProducts.find((p) => p.slug === slug);
-  
-  return demoProduct || null;
+
+  return null;
 }
 
 /**
  * Get product by ID
  */
 export async function getProductById(id: string): Promise<Product | null> {
+  const hubHit = getHubSyncedStoreProducts().find((p) => p.id === id);
+  if (hubHit) return hubHit;
+
   const registry = await fetchProductRegistry();
-  if (!registry) {
-    return buildDemoProducts().find((p) => p.id === id) || null;
-  }
+  if (!registry) return null;
 
   const entry = registry.products.find((p) => p.id === id && p.status === 'active');
-  if (!entry) {
-    return buildDemoProducts().find((p) => p.id === id) || null;
-  }
+  if (!entry) return null;
 
-  return fetchProduct(entry.productCid);
+  const product = await fetchProduct(entry.productCid);
+  if (product) upsertHubStoreProduct(product);
+  return product;
 }
 
 /**
  * Get products by seller address
  */
 export async function getProductsBySeller(sellerAddress: string): Promise<Product[]> {
-  const registry = await fetchProductRegistry();
-  if (!registry) {
-    return buildDemoProducts().filter(
-      (p) => p.sellerAddress.toLowerCase() === sellerAddress.toLowerCase()
-    );
-  }
-
-  const sellerProducts = registry.products.filter(
-    (p) => p.sellerAddress.toLowerCase() === sellerAddress.toLowerCase()
+  const key = sellerAddress.toLowerCase();
+  const hubLocal = getHubSyncedStoreProducts().filter(
+    (p) => p.sellerAddress.toLowerCase() === key,
   );
 
-  const products: Product[] = [];
-  for (const entry of sellerProducts) {
-    const product = await fetchProduct(entry.productCid);
-    if (product) {
-      products.push(product);
-    }
+  const registry = await fetchProductRegistry();
+  if (!registry) return hubLocal;
+
+  const sellerEntries = registry.products.filter(
+    (p) => p.sellerAddress.toLowerCase() === key && p.status === 'active',
+  );
+
+  const fromRegistry = (
+    await Promise.all(
+      sellerEntries.map(async (entry) => {
+        try {
+          return await fetchProduct(entry.productCid);
+        } catch {
+          return null;
+        }
+      }),
+    )
+  ).filter((p): p is Product => Boolean(p));
+
+  for (const product of fromRegistry) {
+    upsertHubStoreProduct(product);
   }
 
-  return products;
+  return mergeProductLists(hubLocal, fromRegistry);
 }
 
 /**
@@ -175,6 +164,7 @@ export async function createProduct(
   listingFeeTxHash: string
 ): Promise<{ product: Product; registryCid: string } | null> {
   try {
+    void listingFeeTxHash;
     // Generate ID and slug
     const id = generateUUID();
     const slug = generateSlug(productData.title);
@@ -435,6 +425,7 @@ export async function updateProduct(
       localStorage.setItem('store-registry-cid', registryCid);
     }
 
+    upsertHubStoreProduct(updated);
     return { product: updated, registryCid };
   } catch (error) {
     console.error('Failed to update product:', error);

@@ -5,6 +5,7 @@ import { StoreHeader } from '@/components/store/StoreHeader';
 import { StorePageShell } from '@/components/store/StorePageShell';
 import { ProductGrid } from '@/components/store/ProductGrid';
 import { getAllProducts } from '@/lib/store/products';
+import { getHubSyncedStoreProducts } from '@/lib/store/hubSync';
 import { getCategoryCounts, getListedCurrencies, filterProducts } from '@/lib/store/filtering';
 import { getProductTagsFromCatalog } from '@/lib/store/tags';
 import { ProductSortFilters } from '@/components/store/ProductSortFilters';
@@ -45,14 +46,24 @@ export default function StorePage() {
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      setIsLoading(true);
-      setError(null);
+      const cached = getHubSyncedStoreProducts();
+      if (cached.length) {
+        if (!cancelled) {
+          setProducts(cached);
+          setIsLoading(false);
+        }
+      } else if (!cancelled) {
+        setIsLoading(true);
+      }
+      if (!cancelled) setError(null);
       try {
         const allProducts = await getAllProducts();
         if (!cancelled) setProducts(allProducts);
       } catch (err) {
         console.error('Failed to load products:', err);
-        if (!cancelled) setError('Failed to load products. Please try again later.');
+        if (!cancelled && cached.length === 0) {
+          setError('Failed to load products. Please try again later.');
+        }
       } finally {
         if (!cancelled) setIsLoading(false);
       }

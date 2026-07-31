@@ -23,6 +23,7 @@ import { useHubPayWithCatalog, hubCatalogSelectionToStoreCurrency } from '@/hook
 import { resolveCatalogPaymentOption } from '@/lib/payments/currencyCatalog';
 import { formatHubPaymentAmount } from '@/lib/payments/hubPaymentTypes';
 import { buildHubPlatformFeePlan } from '@/lib/payments/paymentPlan';
+import { HUB_TOKEN_RAIL_FEE_KAS } from '@/lib/payments/tokenRailKasFee';
 import { getKaspaCapsuleTreasuryL1Address } from '@/lib/genesis/config';
 import { KREXBuyWizard } from '@/components/rewards/KREXBuyWizard';
 import type { ReactNode } from 'react';
@@ -131,12 +132,14 @@ export const DAppCalculationBreakdownPanel = memo(function DAppCalculationBreakd
     formatHubPaymentAmount(paymentOption, kas, { snapshot: pricingSnapshot });
 
   const splitLegs = useMemo(() => {
-    if (!quote || paymentOption.kind !== 'kas') return undefined;
+    if (!quote) return undefined;
     try {
       const treasury =
         dapp.slug === 'kaspa-capsule' ? getKaspaCapsuleTreasuryL1Address() : undefined;
+      const totalKas =
+        paymentOption.kind === 'kas' ? quote.totalKas : HUB_TOKEN_RAIL_FEE_KAS;
       return buildHubPlatformFeePlan({
-        totalKas: quote.totalKas,
+        totalKas,
         treasuryAddress: treasury,
       }).legs;
     } catch {
@@ -167,9 +170,7 @@ export const DAppCalculationBreakdownPanel = memo(function DAppCalculationBreakd
     quote?.infoText &&
     (paymentOption.kind === 'kas'
       ? quote.infoText
-      : dapp.slug === 'kaspa-capsule'
-        ? 'Fee settles in your selected token to Kasparex treasury. Capsule stores the message with payment proof.'
-        : quote.infoText);
+      : `${quote.infoText} Token settlement needs a second +${HUB_TOKEN_RAIL_FEE_KAS} KAS Hub fee step (treasury + rewards).`);
 
   return (
     <aside className={KX_CALCULATION_ASIDE}>
@@ -234,7 +235,9 @@ export const DAppCalculationBreakdownPanel = memo(function DAppCalculationBreakd
                     </div>
                   ))}
                   <p className="pt-1 text-[11px] text-zinc-500">
-                    One transaction. Change returns to your wallet.
+                    {paymentOption.kind === 'kas'
+                      ? 'One transaction. Change returns to your wallet.'
+                      : `Token transfer, then +${HUB_TOKEN_RAIL_FEE_KAS} KAS Hub fee. Change returns to your wallet.`}
                   </p>
                 </div>
               ) : null}

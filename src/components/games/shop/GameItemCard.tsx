@@ -462,13 +462,13 @@ export function GameItemCard(props: {
   const currencyPicker =
     options.length > 1 ? (
       hubChrome && hubPayCatalog.length > 0 ? (
-        <div className="w-full min-w-0 space-y-1.5 sm:flex-1 sm:min-w-[170px]">
-          <p className="text-[11px] font-semibold uppercase tracking-widest text-zinc-500">Pay with</p>
+        <div className="w-full min-w-0 sm:flex-1 sm:min-w-[170px]">
           <HubPaymentCurrencyCatalogTrigger
             entries={hubPayCatalog}
             selectedId={String(currency)}
             onSelect={handleHubCurrencySelect}
             accent="store"
+            className="w-full"
           />
         </div>
       ) : (

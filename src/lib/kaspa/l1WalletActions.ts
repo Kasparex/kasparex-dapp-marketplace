@@ -45,7 +45,7 @@ function krc20TransferTypeNumber(type: string | number): number {
 }
 
 /**
- * Sign / broadcast a KRC-20 transfer (KasWare signKRC20Transaction, Kastle commitReveal).
+ * Sign / broadcast a KRC-20 transfer (KasWare signKRC20Transaction, Kastle commitReveal, Kaspire WC).
  */
 export async function signKrc20Transfer(
   provider: KaspaWalletProvider,
@@ -106,10 +106,29 @@ export async function signKrc20Transfer(
     throw new Error('Kastle did not return a transaction id for the KRC-20 transfer.');
   }
 
+  if (provider === 'kaspire') {
+    let tick = '';
+    let amt = '';
+    try {
+      const parsed = JSON.parse(inscribeJsonString) as { tick?: string; amt?: string };
+      tick = String(parsed.tick ?? '').toUpperCase();
+      amt = String(parsed.amt ?? '');
+    } catch {
+      throw new Error('Invalid KRC-20 payload for Kaspire');
+    }
+    if (!tick || !amt) {
+      throw new Error('Kaspire KRC-20 transfer requires ticker and amount');
+    }
+    const { sendKaspireKrc20 } = await import('./kaspireWc');
+    return sendKaspireKrc20({
+      to: normalizedDest,
+      ticker: tick,
+      amount: amt,
+    });
+  }
+
   throw new Error(
-    provider === 'kaspire'
-      ? 'Kaspire KRC-20 over WalletConnect is not wired in Hub yet. Use KasWare or Kastle for this transfer, or send native KAS with Kaspire.'
-      : `KRC-20 transfers are not supported for this wallet (${provider}).`,
+    `KRC-20 transfers are not supported for this wallet (${provider}).`,
   );
 }
 
@@ -134,6 +153,11 @@ export async function getL1UtxoEntries(provider: KaspaWalletProvider): Promise<U
       return (raw as { entries: UtxoEntry[] }).entries;
     }
     return [];
+  }
+
+  // Kaspire: no UTXO export yet. Multi-out falls back to sequential sendTransaction.
+  if (provider === 'kaspire') {
+    throw new Error('UTXO list is not supported for this wallet (kaspire)');
   }
 
   throw new Error(`UTXO list is not supported for this wallet (${provider}).`);

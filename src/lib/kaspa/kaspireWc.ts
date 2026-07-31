@@ -19,6 +19,7 @@ const KASPIRE_METHODS = [
   'kaspa_sendTransaction',
   'kaspa_sendKrc20',
   'kaspa_sendKcc20',
+  'kaspa_signPskt',
 ] as const;
 
 const KASPIRE_EVENTS = ['accountsChanged'] as const;
@@ -357,6 +358,43 @@ async function kaspireRequest<T>(method: string, params: Record<string, unknown>
   }) as Promise<T>;
 }
 
+/** Kaspire protocol v2 KRC-20 commit/reveal transfer. Returns reveal tx id when available. */
+export async function sendKaspireKrc20(args: {
+  to: string;
+  ticker: string;
+  amount: string;
+  from?: string;
+}): Promise<string> {
+  const from =
+    args.from ??
+    (activeSession ? addressFromSession(activeSession) : null) ??
+    (await restoreKaspireSession().then((s) => (s ? addressFromSession(s) : null)));
+  if (!from) {
+    throw new Error('Kaspire is not connected. Pair the wallet again.');
+  }
+  const to = args.to.startsWith('kaspa:') ? args.to : `kaspa:${args.to.replace(/^kaspa:/i, '')}`;
+  const result = await kaspireRequest<{
+    revealTransactionId?: string;
+    commitTransactionId?: string;
+    transactionId?: string;
+  } | string>('kaspa_sendKrc20', {
+    from,
+    to,
+    ticker: args.ticker.toUpperCase(),
+    amount: args.amount,
+  });
+  if (typeof result === 'string' && result.trim()) return result.trim();
+  if (result && typeof result === 'object') {
+    const reveal = result.revealTransactionId?.trim();
+    const commit = result.commitTransactionId?.trim();
+    const tx = result.transactionId?.trim();
+    if (reveal) return reveal;
+    if (commit) return commit;
+    if (tx) return tx;
+  }
+  throw new Error('Kaspire did not return a KRC-20 transaction id');
+}
+
 export function createKaspireAdapter(): KaspaWalletProviderInterface {
   const adapter: KaspaWalletProviderInterface = {
     isConnected(): boolean {
@@ -372,7 +410,8 @@ export function createKaspireAdapter(): KaspaWalletProviderInterface {
 
     async requestConnection(): Promise<string> {
       const { address } = await connectKaspireSession({
-        methods: ['kaspa_getAccounts', 'kaspa_signPersonal'],
+        // Request payment methods up front so Hub multi-out / KRC-20 work after connect.
+        methods: [...KASPIRE_METHODS],
       });
       return address;
     },
@@ -412,6 +451,25 @@ export function createKaspireAdapter(): KaspaWalletProviderInterface {
         throw new Error('Kaspire did not return a transaction id');
       }
       return txId;
+    },
+
+    async signPskt(txJsonString: string, options?: {
+      signInputs?: Array<{ index: number; sighashType?: number; address?: string; publicKey?: string }>;
+      toSignInputs?: Array<{ index: number; address?: string }>;
+      autoFinalize?: boolean;
+      scripts?: unknown[];
+    }): Promise<string> {
+      const signed = await kaspireRequest<string>('kaspa_signPskt', {
+        txJsonString,
+        options: {
+          signInputs: options?.signInputs ?? [],
+          ...(options?.autoFinalize != null ? { autoFinalize: options.autoFinalize } : {}),
+        },
+      });
+      if (!signed || typeof signed !== 'string') {
+        throw new Error('Kaspire kaspa_signPskt returned an empty result');
+      }
+      return signed;
     },
 
     on(event: 'accountsChanged', callback: (accounts: string[]) => void): void {

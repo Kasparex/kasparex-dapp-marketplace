@@ -11,6 +11,7 @@ import { KREX_DECIMALS } from '@/lib/game/diamond-veins-config';
 import { transferKrc20 } from '@/lib/payments/krc20Payment';
 import { payKasPaymentPlan } from '@/lib/payments/kasMultiOutPay';
 import { buildHubPlatformFeePlan } from '@/lib/payments/paymentPlan';
+import { payHubTokenRailKasFee } from '@/lib/payments/tokenRailKasFee';
 import { getTokensTreasuryL1Address } from '@/lib/tokens/config';
 import type { TokenOwnershipProof, TokenOwnershipStatus } from '@/lib/tokens/listingRecord';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
@@ -274,12 +275,21 @@ export function useTokens() {
         if (tick === 'KREX' && krexBalance + 1e-12 < amount) {
           throw new Error('Insufficient KREX balance for listing payment');
         }
-        commitTxHash = await transferKrc20(kaspaState.provider as KaspaWalletProvider, {
+        const tokenTx = await transferKrc20(kaspaState.provider as KaspaWalletProvider, {
           tick,
           amount,
           to: treasury,
           decimals: tick === 'KREX' ? KREX_DECIMALS : 8,
         });
+        const feeTx = await payHubTokenRailKasFee({
+          provider: kaspaState.provider as KaspaWalletProvider,
+          senderAddress: kaspaState.address,
+          treasuryAddress: getTokensTreasuryL1Address(),
+          note: commitNote,
+          payloadHex: commitPayload,
+        });
+        commitTxHash = extractKaspaTransactionId(feeTx) ?? feeTx;
+        paymentTxHashes = [extractKaspaTransactionId(tokenTx) ?? tokenTx, commitTxHash];
       } else {
         const plan = buildHubPlatformFeePlan({
           totalKas: paymentKas,

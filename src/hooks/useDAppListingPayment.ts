@@ -12,6 +12,8 @@ import { DAPP_LISTING_FEE_KAS } from '@/lib/dapps/listingSubmissions';
 import { mergePricingTickers } from '@/lib/pricing';
 import { payKasPaymentPlan } from '@/lib/payments/kasMultiOutPay';
 import { buildHubPlatformFeePlan } from '@/lib/payments/paymentPlan';
+import { payHubTokenRailKasFee } from '@/lib/payments/tokenRailKasFee';
+import { extractKaspaTransactionId } from '@/lib/kaspa/transactionId';
 
 const TREASURY = process.env.NEXT_PUBLIC_STORE_TREASURY_ADDRESS || '';
 
@@ -56,11 +58,18 @@ export function useDAppListingPayment() {
           if (krexL1Balance + 1e-12 < amountKrex) {
             throw new Error('Insufficient KREX balance for listing fee');
           }
-          return await transferKrc20(state.provider, {
+          const tokenTx = await transferKrc20(state.provider, {
             tick: 'KREX',
             amount: amountKrex,
             to: TREASURY,
           });
+          await payHubTokenRailKasFee({
+            provider: state.provider,
+            senderAddress: state.address,
+            treasuryAddress: TREASURY,
+            note,
+          });
+          return extractKaspaTransactionId(tokenTx) ?? tokenTx;
         }
 
         if (currencyId !== 'KAS') {
@@ -69,12 +78,19 @@ export function useDAppListingPayment() {
             (t) => t.kind === 'krc20' && (t.tick === tick || t.id === tick),
           );
           const amount = resolveTokenAmountFromKas(feeKas, tick, pricingSnapshot);
-          return await transferKrc20(state.provider, {
+          const tokenTx = await transferKrc20(state.provider, {
             tick,
             amount,
             to: TREASURY,
             decimals: match?.decimals ?? 8,
           });
+          await payHubTokenRailKasFee({
+            provider: state.provider,
+            senderAddress: state.address,
+            treasuryAddress: TREASURY,
+            note,
+          });
+          return extractKaspaTransactionId(tokenTx) ?? tokenTx;
         }
 
         const plan = buildHubPlatformFeePlan({

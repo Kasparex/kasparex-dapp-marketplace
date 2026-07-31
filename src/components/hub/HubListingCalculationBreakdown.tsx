@@ -13,6 +13,7 @@ import type { HubCurrencyCatalogEntry } from '@/lib/payments/currencyCatalog';
 import type { HubPaymentCurrencyOption } from '@/lib/payments/hubPaymentTypes';
 import { formatHubPaymentAmount } from '@/lib/payments/hubPaymentTypes';
 import { buildHubPlatformFeePlan } from '@/lib/payments/paymentPlan';
+import { HUB_TOKEN_RAIL_FEE_KAS } from '@/lib/payments/tokenRailKasFee';
 import { formatHubPointsTierLabel } from '@/lib/rewards/hub-points';
 import { KREX_TIERS } from '@/lib/rewards/types';
 
@@ -72,10 +73,20 @@ export function HubListingCalculationBreakdown({
     : `${quote.totalKas} KAS`;
 
   const splitLegs = useMemo(() => {
-    if (selected?.kind !== 'kas' && selectedCurrencyId !== 'KAS') return undefined;
+    if (selected?.kind === 'kas' || selectedCurrencyId === 'KAS') {
+      try {
+        return buildHubPlatformFeePlan({
+          totalKas: quote.totalKas,
+          treasuryAddress,
+        }).legs;
+      } catch {
+        return undefined;
+      }
+    }
+    // Token / KREX rail: show the second Hub KAS fee split (non-covenant).
     try {
       return buildHubPlatformFeePlan({
-        totalKas: quote.totalKas,
+        totalKas: HUB_TOKEN_RAIL_FEE_KAS,
         treasuryAddress,
       }).legs;
     } catch {
@@ -179,7 +190,9 @@ export function HubListingCalculationBreakdown({
                 </div>
               ))}
               <p className="pt-1 text-[11px] text-zinc-500">
-                One transaction. Change returns to your wallet.
+                {selected?.kind === 'kas' || selectedCurrencyId === 'KAS'
+                  ? 'One transaction. Change returns to your wallet.'
+                  : `Token transfer, then +${HUB_TOKEN_RAIL_FEE_KAS} KAS Hub fee (treasury + rewards). Change returns to your wallet.`}
               </p>
             </div>
           ) : null}

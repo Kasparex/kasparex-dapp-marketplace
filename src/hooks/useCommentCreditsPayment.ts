@@ -10,6 +10,8 @@ import { listPublicVerifiedPaymentTokens } from '@/lib/payments/publicPaymentTok
 import type { StorePaymentCurrency } from '@/lib/store/currencies';
 import { payKasPaymentPlan } from '@/lib/payments/kasMultiOutPay';
 import { buildHubPlatformFeePlan } from '@/lib/payments/paymentPlan';
+import { payHubTokenRailKasFee } from '@/lib/payments/tokenRailKasFee';
+import { extractKaspaTransactionId } from '@/lib/kaspa/transactionId';
 
 const COMMENT_CREDITS_TREASURY =
   'kaspa:qqd36zqt94yr23cmjj73d34e2lc05ltd9duw582s303m30ux567ps9ljnhp6y';
@@ -52,11 +54,18 @@ export function useCommentCreditsPayment() {
           if (krexL1Balance + 1e-12 < amountKrex) {
             throw new Error('Insufficient KREX balance');
           }
-          return await transferKrc20(state.provider, {
+          const tokenTx = await transferKrc20(state.provider, {
             tick: 'KREX',
             amount: amountKrex,
             to: treasuryAddress,
           });
+          await payHubTokenRailKasFee({
+            provider: state.provider,
+            senderAddress: state.address,
+            treasuryAddress: COMMENT_CREDITS_TREASURY,
+            note: `Comment Credits Purchase: ${credits} credits`,
+          });
+          return extractKaspaTransactionId(tokenTx) ?? tokenTx;
         }
 
         if (currencyId !== 'KAS') {
@@ -65,12 +74,19 @@ export function useCommentCreditsPayment() {
             (t) => t.kind === 'krc20' && (t.tick === tick || t.id === tick),
           );
           const amount = resolveTokenAmountFromKas(feeKas, tick, pricingSnapshot);
-          return await transferKrc20(state.provider, {
+          const tokenTx = await transferKrc20(state.provider, {
             tick,
             amount,
             to: treasuryAddress,
             decimals: match?.decimals ?? 8,
           });
+          await payHubTokenRailKasFee({
+            provider: state.provider,
+            senderAddress: state.address,
+            treasuryAddress: COMMENT_CREDITS_TREASURY,
+            note: `Comment Credits Purchase: ${credits} credits`,
+          });
+          return extractKaspaTransactionId(tokenTx) ?? tokenTx;
         }
 
         const plan = buildHubPlatformFeePlan({
