@@ -14,6 +14,7 @@ import { HubAsideRail } from '@/components/hub/HubAsideRail';
 import { TokenPreviewModal } from '@/components/tokens/TokenPreviewModal';
 import { TokenPageBuilder } from '@/components/tokens/TokenPageBuilder';
 import { TokenCategoryField } from '@/components/tokens/TokenCategoryField';
+import { TokenFormOwnershipGate } from '@/components/tokens/TokenFormOwnershipGate';
 import {
   resolveTokenListingMedia,
   TokenListingMediaPanel,
@@ -24,18 +25,18 @@ import { validateTokenModulesForPublish } from '@/lib/tokens/formValidation';
 import { HubPaymentPanel } from '@/components/payments/HubPaymentPanel';
 import { buildKasKrexCurrencyOptions, formatHubPaymentAmount } from '@/lib/payments/hubPaymentTypes';
 import type { HubPaymentCurrencyOption } from '@/lib/payments/hubPaymentTypes';
-import { buildPublicHubCurrencyCatalog } from '@/lib/payments/publicPaymentTokens';
+import { buildPublicHubCurrencyCatalog, listPublicVerifiedPaymentTokens } from '@/lib/payments/publicPaymentTokens';
 import { buildHubPlatformFeePlan } from '@/lib/payments/paymentPlan';
 import { filterModulesForAssetKind, filterModuleOffersForListing, isIntegrationModule } from '@/lib/tokens/utilityEligibility';
 import { estimateTokenListingQuote } from '@/lib/tokens/pricing';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { usePricingSnapshot } from '@/hooks/usePricingSnapshot';
-import { listPublicVerifiedPaymentTokens } from '@/lib/payments/publicPaymentTokens';
 import { mergePricingTickers } from '@/lib/pricing';
 import { TokenModuleConfigFields, tokenModuleHasConfigFields } from '@/components/tokens/TokenModuleConfigFields';
 import { krexTierDiscountPercent } from '@/lib/chronicles/vault/pricing';
 import type { Token } from '@/lib/tokens/types';
-import type { PublishedTokenListing, TokenAssetKind, TokenOnChainSnapshot, TokenNetworkEntry, TokenPageSectionType } from '@/lib/tokens/listingRecord';
+import type { PublishedTokenListing, TokenAssetKind, TokenOnChainSnapshot, TokenNetworkEntry, TokenPageSectionType, TokenOwnershipProof } from '@/lib/tokens/listingRecord';
+import { getTokensTreasuryL1Address } from '@/lib/tokens/config';
 import { createDefaultPageConfig, applyPageSectionConfig, OVERVIEW_CANVAS_BLOCKS } from '@/lib/tokens/pageConfig';
 import {
   TOKEN_LISTING_NETWORK_OPTIONS,
@@ -217,7 +218,13 @@ export function CreateTokenForm({
   const { publishNewListing, updateExistingListing, discountPercent } = useTokens();
 
   const walletAddress = kaspaState.address || (evmAddress ? `evm:${evmAddress}` : null);
-  const canPublish = kaspaState.isConnected && Boolean(kaspaState.address);
+  const [ownershipProof, setOwnershipProof] = useState<TokenOwnershipProof | null>(
+    () => listing?.ownershipProof ?? null,
+  );
+  const primaryOwnershipVerified =
+    Boolean(ownershipProof) || listing?.ownership === 'deployer_verified';
+  const canPublish =
+    kaspaState.isConnected && Boolean(kaspaState.address) && primaryOwnershipVerified;
 
   const [symbol, setSymbol] = useState(listing?.symbol ?? '');
   const [name, setName] = useState(listing?.name ?? '');
@@ -273,12 +280,13 @@ export function CreateTokenForm({
   const applyKrc20Selection = useCallback((info: Krc20TokenInfo | null) => {
     setKrc20Selected(info);
     if (!info) {
-      setOnChainSnapshot(null);
-      setDeployerAddress('');
-      setTokenDecimals(undefined);
-      setMaxSupply(undefined);
-      setTotalSupply(undefined);
-      return;
+    setOnChainSnapshot(null);
+    setDeployerAddress('');
+    setTokenDecimals(undefined);
+    setMaxSupply(undefined);
+    setTotalSupply(undefined);
+    setOwnershipProof(null);
+    return;
     }
     const dec = info.decimals ?? 8;
     setSymbol(info.ticker);
@@ -302,6 +310,7 @@ export function CreateTokenForm({
         setMaxSupply(undefined);
         setTotalSupply(undefined);
         setContractAddress('');
+        setOwnershipProof(null);
         return;
       }
       const dec = info.decimals ?? 8;
@@ -414,13 +423,13 @@ export function CreateTokenForm({
       buildNetworkEntries({
         primaryNetwork: listingNetwork,
         primaryAddress: contractAddress,
-        primaryVerified: listing?.ownership === 'deployer_verified',
+        primaryVerified: primaryOwnershipVerified,
         secondaryNetworks: secondaryNetworks.map((row) => ({
           network: row.network,
           contractAddress: row.contractAddress,
         })),
       }),
-    [listingNetwork, contractAddress, secondaryNetworks, listing?.ownership],
+    [listingNetwork, contractAddress, secondaryNetworks, primaryOwnershipVerified],
   );
 
   const livePageConfig = useMemo(
@@ -686,6 +695,7 @@ export function CreateTokenForm({
       setOnChainSnapshot(null);
       setKrc20Selected(null);
       setKcc20Selected(null);
+      setOwnershipProof(null);
     }
 
     setSecondaryNetworks(
@@ -718,6 +728,7 @@ export function CreateTokenForm({
     setOnChainSnapshot(null);
     setKrc20Selected(null);
     setKcc20Selected(null);
+    setOwnershipProof(null);
   };
 
   const updateNetworkAddress = (network: TokenListingNetwork, value: string) => {
@@ -746,7 +757,11 @@ export function CreateTokenForm({
       return;
     }
     if (!canPublish) {
-      setError('Publishing requires a connected Kaspa L1 wallet for the listing payment.');
+      setError(
+        !kaspaState.isConnected || !kaspaState.address
+          ? 'Publishing requires a connected Kaspa L1 wallet for the listing payment.'
+          : 'Verify ownership of the primary network first to unlock publish.',
+      );
       return;
     }
 
@@ -800,6 +815,8 @@ export function CreateTokenForm({
         networks: assembledNetworks,
         modulesConfig,
         paymentCurrency: paymentOption.id,
+        ownershipProof: ownershipProof ?? undefined,
+        ownership: primaryOwnershipVerified ? 'deployer_verified' : 'none',
       };
       const result = listing
         ? await updateExistingListing(listing.id, input, kaspaState.address!)
@@ -834,7 +851,7 @@ export function CreateTokenForm({
               <p className="kx-body">
                 {isEditMode
                   ? 'Update your landing page content, modules, and on-chain listing metadata.'
-                  : 'List a real on-chain token (KRC-20, KCC-20, or L2), verify deployer ownership after publish, and build a modular landing page. Verified tokens can appear in Hub Pay with catalogs.'}
+                  : 'List a real on-chain token (KRC-20, KCC-20, or L2), verify deployer ownership in this form to unlock publish, then build a modular landing page. Verified tokens can appear in Hub Pay with catalogs.'}
               </p>
               {isEditMode && onCancelEdit ? (
                 <button type="button" onClick={onCancelEdit} className="mt-3 text-sm text-[#02abb8] hover:underline">
@@ -1107,6 +1124,29 @@ export function CreateTokenForm({
                 hint="Select up to 3 tags. Search suggestions or add your own."
               />
             </div>
+
+            <TokenFormOwnershipGate
+              symbol={symbol}
+              listingNetwork={listingNetwork}
+              contractAddress={contractAddress.trim() || undefined}
+              covenantId={
+                onChainSnapshot?.source === 'kcc20'
+                  ? onChainSnapshot.covenantId ?? contractAddress.trim()
+                  : undefined
+              }
+              expectedDeployer={
+                deployerAddress ||
+                onChainSnapshot?.deployer ||
+                onChainSnapshot?.owner ||
+                undefined
+              }
+              secondaryCount={secondaryNetworks.filter((row) => row.contractAddress.trim()).length}
+              disabled={isSubmitting}
+              alreadyVerified={listing?.ownership === 'deployer_verified'}
+              proof={ownershipProof}
+              onVerified={setOwnershipProof}
+              onClear={() => setOwnershipProof(null)}
+            />
           </div>
 
           <div className={`${FORM_PANEL_CLASS} space-y-6 scroll-mt-24`} id="tokens-dashboard-media">
@@ -1279,7 +1319,10 @@ export function CreateTokenForm({
               paymentOption.kind === 'kas'
                 ? (() => {
                     try {
-                      return buildHubPlatformFeePlan({ totalKas: formQuote.totalKas }).legs;
+                      return buildHubPlatformFeePlan({
+                        totalKas: formQuote.totalKas,
+                        treasuryAddress: getTokensTreasuryL1Address(),
+                      }).legs;
                     } catch {
                       return undefined;
                     }
@@ -1338,7 +1381,9 @@ export function CreateTokenForm({
                   ) : null}
                   {!canPublish && (walletAddress || isEvmConnected) ? (
                     <Alert type="info" compact region>
-                      Connect Kasware (or another Kaspa L1 wallet) to pay the listing fee and verify on-chain.
+                      {!kaspaState.isConnected || !kaspaState.address
+                        ? 'Connect Kasware (or another Kaspa L1 wallet) to pay the listing fee.'
+                        : 'Verify ownership in the form above to unlock publish.'}
                     </Alert>
                   ) : null}
                 </>

@@ -8,12 +8,16 @@ import {
   parseTokenListingCommitPayload,
   parseTokenListingLegacyCommitPayload,
 } from '@/lib/tokens/payloadHex';
+import { buildHubPlatformFeePlan } from '@/lib/payments/paymentPlan';
+import { verifyPaymentPlanTxs } from '@/lib/payments/verifyPaymentLegs';
 
 export type VerifyTokenListingBundleInput = {
   listingId: string;
   op: 'create' | 'edit';
   payerAddress: string;
   commitTxHash: string;
+  /** Extra hashes when the fee split was paid as sequential txs. */
+  paymentTxHashes?: string[];
   chunkHexList: string[];
   contentHash: string;
   rootHash: string;
@@ -25,6 +29,7 @@ export type VerifyTokenListingLegacyInput = {
   op: 'create' | 'edit';
   payerAddress: string;
   commitTxHash: string;
+  paymentTxHashes?: string[];
   contentHash: string;
   requiredTotalKas: number;
 };
@@ -112,14 +117,25 @@ function txHasPayerInputRelaxed(tx: KaspaRestTransaction, payer: string): boolea
   });
 }
 
+function uniqueTxHashes(primary: string, extras?: string[]): string[] {
+  const out: string[] = [];
+  const seen = new Set<string>();
+  for (const raw of [primary, ...(extras ?? [])]) {
+    const h = raw.trim().replace(/^0x/i, '').toLowerCase();
+    if (!/^[0-9a-f]{64}$/.test(h) || seen.has(h)) continue;
+    seen.add(h);
+    out.push(h);
+  }
+  return out;
+}
+
 export async function verifyTokenListingTxBundle(
   input: VerifyTokenListingBundleInput,
 ): Promise<VerifyTokenListingResult> {
   let payerNorm: string;
-  let treasuryNorm: string;
   try {
     payerNorm = normalizeKaspaAddress(input.payerAddress);
-    treasuryNorm = normalizeKaspaAddress(getTokensTreasuryL1Address());
+    normalizeKaspaAddress(getTokensTreasuryL1Address());
   } catch (e) {
     return { ok: false, error: e instanceof Error ? e.message : 'Invalid address' };
   }
@@ -132,7 +148,12 @@ export async function verifyTokenListingTxBundle(
     return { ok: false, error: 'Invalid chunk root hash' };
   }
 
-  const minSompi = kasToSompi(input.requiredTotalKas);
+  const paymentKas = Math.max(0.01, Math.ceil(input.requiredTotalKas * 100) / 100);
+  const plan = buildHubPlatformFeePlan({
+    totalKas: paymentKas,
+    treasuryAddress: getTokensTreasuryL1Address(),
+  });
+
   const commitTx = await getRestTransactionById(input.commitTxHash.replace(/^0x/i, ''), {
     maxAttempts: 8,
     delayMs: 1400,
@@ -156,11 +177,15 @@ export async function verifyTokenListingTxBundle(
     return { ok: false, error: 'Commit transaction payer mismatch' };
   }
 
-  const paid = txPaysAddressSompi(commitTx, treasuryNorm);
-  if (paid < minSompi) {
+  const paymentHashes = uniqueTxHashes(input.commitTxHash, input.paymentTxHashes);
+  const legsCheck = await verifyPaymentPlanTxs({
+    plan,
+    txHashes: paymentHashes,
+  });
+  if (!legsCheck.ok) {
     return {
       ok: false,
-      error: `Treasury output too low (need at least ${input.requiredTotalKas} KAS).`,
+      error: legsCheck.error ?? 'Payment split verification failed (treasury / rewards).',
     };
   }
 
@@ -181,7 +206,10 @@ export async function verifyTokenListingTx(
   }
 
   const minKas = Math.max(0.01, Math.ceil(input.requiredTotalKas * 100) / 100);
-  const minSompi = kasToSompi(minKas);
+  const plan = buildHubPlatformFeePlan({
+    totalKas: minKas,
+    treasuryAddress: getTokensTreasuryL1Address(),
+  });
 
   const tx = await getRestTransactionById(input.commitTxHash.replace(/^0x/i, ''), {
     maxAttempts: 8,
@@ -189,14 +217,6 @@ export async function verifyTokenListingTx(
   });
   if (!tx) {
     return { ok: false, error: 'Transaction not found yet. Wait for the indexer and try again.' };
-  }
-
-  const paid = txPaysAddressSompi(tx, treasuryNorm);
-  if (paid < minSompi) {
-    return {
-      ok: false,
-      error: `Treasury output too low (need at least ${minKas} KAS).`,
-    };
   }
 
   const binding =
@@ -213,6 +233,26 @@ export async function verifyTokenListingTx(
 
   if (!txHasPayerInputRelaxed(tx, payerNorm)) {
     return { ok: false, error: 'Transaction inputs do not show your wallet as the payer.' };
+  }
+
+  const paymentHashes = uniqueTxHashes(input.commitTxHash, input.paymentTxHashes);
+  if (paymentHashes.length > 1 || plan.legs.length > 1) {
+    const legsCheck = await verifyPaymentPlanTxs({ plan, txHashes: paymentHashes });
+    if (!legsCheck.ok) {
+      return {
+        ok: false,
+        error: legsCheck.error ?? 'Payment split verification failed (treasury / rewards).',
+      };
+    }
+  } else {
+    const minSompi = kasToSompi(minKas);
+    const paid = txPaysAddressSompi(tx, treasuryNorm);
+    if (paid < minSompi) {
+      return {
+        ok: false,
+        error: `Treasury output too low (need at least ${minKas} KAS).`,
+      };
+    }
   }
 
   return { ok: true };

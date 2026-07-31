@@ -2,16 +2,17 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { useKaspaWallet } from '@/lib/kaspa/context';
-import { sendKaspaTransaction } from '@/lib/kaspa/wallet';
 import type { KaspaWalletProvider } from '@/lib/kaspa/types';
 import { extractKaspaTransactionId } from '@/lib/kaspa/transactionId';
-import { kasToSompi } from '@/lib/ads/config';
 import { type StorePaymentCurrency } from '@/lib/store/currencies';
 import { usePricingSnapshot } from '@/hooks/usePricingSnapshot';
 import { resolveTokenAmountFromKas } from '@/lib/pricing/registry';
 import { KREX_DECIMALS } from '@/lib/game/diamond-veins-config';
 import { transferKrc20 } from '@/lib/payments/krc20Payment';
+import { payKasPaymentPlan } from '@/lib/payments/kasMultiOutPay';
+import { buildHubPlatformFeePlan } from '@/lib/payments/paymentPlan';
 import { getTokensTreasuryL1Address } from '@/lib/tokens/config';
+import type { TokenOwnershipProof, TokenOwnershipStatus } from '@/lib/tokens/listingRecord';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { krexTierDiscountPercent } from '@/lib/chronicles/vault/pricing';
 import { TOKEN_MODULE_OFFERS, type TokenModuleId } from '@/lib/tokens/modules';
@@ -83,6 +84,9 @@ export type CreateTokenListingInput = {
   networks?: TokenNetworkEntry[];
   modulesConfig?: TokenModulesConfig;
   paymentCurrency?: StorePaymentCurrency;
+  /** Deployer ownership proof collected in the form before publish. */
+  ownershipProof?: TokenOwnershipProof;
+  ownership?: TokenOwnershipStatus;
 };
 
 function buildDraft(input: CreateTokenListingInput, author: string): TokenListingDraft {
@@ -257,6 +261,7 @@ export function useTokens() {
       });
 
       let commitTxHash: string;
+      let paymentTxHashes: string[] | undefined;
       const currencyId = String(args.paymentCurrency || 'KAS').trim();
       if (currencyId.startsWith('kcc20:')) {
         throw new Error(
@@ -276,16 +281,22 @@ export function useTokens() {
           decimals: tick === 'KREX' ? KREX_DECIMALS : 8,
         });
       } else {
-        const commitTx = await sendKaspaTransaction(kaspaState.provider as KaspaWalletProvider, {
-          to: treasury,
-          amount: String(kasToSompi(paymentKas)),
+        const plan = buildHubPlatformFeePlan({
+          totalKas: paymentKas,
+          treasuryAddress: getTokensTreasuryL1Address(),
           note: commitNote,
-          payload: commitPayload,
+          payloadHex: commitPayload,
         });
-        if (commitTx.status === 'failed' || !commitTx.txHash) {
-          throw new Error(commitTx.error ?? 'Payment transaction failed');
-        }
-        commitTxHash = extractKaspaTransactionId(commitTx.txHash) ?? commitTx.txHash;
+        const paid = await payKasPaymentPlan(
+          kaspaState.provider as KaspaWalletProvider,
+          plan,
+          kaspaState.address,
+        );
+        // Atomic: one tx. Sequential: treasury+payload first (txHash), then rewards extras.
+        commitTxHash = extractKaspaTransactionId(paid.txHash) ?? paid.txHash;
+        paymentTxHashes = paid.extraTxHashes?.length
+          ? [commitTxHash, ...paid.extraTxHashes]
+          : undefined;
       }
 
       let verified = false;
@@ -300,6 +311,7 @@ export function useTokens() {
               op: args.op,
               payerAddress: args.author,
               commitTxHash,
+              paymentTxHashes,
               chunkHexList,
               contentHash,
               rootHash,
@@ -369,14 +381,23 @@ export function useTokens() {
         paidModuleIds: draft.enabledModuleIds,
         modulesConfig: draft.modulesConfig,
         assetKind: draft.assetKind ?? 'real',
-        ownership: 'none' as const,
+        ownership: (input.ownershipProof ? 'deployer_verified' : input.ownership ?? 'none') as const,
+        ownershipProof: input.ownershipProof,
         deployerAddress: draft.deployerAddress?.trim(),
         maxSupply: draft.maxSupply,
         totalSupply: draft.totalSupply,
         decimals: draft.decimals,
         onChainSnapshot: draft.onChainSnapshot,
-        networks: draft.networks,
-        listing: { verified: false, deployerVerified: false },
+        networks: (draft.networks ?? []).map((entry) => ({
+          ...entry,
+          verified:
+            Boolean(input.ownershipProof) &&
+            (entry.primary || entry.network === draft.listingNetwork || Boolean(entry.verified)),
+        })),
+        listing: {
+          verified: Boolean(input.ownershipProof),
+          deployerVerified: Boolean(input.ownershipProof),
+        },
       };
 
       const listing = createPublishedListing(

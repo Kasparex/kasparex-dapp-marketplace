@@ -12,6 +12,7 @@ export async function POST(request: NextRequest) {
       op?: 'create' | 'edit';
       payerAddress?: string;
       commitTxHash?: string;
+      paymentTxHashes?: string[];
       chunkHexList?: string[];
       contentHash?: string;
       rootHash?: string;
@@ -23,6 +24,9 @@ export async function POST(request: NextRequest) {
     const commitTxHash =
       extractKaspaTransactionId(body.commitTxHash ?? '') ??
       (body.commitTxHash ?? '').trim().replace(/^0x/i, '').toLowerCase();
+    const paymentTxHashes = Array.isArray(body.paymentTxHashes)
+      ? body.paymentTxHashes.map((x) => String(x))
+      : undefined;
     const chunkHexList = Array.isArray(body.chunkHexList) ? body.chunkHexList.map((x) => String(x)) : [];
     const contentHash = (body.contentHash ?? '').trim();
     const rootHash = (body.rootHash ?? '').trim();
@@ -49,6 +53,7 @@ export async function POST(request: NextRequest) {
             op,
             payerAddress,
             commitTxHash,
+            paymentTxHashes,
             chunkHexList,
             contentHash,
             rootHash,
@@ -59,6 +64,7 @@ export async function POST(request: NextRequest) {
             op,
             payerAddress,
             commitTxHash,
+            paymentTxHashes,
             contentHash,
             requiredTotalKas,
           });
