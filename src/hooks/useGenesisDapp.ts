@@ -1,12 +1,15 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { getGenesisDappSimulator } from '@/lib/vprogs/genesis-simulator';
 import { computeGenesisMessageQuote } from '@/lib/genesis/pricing';
 import { sendKaspaCapsulePayment } from '@/lib/genesis/payment';
 import { awardDAppHubPoints } from '@/lib/rewards/awardDAppHubPoints';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
+import { usePaymentAmount } from '@/lib/dapps/PaymentAmountContext';
+import { useHubPayWithCatalog } from '@/hooks/useHubPayWithCatalog';
+import { resolveCatalogPaymentOption } from '@/lib/payments/currencyCatalog';
 import type { KaspaWalletProvider } from '@/lib/kaspa/types';
 import type { DApp } from '@/lib/dapps';
 import type { GenesisMessage, GenesisDappState } from '@/lib/vprogs/genesis-types';
@@ -28,11 +31,21 @@ export function useGenesisDapp(): UseGenesisDappReturn {
   const isConnected = kaspaState.isConnected;
   const provider = kaspaState.provider;
   const { tier, balance: krexBalance } = useKREXBalance();
+  const { payCurrencyId } = usePaymentAmount();
   const [messages, setMessages] = useState<GenesisMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [state, setState] = useState<GenesisDappState | null>(null);
   const [messageCount, setMessageCount] = useState(0);
+  const [quoteKasHint, setQuoteKasHint] = useState<number | undefined>(undefined);
+
+  const { catalogEntries, pricingSnapshot } = useHubPayWithCatalog({
+    amountKas: quoteKasHint,
+  });
+  const paymentOption = useMemo(
+    () => resolveCatalogPaymentOption(catalogEntries, payCurrencyId),
+    [catalogEntries, payCurrencyId],
+  );
 
   const simulator = getGenesisDappSimulator();
 
@@ -66,11 +79,15 @@ export function useGenesisDapp(): UseGenesisDappReturn {
 
       try {
         const quote = computeGenesisMessageQuote(contentHtml, address, tier);
+        setQuoteKasHint(quote.totalKas);
         const payment = await sendKaspaCapsulePayment({
           provider: provider as KaspaWalletProvider,
           author: address,
           contentHtml,
           totalKas: quote.totalKas,
+          currency: paymentOption,
+          pricingSnapshot,
+          krexBalance: krexBalance ?? 0,
         });
 
         const newMessage = await simulator.saveMessage({
@@ -106,7 +123,17 @@ export function useGenesisDapp(): UseGenesisDappReturn {
         setIsLoading(false);
       }
     },
-    [isConnected, address, provider, simulator, loadMessages, tier, krexBalance],
+    [
+      isConnected,
+      address,
+      provider,
+      simulator,
+      loadMessages,
+      tier,
+      krexBalance,
+      paymentOption,
+      pricingSnapshot,
+    ],
   );
 
   const deleteMessage = useCallback(

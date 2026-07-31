@@ -31,7 +31,7 @@ type HubListingVoteRecord = {
   rail?: 'l1' | 'l2';
 };
 
-const VOTE_TOOLTIP_L2 = 'Vote with your connected EVM wallet for this L2 author.';
+const VOTE_TOOLTIP_L2 = 'Vote anytime with your connected EVM wallet for this L2 author.';
 const CONNECT_KASPA_TOOLTIP = 'Connect your Kaspa L1 wallet to vote for this L1 author.';
 const CONNECT_EVM_TOOLTIP = 'Connect your EVM wallet to vote for this L2 author.';
 const MISMATCH_L1_TOOLTIP =
@@ -104,13 +104,15 @@ function voteForWallet(
   wallet: string,
 ): HubListingVote | null {
   const key = wallet.toLowerCase();
-  return readVotes(storageKey, entityId).find((v) => v.wallet.toLowerCase() === key)?.vote ?? null;
+  const votes = readVotes(storageKey, entityId).filter((v) => v.wallet.toLowerCase() === key);
+  return votes.length ? votes[votes.length - 1]!.vote : null;
 }
 
 function scoreFor(storageKey: string, entityId: string): number {
   return readVotes(storageKey, entityId).reduce((sum, v) => sum + (v.vote === 'up' ? 1 : -1), 0);
 }
 
+/** Append-only: wallets may vote unlimited times; each paid vote counts toward the score. */
 function saveVote(
   storageKey: string,
   legacyIdField: LegacyIdField,
@@ -121,12 +123,7 @@ function saveVote(
   if (record.rail !== 'l2' && !record.txHash?.trim()) return;
   const key = record.wallet.toLowerCase();
   const all = safeParse<Record<string, unknown>[]>(localStorage.getItem(storageKey), []);
-  const next = all.filter((raw) => {
-    const id = recordEntityId(raw);
-    const w = typeof raw.wallet === 'string' ? raw.wallet.toLowerCase() : '';
-    return !(id === record.entityId && w === key);
-  });
-  next.push({
+  all.push({
     entityId: record.entityId,
     [legacyIdField]: record.entityId,
     wallet: key,
@@ -135,7 +132,7 @@ function saveVote(
     txHash: record.txHash?.trim() || undefined,
     rail: record.rail,
   });
-  localStorage.setItem(storageKey, JSON.stringify(next));
+  localStorage.setItem(storageKey, JSON.stringify(all));
   onSaved?.();
 }
 
@@ -198,7 +195,7 @@ export function HubListingVoteControls({
 
   const canVote = authorIsL2 ? Boolean(evmConnected && evmAddress) : kaspaConnected;
 
-  let tooltip = `Vote with KAS. One transaction: author/treasury + rewards split. Change returns to your wallet. (${voteFeeKas} KAS per vote)`;
+  let tooltip = `Vote with KAS anytime. One transaction: author/treasury + rewards split. Change returns to your wallet. (${voteFeeKas} KAS per vote)`;
   if (authorIsL2) {
     if (!evmConnected || !evmAddress) {
       tooltip = kaspaConnected ? MISMATCH_L2_TOOLTIP : CONNECT_EVM_TOOLTIP;
@@ -211,7 +208,6 @@ export function HubListingVoteControls({
 
   const castVote = async (vote: HubListingVote) => {
     if (!canVote || busy || !voterWallet) return;
-    if (currentVote === vote) return;
 
     setBusy(true);
     setError(null);

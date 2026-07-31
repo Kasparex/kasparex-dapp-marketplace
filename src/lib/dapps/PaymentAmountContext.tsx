@@ -15,23 +15,32 @@ export type DAppWidgetQuote = {
   paymentAmount: number | null;
   actionId: string | null;
   hubQuote: HubQuoteDisplay | null;
+  /** Selected Pay with currency id (KAS / KREX / token). */
+  payCurrencyId: string;
 };
 
 type PaymentAmountContextValue = DAppWidgetQuote & {
   setPaymentAmount: (amount: number | null) => void;
   setWidgetQuote: (quote: Partial<DAppWidgetQuote>) => void;
   setHubQuote: (quote: HubQuoteDisplay | null) => void;
+  setPayCurrencyId: (id: string) => void;
   clearWidgetQuote: () => void;
 };
 
 const PaymentAmountContext = createContext<PaymentAmountContextValue | null>(null);
 
-const EMPTY_QUOTE: DAppWidgetQuote = { paymentAmount: null, actionId: null, hubQuote: null };
+const EMPTY_QUOTE: DAppWidgetQuote = {
+  paymentAmount: null,
+  actionId: null,
+  hubQuote: null,
+  payCurrencyId: 'KAS',
+};
 
 export function PaymentAmountProvider({ children }: { children: ReactNode }) {
   const [paymentAmount, setPaymentAmountState] = useState<number | null>(null);
   const [actionId, setActionId] = useState<string | null>(null);
   const [hubQuote, setHubQuoteState] = useState<HubQuoteDisplay | null>(null);
+  const [payCurrencyId, setPayCurrencyIdState] = useState('KAS');
 
   const setPaymentAmount = useCallback((amount: number | null) => {
     setPaymentAmountState(amount);
@@ -41,16 +50,22 @@ export function PaymentAmountProvider({ children }: { children: ReactNode }) {
     if (quote.paymentAmount !== undefined) setPaymentAmountState(quote.paymentAmount);
     if (quote.actionId !== undefined) setActionId(quote.actionId);
     if (quote.hubQuote !== undefined) setHubQuoteState(quote.hubQuote);
+    if (quote.payCurrencyId !== undefined) setPayCurrencyIdState(quote.payCurrencyId);
   }, []);
 
   const setHubQuote = useCallback((quote: HubQuoteDisplay | null) => {
     setHubQuoteState(quote);
   }, []);
 
+  const setPayCurrencyId = useCallback((id: string) => {
+    setPayCurrencyIdState(id);
+  }, []);
+
   const clearWidgetQuote = useCallback(() => {
     setPaymentAmountState(null);
     setActionId(null);
     setHubQuoteState(null);
+    setPayCurrencyIdState('KAS');
   }, []);
 
   return (
@@ -59,9 +74,11 @@ export function PaymentAmountProvider({ children }: { children: ReactNode }) {
         paymentAmount,
         actionId,
         hubQuote,
+        payCurrencyId,
         setPaymentAmount,
         setWidgetQuote,
         setHubQuote,
+        setPayCurrencyId,
         clearWidgetQuote,
       }}
     >
@@ -78,6 +95,7 @@ export function usePaymentAmount() {
       setPaymentAmount: () => {},
       setWidgetQuote: () => {},
       setHubQuote: () => {},
+      setPayCurrencyId: () => {},
       clearWidgetQuote: () => {},
     }
   );

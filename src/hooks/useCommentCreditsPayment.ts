@@ -2,14 +2,14 @@
 
 import { useCallback, useState } from 'react';
 import { useKaspaWallet } from '@/lib/kaspa/context';
-import { sendKaspaTransaction } from '@/lib/kaspa/wallet';
-import { kasToSompis } from '@/lib/kaspa/api';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { resolveTokenAmountFromKas } from '@/lib/pricing/registry';
 import type { PricingSnapshot } from '@/lib/pricing/types';
 import { transferKrc20 } from '@/lib/payments/krc20Payment';
 import { listPublicVerifiedPaymentTokens } from '@/lib/payments/publicPaymentTokens';
 import type { StorePaymentCurrency } from '@/lib/store/currencies';
+import { payKasPaymentPlan } from '@/lib/payments/kasMultiOutPay';
+import { buildHubPlatformFeePlan } from '@/lib/payments/paymentPlan';
 
 const COMMENT_CREDITS_TREASURY =
   'kaspa:qqd36zqt94yr23cmjj73d34e2lc05ltd9duw582s303m30ux567ps9ljnhp6y';
@@ -73,13 +73,14 @@ export function useCommentCreditsPayment() {
           });
         }
 
-        const result = await sendKaspaTransaction(state.provider, {
-          to: treasuryAddress,
-          amount: kasToSompis(feeKas).toString(),
+        const plan = buildHubPlatformFeePlan({
+          totalKas: feeKas,
+          treasuryAddress: COMMENT_CREDITS_TREASURY,
           note: `Comment Credits Purchase: ${credits} credits`,
         });
-        if (result.status === 'failed' || !result.txHash) {
-          throw new Error(result.error || 'Transaction failed');
+        const result = await payKasPaymentPlan(state.provider, plan, state.address);
+        if (!result.txHash) {
+          throw new Error('Transaction failed');
         }
         return result.txHash;
       } catch (err) {

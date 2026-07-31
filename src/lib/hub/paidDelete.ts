@@ -1,13 +1,14 @@
 'use client';
 
-import { kasToSompi } from '@/lib/ads/config';
+import { extractKaspaTransactionId } from '@/lib/kaspa/transactionId';
 import { getAdsTreasuryL1Address } from '@/lib/ads/config';
-import { sendKaspaTransaction } from '@/lib/kaspa/wallet';
 import type { KaspaWalletProvider } from '@/lib/kaspa/types';
 import type { HubContentKind } from '@/lib/hub/contentTypes';
 import { markHubContentDeleted } from '@/lib/hub/deletedContent';
 import { resetHubContentBootstrap, syncHubContentItem } from '@/lib/hub/contentSync';
 import { requestIpfsUnpin } from '@/lib/ipfs/cidUtils';
+import { payKasPaymentPlan } from '@/lib/payments/kasMultiOutPay';
+import { buildHubPlatformFeePlan } from '@/lib/payments/paymentPlan';
 
 /** Global flat KAS delete fee for all hub content (before KREX tier discounts). */
 export const HUB_DELETE_FEE_KAS_STANDARD = 0.5;
@@ -76,7 +77,7 @@ export type HubPaidDeleteInput = HubContentDeleteFinalizeInput & {
   payerAddress: string;
 };
 
-/** Pay KAS treasury fee, then run the standard hub delete finalize pipeline. */
+/** Pay KAS treasury fee (multi-out when rewards split applies), then run delete finalize. */
 export async function executeHubPaidDelete(input: HubPaidDeleteInput): Promise<{
   ok: boolean;
   txHash?: string;
@@ -86,21 +87,29 @@ export async function executeHubPaidDelete(input: HubPaidDeleteInput): Promise<{
   const note = input.note ?? buildHubDeletePlainNote(input.kind, input.id, input.payerAddress);
   const payload = input.payload ?? buildHubDeletePayloadHex(input.kind, input.id, input.payerAddress);
 
-  const tx = await sendKaspaTransaction(input.payerProvider, {
-    to: treasury,
-    amount: String(kasToSompi(input.feeKas)),
-    note,
-    payload,
-  });
+  try {
+    const plan = buildHubPlatformFeePlan({
+      totalKas: input.feeKas,
+      treasuryAddress: treasury,
+      note,
+      payloadHex: payload,
+    });
+    const paid = await payKasPaymentPlan(input.payerProvider, plan, input.payerAddress);
+    if (!paid.txHash) {
+      return { ok: false, error: 'Delete transaction failed' };
+    }
+    const txHash = extractKaspaTransactionId(paid.txHash) ?? paid.txHash;
 
-  if (tx.status === 'failed' || !tx.txHash) {
-    return { ok: false, error: tx.error ?? 'Delete transaction failed' };
+    const finalized = await finalizeHubContentDelete(input);
+    if (!finalized) {
+      return { ok: false, txHash, error: 'Payment succeeded but content could not be removed.' };
+    }
+
+    return { ok: true, txHash };
+  } catch (err) {
+    return {
+      ok: false,
+      error: err instanceof Error ? err.message : 'Delete transaction failed',
+    };
   }
-
-  const finalized = await finalizeHubContentDelete(input);
-  if (!finalized) {
-    return { ok: false, txHash: tx.txHash, error: 'Payment succeeded but content could not be removed.' };
-  }
-
-  return { ok: true, txHash: tx.txHash };
 }

@@ -22,8 +22,23 @@ import { HubPaymentCurrencyCatalogTrigger } from '@/components/payments/HubPayme
 import { useHubPayWithCatalog, hubCatalogSelectionToStoreCurrency } from '@/hooks/useHubPayWithCatalog';
 import { resolveCatalogPaymentOption } from '@/lib/payments/currencyCatalog';
 import { formatHubPaymentAmount } from '@/lib/payments/hubPaymentTypes';
+import { buildHubPlatformFeePlan } from '@/lib/payments/paymentPlan';
+import { getKaspaCapsuleTreasuryL1Address } from '@/lib/genesis/config';
 import { KREXBuyWizard } from '@/components/rewards/KREXBuyWizard';
 import type { ReactNode } from 'react';
+
+function reformatKasLineValue(
+  value: string,
+  formatPay: (kas: number) => string,
+): string {
+  const trimmed = value.trim();
+  const match = trimmed.match(/^([\d]+(?:[.,]\d+)?)\s*KAS$/i);
+  if (!match) return value;
+  const raw = match[1]!.replace(',', '.');
+  const kas = Number(raw);
+  if (!Number.isFinite(kas)) return value;
+  return formatPay(kas);
+}
 
 export const DAppCalculationBreakdownPanel = memo(function DAppCalculationBreakdownPanel({
   dapp,
@@ -47,12 +62,17 @@ export const DAppCalculationBreakdownPanel = memo(function DAppCalculationBreakd
   const currency = quoteCurrencyForDApp(dapp, chainId);
   const networkType = getDAppNetworkType(dapp);
   const isCovenant = isCovenantDAppSlug(dapp.slug);
-  const { paymentAmount, actionId: quoteActionId, hubQuote: customHubQuote } = usePaymentAmount();
+  const {
+    paymentAmount,
+    actionId: quoteActionId,
+    hubQuote: customHubQuote,
+    payCurrencyId,
+    setPayCurrencyId,
+  } = usePaymentAmount();
   const { balance: krexBalance, tier } = useKREXBalance();
   const [isKrexWizardOpen, setIsKrexWizardOpen] = useState(false);
-  const [payCurrencyId, setPayCurrencyId] = useState('KAS');
   const { catalogEntries, pricingSnapshot } = useHubPayWithCatalog({
-    amountKas: paymentAmount ?? undefined,
+    amountKas: paymentAmount ?? customHubQuote?.totalKas ?? undefined,
   });
   const paymentOption = resolveCatalogPaymentOption(catalogEntries, payCurrencyId);
 
@@ -107,16 +127,49 @@ export const DAppCalculationBreakdownPanel = memo(function DAppCalculationBreakd
 
   const quote = computedQuote;
 
+  const formatPayAmount = (kas: number) =>
+    formatHubPaymentAmount(paymentOption, kas, { snapshot: pricingSnapshot });
+
+  const splitLegs = useMemo(() => {
+    if (!quote || paymentOption.kind !== 'kas') return undefined;
+    try {
+      const treasury =
+        dapp.slug === 'kaspa-capsule' ? getKaspaCapsuleTreasuryL1Address() : undefined;
+      return buildHubPlatformFeePlan({
+        totalKas: quote.totalKas,
+        treasuryAddress: treasury,
+      }).legs;
+    } catch {
+      return undefined;
+    }
+  }, [quote, paymentOption.kind, dapp.slug]);
+
+  const displayLines = useMemo(() => {
+    if (!quote) return [];
+    return quote.lines.map((line) => ({
+      ...line,
+      value: reformatKasLineValue(line.value, (kas) =>
+        formatHubPaymentAmount(paymentOption, kas, { snapshot: pricingSnapshot }),
+      ),
+    }));
+  }, [quote, paymentOption, pricingSnapshot]);
+
   if (!waitingForAmount && !quote && !showWhenEmpty && !footer) {
     return null;
   }
 
   const showBuyKrex = !quote?.hasKrexDiscount && krexBalance < KREX_TIERS.Tier1.minKREX;
-  const formatPayAmount = (kas: number) =>
-    formatHubPaymentAmount(paymentOption, kas, { snapshot: pricingSnapshot });
   const baseSpendKas = paymentAmount ?? quote?.subtotalKas ?? quote?.totalKas;
-  const steps =
-    flowSteps ?? getHubFlowPreset(isCovenant ? 'covenantCreate' : 'hubPay');
+  const steps = flowSteps ?? getHubFlowPreset(isCovenant ? 'covenantCreate' : 'hubPay');
+  const showPayWith = !isCovenant && networkType === 'L1' && catalogEntries.length > 0;
+  const showSplit = Boolean(splitLegs && splitLegs.length > 0);
+  const infoText =
+    quote?.infoText &&
+    (paymentOption.kind === 'kas'
+      ? quote.infoText
+      : dapp.slug === 'kaspa-capsule'
+        ? 'Fee settles in your selected token to Kasparex treasury. Capsule stores the message with payment proof.'
+        : quote.infoText);
 
   return (
     <aside className={KX_CALCULATION_ASIDE}>
@@ -132,7 +185,7 @@ export const DAppCalculationBreakdownPanel = memo(function DAppCalculationBreakd
       ) : quote ? (
         <>
           <div className="space-y-2 text-xs text-zinc-600 dark:text-zinc-400">
-            {quote.lines.map((line) => (
+            {displayLines.map((line) => (
               <div key={line.label} className="flex justify-between gap-2">
                 <span className="truncate">{line.label}</span>
                 <span className="shrink-0 font-semibold text-zinc-900 dark:text-zinc-100 tabular-nums">
@@ -150,6 +203,44 @@ export const DAppCalculationBreakdownPanel = memo(function DAppCalculationBreakd
             ) : null}
           </div>
 
+          {showPayWith || showSplit ? (
+            <div className="space-y-3 rounded-xl border border-zinc-200 p-3 dark:border-zinc-700">
+              {showPayWith ? (
+                <div>
+                  <p className="mb-2 text-xs uppercase tracking-widest text-zinc-500">Pay with</p>
+                  <HubPaymentCurrencyCatalogTrigger
+                    entries={catalogEntries}
+                    selectedId={payCurrencyId}
+                    onSelect={(opt) => {
+                      setPayCurrencyId(hubCatalogSelectionToStoreCurrency(opt));
+                    }}
+                  />
+                </div>
+              ) : null}
+              {showSplit ? (
+                <div
+                  className={`space-y-1.5${showPayWith ? ' border-t border-zinc-200 pt-3 dark:border-zinc-700' : ''}`}
+                >
+                  <p className="text-xs uppercase tracking-widest text-zinc-500">Payment split</p>
+                  {splitLegs!.map((leg) => (
+                    <div
+                      key={`${leg.role}-${leg.address}`}
+                      className="flex justify-between gap-2 text-xs text-zinc-600 dark:text-zinc-400"
+                    >
+                      <span className="truncate">{leg.label ?? leg.role}</span>
+                      <span className="shrink-0 font-semibold tabular-nums text-zinc-900 dark:text-zinc-100">
+                        {leg.amount} KAS
+                      </span>
+                    </div>
+                  ))}
+                  <p className="pt-1 text-[11px] text-zinc-500">
+                    One transaction. Change returns to your wallet.
+                  </p>
+                </div>
+              ) : null}
+            </div>
+          ) : null}
+
           <div className="rounded-xl border border-zinc-200 p-3 dark:border-zinc-700">
             <p className="text-xs uppercase tracking-widest text-zinc-500">Total to pay</p>
             <p className="text-2xl font-black text-zinc-900 dark:text-zinc-100 tabular-nums">
@@ -157,29 +248,19 @@ export const DAppCalculationBreakdownPanel = memo(function DAppCalculationBreakd
             </p>
           </div>
 
-          {!isCovenant && networkType === 'L1' && catalogEntries.length > 0 ? (
-            <div className="rounded-xl border border-zinc-200 p-3 dark:border-zinc-700">
-              <p className="mb-2 text-xs uppercase tracking-widest text-zinc-500">Pay with</p>
-              <HubPaymentCurrencyCatalogTrigger
-                entries={catalogEntries}
-                selectedId={payCurrencyId}
-                onSelect={(opt) => {
-                  setPayCurrencyId(hubCatalogSelectionToStoreCurrency(opt));
-                }}
-              />
-            </div>
-          ) : null}
-
-          {quote.infoText ? (
+          {infoText ? (
             <div className="rounded-xl border border-[#02abb8]/25 bg-[#02abb8]/10 p-3 text-sm text-zinc-700 dark:text-zinc-300">
-              {quote.infoText}
+              {infoText}
             </div>
           ) : null}
 
           {quote.discountKas > 0 ? (
             <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-3 text-sm text-emerald-800 dark:text-emerald-300">
               KREX discount: -{formatPayAmount(quote.discountKas)} ({quote.discountPercent}%
-              {quote.subtotalKas != null && quote.totalKas < quote.subtotalKas ? ' off total' : ' off platform fees'}).
+              {quote.subtotalKas != null && quote.totalKas < quote.subtotalKas
+                ? ' off total'
+                : ' off platform fees'}
+              ).
             </div>
           ) : null}
 

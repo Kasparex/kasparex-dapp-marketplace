@@ -3,8 +3,8 @@
 import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useKaspaWallet } from '@/lib/kaspa/context';
-import { sendKaspaTransaction } from '@/lib/kaspa/wallet';
-import { kasToSompis } from '@/lib/kaspa/api';
+import { payKasPaymentPlan } from '@/lib/payments/kasMultiOutPay';
+import { buildHubPlatformFeePlan } from '@/lib/payments/paymentPlan';
 import { useIPFSUpload } from '@/lib/ipfs/hooks';
 import { createProduct, updateProduct } from '@/lib/store/products';
 import type { Product, ProductCategory, ProductNetwork } from '@/lib/store/types';
@@ -145,12 +145,14 @@ export function StoreProductForm({ product }: StoreProductFormProps) {
   );
 
   const payActionFee = async () => {
-    if (!state.provider) throw new Error('Wallet not connected');
-    const result = await sendKaspaTransaction(state.provider, {
-      to: TREASURY,
-      amount: kasToSompis(listingQuote.totalKas).toString(),
+    if (!state.provider || !state.address) throw new Error('Wallet not connected');
+    const plan = buildHubPlatformFeePlan({
+      totalKas: listingQuote.totalKas,
+      treasuryAddress: TREASURY,
+      note: 'store-listing',
     });
-    if (result.status === 'failed') throw new Error(result.error || 'Payment failed');
+    const result = await payKasPaymentPlan(state.provider, plan, state.address);
+    if (!result.txHash) throw new Error('Payment failed');
     return result.txHash;
   };
 

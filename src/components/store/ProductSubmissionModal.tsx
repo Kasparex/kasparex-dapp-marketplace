@@ -2,8 +2,6 @@
 
 import { useState } from 'react';
 import { useKaspaWallet } from '@/lib/kaspa/context';
-import { sendKaspaTransaction } from '@/lib/kaspa/wallet';
-import { kasToSompis } from '@/lib/kaspa/api';
 import { useIPFSUpload } from '@/lib/ipfs/hooks';
 import { createProduct } from '@/lib/store/products';
 import type { ProductCategory, ProductNetwork } from '@/lib/store/types';
@@ -12,6 +10,8 @@ import { creditHubListingEarn } from '@/lib/rewards/creditHubListingEarn';
 import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { KxFormDropdown } from '@/components/ui/KxFormDropdown';
+import { payKasPaymentPlan } from '@/lib/payments/kasMultiOutPay';
+import { buildHubPlatformFeePlan } from '@/lib/payments/paymentPlan';
 
 interface ProductSubmissionModalProps {
   isOpen: boolean;
@@ -132,17 +132,18 @@ export function ProductSubmissionModal({
     setStep('payment');
 
     try {
-      // Pay listing fee
-      const sompiAmount = kasToSompis(LISTING_FEE_KAS);
-      const transaction = {
-        to: LISTING_FEE_TREASURY,
-        amount: sompiAmount.toString(),
-      };
-
-      const result = await sendKaspaTransaction(state.provider!, transaction);
-      if (result.status === 'failed') {
-        throw new Error(result.error || 'Listing fee payment failed');
+      // Pay listing fee (treasury + rewards multi-out when configured)
+      if (!state.address) throw new Error('Wallet address missing');
+      const plan = buildHubPlatformFeePlan({
+        totalKas: LISTING_FEE_KAS,
+        treasuryAddress: LISTING_FEE_TREASURY,
+        note: 'store-listing',
+      });
+      const result = await payKasPaymentPlan(state.provider!, plan, state.address);
+      if (!result.txHash) {
+        throw new Error('Listing fee payment failed');
       }
+      const feeTxHash = extractKaspaTransactionId(result.txHash) ?? result.txHash;
 
       // Create product
       const productResult = await createProduct(
@@ -158,22 +159,21 @@ export function ProductSubmissionModal({
           thumbnailCid,
           status: 'active',
         },
-        result.txHash
+        feeTxHash
       );
 
       if (!productResult) {
         throw new Error('Failed to create product');
       }
 
-      const txNorm = extractKaspaTransactionId(result.txHash) ?? result.txHash;
       creditHubListingEarn({
         walletRaw: state.address,
         source: 'store_product_list',
         redeemableDelta: HUB_EARN_POINTS.storeProductList,
         krexBalance,
         krexTier,
-        idempotencyKey: `store:product:${txNorm}`,
-        txHash: txNorm,
+        idempotencyKey: `store:product:${feeTxHash}`,
+        txHash: feeTxHash,
         meta: { productId: productResult.product.id },
       });
 

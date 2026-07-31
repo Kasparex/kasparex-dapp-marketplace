@@ -2,13 +2,14 @@
  * KPX covenant platform fee payments (separate from lock principal).
  */
 
-import { sendKaspaTransaction } from '@/lib/kaspa/wallet';
 import type { KaspaWalletProvider } from '@/lib/kaspa/types';
 import { extractKaspaTransactionId } from '@/lib/kaspa/transactionId';
 import type { CovenantTemplate } from '@/lib/programmability/types';
 import type { KpxCovenantDeployPrice, KpxCovenantFeeAction } from './kpxCovenantPricing';
 import { getKpxCovenantTreasuryAddress } from './kpxCovenantPricing';
 import type { CovenantWalletContext } from './context';
+import { payKasPaymentPlan } from '@/lib/payments/kasMultiOutPay';
+import { buildHubPlatformFeePlan } from '@/lib/payments/paymentPlan';
 
 export function buildKpxCovenantFeeNote(input: {
   template: CovenantTemplate;
@@ -27,6 +28,10 @@ export async function payKpxCovenantPlatformFee(args: {
 
   const treasury = getKpxCovenantTreasuryAddress();
   if (!treasury) return undefined;
+  if (!(pricing.feeKas > 0)) return undefined;
+  if (!ctx.userAddress?.trim()) {
+    throw new Error('Connect your Kaspa wallet to pay the platform fee');
+  }
 
   const note = buildKpxCovenantFeeNote({
     template: pricing.template,
@@ -34,14 +39,19 @@ export async function payKpxCovenantPlatformFee(args: {
     action: pricing.action,
   });
 
-  const sent = await sendKaspaTransaction(ctx.provider as KaspaWalletProvider, {
-    to: treasury,
-    amount: pricing.feeSompi,
+  const plan = buildHubPlatformFeePlan({
+    totalKas: pricing.feeKas,
+    treasuryAddress: treasury,
     note,
   });
+  const sent = await payKasPaymentPlan(
+    ctx.provider as KaspaWalletProvider,
+    plan,
+    ctx.userAddress,
+  );
 
-  if (sent.status === 'failed' || !sent.txHash) {
-    throw new Error(sent.error || 'Platform fee payment failed');
+  if (!sent.txHash) {
+    throw new Error('Platform fee payment failed');
   }
 
   return extractKaspaTransactionId(sent.txHash) ?? sent.txHash;

@@ -2,8 +2,6 @@
 
 import { useCallback, useMemo, useState } from 'react';
 import { useKaspaWallet } from '@/lib/kaspa/context';
-import { sendKaspaTransaction } from '@/lib/kaspa/wallet';
-import { kasToSompis } from '@/lib/kaspa/api';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { usePricingSnapshot } from '@/hooks/usePricingSnapshot';
 import { resolveTokenAmountFromKas } from '@/lib/pricing/registry';
@@ -12,6 +10,8 @@ import { listPublicVerifiedPaymentTokens } from '@/lib/payments/publicPaymentTok
 import type { StorePaymentCurrency } from '@/lib/store/currencies';
 import { DAPP_LISTING_FEE_KAS } from '@/lib/dapps/listingSubmissions';
 import { mergePricingTickers } from '@/lib/pricing';
+import { payKasPaymentPlan } from '@/lib/payments/kasMultiOutPay';
+import { buildHubPlatformFeePlan } from '@/lib/payments/paymentPlan';
 
 const TREASURY = process.env.NEXT_PUBLIC_STORE_TREASURY_ADDRESS || '';
 
@@ -77,13 +77,14 @@ export function useDAppListingPayment() {
           });
         }
 
-        const result = await sendKaspaTransaction(state.provider, {
-          to: TREASURY,
-          amount: kasToSompis(feeKas).toString(),
+        const plan = buildHubPlatformFeePlan({
+          totalKas: feeKas,
+          treasuryAddress: TREASURY,
           note,
         });
-        if (result.status === 'failed') {
-          throw new Error(result.error || 'Listing fee payment failed');
+        const result = await payKasPaymentPlan(state.provider, plan, state.address);
+        if (!result.txHash) {
+          throw new Error('Listing fee payment failed');
         }
         return result.txHash;
       } catch (err) {
