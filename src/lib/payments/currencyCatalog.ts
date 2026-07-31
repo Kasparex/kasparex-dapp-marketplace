@@ -27,6 +27,10 @@ export type HubCurrencyCatalogEntry = HubPaymentCurrencyOption & {
   amountLabel?: string;
   /** Extra searchable text (name, covenant id, …). */
   searchText?: string;
+  /** Filter chip: settlement network. */
+  networkTag?: 'kaspa_l1' | 'l2';
+  /** Filter chip: venue / DEX affinity. */
+  dexTag?: 'native' | 'kron' | 'kaspacom' | 'zealous' | 'other';
 };
 
 export type BuildCurrencyCatalogArgs = {
@@ -91,12 +95,18 @@ export function buildHubCurrencyCatalog(args: BuildCurrencyCatalogArgs): HubCurr
             detail += ` · balance ${args.krexBalance.toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
           }
         }
+      } else if (opt.kind === 'kas') {
+        detail = 'Native Kaspa L1';
+      } else {
+        detail = 'KRC-20 · Kasparex utility token';
       }
       entries.push({
         ...opt,
         status: 'available',
         detail,
         amountLabel,
+        networkTag: 'kaspa_l1',
+        dexTag: 'native',
         balanceLabel:
           opt.kind === 'krex' && args.krexBalance != null
             ? `${args.krexBalance.toLocaleString(undefined, { maximumFractionDigits: 2 })} KREX`
@@ -110,10 +120,15 @@ export function buildHubCurrencyCatalog(args: BuildCurrencyCatalogArgs): HubCurr
     entries.push({
       ...opt,
       status: 'available',
-      detail: 'KRC-20 · Hub utility unlocked',
+      detail: 'KRC-20 · Kaspa L1',
+      networkTag: 'kaspa_l1',
+      dexTag: 'native',
+      searchText: `${token.symbol ?? ''} ${token.listingSlug ?? ''}`.trim() || undefined,
       amountLabel:
         amountKas != null && amountKas > 0
-          ? `Listed via ${token.listingSlug || token.tick}`
+          ? formatHubPaymentFromKas(amountKas, token.tick, args.pricingSnapshot, {
+              showKasSuffix: false,
+            })
           : undefined,
     });
   }
@@ -123,10 +138,17 @@ export function buildHubCurrencyCatalog(args: BuildCurrencyCatalogArgs): HubCurr
     entries.push({
       ...opt,
       status: 'available',
-      detail: 'KCC-20 · Kaspa L1 covenant (KRON-compatible)',
+      detail: 'KCC-20 · Kaspa L1 covenant',
+      networkTag: 'kaspa_l1',
+      dexTag: 'kron',
       actionHref: kronTokenUrl(token.covenantId),
       actionLabel: 'Trade on KRON',
-      amountLabel: amountKas != null && amountKas > 0 ? 'Pay with covenant token' : undefined,
+      amountLabel:
+        amountKas != null && amountKas > 0
+          ? formatHubPaymentFromKas(amountKas, 'KAS', args.pricingSnapshot, {
+              showKasSuffix: false,
+            }) + ' (KAS eq.)'
+          : undefined,
     });
   }
 
@@ -137,6 +159,8 @@ export function buildHubCurrencyCatalog(args: BuildCurrencyCatalogArgs): HubCurr
       ...buildKrc20CurrencyOption(upper),
       status: 'locked',
       detail: 'Unlock this ticker in Tokens Hub Utility',
+      networkTag: 'kaspa_l1',
+      dexTag: 'native',
       actionHref: '/tokens/dashboard',
       actionLabel: 'Open Tokens',
     });
@@ -146,7 +170,17 @@ export function buildHubCurrencyCatalog(args: BuildCurrencyCatalogArgs): HubCurr
 }
 
 export function catalogEntryToOption(entry: HubCurrencyCatalogEntry): HubPaymentCurrencyOption {
-  const { status: _s, detail: _d, balanceLabel: _b, actionHref: _a, actionLabel: _l, amountLabel: _m, ...option } =
-    entry;
+  const {
+    status: _s,
+    detail: _d,
+    balanceLabel: _b,
+    actionHref: _a,
+    actionLabel: _l,
+    amountLabel: _m,
+    searchText: _t,
+    networkTag: _n,
+    dexTag: _x,
+    ...option
+  } = entry;
   return option;
 }

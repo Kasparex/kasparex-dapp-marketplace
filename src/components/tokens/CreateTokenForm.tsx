@@ -21,14 +21,16 @@ import { TOKEN_MODULE_OFFERS, type TokenModuleId, getTokenModuleDiscountPercent,
 import { validateTokenModulesForPublish } from '@/lib/tokens/formValidation';
 import { HubPaymentPanel } from '@/components/payments/HubPaymentPanel';
 import { buildKasKrexCurrencyOptions, formatHubPaymentAmount } from '@/lib/payments/hubPaymentTypes';
+import type { HubPaymentCurrencyOption } from '@/lib/payments/hubPaymentTypes';
 import { buildPublicHubCurrencyCatalog } from '@/lib/payments/publicPaymentTokens';
 import { buildHubPlatformFeePlan } from '@/lib/payments/paymentPlan';
 import { filterModulesForAssetKind, filterModuleOffersForListing, isIntegrationModule } from '@/lib/tokens/utilityEligibility';
 import { estimateTokenListingQuote } from '@/lib/tokens/pricing';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { usePricingSnapshot } from '@/hooks/usePricingSnapshot';
+import { listPublicVerifiedPaymentTokens } from '@/lib/payments/publicPaymentTokens';
+import { mergePricingTickers } from '@/lib/pricing';
 import { TokenModuleConfigFields, tokenModuleHasConfigFields } from '@/components/tokens/TokenModuleConfigFields';
-import { STORE_PAYMENT_CURRENCIES, type StorePaymentCurrency } from '@/lib/store/currencies';
 import { krexTierDiscountPercent } from '@/lib/chronicles/vault/pricing';
 import type { Token } from '@/lib/tokens/types';
 import type { PublishedTokenListing, TokenAssetKind, TokenOnChainSnapshot, TokenNetworkEntry, TokenPageSectionType } from '@/lib/tokens/listingRecord';
@@ -54,7 +56,6 @@ import type { Kcc20TokenInfo } from '@/lib/tokens/kcc20Lookup';
 import { formatKrc20Supply } from '@/lib/tokens/krc20Lookup';
 import { formatKcc20Sompi } from '@/lib/tokens/kcc20Lookup';
 import type { ProgrammableNetworkId } from '@/lib/programmable/config';
-import { DEFAULT_PROGRAMMABLE_NETWORK } from '@/lib/programmable/config';
 import { kronMarketEntry, normalizeKcc20ConnectPaste } from '@/lib/programmable/kron';
 import { fetchL2TokenInfo, formatL2Supply } from '@/lib/tokens/l2TokenLookup';
 import {
@@ -201,7 +202,14 @@ export function CreateTokenForm({
 }: CreateTokenFormProps) {
   const isEditMode = Boolean(listing);
   const { tier, balance: krexBalance } = useKREXBalance();
-  const { snapshot: pricingSnapshot } = usePricingSnapshot(['KREX']);
+  const publicPayTicks = useMemo(
+    () =>
+      listPublicVerifiedPaymentTokens()
+        .filter((t) => t.kind === 'krc20' && t.tick)
+        .map((t) => t.tick!),
+    [],
+  );
+  const { snapshot: pricingSnapshot } = usePricingSnapshot(mergePricingTickers(['KREX'], publicPayTicks));
   const { state: kaspaState } = useKaspaWallet();
   const { address: evmAddress, isConnected: isEvmConnected } = useAccount();
   const { publishNewListing, updateExistingListing, discountPercent } = useTokens();
@@ -242,11 +250,6 @@ export function CreateTokenForm({
     }
     return '';
   });
-  const [programmableNetwork, setProgrammableNetwork] = useState<ProgrammableNetworkId>(
-    (listing?.onChainSnapshot?.networkId as ProgrammableNetworkId | undefined) ??
-      connectPrefill?.network ??
-      DEFAULT_PROGRAMMABLE_NETWORK,
-  );
   const [kcc20AutoLookup] = useState(() => Boolean(connectPrefill?.covenantId && !listing));
   const [l2LookupLoading, setL2LookupLoading] = useState(false);
   const [l2LookupError, setL2LookupError] = useState<string | null>(null);
@@ -287,41 +290,56 @@ export function CreateTokenForm({
     setSectionToggles((prev) => ({ ...prev, tokenomics: true, markets: true }));
   }, []);
 
-  const applyKcc20Selection = useCallback((info: Kcc20TokenInfo | null) => {
-    setKcc20Selected(info);
-    if (!info) {
-      setOnChainSnapshot(null);
-      setDeployerAddress('');
-      setTokenDecimals(undefined);
-      setMaxSupply(undefined);
-      setTotalSupply(undefined);
-      setContractAddress('');
-      return;
-    }
-    const dec = info.decimals ?? 8;
-    setSymbol(info.ticker);
-    setName(info.name ?? info.ticker);
-    setOnChainSnapshot(info);
-    setContractAddress(info.covenantId);
-    setKcc20ConnectInput(info.covenantId);
-    setTokenDecimals(dec);
-    setMaxSupply(parseSupplyNumber(info.maxSupply, dec));
-    setTotalSupply(parseSupplyNumber(info.minted, dec));
-    setSectionToggles((prev) => ({ ...prev, tokenomics: true, utility: true, markets: true }));
-    setModulesConfig((prev) => {
-      const existing = (prev.markets ?? []).filter((m) => m.name.trim() || m.url.trim());
-      const kron = kronMarketEntry(info.covenantId);
-      const hasKron = existing.some(
-        (m) =>
-          m.url.toLowerCase().includes('kron.technology/token/') ||
-          m.name.trim().toLowerCase() === 'kron',
-      );
-      return {
-        ...prev,
-        markets: hasKron ? existing : [...existing, kron],
-      };
-    });
-  }, []);
+  const applyKcc20Selection = useCallback(
+    (info: Kcc20TokenInfo | null) => {
+      setKcc20Selected(info);
+      if (!info) {
+        setOnChainSnapshot(null);
+        setDeployerAddress('');
+        setTokenDecimals(undefined);
+        setMaxSupply(undefined);
+        setTotalSupply(undefined);
+        setContractAddress('');
+        return;
+      }
+      const dec = info.decimals ?? 8;
+      setSymbol(info.ticker);
+      setName(info.name ?? info.ticker);
+      setOnChainSnapshot(info);
+      setContractAddress(info.covenantId);
+      setKcc20ConnectInput(info.covenantId);
+      setTokenDecimals(dec);
+      setMaxSupply(parseSupplyNumber(info.maxSupply, dec));
+      setTotalSupply(parseSupplyNumber(info.minted, dec));
+      if (info.imageUrl) {
+        onMediaChange({
+          ...media,
+          logoSource: 'url',
+          logoUrl: info.imageUrl,
+          logoCid: null,
+          logoName: null,
+        });
+      }
+      if (!shortDescription.trim() && info.name) {
+        setShortDescription(`${info.name} (${info.ticker}) on Kaspa L1.`);
+      }
+      setSectionToggles((prev) => ({ ...prev, tokenomics: true, utility: true, markets: true }));
+      setModulesConfig((prev) => {
+        const existing = (prev.markets ?? []).filter((m) => m.name.trim() || m.url.trim());
+        const kron = kronMarketEntry(info.covenantId);
+        const hasKron = existing.some(
+          (m) =>
+            m.url.toLowerCase().includes('kron.technology/token/') ||
+            m.name.trim().toLowerCase() === 'kron',
+        );
+        return {
+          ...prev,
+          markets: hasKron ? existing : [...existing, kron],
+        };
+      });
+    },
+    [media, onMediaChange, shortDescription],
+  );
 
   const lookupL2Contract = useCallback(async () => {
     if (!isL2Network) return;
@@ -359,7 +377,10 @@ export function CreateTokenForm({
     () => new Set(listing?.paidModuleIds ?? []),
   );
   const [modulesConfig, setModulesConfig] = useState<TokenModulesConfig>(listing?.modulesConfig ?? {});
-  const [paymentCurrency, setPaymentCurrency] = useState<StorePaymentCurrency>('KAS');
+  const [paymentCurrency, setPaymentCurrency] = useState<string>('KAS');
+  const [paymentOption, setPaymentOption] = useState<HubPaymentCurrencyOption>(
+    () => buildKasKrexCurrencyOptions()[0],
+  );
   const [sectionToggles, setSectionToggles] = useState<Record<string, boolean>>(() => {
     const map: Record<string, boolean> = {};
     for (const section of listing?.pageConfig?.sections ?? []) {
@@ -779,7 +800,7 @@ export function CreateTokenForm({
         onChainSnapshot: onChainSnapshot ?? undefined,
         networks: assembledNetworks,
         modulesConfig,
-        paymentCurrency,
+        paymentCurrency: paymentOption.kind === 'krex' ? 'KREX' : 'KAS',
       };
       const result = listing
         ? await updateExistingListing(listing.id, input, kaspaState.address!)
@@ -814,7 +835,7 @@ export function CreateTokenForm({
               <p className="kx-body">
                 {isEditMode
                   ? 'Update your landing page content, modules, and on-chain listing metadata.'
-                  : 'List your token, verify deployer ownership after publish, and build a modular landing page.'}
+                  : 'List a real on-chain token (KRC-20, KCC-20, or L2), verify deployer ownership after publish, and build a modular landing page. Verified tokens can appear in Hub Pay with catalogs.'}
               </p>
               {isEditMode && onCancelEdit ? (
                 <button type="button" onClick={onCancelEdit} className="mt-3 text-sm text-[#02abb8] hover:underline">
@@ -823,21 +844,14 @@ export function CreateTokenForm({
               ) : null}
             </div>
 
-            <div>
-              <KxFormFieldLabel>Listing type</KxFormFieldLabel>
-              <p className="kx-body-sm">
-                Only real on-chain tokens can be listed. Connect KRC-20, KCC-20, or an L2 contract, then verify
-                deployer ownership after publish so the token can appear in Hub Pay with catalogs.
-              </p>
-            </div>
-
             <div className="space-y-4">
               <div>
                 <KxFormFieldLabel>
                   Networks <span className="text-red-500">*</span>
                 </KxFormFieldLabel>
                 <p className="kx-body-sm mb-2">
-                  Select one or more networks. Add an address per network and mark which one is primary.
+                  Select one or more networks. Add an address per network and mark which one is primary. If your
+                  token lives on more networks, select them below and fill each address.
                 </p>
                 <div className={isSubmitting || onChainLocked ? 'pointer-events-none opacity-60' : undefined}>
                   <KxMultiSelectDropdown
@@ -951,8 +965,6 @@ export function CreateTokenForm({
                 onSelect={applyKcc20Selection}
                 disabled={isSubmitting}
                 selected={kcc20Selected}
-                network={programmableNetwork}
-                onNetworkChange={setProgrammableNetwork}
                 autoLookup={kcc20AutoLookup}
               />
             ) : (
@@ -1108,7 +1120,8 @@ export function CreateTokenForm({
           <div className={`${FORM_PANEL_CLASS} space-y-6 scroll-mt-24`} id="tokens-dashboard-media">
             <DAppSectionHeader title="Listing media" className="mb-1" />
             <p className="kx-body-sm">
-              Upload your token logo and featured banner via direct URL or IPFS, same as vBlog article media.
+              Logo and basic tokenomics are filled from the connected on-chain token when available. Add a
+              featured banner separately (URL or IPFS).
             </p>
             <TokenListingMediaPanel media={media} onChange={onMediaChange} disabled={isSubmitting} embedded />
           </div>
@@ -1202,24 +1215,44 @@ export function CreateTokenForm({
           <TokensBenefitsPanel variant="panel" />
           <HubPaymentPanel
             lines={[
-              { label: 'Base fee', value: `${formQuote.baseFeeKas} KAS` },
-              { label: 'Size fee', value: `${formQuote.sizeFeeKas} KAS` },
+              {
+                label: 'Base fee',
+                value: formatHubPaymentAmount(paymentOption, formQuote.baseFeeKas, {
+                  snapshot: pricingSnapshot,
+                }),
+              },
+              {
+                label: 'Size fee',
+                value: formatHubPaymentAmount(paymentOption, formQuote.sizeFeeKas, {
+                  snapshot: pricingSnapshot,
+                }),
+              },
               ...formQuote.moduleLines.map((line) => ({
                 label: line.title,
-                value: `+${line.kas} KAS`,
+                value: `+${formatHubPaymentAmount(paymentOption, line.kas, { snapshot: pricingSnapshot })}`,
               })),
               ...(formQuote.modulesFeeKas > 0
-                ? [{ label: 'Modules subtotal', value: `${formQuote.modulesFeeKas} KAS` }]
+                ? [
+                    {
+                      label: 'Modules subtotal',
+                      value: formatHubPaymentAmount(paymentOption, formQuote.modulesFeeKas, {
+                        snapshot: pricingSnapshot,
+                      }),
+                    },
+                  ]
                 : []),
-              { label: 'Network buffer', value: `${formQuote.networkFeeBufferKas} KAS` },
+              {
+                label: 'Network buffer',
+                value: formatHubPaymentAmount(paymentOption, formQuote.networkFeeBufferKas, {
+                  snapshot: pricingSnapshot,
+                }),
+              },
               { label: 'Payload bytes', value: String(formQuote.payloadBytes) },
               { label: 'Chunk estimate', value: String(formQuote.chunkCount) },
             ]}
-            totalDisplay={formatHubPaymentAmount(
-              buildKasKrexCurrencyOptions().find((c) => c.id === paymentCurrency) ?? buildKasKrexCurrencyOptions()[0],
-              formQuote.totalKas,
-              { snapshot: pricingSnapshot },
-            )}
+            totalDisplay={formatHubPaymentAmount(paymentOption, formQuote.totalKas, {
+              snapshot: pricingSnapshot,
+            })}
             currencies={buildKasKrexCurrencyOptions()}
             catalogEntries={buildPublicHubCurrencyCatalog({
               amountKas: formQuote.totalKas,
@@ -1241,18 +1274,17 @@ export function CreateTokenForm({
               },
             })}
             selectedCurrencyId={paymentCurrency}
-            onCurrencyChange={(id) => setPaymentCurrency(id as StorePaymentCurrency)}
+            onCurrencyChange={(id) => {
+              setPaymentCurrency(id);
+              const opt = buildKasKrexCurrencyOptions().find((c) => c.id === id);
+              if (opt) setPaymentOption(opt);
+            }}
             onCatalogSelect={(opt) => {
-              if (opt.kind === 'kas' || opt.kind === 'krex') {
-                setPaymentCurrency(opt.id as StorePaymentCurrency);
-                return;
-              }
-              // Token currencies: keep fee rail on KAS for listing fees until token fee rails settle.
-              // Selection still wires the catalog trigger so users see verified tokens publicly.
-              setPaymentCurrency('KAS');
+              setPaymentCurrency(opt.id);
+              setPaymentOption(opt);
             }}
             splitLegs={
-              paymentCurrency === 'KAS'
+              paymentOption.kind === 'kas'
                 ? (() => {
                     try {
                       return buildHubPlatformFeePlan({ totalKas: formQuote.totalKas }).legs;
@@ -1266,10 +1298,12 @@ export function CreateTokenForm({
             krexBalance={krexBalance}
             discountNote={
               formQuote.discountKas > 0
-                ? `KREX discount: -${formQuote.discountKas} KAS (${discountPercent}% off).`
+                ? `KREX discount: -${formatHubPaymentAmount(paymentOption, formQuote.discountKas, {
+                    snapshot: pricingSnapshot,
+                  })} (${discountPercent}% off).`
                 : undefined
             }
-            infoText="One Kaspa L1 payment commits your listing payload on-chain. KAS fees can split treasury + rewards in a single tx. Connected KCC-20 tokens appear in the currency catalog."
+            infoText="One Kaspa L1 payment commits your listing payload on-chain. Fee rows update for the selected Pay with currency. KAS can split treasury + rewards in a single tx."
             hubPoints={
               isEditMode
                 ? undefined
@@ -1286,9 +1320,11 @@ export function CreateTokenForm({
                 >
                   {isSubmitting
                     ? 'Publishing…'
-                    : isEditMode
-                      ? 'Update listing'
-                      : 'Publish listing'}
+                    : `${isEditMode ? 'Update listing' : 'Publish listing'} (${formatHubPaymentAmount(
+                        paymentOption,
+                        formQuote.totalKas,
+                        { snapshot: pricingSnapshot },
+                      )})`}
                 </button>
                 <button
                   type="button"

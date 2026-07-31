@@ -18,7 +18,7 @@ export const TOKEN_LISTING_NETWORK_OPTIONS: TokenListingNetworkOption[] = [
   {
     id: 'kcc20',
     label: 'KCC20 (Kaspa L1)',
-    hint: 'Connect a covenant token (mainnet). Launch on KRON, then paste the covenant id.',
+    hint: 'Connect a covenant token on mainnet. Launch on an L1 DEX (KRON live; others soon), then paste the covenant id.',
   },
   { id: 'krc20', label: 'KRC20 (Kaspa L1)' },
   { id: 'l2_kasplex', label: 'Kasplex (L2)' },

@@ -1,20 +1,19 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { KxFormDropdown } from '@/components/ui/KxFormDropdown';
 import { KxFormFieldLabel } from '@/components/ui/KxFormFieldLabel';
-import type { ProgrammableNetworkId } from '@/lib/programmable/config';
 import { DEFAULT_PROGRAMMABLE_NETWORK } from '@/lib/programmable/config';
-import {
-  kronLaunchExploreUrl,
-  kronLaunchNewUrl,
-  normalizeKcc20ConnectPaste,
-} from '@/lib/programmable/kron';
+import { normalizeKcc20ConnectPaste } from '@/lib/programmable/kron';
 import {
   formatKcc20Sompi,
   resolveKcc20ConnectInput,
   type Kcc20TokenInfo,
 } from '@/lib/tokens/kcc20Lookup';
+import {
+  TOKEN_LAUNCH_DEX_OPTIONS,
+  getTokenLaunchDex,
+  type TokenLaunchDexId,
+} from '@/lib/tokens/launchDexes';
 
 interface Kcc20ConnectFieldProps {
   value: string;
@@ -22,16 +21,9 @@ interface Kcc20ConnectFieldProps {
   onSelect: (info: Kcc20TokenInfo | null) => void;
   disabled?: boolean;
   selected?: Kcc20TokenInfo | null;
-  network?: ProgrammableNetworkId;
-  onNetworkChange?: (network: ProgrammableNetworkId) => void;
   /** When true, auto-run lookup once value is a valid 64-hex id (dashboard deep-link). */
   autoLookup?: boolean;
 }
-
-const NETWORK_OPTIONS: Array<{ value: ProgrammableNetworkId; label: string }> = [
-  { value: 'mainnet', label: 'Mainnet' },
-  { value: 'testnet-10', label: 'Testnet-10' },
-];
 
 export function Kcc20ConnectField({
   value,
@@ -39,15 +31,17 @@ export function Kcc20ConnectField({
   onSelect,
   disabled,
   selected,
-  network = DEFAULT_PROGRAMMABLE_NETWORK,
-  onNetworkChange,
   autoLookup = false,
 }: Kcc20ConnectFieldProps) {
+  const [launchDex, setLaunchDex] = useState<TokenLaunchDexId>('kron');
   const [isSearching, setIsSearching] = useState(false);
   const [result, setResult] = useState<Kcc20TokenInfo | null>(null);
   const [notFound, setNotFound] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [didAutoLookup, setDidAutoLookup] = useState(false);
+
+  const dex = getTokenLaunchDex(launchDex);
+  const network = DEFAULT_PROGRAMMABLE_NETWORK;
 
   const runLookup = useCallback(async () => {
     const input = normalizeKcc20ConnectPaste(value);
@@ -67,12 +61,12 @@ export function Kcc20ConnectField({
       setResult(info);
       setNotFound(!info);
       if (!info) {
-        setError('No indexed covenant found yet. Deploy on the selected network and try again.');
+        setError('No indexed covenant found yet. Deploy on mainnet and try again.');
       }
     } catch {
       setResult(null);
       setNotFound(true);
-      setError('Lookup failed. Check the id and network, then try again.');
+      setError('Lookup failed. Check the id, then try again.');
     } finally {
       setIsSearching(false);
     }
@@ -90,54 +84,80 @@ export function Kcc20ConnectField({
 
   return (
     <div className="space-y-3">
-      <div className="rounded-xl border border-zinc-200 bg-zinc-50/80 p-4 dark:border-zinc-700 dark:bg-zinc-800/40">
-        <p className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">Launch on KRON (Kaspa L1)</p>
-        <p className="mt-1 text-xs text-zinc-600 dark:text-zinc-400">
-          Kasparex lists and adds Hub utilities. KRON deploys the covenant bonding-curve token on Kaspa L1.
-          After launch, copy the token URL or covenant id and paste it below.
-        </p>
-        <div className="mt-3 flex flex-wrap gap-2">
-          <a
-            href={kronLaunchNewUrl()}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="k-control-btn text-sm hub-sidebar-action-active"
-          >
-            Launch on KRON
-          </a>
-          <a
-            href={kronLaunchExploreUrl()}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="k-control-btn text-sm"
-          >
-            Browse KRON launches
-          </a>
+      <div className="rounded-xl border border-zinc-200 bg-zinc-50/80 p-4 dark:border-zinc-700 dark:bg-zinc-800/40 space-y-3">
+        <div>
+          <p className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">Deploy on an L1 DEX</p>
+          <p className="mt-1 text-xs text-zinc-600 dark:text-zinc-400">
+            Kasparex lists tokens and adds Hub utilities. Launch the covenant on a Kaspa L1 DEX, then paste
+            the covenant id or token URL below.
+          </p>
         </div>
-      </div>
 
-      <div>
-        <KxFormFieldLabel>Programmable network</KxFormFieldLabel>
-        <div className="mt-2">
-          <KxFormDropdown
-            ariaLabel="Programmable network"
-            value={network}
-            onChange={(v) => onNetworkChange?.(v as ProgrammableNetworkId)}
-            options={NETWORK_OPTIONS}
-            disabled={disabled || Boolean(selected)}
-          />
+        <div>
+          <p className="mb-2 text-[11px] font-semibold uppercase tracking-widest text-zinc-500">Launchpad</p>
+          <div className="flex flex-wrap gap-2">
+            {TOKEN_LAUNCH_DEX_OPTIONS.map((option) => {
+              const isActive = launchDex === option.id;
+              return (
+                <button
+                  key={option.id}
+                  type="button"
+                  disabled={disabled || !option.active}
+                  onClick={() => setLaunchDex(option.id)}
+                  title={option.active ? option.blurb : `${option.label} coming soon`}
+                  className={`k-control-btn text-sm ${
+                    isActive && option.active ? 'hub-sidebar-action-active' : ''
+                  } ${!option.active ? 'opacity-55 cursor-not-allowed' : ''}`}
+                >
+                  {option.label}
+                  {!option.active ? (
+                    <span className="ml-1 text-[10px] font-semibold uppercase tracking-wide text-zinc-500">
+                      Soon
+                    </span>
+                  ) : null}
+                </button>
+              );
+            })}
+          </div>
+          <p className="mt-2 text-xs text-zinc-600 dark:text-zinc-400">{dex.blurb}</p>
         </div>
+
+        {dex.active && dex.launchUrl ? (
+          <div className="flex flex-wrap gap-2">
+            <a
+              href={dex.launchUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="k-control-btn text-sm hub-sidebar-action-active"
+            >
+              {dex.launchLabel ?? `Launch on ${dex.label}`}
+            </a>
+            {dex.exploreUrl ? (
+              <a
+                href={dex.exploreUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="k-control-btn text-sm"
+              >
+                {dex.exploreLabel ?? `Browse ${dex.label}`}
+              </a>
+            ) : null}
+          </div>
+        ) : (
+          <p className="text-xs font-medium text-amber-700 dark:text-amber-300">
+            {dex.label} connect is not live yet. Use KRON to launch on mainnet for now.
+          </p>
+        )}
       </div>
 
       <div>
         <KxFormFieldLabel>
-          Covenant id, genesis tx, or KRON URL <span className="text-red-500">*</span>
+          Covenant id, genesis tx, or DEX token URL <span className="text-red-500">*</span>
         </KxFormFieldLabel>
         <p className="kx-body-sm mb-2">
-          Paste a KCC-20 covenant id, genesis transaction id, or a{' '}
-          <span className="font-mono text-[11px]">kron.technology/token/…</span> link. On mainnet,
-          Kasparex prefers kcc20.info token data (KaspaCom / kascov fallback). Nothing is deployed from
-          this form.
+          Paste a KCC-20 covenant id, genesis transaction id, or a DEX token link (for example{' '}
+          <span className="font-mono text-[11px]">kron.technology/token/…</span>). Lookups use mainnet
+          indexers (kcc20.info, with KaspaCom / kascov fallback). Nothing is deployed from this form.
         </p>
         <input
           type="text"
@@ -165,7 +185,7 @@ export function Kcc20ConnectField({
       {error ? <p className="text-xs font-medium text-red-500">{error}</p> : null}
       {notFound && !selected && !error ? (
         <p className="text-xs font-medium text-amber-600 dark:text-amber-400">
-          No indexed covenant found for this id on {network}.
+          No indexed covenant found for this id on mainnet.
         </p>
       ) : null}
 
@@ -176,7 +196,17 @@ export function Kcc20ConnectField({
           className="w-full rounded-xl border border-[#02abb8]/40 bg-[#02abb8]/5 p-4 text-left transition hover:border-[#02abb8] hover:bg-[#02abb8]/10"
         >
           <div className="flex items-center justify-between gap-2">
-            <span className="text-lg font-black text-zinc-900 dark:text-zinc-100">{displayResult.ticker}</span>
+            <div className="flex min-w-0 items-center gap-3">
+              {displayResult.imageUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={displayResult.imageUrl}
+                  alt=""
+                  className="h-10 w-10 shrink-0 rounded-full border border-zinc-200 object-cover dark:border-zinc-700"
+                />
+              ) : null}
+              <span className="text-lg font-black text-zinc-900 dark:text-zinc-100">{displayResult.ticker}</span>
+            </div>
             <span className="rounded-md bg-[#02abb8]/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[#02abb8]">
               Connect token
             </span>
@@ -224,9 +254,19 @@ export function Kcc20ConnectField({
       {selected ? (
         <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-4">
           <div className="flex items-center justify-between gap-2">
-            <span className="text-sm font-bold text-emerald-700 dark:text-emerald-400">
-              Programmable token connected: {selected.ticker}
-            </span>
+            <div className="flex min-w-0 items-center gap-2">
+              {selected.imageUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={selected.imageUrl}
+                  alt=""
+                  className="h-8 w-8 shrink-0 rounded-full border border-emerald-500/30 object-cover"
+                />
+              ) : null}
+              <span className="text-sm font-bold text-emerald-700 dark:text-emerald-400">
+                Programmable token connected: {selected.ticker}
+              </span>
+            </div>
             <button
               type="button"
               onClick={() => {

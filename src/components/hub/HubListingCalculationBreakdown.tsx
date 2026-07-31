@@ -46,7 +46,9 @@ export function HubListingCalculationBreakdown({
   showPayWith = true,
 }: Props) {
   const { balance: krexBalance, tier } = useKREXBalance();
-  const { catalogEntries: defaultCatalog } = useHubPayWithCatalog({ amountKas: quote.totalKas });
+  const { catalogEntries: defaultCatalog, pricingSnapshot } = useHubPayWithCatalog({
+    amountKas: quote.totalKas,
+  });
   const catalogEntries = catalogOverride ?? defaultCatalog;
   const [isKrexWizardOpen, setIsKrexWizardOpen] = useState(false);
   const showBuyKrex = quote.discountPercent <= 0 && krexBalance < KREX_TIERS.Tier1.minKREX;
@@ -55,8 +57,14 @@ export function HubListingCalculationBreakdown({
     catalogEntries.find((e) => e.id === selectedCurrencyId) ??
     catalogEntries.find((e) => e.id === 'KAS') ??
     catalogEntries[0];
+
+  const formatFee = (kas: number) =>
+    selected
+      ? formatHubPaymentAmount(selected, kas, { snapshot: pricingSnapshot })
+      : `${kas} KAS`;
+
   const totalDisplay = selected
-    ? formatHubPaymentAmount(selected, quote.totalKas)
+    ? formatHubPaymentAmount(selected, quote.totalKas, { snapshot: pricingSnapshot })
     : `${quote.totalKas} KAS`;
 
   return (
@@ -70,26 +78,26 @@ export function HubListingCalculationBreakdown({
         <div className="flex justify-between gap-2">
           <span>Base fee</span>
           <span className="shrink-0 font-semibold tabular-nums text-zinc-900 dark:text-zinc-100">
-            {quote.baseFeeKas} KAS
+            {formatFee(quote.baseFeeKas)}
           </span>
         </div>
         <div className="flex justify-between gap-2">
           <span>Size fee</span>
           <span className="shrink-0 font-semibold tabular-nums text-zinc-900 dark:text-zinc-100">
-            {quote.sizeFeeKas} KAS
+            {formatFee(quote.sizeFeeKas)}
           </span>
         </div>
         <div className="flex justify-between gap-2">
           <span>Network buffer</span>
           <span className="shrink-0 font-semibold tabular-nums text-zinc-900 dark:text-zinc-100">
-            {quote.networkFeeBufferKas} KAS
+            {formatFee(quote.networkFeeBufferKas)}
           </span>
         </div>
         {quote.moduleLines.map((line) => (
           <div key={line.id} className="flex justify-between gap-2">
             <span className="truncate">{line.title}</span>
             <span className="shrink-0 font-semibold tabular-nums text-zinc-900 dark:text-zinc-100">
-              +{line.kas} KAS
+              +{formatFee(line.kas)}
             </span>
           </div>
         ))}
@@ -97,7 +105,7 @@ export function HubListingCalculationBreakdown({
           <div className="flex justify-between gap-2 border-t border-zinc-200 pt-2 dark:border-zinc-800">
             <span>Modules subtotal</span>
             <span className="font-semibold tabular-nums text-[color:var(--hub-accent,#02abb8)]">
-              {quote.modulesFeeKas} KAS
+              {formatFee(quote.modulesFeeKas)}
             </span>
           </div>
         ) : null}
@@ -105,7 +113,7 @@ export function HubListingCalculationBreakdown({
           <div className="flex justify-between gap-2 border-t border-zinc-200 pt-2 dark:border-zinc-800">
             <span>Subtotal</span>
             <span className="shrink-0 font-semibold tabular-nums text-zinc-900 dark:text-zinc-100">
-              {quote.subtotalKas} KAS
+              {formatFee(quote.subtotalKas)}
             </span>
           </div>
         ) : null}
@@ -147,7 +155,7 @@ export function HubListingCalculationBreakdown({
 
       {quote.discountKas > 0 ? (
         <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-3 text-sm text-emerald-800 dark:text-emerald-300">
-          KREX discount: -{quote.discountKas.toFixed(2)} KAS ({quote.discountPercent}% off total).
+          KREX discount: -{formatFee(quote.discountKas)} ({quote.discountPercent}% off total).
         </div>
       ) : null}
 

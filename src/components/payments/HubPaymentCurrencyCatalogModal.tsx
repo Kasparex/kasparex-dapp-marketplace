@@ -8,6 +8,9 @@ import type { HubCurrencyCatalogEntry } from '@/lib/payments/currencyCatalog';
 import { catalogEntryToOption } from '@/lib/payments/currencyCatalog';
 import type { HubPaymentCurrencyOption } from '@/lib/payments/hubPaymentTypes';
 
+type NetworkFilter = 'all' | 'kaspa_l1' | 'l2';
+type DexFilter = 'all' | 'native' | 'kron' | 'kaspacom' | 'zealous';
+
 function entryMatchesQuery(entry: HubCurrencyCatalogEntry, query: string): boolean {
   const q = query.trim().toLowerCase();
   if (!q) return true;
@@ -19,11 +22,40 @@ function entryMatchesQuery(entry: HubCurrencyCatalogEntry, query: string): boole
     entry.searchText,
     entry.covenantId,
     entry.kind,
+    entry.networkTag,
+    entry.dexTag,
   ]
     .filter(Boolean)
     .join(' ')
     .toLowerCase();
   return hay.includes(q);
+}
+
+function FilterChip({
+  label,
+  active,
+  disabled,
+  onClick,
+}: {
+  label: string;
+  active: boolean;
+  disabled?: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      disabled={disabled}
+      onClick={onClick}
+      className={`rounded-lg border px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide transition ${
+        active
+          ? 'border-[color:var(--hub-accent,#02abb8)] bg-[color:var(--hub-accent,#02abb8)]/15 text-[color:var(--hub-accent,#02abb8)]'
+          : 'border-zinc-200 text-zinc-600 hover:border-zinc-300 dark:border-zinc-700 dark:text-zinc-300 dark:hover:border-zinc-600'
+      } ${disabled ? 'cursor-not-allowed opacity-50' : ''}`}
+    >
+      {label}
+    </button>
+  );
 }
 
 export function HubPaymentCurrencyCatalogModal({
@@ -44,23 +76,33 @@ export function HubPaymentCurrencyCatalogModal({
   subtitle?: string;
 }) {
   const [query, setQuery] = useState('');
+  const [networkFilter, setNetworkFilter] = useState<NetworkFilter>('all');
+  const [dexFilter, setDexFilter] = useState<DexFilter>('all');
 
   useEffect(() => {
-    if (!isOpen) setQuery('');
+    if (!isOpen) {
+      setQuery('');
+      setNetworkFilter('all');
+      setDexFilter('all');
+    }
   }, [isOpen]);
 
-  const filtered = useMemo(
-    () => entries.filter((entry) => entryMatchesQuery(entry, query)),
-    [entries, query],
-  );
+  const filtered = useMemo(() => {
+    return entries.filter((entry) => {
+      if (!entryMatchesQuery(entry, query)) return false;
+      if (networkFilter !== 'all' && (entry.networkTag ?? 'kaspa_l1') !== networkFilter) return false;
+      if (dexFilter !== 'all' && (entry.dexTag ?? 'other') !== dexFilter) return false;
+      return true;
+    });
+  }, [entries, query, networkFilter, dexFilter]);
 
-  const builtins = filtered.filter((e) => e.kind === 'kas' || e.kind === 'krex');
-  const tokens = filtered.filter((e) => e.kind !== 'kas' && e.kind !== 'krex');
+  const nativeKas = filtered.filter((e) => e.kind === 'kas');
+  const tokenRows = filtered.filter((e) => e.kind !== 'kas');
 
   return (
     <KxModalShell isOpen={isOpen} onClose={onClose} panelClassName="max-w-lg" labelledBy="hub-pay-currency-title">
       <KxModalHeader title={title} subtitle={subtitle} onClose={onClose} />
-      <div className="border-b border-zinc-200 px-4 sm:px-6 py-3 dark:border-zinc-800">
+      <div className="space-y-3 border-b border-zinc-200 px-4 py-3 dark:border-zinc-800 sm:px-6">
         <label className="sr-only" htmlFor="hub-pay-currency-search">
           Search currencies
         </label>
@@ -73,18 +115,48 @@ export function HubPaymentCurrencyCatalogModal({
           className="k-input w-full text-sm"
           autoFocus
         />
+        <div className="space-y-2">
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className="mr-1 text-[10px] font-semibold uppercase tracking-widest text-zinc-500">Network</span>
+            <FilterChip label="All" active={networkFilter === 'all'} onClick={() => setNetworkFilter('all')} />
+            <FilterChip
+              label="Kaspa L1"
+              active={networkFilter === 'kaspa_l1'}
+              onClick={() => setNetworkFilter('kaspa_l1')}
+            />
+            <FilterChip label="L2" active={networkFilter === 'l2'} onClick={() => setNetworkFilter('l2')} />
+          </div>
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className="mr-1 text-[10px] font-semibold uppercase tracking-widest text-zinc-500">DEX</span>
+            <FilterChip label="All" active={dexFilter === 'all'} onClick={() => setDexFilter('all')} />
+            <FilterChip label="Native" active={dexFilter === 'native'} onClick={() => setDexFilter('native')} />
+            <FilterChip label="KRON" active={dexFilter === 'kron'} onClick={() => setDexFilter('kron')} />
+            <FilterChip
+              label="KaspaCom"
+              active={dexFilter === 'kaspacom'}
+              disabled
+              onClick={() => setDexFilter('kaspacom')}
+            />
+            <FilterChip
+              label="Zealous"
+              active={dexFilter === 'zealous'}
+              disabled
+              onClick={() => setDexFilter('zealous')}
+            />
+          </div>
+        </div>
       </div>
-      <div id="hub-pay-currency-title" className="max-h-[min(70vh,520px)] overflow-y-auto px-4 sm:px-6 py-3 space-y-4">
+      <div id="hub-pay-currency-title" className="max-h-[min(70vh,520px)] space-y-4 overflow-y-auto px-4 py-3 sm:px-6">
         {filtered.length === 0 ? (
           <p className="py-8 text-center text-sm text-zinc-600 dark:text-zinc-400">
-            No currencies match “{query.trim()}”.
+            No currencies match your search or filters.
           </p>
         ) : (
           <>
-            {builtins.length > 0 ? (
+            {nativeKas.length > 0 ? (
               <section className="space-y-2">
                 <p className="text-[11px] font-semibold uppercase tracking-widest text-zinc-500">Network</p>
-                {builtins.map((entry) => (
+                {nativeKas.map((entry) => (
                   <CurrencyRow
                     key={entry.id}
                     entry={entry}
@@ -97,10 +169,10 @@ export function HubPaymentCurrencyCatalogModal({
                 ))}
               </section>
             ) : null}
-            {tokens.length > 0 ? (
+            {tokenRows.length > 0 ? (
               <section className="space-y-2">
                 <p className="text-[11px] font-semibold uppercase tracking-widest text-zinc-500">Tokens</p>
-                {tokens.map((entry) => (
+                {tokenRows.map((entry) => (
                   <CurrencyRow
                     key={entry.id}
                     entry={entry}
@@ -144,7 +216,7 @@ function CurrencyRow({
           : 'border-zinc-200 bg-zinc-50/80 hover:border-zinc-300 dark:border-zinc-700 dark:bg-zinc-800/40 dark:hover:border-zinc-600'
       } ${locked ? 'cursor-not-allowed opacity-70' : ''}`}
     >
-      <div className="min-w-0 flex items-center gap-3">
+      <div className="flex min-w-0 items-center gap-3">
         <span
           className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-zinc-200 bg-white text-[10px] font-bold uppercase text-zinc-700 dark:border-zinc-600 dark:bg-zinc-900 dark:text-zinc-200"
           aria-hidden
@@ -152,9 +224,9 @@ function CurrencyRow({
           {(entry.tick ?? entry.label).slice(0, 3)}
         </span>
         <div className="min-w-0">
-          <p className="font-semibold text-zinc-900 dark:text-zinc-100 truncate">{entry.label}</p>
+          <p className="truncate font-semibold text-zinc-900 dark:text-zinc-100">{entry.label}</p>
           {entry.detail ? (
-            <p className="mt-0.5 text-xs text-zinc-600 dark:text-zinc-400 line-clamp-2">{entry.detail}</p>
+            <p className="mt-0.5 line-clamp-2 text-xs text-zinc-600 dark:text-zinc-400">{entry.detail}</p>
           ) : null}
           {entry.amountLabel ? (
             <p className="mt-0.5 text-xs font-medium tabular-nums text-zinc-800 dark:text-zinc-200">
@@ -163,7 +235,7 @@ function CurrencyRow({
           ) : null}
         </div>
       </div>
-      <div className="flex flex-col items-end gap-1 shrink-0">
+      <div className="flex shrink-0 flex-col items-end gap-1">
         {locked || pending ? (
           <span className="text-[10px] uppercase tracking-wide text-amber-700 dark:text-amber-300">
             {locked ? 'Locked' : 'Soon'}
@@ -234,13 +306,15 @@ export function HubPaymentCurrencyCatalogTrigger({
         aria-haspopup="dialog"
         aria-expanded={open}
       >
-        <span className="truncate inline-flex items-center gap-2 min-w-0">
+        <span className="inline-flex min-w-0 items-center gap-2 truncate">
           <span className="font-semibold">{selected?.label ?? 'Select currency'}</span>
-          {selected?.detail ? (
+          {selected?.amountLabel ? (
+            <span className="truncate text-xs font-normal tabular-nums text-zinc-500">{selected.amountLabel}</span>
+          ) : selected?.detail ? (
             <span className="truncate text-xs font-normal text-zinc-500">{selected.detail}</span>
           ) : null}
         </span>
-        <span className="text-xs text-zinc-500 shrink-0">Change</span>
+        <span className="shrink-0 text-xs text-zinc-500">Change</span>
       </button>
       <HubPaymentCurrencyCatalogModal
         isOpen={open}

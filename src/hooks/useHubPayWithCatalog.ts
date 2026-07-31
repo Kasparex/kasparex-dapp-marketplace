@@ -3,7 +3,11 @@
 import { useMemo } from 'react';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { usePricingSnapshot } from '@/hooks/usePricingSnapshot';
-import { buildPublicHubCurrencyCatalog } from '@/lib/payments/publicPaymentTokens';
+import {
+  buildPublicHubCurrencyCatalog,
+  listPublicVerifiedPaymentTokens,
+} from '@/lib/payments/publicPaymentTokens';
+import { mergePricingTickers } from '@/lib/pricing';
 import type { HubCurrencyCatalogEntry } from '@/lib/payments/currencyCatalog';
 import type { HubPaymentCurrencyOption } from '@/lib/payments/hubPaymentTypes';
 import type { PricingSnapshot } from '@/lib/pricing/types';
@@ -30,7 +34,22 @@ export function useHubPayWithCatalog(opts?: {
   pricingSnapshot: PricingSnapshot | null | undefined;
 } {
   const { balance: krexBalance } = useKREXBalance();
-  const { snapshot } = usePricingSnapshot(['KREX']);
+  const publicTicks = useMemo(
+    () =>
+      listPublicVerifiedPaymentTokens()
+        .filter((t) => t.kind === 'krc20' && t.tick)
+        .map((t) => t.tick!),
+    [],
+  );
+  const integratedTicks = useMemo(
+    () => (opts?.integratedTokens ?? []).map((t) => t.tick),
+    [opts?.integratedTokens],
+  );
+  const pricingTickers = useMemo(
+    () => mergePricingTickers(['KREX', ...publicTicks, ...integratedTicks]),
+    [publicTicks, integratedTicks],
+  );
+  const { snapshot } = usePricingSnapshot(pricingTickers);
   const pricingSnapshot = opts?.pricingSnapshot ?? snapshot;
 
   const catalogEntries = useMemo(
