@@ -153,6 +153,72 @@ export function buildHubPlatformFeePlan(args: {
   return { legs, note: args.note, payloadHex: args.payloadHex };
 }
 
+/**
+ * Author / creator share + Hub platform fee (treasury ± rewards).
+ * When the author address matches treasury/rewards, the author share is folded into the
+ * platform fee total so the wallet shows a real multi-out (treasury + rewards + change),
+ * not a single send.
+ */
+export function buildAuthorHubFeePlan(args: {
+  authorAddress?: string;
+  authorKas?: number;
+  /** Platform fee total (treasury ± rewards). Use >= 2 * min leg when rewards is configured. */
+  platformKas: number;
+  note?: string;
+  payloadHex?: string;
+}): PaymentPlan {
+  const authorKas = roundKas(Math.max(0, args.authorKas ?? 0));
+  const authorRaw = args.authorAddress?.trim() || '';
+  const platformKas = roundKas(Math.max(0, args.platformKas));
+
+  if (!authorRaw || !(authorKas > 0)) {
+    return buildHubPlatformFeePlan({
+      totalKas: platformKas,
+      note: args.note,
+      payloadHex: args.payloadHex,
+    });
+  }
+
+  const author = normAddress(authorRaw);
+  const authorKey = author.toLowerCase();
+  const treasuryFallback =
+    getHubTreasuryAddress().trim() || authorRaw;
+  const treasuryKey = normAddress(treasuryFallback).toLowerCase();
+  const rewardsRaw = getHubRewardsAddress().trim();
+  const rewardsKey = rewardsRaw ? normAddress(rewardsRaw).toLowerCase() : '';
+
+  if (authorKey === treasuryKey || (rewardsKey && authorKey === rewardsKey)) {
+    return buildHubPlatformFeePlan({
+      totalKas: roundKas(platformKas + authorKas),
+      treasuryAddress: treasuryFallback,
+      note: args.note,
+      payloadHex: args.payloadHex,
+    });
+  }
+
+  const platform = buildHubPlatformFeePlan({
+    totalKas: platformKas,
+    treasuryAddress: treasuryFallback,
+    note: args.note,
+    payloadHex: args.payloadHex,
+  });
+
+  return {
+    legs: [
+      {
+        role: 'creator',
+        address: author,
+        amount: Math.max(HUB_PAYMENT_MIN_LEG_KAS, authorKas),
+        label: 'Author',
+        required: true,
+      },
+      ...platform.legs,
+    ],
+    note: args.note,
+    payloadHex: args.payloadHex,
+  };
+}
+
 /** Author / creator share + optional platform fee (vBlog-style). */
 export function buildCreatorPlatformPlan(args: {
   creatorAddress: string;

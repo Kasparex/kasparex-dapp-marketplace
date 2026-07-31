@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useAccount } from 'wagmi';
 import type { DApp } from '@/lib/dapps';
 import { useKaspaWallet } from '@/lib/kaspa/context';
@@ -9,15 +9,15 @@ import { Tooltip } from '@/components/ui/Tooltip';
 import { resolveDAppAuthor } from '@/lib/dapps/deployer';
 import { payKasPaymentPlan } from '@/lib/payments/kasMultiOutPay';
 import {
-  buildCreatorPlatformPlan,
+  buildAuthorHubFeePlan,
+  getHubRewardsAddress,
   getHubTreasuryAddress,
   HUB_PAYMENT_MIN_LEG_KAS,
   mergeSameAddressLegs,
+  paymentPlanTotal,
 } from '@/lib/payments/paymentPlan';
 import { getKasparexGamesAuthorWallet } from '@/lib/games/author';
 import { formatKaspaWalletError } from '@/lib/kaspa/formatWalletError';
-import { sendKaspaTransaction } from '@/lib/kaspa/wallet';
-import { kasToSompi } from '@/lib/ads/config';
 
 export type DAppListingVote = 'up' | 'down';
 
@@ -32,10 +32,7 @@ type DAppListingVoteRecord = {
 
 const DAPP_LISTING_VOTE_KEY = 'dapps_listing_votes';
 const DAPP_LISTING_VOTE_AUTHOR_KAS = HUB_PAYMENT_MIN_LEG_KAS;
-const DAPP_LISTING_VOTE_PLATFORM_KAS = HUB_PAYMENT_MIN_LEG_KAS;
-const DAPP_LISTING_VOTE_FEE_KAS = DAPP_LISTING_VOTE_AUTHOR_KAS + DAPP_LISTING_VOTE_PLATFORM_KAS;
 
-const VOTE_TOOLTIP_L1 = `Vote with KAS. Payment goes to the author's wallet with a Hub payment split. Change returns to your wallet. (${DAPP_LISTING_VOTE_FEE_KAS} KAS per vote)`;
 const VOTE_TOOLTIP_L2 = 'Vote with your connected EVM wallet for this L2 dApp author.';
 const CONNECT_KASPA_TOOLTIP = 'Connect your Kaspa L1 wallet to vote for this L1 author.';
 const CONNECT_EVM_TOOLTIP = 'Connect your EVM wallet to vote for this L2 author.';
@@ -100,8 +97,9 @@ function resolveVoteAuthorPayee(authorWallet: string): string {
   return getHubTreasuryAddress().trim() || getKasparexGamesAuthorWallet();
 }
 
-function resolvePlatformPayee(): string {
-  return getHubTreasuryAddress().trim() || getKasparexGamesAuthorWallet();
+function resolveVotePlatformKas(): number {
+  // Need enough platform KAS to create distinct treasury + rewards outs (min 1 KAS each).
+  return getHubRewardsAddress().trim() ? HUB_PAYMENT_MIN_LEG_KAS * 2 : HUB_PAYMENT_MIN_LEG_KAS;
 }
 
 export function DAppVoteControls({ dapp, compact = false }: { dapp: DApp; compact?: boolean }) {
@@ -121,11 +119,24 @@ export function DAppVoteControls({ dapp, compact = false }: { dapp: DApp; compac
   const score = getScore(dapp.id) + tick * 0;
   const currentVote = voterWallet ? getVoteForWallet(dapp.id, voterWallet) : null;
 
+  const voteFeeKas = useMemo(() => {
+    if (!creatorWallet || authorIsL2) return 0;
+    const authorPayee = resolveVoteAuthorPayee(creatorWallet);
+    const plan = mergeSameAddressLegs(
+      buildAuthorHubFeePlan({
+        authorAddress: authorPayee,
+        authorKas: DAPP_LISTING_VOTE_AUTHOR_KAS,
+        platformKas: resolveVotePlatformKas(),
+      }),
+    );
+    return paymentPlanTotal(plan);
+  }, [creatorWallet, authorIsL2]);
+
   if (!creatorWallet || (!authorIsL1 && !authorIsL2)) return null;
 
   const canVote = authorIsL2 ? Boolean(evmConnected && evmAddress) : kaspaConnected;
 
-  let tooltip = VOTE_TOOLTIP_L1;
+  let tooltip = `Vote with KAS. One transaction splits to author / treasury / rewards when configured. Change returns to your wallet. (${voteFeeKas} KAS per vote)`;
   if (authorIsL2) {
     if (!evmConnected || !evmAddress) {
       tooltip = kaspaConnected ? MISMATCH_L2_TOOLTIP : CONNECT_EVM_TOOLTIP;
@@ -160,42 +171,28 @@ export function DAppVoteControls({ dapp, compact = false }: { dapp: DApp; compac
       }
 
       const authorPayee = resolveVoteAuthorPayee(creatorWallet);
-      const platformAddress = resolvePlatformPayee();
-      const plan = mergeSameAddressLegs(
-        buildCreatorPlatformPlan({
-          creatorAddress: authorPayee,
-          creatorKas: DAPP_LISTING_VOTE_AUTHOR_KAS,
-          creatorLabel: 'Author',
-          platformKas: DAPP_LISTING_VOTE_PLATFORM_KAS,
-          platformAddress,
-          note: `DApp vote:${vote}:${dapp.slug || dapp.name}`,
-        }),
-      );
+      const plan = buildAuthorHubFeePlan({
+        authorAddress: authorPayee,
+        authorKas: DAPP_LISTING_VOTE_AUTHOR_KAS,
+        platformKas: resolveVotePlatformKas(),
+        note: `DApp vote:${vote}:${dapp.slug || dapp.name}`,
+      });
 
-      let txHash: string | undefined;
-
-      // Fast path: one destination (common when author is Hub treasury).
-      if (plan.legs.length === 1) {
-        const leg = plan.legs[0]!;
-        const result = await sendKaspaTransaction(kaspaState.provider as KaspaWalletProvider, {
-          to: leg.address,
-          amount: String(Math.floor(kasToSompi(leg.amount))),
-          note: plan.note,
-        });
-        if (result.status === 'failed' || !result.txHash) {
-          throw new Error(result.error ?? 'KAS vote payment failed');
-        }
-        txHash = result.txHash;
-      } else {
-        const result = await payKasPaymentPlan(
-          kaspaState.provider as KaspaWalletProvider,
-          plan,
-          kaspaWallet,
+      const merged = mergeSameAddressLegs(plan);
+      if (merged.legs.length < 2 && getHubRewardsAddress().trim()) {
+        throw new Error(
+          'Vote split needs distinct treasury and rewards addresses. Check NEXT_PUBLIC_REWARDS_ADDRESS.',
         );
-        if (!result.txHash) {
-          throw new Error('KAS vote payment failed');
-        }
-        txHash = result.txHash;
+      }
+
+      // Always use Hub multi-out core (treasury + rewards + change), never a single-destination send.
+      const result = await payKasPaymentPlan(
+        kaspaState.provider as KaspaWalletProvider,
+        plan,
+        kaspaWallet,
+      );
+      if (!result.txHash) {
+        throw new Error('KAS vote payment failed');
       }
 
       saveVote({
@@ -203,7 +200,7 @@ export function DAppVoteControls({ dapp, compact = false }: { dapp: DApp; compac
         wallet: kaspaWallet,
         vote,
         votedAt: new Date().toISOString(),
-        txHash,
+        txHash: result.txHash,
         rail: 'l1',
       });
       setTick((n) => n + 1);
