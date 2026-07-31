@@ -16,6 +16,8 @@ import {
 } from '@/lib/store/currencies';
 import type { Product } from '@/lib/store/types';
 import { transferKrc20 } from '@/lib/payments/krc20Payment';
+import { payKasPaymentPlan } from '@/lib/payments/kasMultiOutPay';
+import { buildCreatorPlatformPlan } from '@/lib/payments/paymentPlan';
 import { resolveTokenAmountFromKas, toKasEq } from '@/lib/pricing/registry';
 import type { PricingSnapshot } from '@/lib/pricing/types';
 
@@ -125,26 +127,39 @@ export function useStoreProductPurchase(product: Product) {
             });
           }
         } else {
-          const sellerResult = await sendKaspaTransaction(state.provider, {
-            to: product.sellerAddress,
-            amount: kasToSompis(fee.sellerRevenue).toString(),
+          const plan = buildCreatorPlatformPlan({
+            creatorAddress: product.sellerAddress,
+            creatorKas: fee.sellerRevenue,
+            creatorLabel: 'Seller',
+            platformKas: fee.feeAmount,
+            platformAddress: STORE_TREASURY_ADDRESS,
+            note: `Store purchase ${product.id}`,
           });
-
-          if (sellerResult.status === 'failed') {
-            throw new Error(sellerResult.error || 'Seller payment failed');
-          }
-
-          if (fee.feeAmount > 0) {
-            const feeResult = await sendKaspaTransaction(state.provider, {
-              to: STORE_TREASURY_ADDRESS,
-              amount: kasToSompis(fee.feeAmount).toString(),
+          try {
+            const multi = await payKasPaymentPlan(state.provider, plan, state.address);
+            purchaseTxHash = multi.txHash;
+          } catch {
+            const sellerResult = await sendKaspaTransaction(state.provider, {
+              to: product.sellerAddress,
+              amount: kasToSompis(fee.sellerRevenue).toString(),
             });
-            if (feeResult.status === 'failed') {
-              console.warn('Platform fee payment failed:', feeResult.error);
-            }
-          }
 
-          purchaseTxHash = sellerResult.txHash;
+            if (sellerResult.status === 'failed') {
+              throw new Error(sellerResult.error || 'Seller payment failed');
+            }
+
+            if (fee.feeAmount > 0) {
+              const feeResult = await sendKaspaTransaction(state.provider, {
+                to: STORE_TREASURY_ADDRESS,
+                amount: kasToSompis(fee.feeAmount).toString(),
+              });
+              if (feeResult.status === 'failed') {
+                console.warn('Platform fee payment failed:', feeResult.error);
+              }
+            }
+
+            purchaseTxHash = sellerResult.txHash;
+          }
         }
 
         const purchaseResult = await recordPurchase({

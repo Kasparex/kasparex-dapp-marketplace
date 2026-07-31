@@ -14,6 +14,8 @@ import {
   getProductPaymentCurrency,
 } from '@/lib/store/currencies';
 import { buildHubCheckoutCurrencyOptions } from '@/lib/payments/hubPaymentTypes';
+import { buildHubCurrencyCatalog } from '@/lib/payments/currencyCatalog';
+import { buildCreatorPlatformPlan } from '@/lib/payments/paymentPlan';
 import type { Product } from '@/lib/store/types';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useIntegratedTokens } from '@/hooks/useIntegratedToken';
@@ -120,8 +122,26 @@ export function ProductPurchase({ product, onPurchaseComplete }: ProductPurchase
           ]}
           totalDisplay={totalDisplay}
           currencies={currencyOptions.length > 1 ? currencyOptions : undefined}
+          catalogEntries={buildHubCurrencyCatalog({
+            amountKas: unitKasEq * 1,
+            pricingSnapshot,
+            krexBalance,
+            integratedTokens: sellerIntegratedTokens,
+            includeKasKrex: true,
+          })}
           selectedCurrencyId={currency}
           onCurrencyChange={setCurrency}
+          onCatalogSelect={(opt) => setCurrency(opt.id)}
+          splitLegs={
+            currency === 'KAS'
+              ? buildCreatorPlatformPlan({
+                  creatorAddress: product.sellerAddress,
+                  creatorKas: fee.sellerRevenue,
+                  creatorLabel: 'Seller',
+                  platformKas: fee.feeAmount,
+                }).legs
+              : undefined
+          }
           tier={krexTier}
           krexBalance={krexBalance}
           currencyAccent="store"

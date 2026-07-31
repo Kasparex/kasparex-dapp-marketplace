@@ -1,9 +1,11 @@
 'use client';
 
 import type { ReactNode } from 'react';
+import { useMemo } from 'react';
 import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 import { HubFlowProgress } from '@/components/hub/HubFlowProgress';
 import { HubPointsEarnBadge } from '@/components/hub/HubPointsEarnBadge';
+import { HubPaymentCurrencyCatalogTrigger } from '@/components/payments/HubPaymentCurrencyCatalogModal';
 import { HubPaymentCurrencyDropdown } from '@/components/payments/HubPaymentCurrencyDropdown';
 import { TierBadge } from '@/components/rewards/TierBadge';
 import { KX_CALCULATION_ASIDE } from '@/lib/hub/shellTokens';
@@ -12,7 +14,12 @@ import {
   type HubFlowPresetKey,
   type HubFlowStep,
 } from '@/lib/hub/hubFlowProgress';
+import {
+  buildHubCurrencyCatalog,
+  type HubCurrencyCatalogEntry,
+} from '@/lib/payments/currencyCatalog';
 import type { HubPaymentCurrencyOption, HubPaymentQuoteLine } from '@/lib/payments/hubPaymentTypes';
+import type { PaymentLeg } from '@/lib/payments/paymentPlan';
 import type { KREXTier } from '@/lib/rewards/types';
 
 export function HubPaymentPanel({
@@ -24,6 +31,11 @@ export function HubPaymentPanel({
   currencies,
   selectedCurrencyId,
   onCurrencyChange,
+  /** Prefer catalog modal (KAS/KREX/KRC-20/KCC-20 + locked unlock rows). */
+  catalogEntries,
+  onCatalogSelect,
+  currencyPicker = 'catalog',
+  splitLegs,
   discountNote,
   infoText,
   tier,
@@ -44,7 +56,6 @@ export function HubPaymentPanel({
   flowActiveStepId = null,
   flowCurrentIndex,
   hideFlowProgress = false,
-  /** Status / validation notices rendered below the primary action (footer). */
   alerts,
 }: {
   title?: string;
@@ -55,12 +66,16 @@ export function HubPaymentPanel({
   currencies?: HubPaymentCurrencyOption[];
   selectedCurrencyId?: string;
   onCurrencyChange?: (id: string) => void;
+  catalogEntries?: HubCurrencyCatalogEntry[];
+  onCatalogSelect?: (option: HubPaymentCurrencyOption) => void;
+  currencyPicker?: 'catalog' | 'dropdown';
+  /** When set, shows how the KAS payment splits across addresses. */
+  splitLegs?: PaymentLeg[];
   discountNote?: string;
   infoText?: string;
   tier?: KREXTier;
   krexBalance?: number;
   footer?: ReactNode;
-  /** Rendered directly below footer (CTA). Prefer for errors / success / validation. */
   alerts?: ReactNode;
   className?: string;
   asideClassName?: string;
@@ -70,7 +85,6 @@ export function HubPaymentPanel({
   hubPoints?: number;
   hubPointsDetail?: string;
   hubPointsBaseSpendKas?: number;
-  /** Custom flow steps. Defaults to flowPreset when omitted. */
   flowSteps?: HubFlowStep[];
   flowPreset?: HubFlowPresetKey;
   flowBusy?: boolean;
@@ -79,9 +93,51 @@ export function HubPaymentPanel({
   flowCurrentIndex?: number;
   hideFlowProgress?: boolean;
 }) {
-  const showCurrency =
-    currencies && currencies.length > 1 && selectedCurrencyId && onCurrencyChange;
   const steps = flowSteps ?? getHubFlowPreset(flowPreset);
+
+  const resolvedCatalog = useMemo(() => {
+    if (catalogEntries?.length) return catalogEntries;
+    if (currencies?.length) {
+      return buildHubCurrencyCatalog({
+        includeKasKrex: false,
+        integratedTokens: currencies
+          .filter((c) => c.kind === 'krc20' && c.tick)
+          .map((c) => ({
+            tick: c.tick!,
+            decimals: c.decimals ?? 8,
+            symbol: c.label,
+            listingSlug: c.id,
+          })),
+        kcc20Tokens: currencies
+          .filter((c) => c.kind === 'kcc20' && c.covenantId)
+          .map((c) => ({
+            id: c.id,
+            label: c.label,
+            covenantId: c.covenantId!,
+            decimals: c.decimals,
+            ticker: c.tick,
+          })),
+      }).concat(
+        currencies
+          .filter((c) => c.kind === 'kas' || c.kind === 'krex')
+          .map((c) => ({ ...c, status: 'available' as const })),
+      );
+    }
+    return [];
+  }, [catalogEntries, currencies]);
+
+  const showCatalog =
+    currencyPicker === 'catalog' &&
+    resolvedCatalog.length > 0 &&
+    selectedCurrencyId &&
+    (onCatalogSelect || onCurrencyChange);
+
+  const showDropdown =
+    currencyPicker === 'dropdown' &&
+    currencies &&
+    currencies.length > 1 &&
+    selectedCurrencyId &&
+    onCurrencyChange;
 
   return (
     <aside className={`${asideClassName ?? KX_CALCULATION_ASIDE} ${className}`.trim()}>
@@ -104,7 +160,22 @@ export function HubPaymentPanel({
         ))}
       </div>
 
-      {showCurrency ? (
+      {showCatalog ? (
+        <div className="rounded-xl border border-zinc-200 p-3 dark:border-zinc-700">
+          <p className="mb-2 text-xs uppercase tracking-widest text-zinc-500">Pay with</p>
+          <HubPaymentCurrencyCatalogTrigger
+            entries={resolvedCatalog}
+            selectedId={selectedCurrencyId}
+            accent={currencyAccent}
+            onSelect={(option) => {
+              if (onCatalogSelect) onCatalogSelect(option);
+              else onCurrencyChange?.(option.id);
+            }}
+          />
+        </div>
+      ) : null}
+
+      {showDropdown ? (
         <div className="rounded-xl border border-zinc-200 p-3 dark:border-zinc-700">
           <p className="mb-2 text-xs uppercase tracking-widest text-zinc-500">Pay with</p>
           <HubPaymentCurrencyDropdown
@@ -114,6 +185,26 @@ export function HubPaymentPanel({
             ariaLabel="Payment currency"
             accent={currencyAccent}
           />
+        </div>
+      ) : null}
+
+      {splitLegs && splitLegs.length > 0 ? (
+        <div className="rounded-xl border border-zinc-200 p-3 dark:border-zinc-700 space-y-1.5">
+          <p className="text-xs uppercase tracking-widest text-zinc-500">Payment split</p>
+          {splitLegs.map((leg) => (
+            <div
+              key={`${leg.role}-${leg.address}`}
+              className="flex justify-between gap-2 text-xs text-zinc-600 dark:text-zinc-400"
+            >
+              <span className="truncate">{leg.label ?? leg.role}</span>
+              <span className="shrink-0 font-semibold tabular-nums text-zinc-900 dark:text-zinc-100">
+                {leg.amount} KAS
+              </span>
+            </div>
+          ))}
+          <p className="pt-1 text-[11px] text-zinc-500">
+            One transaction. Change returns to your wallet.
+          </p>
         </div>
       ) : null}
 

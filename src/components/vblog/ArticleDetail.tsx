@@ -28,7 +28,7 @@ import type { KaspaWalletProvider } from '@/lib/kaspa/types';
 import { buildVBlogPremiumUnlockPayloadHex, utf8ToHex } from '@/lib/vblog/payloadHex';
 import { computeVBlogReaderPaymentSplit } from '@/lib/vblog/readerPricing';
 import { resolvePremiumPayoutSplits, splitAuthorKasByPercent } from '@/lib/vblog/paymentSplit';
-import { parseJsonResponse, sendVBlogReaderKasTx } from '@/lib/vblog/sendReaderPaymentTx';
+import { parseJsonResponse, sendVBlogReaderKasTx, sendVBlogReaderKasSplitPlan } from '@/lib/vblog/sendReaderPaymentTx';
 import {
   clearPendingVBlogReaderPayment,
   loadPendingVBlogReaderPayment,
@@ -309,41 +309,53 @@ export function ArticleDetail({
         amountKas: payment.totalKas,
       });
 
-      // Author first: if funds run out on the Hub fee, we can still resume / unlock after author is paid.
-      if (authorTxHashes.length < authorSplits.length) {
+      const needsAuthor = authorTxHashes.length < authorSplits.length;
+      const needsPlatform = payment.platformKas > 1e-9 && !platformTxHash;
+
+      if (needsAuthor || needsPlatform) {
         reportHubFlowStep(
           isTip ? 'sign-pay' : 'pay-author',
           isTip ? 'hubPay' : 'hubReaderUnlock',
-          authorSplits.length > 1
-            ? `Author payout ${authorTxHashes.length + 1} of ${authorSplits.length}`
-            : isTip
-              ? 'Approve the tip in your wallet'
-              : 'Approve the author payout in your wallet',
+          isTip
+            ? 'Approve the tip in your wallet'
+            : 'Approve the author + Hub fee payment in your wallet',
         );
-        for (let i = authorTxHashes.length; i < authorSplits.length; i++) {
-          const split = authorSplits[i];
-          const authorTx = await sendVBlogReaderKasTx({
+
+        const remainingAuthors = authorSplits.slice(authorTxHashes.length);
+
+        if (remainingAuthors.length > 0) {
+          const splitResult = await sendVBlogReaderKasSplitPlan({
             provider: kaspaState.provider as KaspaWalletProvider,
-            to: split.address,
-            amountKas: split.kas,
+            senderAddress: payerAddress,
+            authorLegs: remainingAuthors.map((s, i) => ({
+              address: s.address,
+              amountKas: s.kas,
+              label: `Author share ${authorTxHashes.length + i + 1}`,
+            })),
+            platformKas: needsPlatform ? payment.platformKas : 0,
+            platformAddress: getVBlogTreasuryL1Address(),
+            payloadHex: payload,
+            note: isTip ? 'vBlog tip' : 'vBlog premium unlock',
+          });
+          authorTxHashes.push(splitResult.txHash);
+          if (splitResult.extraTxHashes?.length) {
+            authorTxHashes.push(...splitResult.extraTxHashes);
+          }
+          if (needsPlatform) platformTxHash = splitResult.txHash;
+          persistPending();
+        } else if (needsPlatform) {
+          reportHubFlowStep('pay-fee', 'hubReaderUnlock', 'Approve the Hub fee in your wallet');
+          const platformTx = await sendVBlogReaderKasTx({
+            provider: kaspaState.provider as KaspaWalletProvider,
+            to: getVBlogTreasuryL1Address(),
+            amountKas: payment.platformKas,
             payloadHex: payload,
           });
-          authorTxHashes.push(authorTx.txHash);
+          platformTxHash = platformTx.txHash;
           persistPending();
         }
       }
 
-      if (payment.platformKas > 1e-9 && !platformTxHash) {
-        reportHubFlowStep('pay-fee', 'hubReaderUnlock', 'Approve the Hub fee in your wallet');
-        const platformTx = await sendVBlogReaderKasTx({
-          provider: kaspaState.provider as KaspaWalletProvider,
-          to: getVBlogTreasuryL1Address(),
-          amountKas: payment.platformKas,
-          payloadHex: payload,
-        });
-        platformTxHash = platformTx.txHash;
-        persistPending();
-      }
       if (!platformTxHash) {
         platformTxHash = authorTxHashes[0] ?? '';
       }

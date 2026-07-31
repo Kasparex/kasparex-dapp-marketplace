@@ -9,6 +9,11 @@ import {
 import type { KaspaWalletProvider } from '@/lib/kaspa/types';
 import { sendKaspaTransaction } from '@/lib/kaspa/wallet';
 import { VBLOG_READER_MIN_OUTPUT_KAS } from '@/lib/vblog/readerPricing';
+import { payKasPaymentPlan } from '@/lib/payments/kasMultiOutPay';
+import {
+  buildCreatorPlatformPlan,
+  type PaymentLeg,
+} from '@/lib/payments/paymentPlan';
 
 /**
  * Send a reader unlock / tip KAS payment with on-chain payload binding.
@@ -49,6 +54,67 @@ export async function sendVBlogReaderKasTx(args: {
   }
 
   throw new Error(formatKaspaWalletError(lastErr ?? 'Payment transaction failed'));
+}
+
+/**
+ * Atomic (preferred) KAS reader payment: author/creator legs + platform fee in one tx.
+ * Falls back to sequential single-output sends when multi-out is unavailable.
+ */
+export async function sendVBlogReaderKasSplitPlan(args: {
+  provider: KaspaWalletProvider;
+  senderAddress: string;
+  authorLegs: Array<{ address: string; amountKas: number; label?: string }>;
+  platformKas?: number;
+  platformAddress?: string;
+  payloadHex: string;
+  note?: string;
+}): Promise<{ txHash: string; atomic: boolean; extraTxHashes?: string[] }> {
+  const extraLegs: PaymentLeg[] = args.authorLegs.slice(1).map((leg, i) => ({
+    role: 'author' as const,
+    address: leg.address,
+    amount: Math.max(VBLOG_READER_MIN_OUTPUT_KAS, leg.amountKas),
+    label: leg.label ?? `Author share ${i + 2}`,
+    required: true,
+  }));
+
+  const primary = args.authorLegs[0];
+  if (!primary) throw new Error('Author payout address is required');
+
+  const plan = buildCreatorPlatformPlan({
+    creatorAddress: primary.address,
+    creatorKas: primary.amountKas,
+    creatorLabel: primary.label ?? 'Author',
+    platformKas: args.platformKas,
+    platformAddress: args.platformAddress,
+    payloadHex: args.payloadHex,
+    note: args.note,
+    extraLegs,
+  });
+
+  try {
+    const result = await payKasPaymentPlan(args.provider, plan, args.senderAddress);
+    return result;
+  } catch (err) {
+    // Sequential fallback with mass retries per leg.
+    const hashes: string[] = [];
+    for (const leg of plan.legs) {
+      const paid = await sendVBlogReaderKasTx({
+        provider: args.provider,
+        to: leg.address,
+        amountKas: leg.amount,
+        payloadHex: args.payloadHex,
+      });
+      hashes.push(paid.txHash);
+    }
+    if (hashes.length === 0) {
+      throw err instanceof Error ? err : new Error('Split payment failed');
+    }
+    return {
+      txHash: hashes[0]!,
+      atomic: false,
+      extraTxHashes: hashes.length > 1 ? hashes.slice(1) : undefined,
+    };
+  }
 }
 
 export async function parseJsonResponse<T extends Record<string, unknown>>(

@@ -22,6 +22,8 @@ import { TOKEN_MODULE_OFFERS, type TokenModuleId, getTokenModuleDiscountPercent,
 import { validateTokenModulesForPublish } from '@/lib/tokens/formValidation';
 import { HubPaymentPanel } from '@/components/payments/HubPaymentPanel';
 import { buildKasKrexCurrencyOptions, formatHubPaymentAmount } from '@/lib/payments/hubPaymentTypes';
+import { buildHubCurrencyCatalog } from '@/lib/payments/currencyCatalog';
+import { buildHubPlatformFeePlan } from '@/lib/payments/paymentPlan';
 import { filterModulesForAssetKind, filterModuleOffersForListing, isIntegrationModule } from '@/lib/tokens/utilityEligibility';
 import { estimateTokenListingQuote } from '@/lib/tokens/pricing';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
@@ -1254,8 +1256,41 @@ export function CreateTokenForm({
               { snapshot: pricingSnapshot },
             )}
             currencies={buildKasKrexCurrencyOptions()}
+            catalogEntries={buildHubCurrencyCatalog({
+              amountKas: formQuote.totalKas,
+              pricingSnapshot,
+              krexBalance: krexBalance,
+              kcc20Tokens:
+                kcc20Selected?.covenantId
+                  ? [
+                      {
+                        id: `kcc20:${kcc20Selected.covenantId}`,
+                        label: kcc20Selected.ticker || kcc20Selected.name || 'KCC-20',
+                        covenantId: kcc20Selected.covenantId,
+                        ticker: kcc20Selected.ticker,
+                        decimals: kcc20Selected.decimals ?? 8,
+                      },
+                    ]
+                  : undefined,
+            })}
             selectedCurrencyId={paymentCurrency}
             onCurrencyChange={(id) => setPaymentCurrency(id as StorePaymentCurrency)}
+            onCatalogSelect={(opt) => {
+              if (opt.kind === 'kas' || opt.kind === 'krex') {
+                setPaymentCurrency(opt.id as StorePaymentCurrency);
+              }
+            }}
+            splitLegs={
+              paymentCurrency === 'KAS'
+                ? (() => {
+                    try {
+                      return buildHubPlatformFeePlan({ totalKas: formQuote.totalKas }).legs;
+                    } catch {
+                      return undefined;
+                    }
+                  })()
+                : undefined
+            }
             tier={tier}
             krexBalance={krexBalance}
             discountNote={
@@ -1263,7 +1298,7 @@ export function CreateTokenForm({
                 ? `KREX discount: -${formQuote.discountKas} KAS (${discountPercent}% off).`
                 : undefined
             }
-            infoText="One Kaspa L1 payment commits your listing payload on-chain. KREX pay still requires a connected Kaspa L1 wallet for the transfer."
+            infoText="One Kaspa L1 payment commits your listing payload on-chain. KAS fees can split treasury + rewards in a single tx. Connected KCC-20 tokens appear in the currency catalog."
             hubPoints={
               isEditMode
                 ? undefined

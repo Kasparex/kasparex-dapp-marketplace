@@ -8,6 +8,7 @@ import type { StorePaymentCurrency } from '@/lib/store/currencies';
 import { getTokensTreasuryL1Address } from '@/lib/tokens/config';
 import { useHubPayment } from '@/hooks/useHubPayment';
 import { buildKasKrexCurrencyOptions } from '@/lib/payments/hubPaymentTypes';
+import { buildHubPlatformFeePlan } from '@/lib/payments/paymentPlan';
 
 export function useTokenModulePayment() {
   const { pay, isProcessing, error, setError } = useHubPayment();
@@ -24,10 +25,19 @@ export function useTokenModulePayment() {
           throw new Error('Insufficient KREX balance');
         }
       }
-      const treasury = getTokensTreasuryL1Address().replace(/^kaspa:/, '');
+      const treasury = getTokensTreasuryL1Address();
+      const plan =
+        currency === 'KAS'
+          ? buildHubPlatformFeePlan({
+              totalKas: feeKas,
+              treasuryAddress: treasury,
+              note: note ?? 'Kasparex Tokens module unlock',
+            })
+          : undefined;
       return pay(option, {
         amountKas: feeKas,
         to: treasury,
+        plan,
         note: note ?? 'Kasparex Tokens module unlock',
         pricingSnapshot,
       });

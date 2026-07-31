@@ -7,7 +7,7 @@ import { formatHubPaymentFromKas, formatTokenAmount } from '@/lib/pricing/regist
 import { isBuiltinStoreCurrency, type StorePaymentCurrency } from '@/lib/store/currencies';
 import type { IntegratedToken } from '@/lib/tokens/integrationCore';
 
-export type HubPaymentCurrencyKind = 'kas' | 'krex' | 'krc20';
+export type HubPaymentCurrencyKind = 'kas' | 'krex' | 'krc20' | 'kcc20';
 
 export type HubPaymentCurrencyOption = {
   id: string;
@@ -15,6 +15,8 @@ export type HubPaymentCurrencyOption = {
   kind: HubPaymentCurrencyKind;
   tick?: string;
   decimals?: number;
+  /** KCC-20 covenant id (64-hex) when kind is kcc20. */
+  covenantId?: string;
 };
 
 export function isBuiltinHubCurrency(id: string): id is StorePaymentCurrency {
@@ -145,8 +147,11 @@ export function formatHubPaymentAmount(
   if (currency.kind === 'krex') {
     return formatHubPaymentFromKas(kasAmount, 'KREX', opts?.snapshot, { showKasSuffix: false });
   }
-  if (currency.kind === 'krc20' && opts?.directAmount != null) {
+  if ((currency.kind === 'krc20' || currency.kind === 'kcc20') && opts?.directAmount != null) {
     return formatTokenAmount(opts.directAmount, currency.tick ?? currency.id);
+  }
+  if (currency.kind === 'kcc20') {
+    return `${kasAmount.toLocaleString(undefined, { maximumFractionDigits: 8 })} ${currency.label}`;
   }
   return formatHubPaymentFromKas(kasAmount, 'KAS', opts?.snapshot, { showKasSuffix: false });
 }
