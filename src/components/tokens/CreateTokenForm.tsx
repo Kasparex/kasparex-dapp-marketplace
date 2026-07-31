@@ -317,11 +317,13 @@ export function CreateTokenForm({
       setSymbol(info.ticker);
       setName(info.name ?? info.ticker);
       setOnChainSnapshot(info);
+      setDeployerAddress(info.deployer ?? '');
       setContractAddress(info.covenantId);
       setKcc20ConnectInput(info.covenantId);
       setTokenDecimals(dec);
       setMaxSupply(parseSupplyNumber(info.maxSupply, dec));
       setTotalSupply(parseSupplyNumber(info.minted, dec));
+      setOwnershipProof(null);
       if (info.imageUrl) {
         onMediaChange({
           ...media,
@@ -1035,6 +1037,37 @@ export function CreateTokenForm({
               </div>
             ) : null}
 
+            {isRealToken ? (
+              <TokenFormOwnershipGate
+                symbol={symbol}
+                listingNetwork={listingNetwork}
+                contractAddress={contractAddress.trim() || undefined}
+                covenantId={
+                  onChainSnapshot?.source === 'kcc20'
+                    ? onChainSnapshot.covenantId ?? contractAddress.trim()
+                    : undefined
+                }
+                expectedDeployer={
+                  deployerAddress ||
+                  onChainSnapshot?.deployer ||
+                  onChainSnapshot?.owner ||
+                  undefined
+                }
+                tokenLoaded={Boolean(onChainSnapshot)}
+                secondaryCount={secondaryNetworks.filter((row) => row.contractAddress.trim()).length}
+                disabled={isSubmitting}
+                alreadyVerified={listing?.ownership === 'deployer_verified'}
+                proof={ownershipProof}
+                onVerified={(proof) => {
+                  setOwnershipProof(proof);
+                  if (!deployerAddress.trim() && proof.walletAddress) {
+                    setDeployerAddress(proof.walletAddress);
+                  }
+                }}
+                onClear={() => setOwnershipProof(null)}
+              />
+            ) : null}
+
             <div>
               <div className="flex items-center justify-between mb-2">
                 <KxFormFieldLabel>
@@ -1124,29 +1157,6 @@ export function CreateTokenForm({
                 hint="Select up to 3 tags. Search suggestions or add your own."
               />
             </div>
-
-            <TokenFormOwnershipGate
-              symbol={symbol}
-              listingNetwork={listingNetwork}
-              contractAddress={contractAddress.trim() || undefined}
-              covenantId={
-                onChainSnapshot?.source === 'kcc20'
-                  ? onChainSnapshot.covenantId ?? contractAddress.trim()
-                  : undefined
-              }
-              expectedDeployer={
-                deployerAddress ||
-                onChainSnapshot?.deployer ||
-                onChainSnapshot?.owner ||
-                undefined
-              }
-              secondaryCount={secondaryNetworks.filter((row) => row.contractAddress.trim()).length}
-              disabled={isSubmitting}
-              alreadyVerified={listing?.ownership === 'deployer_verified'}
-              proof={ownershipProof}
-              onVerified={setOwnershipProof}
-              onClear={() => setOwnershipProof(null)}
-            />
           </div>
 
           <div className={`${FORM_PANEL_CLASS} space-y-6 scroll-mt-24`} id="tokens-dashboard-media">
@@ -1156,18 +1166,6 @@ export function CreateTokenForm({
               featured banner separately (URL or IPFS).
             </p>
             <TokenListingMediaPanel media={media} onChange={onMediaChange} disabled={isSubmitting} embedded />
-          </div>
-
-          <div className={`${FORM_PANEL_CLASS} scroll-mt-24`} id="tokens-dashboard-sections">
-            <TokenPageBuilder
-              pageConfig={livePageConfig}
-              sectionToggles={sectionToggles}
-              sectionOrder={sectionOrder}
-              disabled={isSubmitting}
-              onAddSection={addSection}
-              onRemoveSection={removeSection}
-              onReorderSections={reorderSection}
-            />
           </div>
 
           <div className="space-y-4 scroll-mt-24" id="tokens-dashboard-modules">
@@ -1240,6 +1238,18 @@ export function CreateTokenForm({
                 disabled={isSubmitting}
               />
             ) : null}
+          </div>
+
+          <div className={`${FORM_PANEL_CLASS} scroll-mt-24`} id="tokens-dashboard-sections">
+            <TokenPageBuilder
+              pageConfig={livePageConfig}
+              sectionToggles={sectionToggles}
+              sectionOrder={sectionOrder}
+              disabled={isSubmitting}
+              onAddSection={addSection}
+              onRemoveSection={removeSection}
+              onReorderSections={reorderSection}
+            />
           </div>
         </div>
 

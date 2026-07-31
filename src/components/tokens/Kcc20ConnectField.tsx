@@ -9,6 +9,7 @@ import { normalizeKcc20ConnectPaste } from '@/lib/programmable/kron';
 import {
   formatKcc20Sompi,
   resolveKcc20ConnectInput,
+  searchKcc20ByTickerOrName,
   type Kcc20TokenInfo,
 } from '@/lib/tokens/kcc20Lookup';
 import {
@@ -16,6 +17,9 @@ import {
   getTokenLaunchDex,
   type TokenLaunchDexId,
 } from '@/lib/tokens/launchDexes';
+
+const LOOKUP_TOOLTIP =
+  'Paste a KCC-20 covenant id, genesis transaction id, or a DEX token link (for example kron.technology/token/…). Lookups use mainnet indexers (kcc20.info, with KaspaCom / kascov fallback). Nothing is deployed from this form. You can also search by ticker or token name.';
 
 interface Kcc20ConnectFieldProps {
   value: string;
@@ -38,6 +42,7 @@ export function Kcc20ConnectField({
   const [launchDex, setLaunchDex] = useState<TokenLaunchDexId>('kron');
   const [isSearching, setIsSearching] = useState(false);
   const [result, setResult] = useState<Kcc20TokenInfo | null>(null);
+  const [searchHits, setSearchHits] = useState<Kcc20TokenInfo[]>([]);
   const [notFound, setNotFound] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [didAutoLookup, setDidAutoLookup] = useState(false);
@@ -50,25 +55,52 @@ export function Kcc20ConnectField({
     if (input !== value) {
       onChange(input);
     }
-    if (!/^[a-f0-9]{64}$/.test(input)) {
-      setError('Enter a 64-character hex covenant id, genesis tx id, or a KRON token URL.');
+
+    const trimmed = input.trim();
+    if (!trimmed) {
+      setError('Enter a covenant id, DEX token URL, ticker, or token name.');
       setResult(null);
+      setSearchHits([]);
       setNotFound(false);
       return;
     }
+
     setIsSearching(true);
     setError(null);
+    setSearchHits([]);
+    setResult(null);
+    setNotFound(false);
+
     try {
-      const info = await resolveKcc20ConnectInput(input, network);
-      setResult(info);
-      setNotFound(!info);
-      if (!info) {
-        setError('No indexed covenant found yet. Deploy on mainnet and try again.');
+      if (/^[a-f0-9]{64}$/i.test(trimmed)) {
+        const info = await resolveKcc20ConnectInput(trimmed, network);
+        setResult(info);
+        setNotFound(!info);
+        if (!info) {
+          setError('No indexed covenant found yet. Deploy on mainnet and try again.');
+        }
+        return;
       }
+
+      const hits = await searchKcc20ByTickerOrName(trimmed, network, 8);
+      if (hits.length === 1) {
+        setResult(hits[0]);
+        setSearchHits([]);
+        return;
+      }
+      if (hits.length > 1) {
+        setSearchHits(hits);
+        return;
+      }
+      setNotFound(true);
+      setError(
+        'No token matched that ticker or name. Try the full covenant id or a KRON token URL.',
+      );
     } catch {
       setResult(null);
+      setSearchHits([]);
       setNotFound(true);
-      setError('Lookup failed. Check the id, then try again.');
+      setError('Lookup failed. Check the id or name, then try again.');
     } finally {
       setIsSearching(false);
     }
@@ -83,6 +115,7 @@ export function Kcc20ConnectField({
   }, [autoLookup, didAutoLookup, selected, isSearching, value, runLookup]);
 
   const displayResult = selected ?? result;
+  const lookupReady = normalizeKcc20ConnectPaste(value).trim().length >= 2;
 
   return (
     <div className="space-y-3">
@@ -142,19 +175,14 @@ export function Kcc20ConnectField({
       </div>
 
       <div>
-        <KxFormFieldLabel>
-          Covenant id, genesis tx, or DEX token URL <span className="text-red-500">*</span>
+        <KxFormFieldLabel tooltip={LOOKUP_TOOLTIP}>
+          Covenant id, ticker, name, or DEX token URL <span className="text-red-500">*</span>
         </KxFormFieldLabel>
-        <p className="kx-body-sm mb-2">
-          Paste a KCC-20 covenant id, genesis transaction id, or a DEX token link (for example{' '}
-          <span>kron.technology/token/…</span>). Lookups use mainnet indexers
-          (kcc20.info, with KaspaCom / kascov fallback). Nothing is deployed from this form.
-        </p>
         <input
           type="text"
           value={value}
           onChange={(e) => onChange(normalizeKcc20ConnectPaste(e.target.value))}
-          placeholder="64-char hex or https://kron.technology/token/…"
+          placeholder="e.g. SHAY, token name, 64-char hex, or kron.technology/token/…"
           className="k-input w-full text-sm"
           disabled={disabled || Boolean(selected)}
           autoComplete="off"
@@ -166,18 +194,52 @@ export function Kcc20ConnectField({
         <button
           type="button"
           onClick={() => void runLookup()}
-          disabled={disabled || isSearching || normalizeKcc20ConnectPaste(value).length < 64}
+          disabled={disabled || isSearching || !lookupReady}
           className={`${KX_FORM_ADD_BTN_CLASS} disabled:opacity-50`}
         >
-          {isSearching ? 'Looking up covenant…' : 'Look up covenant'}
+          {isSearching ? 'Looking up…' : 'Look up token'}
         </button>
       ) : null}
 
       {error ? <p className="text-xs font-medium text-red-500">{error}</p> : null}
       {notFound && !selected && !error ? (
         <p className="text-xs font-medium text-amber-600 dark:text-amber-400">
-          No indexed covenant found for this id on mainnet.
+          No indexed covenant found for this query on mainnet.
         </p>
+      ) : null}
+
+      {searchHits.length > 0 && !selected ? (
+        <div className="space-y-2">
+          <p className="text-xs font-semibold text-zinc-500">
+            {searchHits.length} matches. Pick one to connect.
+          </p>
+          {searchHits.map((hit) => (
+            <button
+              key={hit.covenantId}
+              type="button"
+              onClick={() => onSelect(hit)}
+              className="w-full rounded-xl border border-[#02abb8]/40 bg-[#02abb8]/5 p-3 text-left transition hover:border-[#02abb8] hover:bg-[#02abb8]/10"
+            >
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex min-w-0 items-center gap-3">
+                  {hit.imageUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={hit.imageUrl}
+                      alt=""
+                      className="h-8 w-8 shrink-0 rounded-full border border-zinc-200 object-cover dark:border-zinc-700"
+                    />
+                  ) : null}
+                  <span className="text-base font-black text-zinc-900 dark:text-zinc-100">{hit.ticker}</span>
+                </div>
+                <span className="rounded-md bg-[#02abb8]/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[#02abb8]">
+                  Connect
+                </span>
+              </div>
+              <p className="mt-1 text-sm font-semibold text-zinc-700 dark:text-zinc-300">{hit.name}</p>
+            </button>
+          ))}
+        </div>
       ) : null}
 
       {displayResult && !selected ? (

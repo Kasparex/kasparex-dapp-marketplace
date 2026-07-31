@@ -36,8 +36,8 @@ const DASHBOARD_SECTIONS: Array<{
   { label: 'Create listing', anchor: 'tokens-dashboard-main', icon: 'form' },
   { label: 'Fees & rewards', anchor: 'tokens-dashboard-pricing', icon: 'pricing' },
   { label: 'Listing media', anchor: 'tokens-dashboard-media', icon: 'form' },
-  { label: 'Page sections', anchor: 'tokens-dashboard-sections', icon: 'listings' },
   { label: 'Premium modules', anchor: 'tokens-dashboard-modules', icon: 'modules' },
+  { label: 'Page sections', anchor: 'tokens-dashboard-sections', icon: 'listings' },
   { label: 'My tokens', anchor: 'tokens-dashboard-archive', icon: 'listings' },
 ];
 

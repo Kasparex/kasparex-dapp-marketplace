@@ -32,6 +32,9 @@ export type Kcc20InfoToken = {
   snapshot_daa?: number | null;
   holders_available?: boolean | null;
   balances_available?: boolean | null;
+  /** Owner at genesis: `covenant:…` or a 32-byte public key hex. */
+  genesis_owner?: string | null;
+  genesis_owner_type?: 'covenant' | 'public_key' | string | null;
 };
 
 export type Kcc20InfoCovenant = {
@@ -82,6 +85,11 @@ async function fetchKcc20InfoJson<T>(path: string): Promise<T | null> {
   }
 }
 
+function normalizeTokenRow(row: Kcc20InfoToken): Kcc20InfoToken | null {
+  if (!row?.token_id || !/^[a-f0-9]{64}$/i.test(row.token_id)) return null;
+  return { ...row, token_id: row.token_id.trim().toLowerCase() };
+}
+
 export async function fetchKcc20InfoToken(
   tokenId: string,
   network: ProgrammableNetworkId,
@@ -90,8 +98,33 @@ export async function fetchKcc20InfoToken(
   const id = tokenId.trim().toLowerCase();
   if (!/^[a-f0-9]{64}$/.test(id)) return null;
   const row = await fetchKcc20InfoJson<Kcc20InfoToken>(`/v1/tokens/${id}`);
-  if (!row?.token_id || !/^[a-f0-9]{64}$/i.test(row.token_id)) return null;
-  return { ...row, token_id: row.token_id.trim().toLowerCase() };
+  return row ? normalizeTokenRow(row) : null;
+}
+
+type Kcc20InfoTokensPage = {
+  tokens?: Kcc20InfoToken[];
+  next_cursor?: string | null;
+};
+
+/** Paginated mainnet token catalog from kcc20.info (cached by caller). */
+export async function fetchKcc20InfoTokenPage(
+  network: ProgrammableNetworkId,
+  options?: { afterId?: string; limit?: number },
+): Promise<{ tokens: Kcc20InfoToken[]; nextCursor: string | null }> {
+  if (!isMainnet(network)) return { tokens: [], nextCursor: null };
+  const limit = Math.min(1000, Math.max(1, options?.limit ?? 200));
+  const params = new URLSearchParams({ limit: String(limit) });
+  const after = options?.afterId?.trim().toLowerCase();
+  if (after && /^[a-f0-9]{64}$/.test(after)) params.set('after_id', after);
+  const page = await fetchKcc20InfoJson<Kcc20InfoTokensPage>(`/v1/tokens?${params.toString()}`);
+  const tokens = (page?.tokens ?? [])
+    .map((row) => normalizeTokenRow(row))
+    .filter((row): row is Kcc20InfoToken => Boolean(row));
+  const next = page?.next_cursor?.trim().toLowerCase() ?? null;
+  return {
+    tokens,
+    nextCursor: next && /^[a-f0-9]{64}$/.test(next) ? next : null,
+  };
 }
 
 export async function fetchKcc20InfoCovenant(
