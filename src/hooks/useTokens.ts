@@ -381,7 +381,7 @@ export function useTokens() {
         paidModuleIds: draft.enabledModuleIds,
         modulesConfig: draft.modulesConfig,
         assetKind: draft.assetKind ?? 'real',
-        ownership: (input.ownershipProof ? 'deployer_verified' : input.ownership ?? 'none') as const,
+        ownership: (input.ownershipProof ? 'deployer_verified' : input.ownership ?? 'none') as TokenOwnershipStatus,
         ownershipProof: input.ownershipProof,
         deployerAddress: draft.deployerAddress?.trim(),
         maxSupply: draft.maxSupply,
