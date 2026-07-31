@@ -486,10 +486,7 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
     setIsSubmitting(true);
 
     try {
-      const tagsArray = tags
-        .split(',')
-        .map((tag) => tag.trim())
-        .filter((tag) => tag.length > 0);
+      const tagsArray = tags;
 
       if (!isWalletConnected || !walletAddress) {
         setError('Wallet not connected. Please connect your wallet (Kaspa or EVM) to publish.');
