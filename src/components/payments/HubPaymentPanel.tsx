@@ -160,67 +160,71 @@ export function HubPaymentPanel({
         ))}
       </div>
 
-      {showCatalog || showDropdown || (splitLegs && splitLegs.length > 0) ? (
-        <div className="rounded-xl border border-zinc-200 p-3 dark:border-zinc-700 space-y-3">
-          {showCatalog ? (
-            <div>
-              <p className="mb-2 text-xs uppercase tracking-widest text-zinc-500">Pay with</p>
-              <HubPaymentCurrencyCatalogTrigger
-                entries={resolvedCatalog}
-                selectedId={selectedCurrencyId}
-                accent={currencyAccent}
-                onSelect={(option) => {
-                  if (onCatalogSelect) onCatalogSelect(option);
-                  else onCurrencyChange?.(option.id);
-                }}
-              />
-            </div>
-          ) : null}
+      <div className="space-y-3 rounded-xl border border-zinc-200 p-3 dark:border-zinc-700">
+        {showCatalog ? (
+          <div>
+            <p className="mb-2 text-xs uppercase tracking-widest text-zinc-500">Pay with</p>
+            <HubPaymentCurrencyCatalogTrigger
+              entries={resolvedCatalog}
+              selectedId={selectedCurrencyId}
+              accent={currencyAccent}
+              onSelect={(option) => {
+                if (onCatalogSelect) onCatalogSelect(option);
+                else onCurrencyChange?.(option.id);
+              }}
+            />
+          </div>
+        ) : null}
 
-          {showDropdown ? (
-            <div>
-              <p className="mb-2 text-xs uppercase tracking-widest text-zinc-500">Pay with</p>
-              <HubPaymentCurrencyDropdown
-                value={selectedCurrencyId}
-                onChange={onCurrencyChange}
-                options={currencies.map((c) => ({ value: c.id, label: c.label }))}
-                ariaLabel="Payment currency"
-                accent={currencyAccent}
-              />
-            </div>
-          ) : null}
+        {showDropdown ? (
+          <div>
+            <p className="mb-2 text-xs uppercase tracking-widest text-zinc-500">Pay with</p>
+            <HubPaymentCurrencyDropdown
+              value={selectedCurrencyId}
+              onChange={onCurrencyChange}
+              options={currencies.map((c) => ({ value: c.id, label: c.label }))}
+              ariaLabel="Payment currency"
+              accent={currencyAccent}
+            />
+          </div>
+        ) : null}
 
-          {splitLegs && splitLegs.length > 0 ? (
-            <div
-              className={`space-y-1.5${showCatalog || showDropdown ? ' border-t border-zinc-200 pt-3 dark:border-zinc-700' : ''}`}
-            >
-              <p className="text-xs uppercase tracking-widest text-zinc-500">Payment split</p>
-              {splitLegs.map((leg) => (
-                <div
-                  key={`${leg.role}-${leg.address}`}
-                  className="flex justify-between gap-2 text-xs text-zinc-600 dark:text-zinc-400"
-                >
-                  <span className="truncate">{leg.label ?? leg.role}</span>
-                  <span className="shrink-0 font-semibold tabular-nums text-zinc-900 dark:text-zinc-100">
-                    {leg.amount} KAS
-                  </span>
-                </div>
-              ))}
-              <p className="pt-1 text-[11px] text-zinc-500">
-                One transaction when paying with KAS. Token / KREX rails add a second Hub KAS fee
-                step. Change returns to your wallet.
-              </p>
-            </div>
+        {splitLegs && splitLegs.length > 0 ? (
+          <div
+            className={`space-y-1.5${showCatalog || showDropdown ? ' border-t border-zinc-200 pt-3 dark:border-zinc-700' : ''}`}
+          >
+            <p className="text-xs uppercase tracking-widest text-zinc-500">Payment split</p>
+            {splitLegs.map((leg) => (
+              <div
+                key={`${leg.role}-${leg.address}`}
+                className="flex justify-between gap-2 text-xs text-zinc-600 dark:text-zinc-400"
+              >
+                <span className="truncate">{leg.label ?? leg.role}</span>
+                <span className="shrink-0 font-semibold tabular-nums text-zinc-900 dark:text-zinc-100">
+                  {leg.amount} KAS
+                </span>
+              </div>
+            ))}
+            <p className="pt-1 text-[11px] text-zinc-500">
+              KAS: one multi-out tx. Token / KREX: token transfer, then the same Hub KAS split.
+              Change returns to your wallet.
+            </p>
+          </div>
+        ) : null}
+
+        <div
+          className={
+            showCatalog || showDropdown || (splitLegs && splitLegs.length > 0)
+              ? 'border-t border-zinc-200 pt-3 dark:border-zinc-700'
+              : ''
+          }
+        >
+          <p className="text-xs uppercase tracking-widest text-zinc-500">{totalLabel ?? 'Total to pay'}</p>
+          <p className="text-2xl font-black text-zinc-900 dark:text-zinc-100 tabular-nums">{totalDisplay}</p>
+          {totalSubtitle ? (
+            <p className="mt-1 text-xs leading-snug text-zinc-500 dark:text-zinc-400">{totalSubtitle}</p>
           ) : null}
         </div>
-      ) : null}
-
-      <div className="rounded-xl border border-zinc-200 p-3 dark:border-zinc-700">
-        <p className="text-xs uppercase tracking-widest text-zinc-500">{totalLabel ?? 'Total to pay'}</p>
-        <p className="text-2xl font-black text-zinc-900 dark:text-zinc-100 tabular-nums">{totalDisplay}</p>
-        {totalSubtitle ? (
-          <p className="mt-1 text-xs leading-snug text-zinc-500 dark:text-zinc-400">{totalSubtitle}</p>
-        ) : null}
       </div>
 
       {discountNote ? (

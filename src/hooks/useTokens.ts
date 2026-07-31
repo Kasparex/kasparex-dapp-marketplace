@@ -285,6 +285,7 @@ export function useTokens() {
           provider: kaspaState.provider as KaspaWalletProvider,
           senderAddress: kaspaState.address,
           treasuryAddress: getTokensTreasuryL1Address(),
+          feeKas: paymentKas,
           note: commitNote,
           payloadHex: commitPayload,
         });

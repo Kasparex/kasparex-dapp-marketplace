@@ -382,7 +382,15 @@ export function HubPaymentCurrencyCatalogTrigger({
             <span className="truncate text-xs font-normal text-zinc-500">{selected.detail}</span>
           ) : null}
         </span>
-        <span className="shrink-0 text-xs text-zinc-500">Change</span>
+        <svg
+          className="h-4 w-4 shrink-0 text-zinc-500"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          aria-hidden
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        </svg>
       </button>
       <HubPaymentCurrencyCatalogModal
         isOpen={open}

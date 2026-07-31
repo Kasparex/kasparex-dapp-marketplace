@@ -75,9 +75,9 @@ type TokenFormOwnershipGateProps = {
  * Inline form gate: sign with deployer/owner wallet before Publish unlocks.
  * Primary network only. Extra networks stay unverified until dashboard verify (Partially verified).
  *
- * KCC-20 note: many KRON tokens list genesis_owner as another covenant, not a P2PK.
- * When no matchable deployer pubkey/address is indexed, a connected Kaspa wallet may still
- * sign a controller attestation after the covenant is loaded.
+ * KCC-20: only wallets that match a matchable genesis owner (P2PK pubkey or Kaspa address)
+ * can verify. Covenant-owned genesis without a public key cannot be proven here without genesis
+ * spend authority, so publish stays locked.
  */
 export function TokenFormOwnershipGate({
   symbol,
@@ -107,9 +107,9 @@ export function TokenFormOwnershipGate({
   const kaspaReady = kaspaState.isConnected && Boolean(kaspaState.address);
   const evmReady = isEvmConnected && Boolean(evmAddress);
 
-  /** KCC-20 can verify via controller signature once the covenant is connected. */
-  const kcc20ControllerMode =
-    isKcc20 && Boolean(tokenLoaded || covenantId) && !expectedDeployer;
+  /** KCC-20 with no matchable deployer cannot open an anyone-can-sign path. */
+  const kcc20Unmatchable =
+    isKcc20 && Boolean(tokenLoaded || covenantId) && !expectedDeployer?.trim();
 
   const mismatch = useMemo(() => {
     if (!expectedDeployer) return null;
@@ -138,8 +138,7 @@ export function TokenFormOwnershipGate({
 
   const l2NoOwner = isL2 && !expectedDeployer;
   const verified = Boolean(proof) || Boolean(alreadyVerified);
-  const canAttemptVerify =
-    !l2NoOwner && (Boolean(expectedDeployer) || kcc20ControllerMode);
+  const canAttemptVerify = !l2NoOwner && !kcc20Unmatchable && Boolean(expectedDeployer?.trim());
 
   const handleVerify = async () => {
     setError(null);
@@ -147,7 +146,13 @@ export function TokenFormOwnershipGate({
       setError('This L2 contract has no readable owner(). Deployer verification is unavailable.');
       return;
     }
-    if (!expectedDeployer && !kcc20ControllerMode) {
+    if (kcc20Unmatchable) {
+      setError(
+        'This KCC-20 genesis owner is another covenant (no P2PK pubkey). Hub cannot prove deployer control without a matchable genesis owner. Publish stays locked.',
+      );
+      return;
+    }
+    if (!expectedDeployer?.trim()) {
       setError('Load on-chain token data first so we can match the deployer or owner.');
       return;
     }
@@ -182,7 +187,7 @@ export function TokenFormOwnershipGate({
           return;
         }
 
-        if (expectedDeployer && isPubkeyHex(expectedDeployer)) {
+        if (isPubkeyHex(expectedDeployer)) {
           const wallet = getWalletProvider(kaspaState.provider as KaspaWalletProvider);
           const getPk = wallet?.getPublicKey;
           if (typeof getPk !== 'function') {
@@ -220,7 +225,7 @@ export function TokenFormOwnershipGate({
       }
 
       onVerified({
-        method: kcc20ControllerMode ? 'covenant_controller_signature' : 'deployer_signature',
+        method: 'deployer_signature',
         walletAddress,
         signature,
         verifiedAt: new Date().toISOString(),
@@ -237,26 +242,31 @@ export function TokenFormOwnershipGate({
       <div>
         <p className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">Verify ownership</p>
         <p className="mt-1 text-xs text-zinc-600 dark:text-zinc-400">
-          Sign with the {isL2 ? 'EVM owner()' : isKcc20 ? 'Kaspa controller' : 'Kaspa deployer'} wallet for{' '}
-          <span className="font-semibold">{getListingNetworkLabel(listingNetwork)}</span> before
-          publishing. Publish stays locked until this step succeeds.
+          Sign with the {isL2 ? 'EVM owner()' : isKcc20 ? 'Kaspa genesis owner' : 'Kaspa deployer'}{' '}
+          wallet for <span className="font-semibold">{getListingNetworkLabel(listingNetwork)}</span>{' '}
+          before publishing. Publish stays locked until this step succeeds.
         </p>
       </div>
 
       {expectedDeployer ? (
         <div className="rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs dark:border-zinc-700 dark:bg-zinc-900">
           <p className="text-zinc-500">
-            {isL2 ? 'On-chain owner' : isPubkeyHex(expectedDeployer) ? 'Genesis owner pubkey' : 'On-chain deployer'}
+            {isL2
+              ? 'On-chain owner'
+              : isPubkeyHex(expectedDeployer)
+                ? 'Genesis owner pubkey'
+                : 'On-chain deployer'}
           </p>
           <p className="mt-0.5 break-all text-zinc-800 dark:text-zinc-200" title={expectedDeployer}>
             {expectedDeployer}
           </p>
         </div>
-      ) : kcc20ControllerMode ? (
-        <p className="text-xs text-zinc-600 dark:text-zinc-400">
-          This covenant does not expose a P2PK genesis owner (common for KRON-native tokens). Sign with the
-          Kaspa wallet that controls the listing to unlock publish.
-        </p>
+      ) : kcc20Unmatchable ? (
+        <Alert type="warning" compact>
+          This KCC-20 lists a covenant as genesis owner (common for KRON-native tokens). Without a
+          P2PK pubkey or Kaspa address we can match, Hub cannot prove you control the token. Publish
+          stays locked until the indexer exposes a matchable genesis owner.
+        </Alert>
       ) : (
         <p className="text-xs text-amber-700 dark:text-amber-300">
           Connect and load your token first. We need the on-chain deployer or owner address.

@@ -94,6 +94,7 @@ export async function sendKaspaCapsulePayment(args: {
       provider: args.provider,
       senderAddress: args.author,
       treasuryAddress: treasury,
+      feeKas: paymentKas,
       note: commitNote,
       payloadHex: commitPayload,
     });

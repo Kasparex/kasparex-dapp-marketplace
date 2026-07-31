@@ -23,7 +23,7 @@ import { useHubPayWithCatalog, hubCatalogSelectionToStoreCurrency } from '@/hook
 import { resolveCatalogPaymentOption } from '@/lib/payments/currencyCatalog';
 import { formatHubPaymentAmount } from '@/lib/payments/hubPaymentTypes';
 import { buildHubPlatformFeePlan } from '@/lib/payments/paymentPlan';
-import { HUB_TOKEN_RAIL_FEE_KAS } from '@/lib/payments/tokenRailKasFee';
+import { resolveHubTokenRailFeeKas } from '@/lib/payments/tokenRailKasFee';
 import { getKaspaCapsuleTreasuryL1Address } from '@/lib/genesis/config';
 import { KREXBuyWizard } from '@/components/rewards/KREXBuyWizard';
 import type { ReactNode } from 'react';
@@ -136,16 +136,14 @@ export const DAppCalculationBreakdownPanel = memo(function DAppCalculationBreakd
     try {
       const treasury =
         dapp.slug === 'kaspa-capsule' ? getKaspaCapsuleTreasuryL1Address() : undefined;
-      const totalKas =
-        paymentOption.kind === 'kas' ? quote.totalKas : HUB_TOKEN_RAIL_FEE_KAS;
       return buildHubPlatformFeePlan({
-        totalKas,
+        totalKas: resolveHubTokenRailFeeKas(quote.totalKas),
         treasuryAddress: treasury,
       }).legs;
     } catch {
       return undefined;
     }
-  }, [quote, paymentOption.kind, dapp.slug]);
+  }, [quote, dapp.slug]);
 
   const displayLines = useMemo(() => {
     if (!quote) return [];
@@ -170,7 +168,7 @@ export const DAppCalculationBreakdownPanel = memo(function DAppCalculationBreakd
     quote?.infoText &&
     (paymentOption.kind === 'kas'
       ? quote.infoText
-      : `${quote.infoText} Token settlement needs a second +${HUB_TOKEN_RAIL_FEE_KAS} KAS Hub fee step (treasury + rewards).`);
+      : `${quote.infoText} Token settlement also runs the same Hub KAS multi-out split as a pure-KAS payment.`);
 
   return (
     <aside className={KX_CALCULATION_ASIDE}>
@@ -204,51 +202,52 @@ export const DAppCalculationBreakdownPanel = memo(function DAppCalculationBreakd
             ) : null}
           </div>
 
-          {showPayWith || showSplit ? (
-            <div className="space-y-3 rounded-xl border border-zinc-200 p-3 dark:border-zinc-700">
-              {showPayWith ? (
-                <div>
-                  <p className="mb-2 text-xs uppercase tracking-widest text-zinc-500">Pay with</p>
-                  <HubPaymentCurrencyCatalogTrigger
-                    entries={catalogEntries}
-                    selectedId={payCurrencyId}
-                    onSelect={(opt) => {
-                      setPayCurrencyId(hubCatalogSelectionToStoreCurrency(opt));
-                    }}
-                  />
-                </div>
-              ) : null}
-              {showSplit ? (
-                <div
-                  className={`space-y-1.5${showPayWith ? ' border-t border-zinc-200 pt-3 dark:border-zinc-700' : ''}`}
-                >
-                  <p className="text-xs uppercase tracking-widest text-zinc-500">Payment split</p>
-                  {splitLegs!.map((leg) => (
-                    <div
-                      key={`${leg.role}-${leg.address}`}
-                      className="flex justify-between gap-2 text-xs text-zinc-600 dark:text-zinc-400"
-                    >
-                      <span className="truncate">{leg.label ?? leg.role}</span>
-                      <span className="shrink-0 font-semibold tabular-nums text-zinc-900 dark:text-zinc-100">
-                        {leg.amount} KAS
-                      </span>
-                    </div>
-                  ))}
-                  <p className="pt-1 text-[11px] text-zinc-500">
-                    {paymentOption.kind === 'kas'
-                      ? 'One transaction. Change returns to your wallet.'
-                      : `Token transfer, then +${HUB_TOKEN_RAIL_FEE_KAS} KAS Hub fee. Change returns to your wallet.`}
-                  </p>
-                </div>
-              ) : null}
+          <div className="space-y-3 rounded-xl border border-zinc-200 p-3 dark:border-zinc-700">
+            {showPayWith ? (
+              <div>
+                <p className="mb-2 text-xs uppercase tracking-widest text-zinc-500">Pay with</p>
+                <HubPaymentCurrencyCatalogTrigger
+                  entries={catalogEntries}
+                  selectedId={payCurrencyId}
+                  onSelect={(opt) => {
+                    setPayCurrencyId(hubCatalogSelectionToStoreCurrency(opt));
+                  }}
+                />
+              </div>
+            ) : null}
+            {showSplit ? (
+              <div
+                className={`space-y-1.5${showPayWith ? ' border-t border-zinc-200 pt-3 dark:border-zinc-700' : ''}`}
+              >
+                <p className="text-xs uppercase tracking-widest text-zinc-500">Payment split</p>
+                {splitLegs!.map((leg) => (
+                  <div
+                    key={`${leg.role}-${leg.address}`}
+                    className="flex justify-between gap-2 text-xs text-zinc-600 dark:text-zinc-400"
+                  >
+                    <span className="truncate">{leg.label ?? leg.role}</span>
+                    <span className="shrink-0 font-semibold tabular-nums text-zinc-900 dark:text-zinc-100">
+                      {leg.amount} KAS
+                    </span>
+                  </div>
+                ))}
+                <p className="pt-1 text-[11px] text-zinc-500">
+                  {paymentOption.kind === 'kas'
+                    ? 'One transaction. Change returns to your wallet.'
+                    : 'Token transfer, then the same Hub KAS multi-out split. Change returns to your wallet.'}
+                </p>
+              </div>
+            ) : null}
+            <div
+              className={
+                showPayWith || showSplit ? 'border-t border-zinc-200 pt-3 dark:border-zinc-700' : ''
+              }
+            >
+              <p className="text-xs uppercase tracking-widest text-zinc-500">Total to pay</p>
+              <p className="text-2xl font-black text-zinc-900 dark:text-zinc-100 tabular-nums">
+                {formatPayAmount(quote.totalKas)}
+              </p>
             </div>
-          ) : null}
-
-          <div className="rounded-xl border border-zinc-200 p-3 dark:border-zinc-700">
-            <p className="text-xs uppercase tracking-widest text-zinc-500">Total to pay</p>
-            <p className="text-2xl font-black text-zinc-900 dark:text-zinc-100 tabular-nums">
-              {formatPayAmount(quote.totalKas)}
-            </p>
           </div>
 
           {infoText ? (

@@ -96,6 +96,9 @@ export function useHubPayment() {
             provider: state.provider,
             senderAddress: state.address,
             treasuryAddress: treasury,
+            feeKas:
+              params.amountKas ??
+              (params.plan ? params.plan.legs.reduce((s, l) => s + l.amount, 0) : 0),
             note: params.note,
             payloadHex: params.payloadHex,
           });
@@ -126,6 +129,7 @@ export function useHubPayment() {
             provider: state.provider,
             senderAddress: state.address,
             treasuryAddress: treasury,
+            feeKas,
             note: params.note,
             payloadHex: params.payloadHex,
           });

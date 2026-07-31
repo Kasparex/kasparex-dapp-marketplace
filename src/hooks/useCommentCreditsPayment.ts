@@ -63,6 +63,7 @@ export function useCommentCreditsPayment() {
             provider: state.provider,
             senderAddress: state.address,
             treasuryAddress: COMMENT_CREDITS_TREASURY,
+            feeKas,
             note: `Comment Credits Purchase: ${credits} credits`,
           });
           return extractKaspaTransactionId(tokenTx) ?? tokenTx;
@@ -84,6 +85,7 @@ export function useCommentCreditsPayment() {
             provider: state.provider,
             senderAddress: state.address,
             treasuryAddress: COMMENT_CREDITS_TREASURY,
+            feeKas,
             note: `Comment Credits Purchase: ${credits} credits`,
           });
           return extractKaspaTransactionId(tokenTx) ?? tokenTx;

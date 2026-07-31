@@ -111,6 +111,7 @@ export function useStoreProductPurchase(product: Product) {
             provider: state.provider,
             senderAddress: state.address,
             treasuryAddress: STORE_TREASURY_ADDRESS,
+            feeKas: fee.feeAmount > 0 ? fee.feeAmount : totalKasEquivalent,
             note: `Store purchase fee ${product.id}`,
           });
           purchaseTxHash = extractKaspaTransactionId(purchaseTxHash) ?? purchaseTxHash;
@@ -139,6 +140,7 @@ export function useStoreProductPurchase(product: Product) {
             provider: state.provider,
             senderAddress: state.address,
             treasuryAddress: STORE_TREASURY_ADDRESS,
+            feeKas: fee.feeAmount > 0 ? fee.feeAmount : totalKasEquivalent,
             note: `Store purchase fee ${product.id}`,
           });
           purchaseTxHash = extractKaspaTransactionId(purchaseTxHash) ?? purchaseTxHash;

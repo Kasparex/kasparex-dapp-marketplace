@@ -13,7 +13,7 @@ import type { HubCurrencyCatalogEntry } from '@/lib/payments/currencyCatalog';
 import type { HubPaymentCurrencyOption } from '@/lib/payments/hubPaymentTypes';
 import { formatHubPaymentAmount } from '@/lib/payments/hubPaymentTypes';
 import { buildHubPlatformFeePlan } from '@/lib/payments/paymentPlan';
-import { HUB_TOKEN_RAIL_FEE_KAS } from '@/lib/payments/tokenRailKasFee';
+import { resolveHubTokenRailFeeKas } from '@/lib/payments/tokenRailKasFee';
 import { formatHubPointsTierLabel } from '@/lib/rewards/hub-points';
 import { KREX_TIERS } from '@/lib/rewards/types';
 
@@ -73,29 +73,19 @@ export function HubListingCalculationBreakdown({
     : `${quote.totalKas} KAS`;
 
   const splitLegs = useMemo(() => {
-    if (selected?.kind === 'kas' || selectedCurrencyId === 'KAS') {
-      try {
-        return buildHubPlatformFeePlan({
-          totalKas: quote.totalKas,
-          treasuryAddress,
-        }).legs;
-      } catch {
-        return undefined;
-      }
-    }
-    // Token / KREX rail: show the second Hub KAS fee split (non-covenant).
     try {
       return buildHubPlatformFeePlan({
-        totalKas: HUB_TOKEN_RAIL_FEE_KAS,
+        totalKas: resolveHubTokenRailFeeKas(quote.totalKas),
         treasuryAddress,
       }).legs;
     } catch {
       return undefined;
     }
-  }, [selected?.kind, selectedCurrencyId, quote.totalKas, treasuryAddress]);
+  }, [quote.totalKas, treasuryAddress]);
 
   const showPayBox = showPayWith && catalogEntries.length > 0;
   const showSplit = Boolean(splitLegs && splitLegs.length > 0);
+  const isKasRail = selected?.kind === 'kas' || selectedCurrencyId === 'KAS';
 
   return (
     <div className={`flex flex-col gap-4 ${className ?? ''}`.trim()}>
@@ -161,47 +151,48 @@ export function HubListingCalculationBreakdown({
         </div>
       </div>
 
-      {showPayBox || showSplit ? (
-        <div className="space-y-3 rounded-xl border border-zinc-200 p-3 dark:border-zinc-800">
-          {showPayBox ? (
-            <div>
-              <p className="mb-2 text-xs uppercase tracking-widest text-zinc-500">Pay with</p>
-              <HubPaymentCurrencyCatalogTrigger
-                entries={catalogEntries}
-                selectedId={selectedCurrencyId}
-                onSelect={(option) => onCurrencySelect?.(option)}
-              />
-            </div>
-          ) : null}
-          {showSplit ? (
-            <div
-              className={`space-y-1.5${showPayBox ? ' border-t border-zinc-200 pt-3 dark:border-zinc-800' : ''}`}
-            >
-              <p className="text-xs uppercase tracking-widest text-zinc-500">Payment split</p>
-              {splitLegs!.map((leg) => (
-                <div
-                  key={`${leg.role}-${leg.address}`}
-                  className="flex justify-between gap-2 text-xs text-zinc-600 dark:text-zinc-400"
-                >
-                  <span className="truncate">{leg.label ?? leg.role}</span>
-                  <span className="shrink-0 font-semibold tabular-nums text-zinc-900 dark:text-zinc-100">
-                    {leg.amount} KAS
-                  </span>
-                </div>
-              ))}
-              <p className="pt-1 text-[11px] text-zinc-500">
-                {selected?.kind === 'kas' || selectedCurrencyId === 'KAS'
-                  ? 'One transaction. Change returns to your wallet.'
-                  : `Token transfer, then +${HUB_TOKEN_RAIL_FEE_KAS} KAS Hub fee (treasury + rewards). Change returns to your wallet.`}
-              </p>
-            </div>
-          ) : null}
+      <div className="space-y-3 rounded-xl border border-zinc-200 p-3 dark:border-zinc-800">
+        {showPayBox ? (
+          <div>
+            <p className="mb-2 text-xs uppercase tracking-widest text-zinc-500">Pay with</p>
+            <HubPaymentCurrencyCatalogTrigger
+              entries={catalogEntries}
+              selectedId={selectedCurrencyId}
+              onSelect={(option) => onCurrencySelect?.(option)}
+            />
+          </div>
+        ) : null}
+        {showSplit ? (
+          <div
+            className={`space-y-1.5${showPayBox ? ' border-t border-zinc-200 pt-3 dark:border-zinc-800' : ''}`}
+          >
+            <p className="text-xs uppercase tracking-widest text-zinc-500">Payment split</p>
+            {splitLegs!.map((leg) => (
+              <div
+                key={`${leg.role}-${leg.address}`}
+                className="flex justify-between gap-2 text-xs text-zinc-600 dark:text-zinc-400"
+              >
+                <span className="truncate">{leg.label ?? leg.role}</span>
+                <span className="shrink-0 font-semibold tabular-nums text-zinc-900 dark:text-zinc-100">
+                  {leg.amount} KAS
+                </span>
+              </div>
+            ))}
+            <p className="pt-1 text-[11px] text-zinc-500">
+              {isKasRail
+                ? 'One transaction. Change returns to your wallet.'
+                : 'Token transfer, then the same Hub KAS multi-out split. Change returns to your wallet.'}
+            </p>
+          </div>
+        ) : null}
+        <div
+          className={
+            showPayBox || showSplit ? 'border-t border-zinc-200 pt-3 dark:border-zinc-800' : ''
+          }
+        >
+          <p className="text-xs uppercase tracking-widest text-zinc-500">Total to pay</p>
+          <p className="text-2xl font-black tabular-nums text-zinc-900 dark:text-zinc-100">{totalDisplay}</p>
         </div>
-      ) : null}
-
-      <div className="rounded-xl border border-zinc-200 p-3 dark:border-zinc-800">
-        <p className="text-xs uppercase tracking-widest text-zinc-500">Total to pay</p>
-        <p className="text-2xl font-black tabular-nums text-zinc-900 dark:text-zinc-100">{totalDisplay}</p>
       </div>
 
       {footerNote ? (

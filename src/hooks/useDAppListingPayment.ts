@@ -67,6 +67,7 @@ export function useDAppListingPayment() {
             provider: state.provider,
             senderAddress: state.address,
             treasuryAddress: TREASURY,
+            feeKas,
             note,
           });
           return extractKaspaTransactionId(tokenTx) ?? tokenTx;
@@ -88,6 +89,7 @@ export function useDAppListingPayment() {
             provider: state.provider,
             senderAddress: state.address,
             treasuryAddress: TREASURY,
+            feeKas,
             note,
           });
           return extractKaspaTransactionId(tokenTx) ?? tokenTx;

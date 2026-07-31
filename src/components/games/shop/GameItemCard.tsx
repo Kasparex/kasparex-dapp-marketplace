@@ -179,17 +179,18 @@ export function GameItemCard(props: {
     ? 'k-input flex h-10 w-full min-w-0 items-center justify-between gap-2 !py-0 text-left text-sm font-semibold tabular-nums sm:w-auto sm:flex-1 sm:min-w-[170px]'
     : 'flex h-10 w-full min-w-0 items-center justify-between gap-2 rounded-xl border border-zinc-200 bg-white px-4 py-0 text-sm font-medium transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:bg-zinc-900 sm:w-auto sm:flex-1 sm:min-w-[170px]';
   const { catalogEntries: publicCatalog } = useHubPayWithCatalog({
-    amountKas: hubChrome ? unit * quantity : undefined,
+    amountKas: unit * quantity,
   });
   const hubPayCatalog = useMemo(() => {
-    if (!hubChrome) return [] as HubCurrencyCatalogEntry[];
     const optionIds = new Set(options.map((o) => String(o.currency).toUpperCase()));
     const fromPublic = publicCatalog.filter((entry) => {
       if (entry.kind === 'kas' || entry.kind === 'krex') return optionIds.has(entry.id.toUpperCase());
-      if (entry.kind === 'krc20' && entry.tick) return optionIds.has(entry.tick.toUpperCase()) || optionIds.has(entry.id.toUpperCase());
+      if (entry.kind === 'krc20' && entry.tick) {
+        return optionIds.has(entry.tick.toUpperCase()) || optionIds.has(entry.id.toUpperCase());
+      }
       return optionIds.has(entry.id.toUpperCase());
     });
-    // Keep game-only currencies (GRID, PTS, …) searchable in the same modal.
+    // Keep shop-only currencies (GRID, PTS, …) searchable in the same modal.
     const extras: HubCurrencyCatalogEntry[] = options
       .filter((o) => !fromPublic.some((e) => e.id.toUpperCase() === String(o.currency).toUpperCase()))
       .map((o) => ({
@@ -205,7 +206,7 @@ export function GameItemCard(props: {
             : undefined,
       }));
     return [...fromPublic, ...extras];
-  }, [hubChrome, options, publicCatalog, quantity]);
+  }, [options, publicCatalog, quantity]);
 
   const handleHubCurrencySelect = (option: HubPaymentCurrencyOption) => {
     const id = option.tick ?? option.id;
@@ -461,14 +462,14 @@ export function GameItemCard(props: {
 
   const currencyPicker =
     options.length > 1 ? (
-      hubChrome && hubPayCatalog.length > 0 ? (
+      hubPayCatalog.length > 0 ? (
         <div className="w-full min-w-0 sm:flex-1 sm:min-w-[170px]">
           <HubPaymentCurrencyCatalogTrigger
             entries={hubPayCatalog}
             selectedId={String(currency)}
             onSelect={handleHubCurrencySelect}
-            accent="store"
-            className="w-full"
+            accent={hubChrome ? 'store' : 'default'}
+            className={currencyMenuButtonClass}
           />
         </div>
       ) : (

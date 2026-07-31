@@ -27,7 +27,7 @@ import { buildKasKrexCurrencyOptions, formatHubPaymentAmount } from '@/lib/payme
 import type { HubPaymentCurrencyOption } from '@/lib/payments/hubPaymentTypes';
 import { buildPublicHubCurrencyCatalog, listPublicVerifiedPaymentTokens } from '@/lib/payments/publicPaymentTokens';
 import { buildHubPlatformFeePlan } from '@/lib/payments/paymentPlan';
-import { HUB_TOKEN_RAIL_FEE_KAS } from '@/lib/payments/tokenRailKasFee';
+import { resolveHubTokenRailFeeKas } from '@/lib/payments/tokenRailKasFee';
 import { filterModulesForAssetKind, filterModuleOffersForListing, isIntegrationModule } from '@/lib/tokens/utilityEligibility';
 import { estimateTokenListingQuote } from '@/lib/tokens/pricing';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
@@ -1329,8 +1329,7 @@ export function CreateTokenForm({
             splitLegs={(() => {
               try {
                 return buildHubPlatformFeePlan({
-                  totalKas:
-                    paymentOption.kind === 'kas' ? formQuote.totalKas : HUB_TOKEN_RAIL_FEE_KAS,
+                  totalKas: resolveHubTokenRailFeeKas(formQuote.totalKas),
                   treasuryAddress: getTokensTreasuryL1Address(),
                 }).legs;
               } catch {
@@ -1349,7 +1348,7 @@ export function CreateTokenForm({
             infoText={
               paymentOption.kind === 'kas'
                 ? 'One Kaspa L1 payment commits your listing payload on-chain. Fee rows update for the selected Pay with currency. KAS can split treasury + rewards in a single tx.'
-                : `Token transfer settles the listing amount, then a second +${HUB_TOKEN_RAIL_FEE_KAS} KAS Hub fee (treasury + rewards) commits the on-chain payload.`
+                : 'Token transfer settles the listing amount, then the same Hub KAS multi-out split commits the on-chain payload.'
             }
             hubPoints={
               isEditMode
