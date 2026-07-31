@@ -4,7 +4,7 @@
 
 import { kronTokenUrl } from '@/lib/programmable/kron';
 import type { PricingSnapshot } from '@/lib/pricing/types';
-import { formatHubPaymentFromKas, resolveTokenAmountFromKas } from '@/lib/pricing/registry';
+import { formatHubPaymentFromKas } from '@/lib/pricing/registry';
 import type { IntegratedToken } from '@/lib/tokens/integrationCore';
 import {
   buildKasKrexCurrencyOptions,
@@ -31,6 +31,8 @@ export type HubCurrencyCatalogEntry = HubPaymentCurrencyOption & {
   networkTag?: 'kaspa_l1' | 'l2';
   /** Filter chip: venue / DEX affinity. */
   dexTag?: 'native' | 'kron' | 'kaspacom' | 'zealous' | 'other';
+  /** Optional logo URL (Tokens listing / base logos). */
+  imageUrl?: string;
 };
 
 export type BuildCurrencyCatalogArgs = {
@@ -45,11 +47,14 @@ export type BuildCurrencyCatalogArgs = {
     covenantId: string;
     decimals?: number;
     ticker?: string;
+    imageUrl?: string;
   }>;
   /** Tickers still locked (show Unlock via Tokens). */
   lockedTicks?: string[];
   krexBalance?: number;
   includeKasKrex?: boolean;
+  /** Optional logos keyed by catalog id / tick (KAS, KREX, GRID, kcc20:…). */
+  imageUrls?: Record<string, string>;
 };
 
 export function buildKcc20CurrencyOption(args: {
@@ -73,40 +78,46 @@ export function buildKcc20CurrencyOption(args: {
 export function buildHubCurrencyCatalog(args: BuildCurrencyCatalogArgs): HubCurrencyCatalogEntry[] {
   const includeBuiltins = args.includeKasKrex !== false;
   const amountKas = args.amountKas;
+  const imageUrls = args.imageUrls ?? {};
   const entries: HubCurrencyCatalogEntry[] = [];
+  const seenIds = new Set<string>();
+
+  const pushUnique = (entry: HubCurrencyCatalogEntry) => {
+    const key = entry.id.toUpperCase();
+    if (seenIds.has(key)) return;
+    if (entry.tick && seenIds.has(entry.tick.toUpperCase())) return;
+    seenIds.add(key);
+    if (entry.tick) seenIds.add(entry.tick.toUpperCase());
+    entries.push(entry);
+  };
 
   if (includeBuiltins) {
     for (const opt of buildKasKrexCurrencyOptions()) {
       let amountLabel: string | undefined;
       let detail: string | undefined;
-      if (amountKas != null && amountKas > 0) {
-        if (opt.kind === 'kas') {
+      if (opt.kind === 'kas') {
+        detail = 'Native Kaspa L1';
+        if (amountKas != null && amountKas > 0) {
           amountLabel = formatHubPaymentFromKas(amountKas, 'KAS', args.pricingSnapshot, {
             showKasSuffix: false,
           });
-          detail = 'Native Kaspa L1';
-        } else {
+        }
+      } else {
+        detail = 'KRC-20 · Kasparex utility token';
+        if (amountKas != null && amountKas > 0) {
           amountLabel = formatHubPaymentFromKas(amountKas, 'KREX', args.pricingSnapshot, {
             showKasSuffix: false,
           });
-          const krexAmt = resolveTokenAmountFromKas(amountKas, 'KREX', args.pricingSnapshot);
-          detail = `≈ ${krexAmt.toLocaleString(undefined, { maximumFractionDigits: 2 })} KREX`;
-          if (args.krexBalance != null) {
-            detail += ` · balance ${args.krexBalance.toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
-          }
         }
-      } else if (opt.kind === 'kas') {
-        detail = 'Native Kaspa L1';
-      } else {
-        detail = 'KRC-20 · Kasparex utility token';
       }
-      entries.push({
+      pushUnique({
         ...opt,
         status: 'available',
         detail,
         amountLabel,
         networkTag: 'kaspa_l1',
         dexTag: 'native',
+        imageUrl: imageUrls[opt.id] ?? imageUrls[opt.id.toLowerCase()],
         balanceLabel:
           opt.kind === 'krex' && args.krexBalance != null
             ? `${args.krexBalance.toLocaleString(undefined, { maximumFractionDigits: 2 })} KREX`
@@ -116,14 +127,17 @@ export function buildHubCurrencyCatalog(args: BuildCurrencyCatalogArgs): HubCurr
   }
 
   for (const token of args.integratedTokens ?? []) {
+    const tick = token.tick.toUpperCase();
+    if (tick === 'KAS' || tick === 'KREX') continue;
     const opt = buildKrc20CurrencyOption(token.tick, token.decimals);
-    entries.push({
+    pushUnique({
       ...opt,
       status: 'available',
       detail: 'KRC-20 · Kaspa L1',
       networkTag: 'kaspa_l1',
       dexTag: 'native',
       searchText: `${token.symbol ?? ''} ${token.listingSlug ?? ''}`.trim() || undefined,
+      imageUrl: imageUrls[opt.id] ?? imageUrls[tick] ?? imageUrls[token.listingSlug],
       amountLabel:
         amountKas != null && amountKas > 0
           ? formatHubPaymentFromKas(amountKas, token.tick, args.pricingSnapshot, {
@@ -135,7 +149,7 @@ export function buildHubCurrencyCatalog(args: BuildCurrencyCatalogArgs): HubCurr
 
   for (const token of args.kcc20Tokens ?? []) {
     const opt = buildKcc20CurrencyOption(token);
-    entries.push({
+    pushUnique({
       ...opt,
       status: 'available',
       detail: 'KCC-20 · Kaspa L1 covenant',
@@ -143,6 +157,7 @@ export function buildHubCurrencyCatalog(args: BuildCurrencyCatalogArgs): HubCurr
       dexTag: 'kron',
       actionHref: kronTokenUrl(token.covenantId),
       actionLabel: 'Trade on KRON',
+      imageUrl: token.imageUrl ?? imageUrls[opt.id] ?? imageUrls[token.covenantId],
       amountLabel:
         amountKas != null && amountKas > 0
           ? formatHubPaymentFromKas(amountKas, 'KAS', args.pricingSnapshot, {
@@ -154,8 +169,8 @@ export function buildHubCurrencyCatalog(args: BuildCurrencyCatalogArgs): HubCurr
 
   for (const tick of args.lockedTicks ?? []) {
     const upper = tick.trim().toUpperCase();
-    if (!upper || entries.some((e) => e.id === upper || e.tick === upper)) continue;
-    entries.push({
+    if (!upper || upper === 'KAS' || upper === 'KREX') continue;
+    pushUnique({
       ...buildKrc20CurrencyOption(upper),
       status: 'locked',
       detail: 'Unlock this ticker in Tokens Hub Utility',
@@ -163,6 +178,7 @@ export function buildHubCurrencyCatalog(args: BuildCurrencyCatalogArgs): HubCurr
       dexTag: 'native',
       actionHref: '/tokens/dashboard',
       actionLabel: 'Open Tokens',
+      imageUrl: imageUrls[upper],
     });
   }
 
@@ -180,6 +196,7 @@ export function catalogEntryToOption(entry: HubCurrencyCatalogEntry): HubPayment
     searchText: _t,
     networkTag: _n,
     dexTag: _x,
+    imageUrl: _i,
     ...option
   } = entry;
   return option;

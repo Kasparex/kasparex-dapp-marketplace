@@ -23,6 +23,12 @@
   --k-radius-control: 0.75rem;
 }
 
+/* Use the Hub UI sans stack everywhere; do not render monospaced “machine” UI copy. */
+.font-mono {
+  font-family: "Inter", ui-sans-serif, system-ui, sans-serif !important;
+  font-variant-numeric: normal;
+}
+
 .dark {
   --k-control-bg: rgb(24 24 27);
   --k-control-border: rgb(39 39 42);

@@ -10,6 +10,7 @@ export type KxTabStripOption<T extends string = string> = {
   icon?: ReactNode;
   title?: string;
   ariaLabel?: string;
+  disabled?: boolean;
 };
 
 export function kxTabBtnClass(active: boolean, iconOnly = false) {
@@ -64,10 +65,17 @@ export function KxTabStrip<T extends string>({
           <button
             key={option.value}
             type="button"
-            onClick={() => onChange(option.value)}
-            className={`${kxTabBtnClass(active, iconOnly)}${isScrollable ? ' snap-start' : ''}`}
+            disabled={option.disabled}
+            onClick={() => {
+              if (option.disabled) return;
+              onChange(option.value);
+            }}
+            className={`${kxTabBtnClass(active, iconOnly)}${isScrollable ? ' snap-start' : ''}${
+              option.disabled ? ' opacity-50 cursor-not-allowed' : ''
+            }`}
             aria-label={option.ariaLabel ?? option.label ?? option.title}
             aria-pressed={active}
+            aria-disabled={option.disabled || undefined}
           >
             {option.icon ?? option.label}
           </button>

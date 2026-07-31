@@ -13,6 +13,8 @@ import {
 } from '@/lib/payments/currencyCatalog';
 import { buildKrc20CurrencyOption } from '@/lib/payments/hubPaymentTypes';
 import type { PricingSnapshot } from '@/lib/pricing/types';
+import { getTokenImageUrl } from '@/lib/tokens/metadata';
+import { getBaseTokenLogo, getBaseTokenLogoUrl } from '@/lib/tokens/baseLogos';
 
 function isPublicVerifiedListing(listing: PublishedTokenListing): boolean {
   if (listing.assetKind !== 'real') return false;
@@ -46,6 +48,31 @@ function resolveKrc20Tick(listing: PublishedTokenListing): string | null {
   return null;
 }
 
+function resolveListingLogoUrl(listing: PublishedTokenListing): string | undefined {
+  if (listing.logoCid) {
+    return getTokenImageUrl(listing.logoCid) ?? undefined;
+  }
+  const logo = listing.logoUrl?.trim();
+  if (logo) {
+    if (logo.startsWith('http://') || logo.startsWith('https://') || logo.startsWith('/')) return logo;
+    return getTokenImageUrl(logo) ?? logo;
+  }
+  const snapImage = listing.onChainSnapshot?.imageUrl?.trim();
+  if (snapImage) return snapImage;
+  return undefined;
+}
+
+function resolveBuiltinLogoUrl(symbol: string): string | undefined {
+  const id = symbol.toLowerCase();
+  const config = getBaseTokenLogo(id);
+  if (config?.logoUrl) return config.logoUrl;
+  if (config?.logoCid) return getTokenImageUrl(config.logoCid) ?? undefined;
+  const raw = getBaseTokenLogoUrl(id);
+  if (!raw) return undefined;
+  if (raw.startsWith('http://') || raw.startsWith('https://') || raw.startsWith('/')) return raw;
+  return getTokenImageUrl(raw) ?? undefined;
+}
+
 export type PublicVerifiedPaymentToken = {
   kind: 'krc20' | 'kcc20';
   id: string;
@@ -55,6 +82,7 @@ export type PublicVerifiedPaymentToken = {
   decimals: number;
   listingSlug: string;
   name?: string;
+  imageUrl?: string;
 };
 
 /** Registry-wide deployer-verified tokens available to any Hub payer. */
@@ -67,6 +95,7 @@ export function listPublicVerifiedPaymentTokens(
   for (const listing of listings) {
     if (!isPublicVerifiedListing(listing)) continue;
     const decimals = listing.onChainSnapshot?.decimals ?? listing.decimals ?? 8;
+    const imageUrl = resolveListingLogoUrl(listing);
 
     const covenantId = resolveKcc20CovenantId(listing);
     if (covenantId || listing.listingNetwork === 'kcc20' || listing.onChainSnapshot?.source === 'kcc20') {
@@ -84,12 +113,15 @@ export function listPublicVerifiedPaymentTokens(
         decimals,
         listingSlug: listing.slug,
         name: listing.name,
+        imageUrl,
       });
       continue;
     }
 
     const tick = resolveKrc20Tick(listing);
     if (!tick) continue;
+    // Builtins are already in the catalog; never duplicate KREX/KAS as public integrated rows.
+    if (tick === 'KAS' || tick === 'KREX') continue;
     if (seen.has(tick)) continue;
     seen.add(tick);
     out.push({
@@ -100,6 +132,7 @@ export function listPublicVerifiedPaymentTokens(
       decimals,
       listingSlug: listing.slug,
       name: listing.name,
+      imageUrl: imageUrl ?? resolveBuiltinLogoUrl(tick),
     });
   }
 
@@ -115,8 +148,24 @@ export function buildPublicHubCurrencyCatalog(args: {
   extra?: BuildCurrencyCatalogArgs;
 }): HubCurrencyCatalogEntry[] {
   const publicTokens = listPublicVerifiedPaymentTokens(args.listings);
+  const imageUrls: Record<string, string> = {
+    KAS: resolveBuiltinLogoUrl('KAS') ?? '',
+    KREX: resolveBuiltinLogoUrl('KREX') ?? '',
+  };
+  for (const token of publicTokens) {
+    if (!token.imageUrl) continue;
+    imageUrls[token.id] = token.imageUrl;
+    if (token.tick) imageUrls[token.tick] = token.imageUrl;
+    if (token.listingSlug) imageUrls[token.listingSlug] = token.imageUrl;
+    if (token.covenantId) imageUrls[token.covenantId] = token.imageUrl;
+  }
+  // Drop empty placeholders.
+  for (const key of Object.keys(imageUrls)) {
+    if (!imageUrls[key]) delete imageUrls[key];
+  }
+
   const integrated = publicTokens
-    .filter((t) => t.kind === 'krc20' && t.tick)
+    .filter((t) => t.kind === 'krc20' && t.tick && t.tick !== 'KREX' && t.tick !== 'KAS')
     .map((t) => ({
       tick: t.tick!,
       decimals: t.decimals,
@@ -131,6 +180,7 @@ export function buildPublicHubCurrencyCatalog(args: {
       covenantId: t.covenantId!,
       decimals: t.decimals,
       ticker: t.tick,
+      imageUrl: t.imageUrl,
     }));
 
   const base = buildHubCurrencyCatalog({
@@ -141,9 +191,9 @@ export function buildPublicHubCurrencyCatalog(args: {
     integratedTokens: [...(args.extra?.integratedTokens ?? []), ...integrated],
     kcc20Tokens: [...(args.extra?.kcc20Tokens ?? []), ...kcc20Tokens],
     lockedTicks: args.extra?.lockedTicks,
+    imageUrls: { ...imageUrls, ...(args.extra?.imageUrls ?? {}) },
   });
 
-  // Enrich KCC-20 rows with listing name for search.
   return base.map((entry) => {
     if (entry.kind !== 'kcc20' || !entry.covenantId) return entry;
     const match = publicTokens.find((t) => t.covenantId === entry.covenantId);
@@ -152,6 +202,7 @@ export function buildPublicHubCurrencyCatalog(args: {
       ...entry,
       detail: `${match.name} · KCC-20 · deployer verified`,
       searchText: `${entry.label} ${match.name} ${entry.covenantId}`,
+      imageUrl: entry.imageUrl ?? match.imageUrl,
     };
   });
 }

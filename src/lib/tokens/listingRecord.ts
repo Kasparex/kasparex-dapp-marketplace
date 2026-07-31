@@ -42,6 +42,8 @@ export type TokenOnChainSnapshot = {
   status?: string;
   liveValueSompi?: string;
   eventCount?: number;
+  /** Remote logo URL when known (e.g. kcc20.info genesis metadata). */
+  imageUrl?: string;
 };
 
 export type TokenOwnershipProof = {

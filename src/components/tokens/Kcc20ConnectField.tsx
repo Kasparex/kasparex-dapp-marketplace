@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { KxFormFieldLabel } from '@/components/ui/KxFormFieldLabel';
+import { KxSegmentToggle } from '@/components/ui/KxSegmentToggle';
 import { DEFAULT_PROGRAMMABLE_NETWORK } from '@/lib/programmable/config';
 import { normalizeKcc20ConnectPaste } from '@/lib/programmable/kron';
 import {
@@ -84,7 +85,7 @@ export function Kcc20ConnectField({
 
   return (
     <div className="space-y-3">
-      <div className="rounded-xl border border-zinc-200 bg-zinc-50/80 p-4 dark:border-zinc-700 dark:bg-zinc-800/40 space-y-3">
+      <div className="space-y-3 rounded-xl border border-zinc-200 bg-zinc-50/80 p-4 dark:border-zinc-700 dark:bg-zinc-800/40">
         <div>
           <p className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">Deploy on an L1 DEX</p>
           <p className="mt-1 text-xs text-zinc-600 dark:text-zinc-400">
@@ -95,29 +96,18 @@ export function Kcc20ConnectField({
 
         <div>
           <p className="mb-2 text-[11px] font-semibold uppercase tracking-widest text-zinc-500">Launchpad</p>
-          <div className="flex flex-wrap gap-2">
-            {TOKEN_LAUNCH_DEX_OPTIONS.map((option) => {
-              const isActive = launchDex === option.id;
-              return (
-                <button
-                  key={option.id}
-                  type="button"
-                  disabled={disabled || !option.active}
-                  onClick={() => setLaunchDex(option.id)}
-                  title={option.active ? option.blurb : `${option.label} coming soon`}
-                  className={`k-control-btn text-sm ${
-                    isActive && option.active ? 'hub-sidebar-action-active' : ''
-                  } ${!option.active ? 'opacity-55 cursor-not-allowed' : ''}`}
-                >
-                  {option.label}
-                  {!option.active ? (
-                    <span className="ml-1 text-[10px] font-semibold uppercase tracking-wide text-zinc-500">
-                      Soon
-                    </span>
-                  ) : null}
-                </button>
-              );
-            })}
+          <div className={disabled ? 'pointer-events-none opacity-60' : undefined}>
+            <KxSegmentToggle
+              value={launchDex}
+              onChange={setLaunchDex}
+              ariaLabel="Launchpad"
+              options={TOKEN_LAUNCH_DEX_OPTIONS.map((option) => ({
+                value: option.id,
+                label: option.active ? option.label : `${option.label} (soon)`,
+                disabled: !option.active,
+                title: option.blurb,
+              }))}
+            />
           </div>
           <p className="mt-2 text-xs text-zinc-600 dark:text-zinc-400">{dex.blurb}</p>
         </div>
@@ -156,15 +146,15 @@ export function Kcc20ConnectField({
         </KxFormFieldLabel>
         <p className="kx-body-sm mb-2">
           Paste a KCC-20 covenant id, genesis transaction id, or a DEX token link (for example{' '}
-          <span className="font-mono text-[11px]">kron.technology/token/…</span>). Lookups use mainnet
-          indexers (kcc20.info, with KaspaCom / kascov fallback). Nothing is deployed from this form.
+          <span className="text-[11px]">kron.technology/token/…</span>). Lookups use mainnet indexers
+          (kcc20.info, with KaspaCom / kascov fallback). Nothing is deployed from this form.
         </p>
         <input
           type="text"
           value={value}
           onChange={(e) => onChange(normalizeKcc20ConnectPaste(e.target.value))}
           placeholder="64-char hex or https://kron.technology/token/…"
-          className="k-input font-mono text-sm w-full"
+          className="k-input w-full text-sm"
           disabled={disabled || Boolean(selected)}
           autoComplete="off"
           spellCheck={false}
@@ -244,7 +234,7 @@ export function Kcc20ConnectField({
                     : 'kascov'}
               </span>
             ) : null}
-            <span className="col-span-2 truncate font-mono text-[10px]" title={displayResult.covenantId}>
+            <span className="col-span-2 truncate text-[10px]" title={displayResult.covenantId}>
               Covenant: {displayResult.covenantId}
             </span>
           </div>
@@ -278,7 +268,7 @@ export function Kcc20ConnectField({
               Clear
             </button>
           </div>
-          <p className="mt-1 text-xs font-mono text-zinc-600 dark:text-zinc-400 break-all">{selected.covenantId}</p>
+          <p className="mt-1 break-all text-xs text-zinc-600 dark:text-zinc-400">{selected.covenantId}</p>
         </div>
       ) : null}
     </div>

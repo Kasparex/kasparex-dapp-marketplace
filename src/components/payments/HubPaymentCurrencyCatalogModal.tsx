@@ -217,32 +217,37 @@ function CurrencyRow({
       } ${locked ? 'cursor-not-allowed opacity-70' : ''}`}
     >
       <div className="flex min-w-0 items-center gap-3">
-        <span
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-zinc-200 bg-white text-[10px] font-bold uppercase text-zinc-700 dark:border-zinc-600 dark:bg-zinc-900 dark:text-zinc-200"
-          aria-hidden
-        >
-          {(entry.tick ?? entry.label).slice(0, 3)}
-        </span>
+        {entry.imageUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={entry.imageUrl}
+            alt=""
+            className="h-9 w-9 shrink-0 rounded-full border border-zinc-200 object-cover dark:border-zinc-600"
+          />
+        ) : (
+          <span
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-zinc-200 bg-white text-[10px] font-bold uppercase text-zinc-700 dark:border-zinc-600 dark:bg-zinc-900 dark:text-zinc-200"
+            aria-hidden
+          >
+            {(entry.tick ?? entry.label).slice(0, 3)}
+          </span>
+        )}
         <div className="min-w-0">
           <p className="truncate font-semibold text-zinc-900 dark:text-zinc-100">{entry.label}</p>
           {entry.detail ? (
             <p className="mt-0.5 line-clamp-2 text-xs text-zinc-600 dark:text-zinc-400">{entry.detail}</p>
           ) : null}
-          {entry.amountLabel ? (
-            <p className="mt-0.5 text-xs font-medium tabular-nums text-zinc-800 dark:text-zinc-200">
-              {entry.amountLabel}
-            </p>
+          {entry.balanceLabel ? (
+            <p className="mt-0.5 text-xs text-zinc-500">Balance {entry.balanceLabel}</p>
           ) : null}
         </div>
       </div>
-      <div className="flex shrink-0 flex-col items-end gap-1">
-        {locked || pending ? (
+      <div className="flex shrink-0 flex-col items-end gap-1 text-right">
+        {entry.amountLabel ? (
+          <span className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">{entry.amountLabel}</span>
+        ) : locked || pending ? (
           <span className="text-[10px] uppercase tracking-wide text-amber-700 dark:text-amber-300">
             {locked ? 'Locked' : 'Soon'}
-          </span>
-        ) : selected ? (
-          <span className="text-[10px] font-semibold uppercase tracking-wide text-[color:var(--hub-accent,#02abb8)]">
-            Selected
           </span>
         ) : null}
         {entry.actionHref ? (
@@ -309,7 +314,7 @@ export function HubPaymentCurrencyCatalogTrigger({
         <span className="inline-flex min-w-0 items-center gap-2 truncate">
           <span className="font-semibold">{selected?.label ?? 'Select currency'}</span>
           {selected?.amountLabel ? (
-            <span className="truncate text-xs font-normal tabular-nums text-zinc-500">{selected.amountLabel}</span>
+            <span className="truncate text-xs font-normal text-zinc-500">{selected.amountLabel}</span>
           ) : selected?.detail ? (
             <span className="truncate text-xs font-normal text-zinc-500">{selected.detail}</span>
           ) : null}

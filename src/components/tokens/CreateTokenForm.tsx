@@ -849,10 +849,6 @@ export function CreateTokenForm({
                 <KxFormFieldLabel>
                   Networks <span className="text-red-500">*</span>
                 </KxFormFieldLabel>
-                <p className="kx-body-sm mb-2">
-                  Select one or more networks. Add an address per network and mark which one is primary. If your
-                  token lives on more networks, select them below and fill each address.
-                </p>
                 <div className={isSubmitting || onChainLocked ? 'pointer-events-none opacity-60' : undefined}>
                   <KxMultiSelectDropdown
                     ariaLabel="Token networks"
