@@ -6,8 +6,7 @@ import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useIPFSUpload } from '@/lib/ipfs/hooks';
 import { categories, type Category } from '@/lib/categories';
 import { KxSegmentToggle } from '@/components/ui/KxSegmentToggle';
-import { HubPaymentCurrencyDropdown } from '@/components/payments/HubPaymentCurrencyDropdown';
-import { buildKasKrexMenuOptions } from '@/lib/payments/hubPaymentTypes';
+import { hubCatalogSelectionToStoreCurrency } from '@/hooks/useHubPayWithCatalog';
 import { KxTabStrip } from '@/components/ui/KxTabStrip';
 import { KxFilterDropdown } from '@/components/ui/KxFilterDropdown';
 import { StoreFileUpload } from '@/components/store/StoreFileUpload';
@@ -886,18 +885,15 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
             quote={formQuote}
             hubPoints={isEdit ? undefined : HUB_EARN_POINTS.dappDirectoryList}
             footerNote="One Kaspa L1 payment covers the listing, payload size, and any enabled modules."
+            selectedCurrencyId={paymentCurrency}
+            onCurrencySelect={(opt) => {
+              const next = hubCatalogSelectionToStoreCurrency(opt);
+              if (next === 'KAS' || next === 'KREX') setPaymentCurrency(next);
+              else setPaymentCurrency('KAS');
+            }}
           />
 
-          <div>
-            <span className="mb-2 block text-sm font-medium text-zinc-700 dark:text-zinc-300">Pay with *</span>
-            <HubPaymentCurrencyDropdown
-              value={paymentCurrency}
-              onChange={setPaymentCurrency}
-              options={buildKasKrexMenuOptions()}
-              ariaLabel="Listing fee currency"
-            />
-            <p className="mt-2 text-xs text-zinc-500">Amount due: {feeLabel}</p>
-          </div>
+          <p className="text-xs text-zinc-500">Amount due: {feeLabel}</p>
 
           {error ? (
             <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-800 dark:border-red-800 dark:bg-red-900/20 dark:text-red-300">

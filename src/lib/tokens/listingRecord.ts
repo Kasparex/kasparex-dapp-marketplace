@@ -242,9 +242,9 @@ export function listingToToken(listing: PublishedTokenListing): Token {
     decimals,
     listing: directoryListing,
     roadmap: listing.modulesConfig?.roadmap,
-    paidModuleIds: filterModulesForAssetKind(paid, listing.assetKind ?? 'fictional', listing.listingNetwork),
+    paidModuleIds: filterModulesForAssetKind(paid, listing.assetKind ?? 'real', listing.listingNetwork),
     modulesConfig: listing.modulesConfig,
-    assetKind: listing.assetKind ?? 'fictional',
+    assetKind: listing.assetKind ?? 'real',
     creatorWallet: listing.author,
   };
 }

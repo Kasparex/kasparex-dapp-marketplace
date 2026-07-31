@@ -179,10 +179,10 @@ export function resolveHubUtilityProductStatus(
   if (token.assetKind === 'fictional' || token.assetKind == null) return 'coming_soon';
   if (!token.listing?.deployerVerified) return 'pending_verify';
 
-  if (productId === 'store' || productId === 'vblog_tips') {
+  if (productId === 'store' || productId === 'vblog_tips' || productId === 'games' || productId === 'magazines') {
     const network = token.listingNetwork;
-    if (network !== 'krc20' && network !== 'kaspa_l1') return 'coming_soon';
-    return 'live';
+    if (network === 'krc20' || network === 'kaspa_l1' || network === 'kcc20') return 'live';
+    return 'coming_soon';
   }
 
   return 'coming_soon';

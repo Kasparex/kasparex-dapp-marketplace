@@ -86,7 +86,7 @@ export type CreateTokenListingInput = {
 };
 
 function buildDraft(input: CreateTokenListingInput, author: string): TokenListingDraft {
-  const assetKind = input.assetKind ?? 'fictional';
+  const assetKind = input.assetKind ?? 'real';
   const enabledModuleIds = filterModulesForAssetKind(input.enabledModuleIds ?? [], assetKind);
   const pageConfig = input.sectionToggles || input.sectionOrder
     ? applyPageSectionConfig(
@@ -145,9 +145,9 @@ function listingUpdateFields(
       existing
         ? [...new Set([...(existing.paidModuleIds ?? []), ...draft.enabledModuleIds])]
         : draft.enabledModuleIds,
-      draft.assetKind ?? existing?.assetKind ?? 'fictional',
+      draft.assetKind ?? existing?.assetKind ?? 'real',
     ),
-    assetKind: draft.assetKind ?? existing?.assetKind ?? 'fictional',
+    assetKind: draft.assetKind ?? existing?.assetKind ?? 'real',
     deployerAddress: draft.deployerAddress?.trim() ?? existing?.deployerAddress,
     maxSupply: draft.maxSupply ?? existing?.maxSupply,
     totalSupply: draft.totalSupply ?? existing?.totalSupply,
@@ -370,7 +370,7 @@ export function useTokens() {
         pageConfig: draft.pageConfig,
         paidModuleIds: draft.enabledModuleIds,
         modulesConfig: draft.modulesConfig,
-        assetKind: draft.assetKind ?? 'fictional',
+        assetKind: draft.assetKind ?? 'real',
         ownership: 'none' as const,
         deployerAddress: draft.deployerAddress?.trim(),
         maxSupply: draft.maxSupply,

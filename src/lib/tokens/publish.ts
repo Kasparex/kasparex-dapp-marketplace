@@ -60,7 +60,7 @@ export function buildCanonicalListingPayload(draft: TokenListingDraft, op: 'crea
     pageConfig: draft.pageConfig,
     enabledModuleIds: draft.enabledModuleIds,
     author: draft.author.trim().toLowerCase(),
-    assetKind: draft.assetKind ?? 'fictional',
+    assetKind: draft.assetKind ?? 'real',
     deployerAddress: (draft.deployerAddress ?? '').trim() || null,
     maxSupply: draft.maxSupply ?? null,
     totalSupply: draft.totalSupply ?? null,

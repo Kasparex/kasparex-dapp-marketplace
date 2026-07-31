@@ -8,8 +8,8 @@ import { useAccount } from 'wagmi';
 import { getErrorMessage } from '@/lib/utils';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { KxSegmentToggle } from '@/components/ui/KxSegmentToggle';
-import { HubPaymentCurrencyDropdown } from '@/components/payments/HubPaymentCurrencyDropdown';
-import { buildKasKrexMenuOptions } from '@/lib/payments/hubPaymentTypes';
+import { HubPaymentCurrencyCatalogTrigger } from '@/components/payments/HubPaymentCurrencyCatalogModal';
+import { useHubPayWithCatalog, hubCatalogSelectionToStoreCurrency } from '@/hooks/useHubPayWithCatalog';
 import { usePricingSnapshot } from '@/hooks/usePricingSnapshot';
 import { formatHubPaymentFromKas } from '@/lib/pricing';
 import type { StorePaymentCurrency } from '@/lib/store/currencies';
@@ -73,6 +73,10 @@ export function CommentCreditsModal({ isOpen, onClose }: CommentCreditsModalProp
   });
   const { balance: krexBalance } = useKREXBalance();
   const { snapshot: pricingSnapshot } = usePricingSnapshot(['KREX']);
+  const { catalogEntries } = useHubPayWithCatalog({
+    amountKas: selectedPackage.basePrice,
+    pricingSnapshot,
+  });
   const [txHash, setTxHash] = useState<string | null>(null);
 
   useEffect(() => {
@@ -233,11 +237,14 @@ export function CommentCreditsModal({ isOpen, onClose }: CommentCreditsModalProp
 
               <div className="rounded-xl border border-zinc-200 dark:border-zinc-700 px-4 py-3">
                 <KxModalSectionTitle className="mb-2">Pay with</KxModalSectionTitle>
-                <HubPaymentCurrencyDropdown
-                  value={paymentCurrency}
-                  onChange={setPaymentCurrency}
-                  options={buildKasKrexMenuOptions()}
-                  ariaLabel="Comment credits payment currency"
+                <HubPaymentCurrencyCatalogTrigger
+                  entries={catalogEntries}
+                  selectedId={paymentCurrency}
+                  onSelect={(opt) => {
+                    const next = hubCatalogSelectionToStoreCurrency(opt);
+                    if (next === 'KAS' || next === 'KREX') setPaymentCurrency(next);
+                    else setPaymentCurrency('KAS');
+                  }}
                 />
               </div>
 

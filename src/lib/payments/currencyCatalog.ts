@@ -25,6 +25,8 @@ export type HubCurrencyCatalogEntry = HubPaymentCurrencyOption & {
   actionLabel?: string;
   /** KAS-equivalent for `amountKas` when priced from Hub quote. */
   amountLabel?: string;
+  /** Extra searchable text (name, covenant id, …). */
+  searchText?: string;
 };
 
 export type BuildCurrencyCatalogArgs = {

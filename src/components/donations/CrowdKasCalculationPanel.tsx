@@ -5,6 +5,7 @@ import { HubPaymentPanel } from '@/components/payments/HubPaymentPanel';
 import { KREXBuyWizard } from '@/components/rewards/KREXBuyWizard';
 import { Alert } from '@/components/Alert';
 import { buildKasKrexCurrencyOptions, formatHubPaymentAmount } from '@/lib/payments/hubPaymentTypes';
+import { useHubPayWithCatalog, hubCatalogSelectionToStoreCurrency } from '@/hooks/useHubPayWithCatalog';
 import { usePricingSnapshot } from '@/hooks/usePricingSnapshot';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
@@ -99,6 +100,10 @@ export function CrowdKasL1CalculationPanel({
   const [isKrexWizardOpen, setIsKrexWizardOpen] = useState(false);
   const { balance: krexBalance } = useKREXBalance();
   const { snapshot: pricingSnapshot } = usePricingSnapshot(['KREX']);
+  const { catalogEntries } = useHubPayWithCatalog({
+    amountKas: quote.totalKas,
+    pricingSnapshot,
+  });
   const discountPercent = KREX_TIERS[tier].feeDiscountPercent;
   const hasKrexDiscount = discountPercent > 0;
   const selectedCurrency =
@@ -125,8 +130,14 @@ export function CrowdKasL1CalculationPanel({
         totalDisplay={totalDisplay}
         totalSubtitle={totalSubtitle}
         currencies={buildKasKrexCurrencyOptions()}
+        catalogEntries={catalogEntries}
         selectedCurrencyId={paymentCurrency}
         onCurrencyChange={(id) => setPaymentCurrency(id as StorePaymentCurrency)}
+        onCatalogSelect={(opt) => {
+          const next = hubCatalogSelectionToStoreCurrency(opt);
+          if (next === 'KAS' || next === 'KREX') setPaymentCurrency(next);
+          else setPaymentCurrency('KAS');
+        }}
         tier={tier}
         krexBalance={krexBalance}
         discountNote={
@@ -162,7 +173,7 @@ export function CrowdKasL1CalculationPanel({
                 disabled={submitDisabled || isSubmitting}
                 className="w-full k-control-btn !bg-emerald-600 !text-white !border-emerald-600 hover:!bg-emerald-700 dark:!bg-emerald-600 dark:hover:!bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isSubmitting ? submittingLabel : submitLabel}
+                {isSubmitting ? submittingLabel : `${submitLabel} (${totalDisplay})`}
               </button>
             ) : null}
             {onCancel ? (

@@ -3,13 +3,13 @@
 import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useKaspaWallet } from '@/lib/kaspa/context';
-import { HubPaymentCurrencyDropdown } from '@/components/payments/HubPaymentCurrencyDropdown';
-import { buildKasKrexMenuOptions } from '@/lib/payments/hubPaymentTypes';
 import { KxTabStrip } from '@/components/ui/KxTabStrip';
 import { useDAppListingPayment } from '@/hooks/useDAppListingPayment';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
-import { listingActionFeeLabel } from '@/lib/dapps/listingSubmissions';
+import { HubListingCalculationBreakdown } from '@/components/hub/HubListingCalculationBreakdown';
+import { hubCatalogSelectionToStoreCurrency } from '@/hooks/useHubPayWithCatalog';
 import type { StorePaymentCurrency } from '@/lib/store/currencies';
+import { formatHubPaymentAmount, buildKasKrexCurrencyOptions } from '@/lib/payments/hubPaymentTypes';
 import {
   CHRONICLES_CONTENT_KIND_LABELS,
   saveCommunitySubmission,
@@ -49,7 +49,6 @@ import {
   type HubListingModuleLine,
 } from '@/lib/hub/listingPricing';
 import { krexTierDiscountPercent } from '@/lib/chronicles/vault/pricing';
-import { HubListingCalculationBreakdown } from '@/components/hub/HubListingCalculationBreakdown';
 
 const CONTENT_KINDS: ChroniclesContentKind[] = ['chapter', 'article', 'character', 'location', 'vehicle'];
 const FEATURED_IMAGE_MAX_SIZE_MB = 5;
@@ -160,7 +159,6 @@ export function ChroniclesListingForm({ onSubmitted }: { onSubmitted?: () => voi
       canonHintEnabled,
     ],
   );
-  const feeLabel = listingActionFeeLabel(paymentCurrency, formQuote.totalKas);
   const featuredPreviewUrl =
     featuredImageSource === 'url' && featuredImageUrl.trim()
       ? featuredImageUrl.trim()
@@ -529,18 +527,13 @@ export function ChroniclesListingForm({ onSubmitted }: { onSubmitted?: () => voi
             quote={formQuote}
             hubPoints={kind === 'article' ? HUB_EARN_POINTS.chroniclesArticleCreate : undefined}
             footerNote="One Kaspa L1 payment covers the submission, payload size, and any enabled modules."
+            selectedCurrencyId={paymentCurrency}
+            onCurrencySelect={(opt) => {
+              const next = hubCatalogSelectionToStoreCurrency(opt);
+              if (next === 'KAS' || next === 'KREX') setPaymentCurrency(next);
+              else setPaymentCurrency('KAS');
+            }}
           />
-
-          <div>
-            <span className="mb-2 block text-sm font-medium text-zinc-700 dark:text-zinc-300">Pay with *</span>
-            <HubPaymentCurrencyDropdown
-              value={paymentCurrency}
-              onChange={setPaymentCurrency}
-              options={buildKasKrexMenuOptions()}
-              ariaLabel="Listing fee currency"
-            />
-            <p className="mt-2 text-xs text-zinc-500">Amount due: {feeLabel}</p>
-          </div>
 
           {error ? (
             <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-800 dark:border-red-800 dark:bg-red-900/20 dark:text-red-300">
@@ -553,7 +546,15 @@ export function ChroniclesListingForm({ onSubmitted }: { onSubmitted?: () => voi
             disabled={!canSubmit}
             className="hub-cta-btn w-full k-control-btn !text-white disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {isProcessing ? 'Processing...' : isUploading ? 'Uploading...' : 'Create Lore Entry'}
+            {isProcessing
+              ? 'Processing...'
+              : isUploading
+                ? 'Uploading...'
+                : `Create Lore Entry (${formatHubPaymentAmount(
+                    buildKasKrexCurrencyOptions().find((c) => c.id === paymentCurrency) ??
+                      buildKasKrexCurrencyOptions()[0],
+                    formQuote.totalKas,
+                  )})`}
           </button>
 
           <HubFlowProgress steps={getHubFlowPreset('hubPublish')} busy={isProcessing || isUploading} />

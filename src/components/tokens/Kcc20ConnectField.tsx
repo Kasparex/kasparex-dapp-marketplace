@@ -29,8 +29,8 @@ interface Kcc20ConnectFieldProps {
 }
 
 const NETWORK_OPTIONS: Array<{ value: ProgrammableNetworkId; label: string }> = [
+  { value: 'mainnet', label: 'Mainnet' },
   { value: 'testnet-10', label: 'Testnet-10' },
-  { value: 'mainnet', label: 'Mainnet (early)' },
 ];
 
 export function Kcc20ConnectField({

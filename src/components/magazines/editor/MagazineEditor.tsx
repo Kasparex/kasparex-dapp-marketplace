@@ -8,9 +8,6 @@ import {
   MagazineIssue,
 } from '@/lib/magazines/types';
 import { useKaspaWallet } from '@/lib/kaspa/context';
-import { sendKaspaTransaction } from '@/lib/kaspa/wallet';
-import type { KaspaWalletProvider } from '@/lib/kaspa/types';
-import { kasToSompis } from '@/lib/kaspa/api';
 import { normalizeKaspaAddress, isValidKaspaAddress } from '@/lib/kaspa/sdk';
 import { extractKaspaTransactionId } from '@/lib/kaspa/transactionId';
 import { useIPFSUpload } from '@/lib/ipfs/hooks';
@@ -55,6 +52,10 @@ import {
 } from '@/lib/hub/listingPricing';
 import { krexTierDiscountPercent } from '@/lib/chronicles/vault/pricing';
 import { HubListingCalculationBreakdown } from '@/components/hub/HubListingCalculationBreakdown';
+import { useHubPayment } from '@/hooks/useHubPayment';
+import { hubCatalogSelectionToStoreCurrency } from '@/hooks/useHubPayWithCatalog';
+import { formatHubPaymentAmount, buildKasKrexCurrencyOptions } from '@/lib/payments/hubPaymentTypes';
+import { buildHubPlatformFeePlan } from '@/lib/payments/paymentPlan';
 import { htmlToPlainText } from '@/lib/richText/html';
 
 interface EditorBlock {
@@ -71,6 +72,7 @@ export function MagazineEditor() {
   const { state: kaspa } = useKaspaWallet();
   const { tier: krexTier, balance: krexBalance } = useKREXBalance();
   const { uploadJSON, isUploading } = useIPFSUpload();
+  const { pay, isProcessing: isPaying } = useHubPayment();
 
   const [title, setTitle] = useState('New Magazine Issue');
   const [price, setPrice] = useState(10);
@@ -89,6 +91,7 @@ export function MagazineEditor() {
   const [includedVblogSlugs, setIncludedVblogSlugs] = useState<string[]>([]);
   const [spotlightEnabled, setSpotlightEnabled] = useState(false);
   const [collectibleCoverEnabled, setCollectibleCoverEnabled] = useState(false);
+  const [paymentCurrency, setPaymentCurrency] = useState<'KAS' | 'KREX'>('KAS');
 
   const myMagazines = useMemo(() => {
     if (!kaspa.isConnected || !kaspa.address) return [];
@@ -298,18 +301,26 @@ export function MagazineEditor() {
 
       const plainNote = buildMagazineBindingPlainNote({ cid, magazineSlug: mag.slug, issueNumber });
       const payloadHex = buildMagazineBindingPayloadHex({ cid, magazineSlug: mag.slug, issueNumber });
-
-      const txRes = await sendKaspaTransaction(kaspa.provider as KaspaWalletProvider, {
+      const currencyOpt =
+        buildKasKrexCurrencyOptions().find((c) => c.id === paymentCurrency) ??
+        buildKasKrexCurrencyOptions()[0];
+      const plan =
+        paymentCurrency === 'KAS'
+          ? buildHubPlatformFeePlan({
+              totalKas: formQuote.totalKas,
+              treasuryAddress: MAGAZINE_TREASURY,
+              note: plainNote,
+              payloadHex,
+            })
+          : undefined;
+      const txHashRaw = await pay(currencyOpt, {
+        amountKas: formQuote.totalKas,
         to: MAGAZINE_TREASURY,
-        amount: String(kasToSompis(formQuote.totalKas)),
+        plan,
         note: plainNote,
-        payload: payloadHex,
+        payloadHex,
       });
-      if (txRes.status === 'failed' || !txRes.txHash) {
-        setPublishNote(txRes.error ?? 'Publishing transaction failed.');
-        return;
-      }
-      const txHash = extractKaspaTransactionId(txRes.txHash) ?? txRes.txHash;
+      const txHash = extractKaspaTransactionId(txHashRaw) ?? txHashRaw;
 
       const issue: MagazineIssue = {
         id: `${mag.id}-${issueNumber}`,
@@ -622,6 +633,12 @@ export function MagazineEditor() {
             quote={formQuote}
             hubPoints={HUB_EARN_POINTS.magazineIssuePublish}
             footerNote="One Kaspa L1 payment anchors the issue metadata (IPFS CID) on-chain."
+            selectedCurrencyId={paymentCurrency}
+            onCurrencySelect={(opt) => {
+              const next = hubCatalogSelectionToStoreCurrency(opt);
+              if (next === 'KAS' || next === 'KREX') setPaymentCurrency(next);
+              else setPaymentCurrency('KAS');
+            }}
           />
           {publishNote ? (
             <p className="text-xs text-zinc-600 dark:text-zinc-400" role="status">
@@ -630,10 +647,16 @@ export function MagazineEditor() {
           ) : null}
           <button
             type="submit"
-            disabled={busyPublish || totalShare !== 100}
+            disabled={busyPublish || isPaying || totalShare !== 100}
             className="hub-cta-btn w-full k-control-btn !text-white disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {busyPublish ? 'Publishing...' : `Publish Issue (${formQuote.totalKas} KAS)`}
+            {busyPublish || isPaying
+              ? 'Publishing...'
+              : `Publish Issue (${formatHubPaymentAmount(
+                  buildKasKrexCurrencyOptions().find((c) => c.id === paymentCurrency) ??
+                    buildKasKrexCurrencyOptions()[0],
+                  formQuote.totalKas,
+                )})`}
           </button>
           <HubFlowProgress steps={getHubFlowPreset('hubPublish')} busy={busyPublish} />
         </aside>

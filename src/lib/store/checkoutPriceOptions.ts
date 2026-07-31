@@ -7,6 +7,7 @@ import {
 } from '@/lib/store/currencies';
 import type { Product } from '@/lib/store/types';
 import type { IntegratedToken } from '@/lib/tokens/integrationCore';
+import { listPublicVerifiedPaymentTokens } from '@/lib/payments/publicPaymentTokens';
 import { resolveTokenAmountFromKas, toKasEq } from '@/lib/pricing/registry';
 import type { PricingSnapshot } from '@/lib/pricing/types';
 
@@ -40,6 +41,26 @@ export function resolveStoreUnitPrice(
   return getProductPriceOptions(product).find((o) => o.currency === currency)?.unitPrice ?? product.priceKAS;
 }
 
+function mergeIntegratedWithPublic(
+  integratedTokens: IntegratedToken[] | null | undefined,
+): IntegratedToken[] {
+  const merged: IntegratedToken[] = [...(integratedTokens ?? [])];
+  const seen = new Set(merged.map((t) => t.tick.toUpperCase()));
+  for (const token of listPublicVerifiedPaymentTokens()) {
+    if (token.kind !== 'krc20' || !token.tick) continue;
+    const tick = token.tick.toUpperCase();
+    if (seen.has(tick)) continue;
+    seen.add(tick);
+    merged.push({
+      tick,
+      decimals: token.decimals,
+      symbol: token.label,
+      listingSlug: token.listingSlug,
+    });
+  }
+  return merged;
+}
+
 export function buildStoreCheckoutPriceOptions(
   product: Product,
   integratedTokens: IntegratedToken[] | null | undefined,
@@ -48,7 +69,7 @@ export function buildStoreCheckoutPriceOptions(
   const listedCurrency = getProductPaymentCurrency(product);
   const hubOptions = buildHubCheckoutCurrencyOptions({
     listedCurrency,
-    integratedTokens: integratedTokens ?? [],
+    integratedTokens: mergeIntegratedWithPublic(integratedTokens),
   });
 
   return hubOptions.map((option) => ({

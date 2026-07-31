@@ -5,8 +5,12 @@ import { useMemo, useState, useId } from 'react';
 import { KxListingCard, KxListingCardBody, KxListingCardMedia } from '@/components/kx/KxListingCard';
 import type { KxListingAccent } from '@/lib/ui/kxListingAccent';
 import { GameCurrencyMenu } from '@/components/games/shop/GameCurrencyMenu';
+import { HubPaymentCurrencyCatalogTrigger } from '@/components/payments/HubPaymentCurrencyCatalogModal';
+import { useHubPayWithCatalog } from '@/hooks/useHubPayWithCatalog';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { gameTooltipRich } from '@/components/games/gameTooltipRich';
+import type { HubCurrencyCatalogEntry } from '@/lib/payments/currencyCatalog';
+import type { HubPaymentCurrencyOption } from '@/lib/payments/hubPaymentTypes';
 
 export type GameItemCurrency = 'KAS' | 'KREX' | 'GRID' | 'TICKET' | string;
 
@@ -174,6 +178,45 @@ export function GameItemCard(props: {
   const currencyMenuButtonClass = hubChrome
     ? 'k-input flex h-10 w-full min-w-0 items-center justify-between gap-2 !py-0 text-left text-sm font-semibold tabular-nums sm:w-auto sm:flex-1 sm:min-w-[170px]'
     : 'flex h-10 w-full min-w-0 items-center justify-between gap-2 rounded-xl border border-zinc-200 bg-white px-4 py-0 text-sm font-medium transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:bg-zinc-900 sm:w-auto sm:flex-1 sm:min-w-[170px]';
+  const { catalogEntries: publicCatalog } = useHubPayWithCatalog({
+    amountKas: hubChrome ? unit * quantity : undefined,
+  });
+  const hubPayCatalog = useMemo(() => {
+    if (!hubChrome) return [] as HubCurrencyCatalogEntry[];
+    const optionIds = new Set(options.map((o) => String(o.currency).toUpperCase()));
+    const fromPublic = publicCatalog.filter((entry) => {
+      if (entry.kind === 'kas' || entry.kind === 'krex') return optionIds.has(entry.id.toUpperCase());
+      if (entry.kind === 'krc20' && entry.tick) return optionIds.has(entry.tick.toUpperCase()) || optionIds.has(entry.id.toUpperCase());
+      return optionIds.has(entry.id.toUpperCase());
+    });
+    // Keep game-only currencies (GRID, PTS, …) searchable in the same modal.
+    const extras: HubCurrencyCatalogEntry[] = options
+      .filter((o) => !fromPublic.some((e) => e.id.toUpperCase() === String(o.currency).toUpperCase()))
+      .map((o) => ({
+        id: String(o.currency),
+        label: o.label ?? String(o.currency),
+        kind: 'krc20' as const,
+        tick: String(o.currency),
+        status: o.disabled ? ('locked' as const) : ('available' as const),
+        detail: 'Shop currency',
+        amountLabel:
+          o.unitPrice != null
+            ? `${formatGameItemPriceAmount(o.currency, o.unitPrice * quantity)} ${formatCurrencyTicker(o.currency)}`
+            : undefined,
+      }));
+    return [...fromPublic, ...extras];
+  }, [hubChrome, options, publicCatalog, quantity]);
+
+  const handleHubCurrencySelect = (option: HubPaymentCurrencyOption) => {
+    const id = option.tick ?? option.id;
+    if (options.some((o) => String(o.currency).toUpperCase() === String(id).toUpperCase())) {
+      setCurrency(id as GameItemCurrency);
+      return;
+    }
+    if (option.kind === 'kas') setCurrency('KAS');
+    else if (option.kind === 'krex') setCurrency('KREX');
+    else setCurrency(option.id as GameItemCurrency);
+  };
   const quantityLabelLayout = props.quantityLabelLayout ?? 'inline';
   const pricingActionsLayout = props.pricingActionsLayout ?? 'split';
   const hideQuantityLabel = props.hideQuantityLabel ?? false;
@@ -416,6 +459,35 @@ export function GameItemCard(props: {
     );
   }
 
+  const currencyPicker =
+    options.length > 1 ? (
+      hubChrome && hubPayCatalog.length > 0 ? (
+        <div className="w-full min-w-0 space-y-1.5 sm:flex-1 sm:min-w-[170px]">
+          <p className="text-[11px] font-semibold uppercase tracking-widest text-zinc-500">Pay with</p>
+          <HubPaymentCurrencyCatalogTrigger
+            entries={hubPayCatalog}
+            selectedId={String(currency)}
+            onSelect={handleHubCurrencySelect}
+            accent="store"
+          />
+        </div>
+      ) : (
+        <GameCurrencyMenu
+          ariaLabel="Payment currency"
+          value={String(currency)}
+          onChange={(v) => setCurrency(v as GameItemCurrency)}
+          options={options.map((o) => {
+            const t = (o.unitPrice ?? 0) * quantity;
+            const txt = `${formatGameItemPriceAmount(o.currency, t)} ${formatCurrencyTicker(o.currency)}`;
+            return { value: o.currency, label: txt, disabled: o.disabled };
+          })}
+          className="w-full min-w-0 sm:flex-1 sm:min-w-[170px]"
+          accent={currencyMenuAccent}
+          buttonClassName={currencyMenuButtonClass}
+        />
+      )
+    ) : null;
+
   return (
     <KxListingCard accent={listingAccent} className="relative flex min-h-0 flex-col" onClick={props.onCardNavigate}>
       <KxListingCardMedia aspectClass="aspect-[3/2]">
@@ -534,23 +606,7 @@ export function GameItemCard(props: {
           <div className="flex flex-col gap-2">
             {pricingActionsLayout === 'stacked' ? (
               <div className="flex w-full flex-col gap-3">
-                {options.length > 1 ? (
-                  <GameCurrencyMenu
-                    ariaLabel="Payment currency"
-                    value={String(currency)}
-                    onChange={(v) => setCurrency(v as GameItemCurrency)}
-                    options={options.map((o) => {
-                      const t = (o.unitPrice ?? 0) * quantity;
-                      const txt = `${formatGameItemPriceAmount(o.currency, t)} ${formatCurrencyTicker(o.currency)}`;
-                      return { value: o.currency, label: txt, disabled: o.disabled };
-                    })}
-                    className="w-full min-w-0 sm:flex-initial"
-                    accent={currencyMenuAccent}
-                    buttonClassName={currencyMenuButtonClass}
-                  />
-                ) : (
-                  <div className={calculationBoxClass}>{calculationBoxBody}</div>
-                )}
+                {currencyPicker ?? <div className={calculationBoxClass}>{calculationBoxBody}</div>}
                 <button
                   type="button"
                   onClick={() => void props.onBuy({ currency: cur, quantity })}
@@ -570,21 +626,7 @@ export function GameItemCard(props: {
             ) : (
               <>
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-stretch sm:justify-between">
-                  {options.length > 1 ? (
-                    <GameCurrencyMenu
-                      ariaLabel="Payment currency"
-                      value={String(currency)}
-                      onChange={(v) => setCurrency(v as GameItemCurrency)}
-                      options={options.map((o) => {
-                        const t = (o.unitPrice ?? 0) * quantity;
-                        const txt = `${formatGameItemPriceAmount(o.currency, t)} ${formatCurrencyTicker(o.currency)}`;
-                        return { value: o.currency, label: txt, disabled: o.disabled };
-                      })}
-                      className="w-full sm:w-auto sm:flex-1 sm:min-w-[170px]"
-                      accent={currencyMenuAccent}
-                      buttonClassName={currencyMenuButtonClass}
-                    />
-                  ) : (
+                  {currencyPicker ?? (
                     <div className={`${calculationBoxClass} sm:w-auto sm:flex-1`}>{calculationBoxBody}</div>
                   )}
 

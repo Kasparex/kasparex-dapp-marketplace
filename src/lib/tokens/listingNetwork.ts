@@ -15,12 +15,12 @@ export type TokenListingNetworkOption = {
 };
 
 export const TOKEN_LISTING_NETWORK_OPTIONS: TokenListingNetworkOption[] = [
-  { id: 'krc20', label: 'KRC20 (Kaspa L1)' },
   {
     id: 'kcc20',
     label: 'KCC20 (Kaspa L1)',
-    hint: 'Connect a covenant deployed on testnet-10 (mainnet when ready)',
+    hint: 'Connect a covenant token (mainnet). Launch on KRON, then paste the covenant id.',
   },
+  { id: 'krc20', label: 'KRC20 (Kaspa L1)' },
   { id: 'l2_kasplex', label: 'Kasplex (L2)' },
   { id: 'l2_igra', label: 'Igra (L2)' },
 ];

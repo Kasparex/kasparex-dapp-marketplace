@@ -33,8 +33,8 @@ import { appendHubActivityEarn } from '@/lib/rewards/appendHubActivityEarn';
 import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
 import { computeEarnedHubPoints, formatHubPointsTierLabel } from '@/lib/rewards/hub-points';
 import { KxSegmentToggle } from '@/components/ui/KxSegmentToggle';
-import { HubPaymentCurrencyDropdown } from '@/components/payments/HubPaymentCurrencyDropdown';
-import { buildKasKrexMenuOptions } from '@/lib/payments/hubPaymentTypes';
+import { HubPaymentCurrencyCatalogTrigger } from '@/components/payments/HubPaymentCurrencyCatalogModal';
+import { useHubPayWithCatalog, hubCatalogSelectionToStoreCurrency } from '@/hooks/useHubPayWithCatalog';
 import { KxInFormPremiumList, KxInFormPremiumRow } from '@/components/ui/KxInFormPremiumRow';
 import { FieldHint } from '@/components/ui/FieldHint';
 import { KxModalSectionTitle } from '@/components/payments/KxPaymentUi';
@@ -141,6 +141,10 @@ export function CreateAdWizard({
   const premiumAddonKas = adPremiumAddonKas({ featuredHighlight, extendedExposure });
   const priceKas =
     discountedSlotKas > 0 ? Number((discountedSlotKas + premiumAddonKas).toFixed(8)) : 0;
+  const { catalogEntries } = useHubPayWithCatalog({
+    amountKas: priceKas,
+    pricingSnapshot,
+  });
   const payLabel = formatHubPaymentFromKas(priceKas, paymentCurrency, pricingSnapshot);
   const formatPrice = (kas: number) => formatHubPaymentFromKas(kas, paymentCurrency, pricingSnapshot);
   const krexCheckoutHint =
@@ -903,11 +907,14 @@ export function CreateAdWizard({
                     ) : null}
                   </span>
                 </KxModalSectionTitle>
-                <HubPaymentCurrencyDropdown
-                  value={paymentCurrency}
-                  onChange={setPaymentCurrency}
-                  options={buildKasKrexMenuOptions()}
-                  ariaLabel="Ad payment currency"
+                <HubPaymentCurrencyCatalogTrigger
+                  entries={catalogEntries}
+                  selectedId={paymentCurrency}
+                  onSelect={(opt) => {
+                    const next = hubCatalogSelectionToStoreCurrency(opt);
+                    if (next === 'KAS' || next === 'KREX') setPaymentCurrency(next);
+                    else setPaymentCurrency('KAS');
+                  }}
                 />
               </div>
 

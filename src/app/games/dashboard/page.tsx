@@ -34,6 +34,7 @@ import {
 } from '@/lib/hub/listingPricing';
 import { krexTierDiscountPercent } from '@/lib/chronicles/vault/pricing';
 import { HubListingCalculationBreakdown } from '@/components/hub/HubListingCalculationBreakdown';
+import { hubCatalogSelectionToStoreCurrency } from '@/hooks/useHubPayWithCatalog';
 import { creditHubListingEarn } from '@/lib/rewards/creditHubListingEarn';
 import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
 import { HUB_DELETE_FEE_KAS_STANDARD } from '@/lib/hub/paidDelete';
@@ -161,6 +162,7 @@ export default function GamesDashboardPage() {
   const [categories, setCategories] = useState<string[]>([]);
   const [tagsRaw, setTagsRaw] = useState('');
   const [boostEnabled, setBoostEnabled] = useState(false);
+  const [paymentCurrency, setPaymentCurrency] = useState<'KAS' | 'KREX'>('KAS');
   const [listingsVersion, setListingsVersion] = useState(0);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -391,7 +393,7 @@ export default function GamesDashboardPage() {
           chunkCount: formQuote.chunkCount,
           totalKas: formQuote.totalKas,
         });
-        const paid = await payActionFee('KAS', formQuote.totalKas, commitNote);
+        const paid = await payActionFee(paymentCurrency, formQuote.totalKas, commitNote);
         feeTxHash = extractKaspaTransactionId(paid) ?? paid;
         feeAmountKas = formQuote.totalKas;
       }
@@ -895,6 +897,12 @@ export default function GamesDashboardPage() {
                     quote={formQuote}
                     hubPoints={earnPoints}
                     footerNote="One Kaspa L1 payment covers the listing, payload size, and any enabled modules."
+                    selectedCurrencyId={paymentCurrency}
+                    onCurrencySelect={(opt) => {
+                      const next = hubCatalogSelectionToStoreCurrency(opt);
+                      if (next === 'KAS' || next === 'KREX') setPaymentCurrency(next);
+                      else setPaymentCurrency('KAS');
+                    }}
                   />
 
                   {error ? (
@@ -912,8 +920,8 @@ export default function GamesDashboardPage() {
                     {isProcessing || isUploading
                       ? 'Processing...'
                       : editingId
-                        ? 'Update listing'
-                        : 'Publish Game'}
+                        ? `Update listing (${paymentCurrency})`
+                        : `Publish Game (${paymentCurrency})`}
                   </button>
                   <HubFlowProgress steps={getHubFlowPreset('hubPublish')} busy={isProcessing || isUploading} />
                 </aside>

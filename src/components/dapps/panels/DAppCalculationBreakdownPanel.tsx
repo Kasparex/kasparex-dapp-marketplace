@@ -19,6 +19,8 @@ import { KX_CALCULATION_ASIDE } from '@/lib/hub/shellTokens';
 import { getHubFlowPreset, type HubFlowStep } from '@/lib/hub/hubFlowProgress';
 import { HubPointsEarnBadge } from '@/components/hub/HubPointsEarnBadge';
 import { TierBadge } from '@/components/rewards/TierBadge';
+import { HubPaymentCurrencyCatalogTrigger } from '@/components/payments/HubPaymentCurrencyCatalogModal';
+import { useHubPayWithCatalog, hubCatalogSelectionToStoreCurrency } from '@/hooks/useHubPayWithCatalog';
 import { KREXBuyWizard } from '@/components/rewards/KREXBuyWizard';
 import type { ReactNode } from 'react';
 
@@ -47,6 +49,10 @@ export const DAppCalculationBreakdownPanel = memo(function DAppCalculationBreakd
   const { paymentAmount, actionId: quoteActionId, hubQuote: customHubQuote } = usePaymentAmount();
   const { balance: krexBalance, tier } = useKREXBalance();
   const [isKrexWizardOpen, setIsKrexWizardOpen] = useState(false);
+  const [payCurrencyId, setPayCurrencyId] = useState('KAS');
+  const { catalogEntries } = useHubPayWithCatalog({
+    amountKas: paymentAmount ?? undefined,
+  });
 
   const paymentConfig = useMemo(() => getDAppPaymentConfig(dapp, networkType), [dapp, networkType]);
 
@@ -147,6 +153,20 @@ export const DAppCalculationBreakdownPanel = memo(function DAppCalculationBreakd
               {formatPrice(quote.totalKas)} {quote.currency}
             </p>
           </div>
+
+          {!isCovenant && networkType === 'L1' && catalogEntries.length > 0 ? (
+            <div className="rounded-xl border border-zinc-200 p-3 dark:border-zinc-700">
+              <p className="mb-2 text-xs uppercase tracking-widest text-zinc-500">Pay with</p>
+              <HubPaymentCurrencyCatalogTrigger
+                entries={catalogEntries}
+                selectedId={payCurrencyId}
+                onSelect={(opt) => {
+                  const next = hubCatalogSelectionToStoreCurrency(opt);
+                  setPayCurrencyId(typeof next === 'string' ? next : 'KAS');
+                }}
+              />
+            </div>
+          ) : null}
 
           {quote.infoText ? (
             <div className="rounded-xl border border-[#02abb8]/25 bg-[#02abb8]/10 p-3 text-sm text-zinc-700 dark:text-zinc-300">

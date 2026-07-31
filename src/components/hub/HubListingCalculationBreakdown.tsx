@@ -4,9 +4,14 @@ import { useState } from 'react';
 import type { HubListingPriceQuote } from '@/lib/hub/listingPricing';
 import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 import { HubPointsEarnBadge } from '@/components/hub/HubPointsEarnBadge';
-import { TierBadge } from '@/components/rewards/TierBadge';
+import { HubPaymentCurrencyCatalogTrigger } from '@/components/payments/HubPaymentCurrencyCatalogModal';
 import { KREXBuyWizard } from '@/components/rewards/KREXBuyWizard';
+import { TierBadge } from '@/components/rewards/TierBadge';
+import { useHubPayWithCatalog } from '@/hooks/useHubPayWithCatalog';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
+import type { HubCurrencyCatalogEntry } from '@/lib/payments/currencyCatalog';
+import type { HubPaymentCurrencyOption } from '@/lib/payments/hubPaymentTypes';
+import { formatHubPaymentAmount } from '@/lib/payments/hubPaymentTypes';
 import { formatHubPointsTierLabel } from '@/lib/rewards/hub-points';
 import { KREX_TIERS } from '@/lib/rewards/types';
 
@@ -16,6 +21,13 @@ type Props = {
   /** Extra note under total (e.g. payment currency hint). */
   footerNote?: string;
   className?: string;
+  /** Selected pay currency id (KAS / KREX / token id). */
+  selectedCurrencyId?: string;
+  onCurrencySelect?: (option: HubPaymentCurrencyOption) => void;
+  /** Override catalog; defaults to public verified Hub catalog. */
+  catalogEntries?: HubCurrencyCatalogEntry[];
+  /** Show Pay with even when parent does not pass handlers (read-only trigger). */
+  showPayWith?: boolean;
 };
 
 /**
@@ -23,10 +35,29 @@ type Props = {
  * Matches vBlog Create Article: major blocks separated by gap-4; fee rows use space-y-3.
  * Do not pass className="contents" (collapses spacing against sibling CTAs).
  */
-export function HubListingCalculationBreakdown({ quote, hubPoints, footerNote, className }: Props) {
+export function HubListingCalculationBreakdown({
+  quote,
+  hubPoints,
+  footerNote,
+  className,
+  selectedCurrencyId = 'KAS',
+  onCurrencySelect,
+  catalogEntries: catalogOverride,
+  showPayWith = true,
+}: Props) {
   const { balance: krexBalance, tier } = useKREXBalance();
+  const { catalogEntries: defaultCatalog } = useHubPayWithCatalog({ amountKas: quote.totalKas });
+  const catalogEntries = catalogOverride ?? defaultCatalog;
   const [isKrexWizardOpen, setIsKrexWizardOpen] = useState(false);
   const showBuyKrex = quote.discountPercent <= 0 && krexBalance < KREX_TIERS.Tier1.minKREX;
+
+  const selected =
+    catalogEntries.find((e) => e.id === selectedCurrencyId) ??
+    catalogEntries.find((e) => e.id === 'KAS') ??
+    catalogEntries[0];
+  const totalDisplay = selected
+    ? formatHubPaymentAmount(selected, quote.totalKas)
+    : `${quote.totalKas} KAS`;
 
   return (
     <div className={`flex flex-col gap-4 ${className ?? ''}`.trim()}>
@@ -92,11 +123,20 @@ export function HubListingCalculationBreakdown({ quote, hubPoints, footerNote, c
         </div>
       </div>
 
+      {showPayWith && catalogEntries.length > 0 ? (
+        <div className="rounded-xl border border-zinc-200 p-3 dark:border-zinc-800">
+          <p className="mb-2 text-xs uppercase tracking-widest text-zinc-500">Pay with</p>
+          <HubPaymentCurrencyCatalogTrigger
+            entries={catalogEntries}
+            selectedId={selectedCurrencyId}
+            onSelect={(option) => onCurrencySelect?.(option)}
+          />
+        </div>
+      ) : null}
+
       <div className="rounded-xl border border-zinc-200 p-3 dark:border-zinc-800">
         <p className="text-xs uppercase tracking-widest text-zinc-500">Total to pay</p>
-        <p className="text-2xl font-black tabular-nums text-zinc-900 dark:text-zinc-100">
-          {quote.totalKas} KAS
-        </p>
+        <p className="text-2xl font-black tabular-nums text-zinc-900 dark:text-zinc-100">{totalDisplay}</p>
       </div>
 
       {footerNote ? (

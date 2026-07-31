@@ -5,7 +5,6 @@ import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 import { KxFormFieldLabel } from '@/components/ui/KxFormFieldLabel';
 import { KxInFormPremiumRow } from '@/components/ui/KxInFormPremiumRow';
 import { KxRichTextEditor } from '@/components/ui/KxRichTextEditor';
-import { KxSegmentToggle } from '@/components/ui/KxSegmentToggle';
 import { Krc20TickerSearchField } from '@/components/tokens/Krc20TickerSearchField';
 import { Kcc20ConnectField } from '@/components/tokens/Kcc20ConnectField';
 import { TokensBenefitsPanel } from '@/components/tokens/TokensBenefitsPanel';
@@ -22,7 +21,7 @@ import { TOKEN_MODULE_OFFERS, type TokenModuleId, getTokenModuleDiscountPercent,
 import { validateTokenModulesForPublish } from '@/lib/tokens/formValidation';
 import { HubPaymentPanel } from '@/components/payments/HubPaymentPanel';
 import { buildKasKrexCurrencyOptions, formatHubPaymentAmount } from '@/lib/payments/hubPaymentTypes';
-import { buildHubCurrencyCatalog } from '@/lib/payments/currencyCatalog';
+import { buildPublicHubCurrencyCatalog } from '@/lib/payments/publicPaymentTokens';
 import { buildHubPlatformFeePlan } from '@/lib/payments/paymentPlan';
 import { filterModulesForAssetKind, filterModuleOffersForListing, isIntegrationModule } from '@/lib/tokens/utilityEligibility';
 import { estimateTokenListingQuote } from '@/lib/tokens/pricing';
@@ -55,6 +54,7 @@ import type { Kcc20TokenInfo } from '@/lib/tokens/kcc20Lookup';
 import { formatKrc20Supply } from '@/lib/tokens/krc20Lookup';
 import { formatKcc20Sompi } from '@/lib/tokens/kcc20Lookup';
 import type { ProgrammableNetworkId } from '@/lib/programmable/config';
+import { DEFAULT_PROGRAMMABLE_NETWORK } from '@/lib/programmable/config';
 import { kronMarketEntry, normalizeKcc20ConnectPaste } from '@/lib/programmable/kron';
 import { fetchL2TokenInfo, formatL2Supply } from '@/lib/tokens/l2TokenLookup';
 import {
@@ -215,15 +215,11 @@ export function CreateTokenForm({
   const [shortDescription, setShortDescription] = useState(listing?.shortDescription ?? '');
   const [tags, setTags] = useState((listing?.tags ?? []).join(', '));
   const [category, setCategory] = useState(listing?.category ?? 'Other');
-  const [assetKind, setAssetKind] = useState<TokenAssetKind>(() => {
-    if (listing?.assetKind) return listing.assetKind;
-    if (connectPrefill?.covenantId) return 'real';
-    return 'fictional';
-  });
+  const [assetKind] = useState<TokenAssetKind>('real');
   const [listingNetwork, setListingNetwork] = useState<TokenListingNetwork>(() => {
     if (listing?.listingNetwork) return listing.listingNetwork;
     if (connectPrefill?.covenantId) return 'kcc20';
-    return tokenNetworkToListingNetwork(listing?.network ?? 'L2', listing?.contractAddress);
+    return 'kcc20';
   });
   const [contractAddress, setContractAddress] = useState(listing?.contractAddress ?? '');
   const [onChainSnapshot, setOnChainSnapshot] = useState<TokenOnChainSnapshot | null>(listing?.onChainSnapshot ?? null);
@@ -249,7 +245,7 @@ export function CreateTokenForm({
   const [programmableNetwork, setProgrammableNetwork] = useState<ProgrammableNetworkId>(
     (listing?.onChainSnapshot?.networkId as ProgrammableNetworkId | undefined) ??
       connectPrefill?.network ??
-      (connectPrefill?.fromKron ? 'mainnet' : 'testnet-10'),
+      DEFAULT_PROGRAMMABLE_NETWORK,
   );
   const [kcc20AutoLookup] = useState(() => Boolean(connectPrefill?.covenantId && !listing));
   const [l2LookupLoading, setL2LookupLoading] = useState(false);
@@ -259,11 +255,7 @@ export function CreateTokenForm({
   );
   const [networkOrder, setNetworkOrder] = useState<TokenListingNetwork[]>(() => {
     const secondary = initSecondaryNetworks(listing);
-    const primary =
-      listing?.listingNetwork ??
-      (connectPrefill?.covenantId
-        ? 'kcc20'
-        : tokenNetworkToListingNetwork(listing?.network ?? 'L2', listing?.contractAddress));
+    const primary = listing?.listingNetwork ?? (connectPrefill?.covenantId ? 'kcc20' : 'kcc20');
     return initNetworkOrder(listing, primary, secondary);
   });
 
@@ -832,38 +824,11 @@ export function CreateTokenForm({
             </div>
 
             <div>
-              <KxFormFieldLabel>Token type</KxFormFieldLabel>
-              <p className="kx-body-sm mb-3">
-                Choose whether you are listing a fictional/community token or an existing on-chain token.
+              <KxFormFieldLabel>Listing type</KxFormFieldLabel>
+              <p className="kx-body-sm">
+                Only real on-chain tokens can be listed. Connect KRC-20, KCC-20, or an L2 contract, then verify
+                deployer ownership after publish so the token can appear in Hub Pay with catalogs.
               </p>
-              <KxSegmentToggle
-                value={assetKind}
-                onChange={(v) => {
-                  setAssetKind(v);
-                  if (v === 'fictional') {
-                    setOnChainSnapshot(null);
-                    setKrc20Selected(null);
-                    setDeployerAddress('');
-                    setEnabledModules((prev) => {
-                      const next = new Set(
-                        filterModulesForAssetKind([...prev] as TokenModuleId[], 'fictional'),
-                      );
-                      return next;
-                    });
-                    setModulesConfig((prev) => ({
-                      ...prev,
-                      utilityProducts: [],
-                      poll: undefined,
-                    }));
-                    setSectionToggles((prev) => ({ ...prev, utility: false }));
-                  }
-                }}
-                options={[
-                  { value: 'fictional', label: 'Fictional / community' },
-                  { value: 'real', label: 'Real (on-chain)' },
-                ]}
-                ariaLabel="Token asset kind"
-              />
             </div>
 
             <div className="space-y-4">
@@ -1166,7 +1131,7 @@ export function CreateTokenForm({
               <p className="kx-body-sm mb-4">
                 Unlock roadmap editors, Hub integrations, analytics, and featured placement.
                 {!isRealToken
-                  ? ' Fictional tokens can use presentation modules only. Real on-chain tokens unlock integrations after deployer verification.'
+                  ? ' Real on-chain tokens unlock Hub utility integrations after deployer verification.'
                   : ''}
                 {moduleDiscountPercent > 0 ? ` KREX tier discount: ${moduleDiscountPercent}% off modules.` : ''}
               </p>
@@ -1256,29 +1221,35 @@ export function CreateTokenForm({
               { snapshot: pricingSnapshot },
             )}
             currencies={buildKasKrexCurrencyOptions()}
-            catalogEntries={buildHubCurrencyCatalog({
+            catalogEntries={buildPublicHubCurrencyCatalog({
               amountKas: formQuote.totalKas,
               pricingSnapshot,
               krexBalance: krexBalance,
-              kcc20Tokens:
-                kcc20Selected?.covenantId
-                  ? [
-                      {
-                        id: `kcc20:${kcc20Selected.covenantId}`,
-                        label: kcc20Selected.ticker || kcc20Selected.name || 'KCC-20',
-                        covenantId: kcc20Selected.covenantId,
-                        ticker: kcc20Selected.ticker,
-                        decimals: kcc20Selected.decimals ?? 8,
-                      },
-                    ]
-                  : undefined,
+              extra: {
+                kcc20Tokens:
+                  kcc20Selected?.covenantId
+                    ? [
+                        {
+                          id: `kcc20:${kcc20Selected.covenantId}`,
+                          label: kcc20Selected.ticker || kcc20Selected.name || 'KCC-20',
+                          covenantId: kcc20Selected.covenantId,
+                          ticker: kcc20Selected.ticker,
+                          decimals: kcc20Selected.decimals ?? 8,
+                        },
+                      ]
+                    : undefined,
+              },
             })}
             selectedCurrencyId={paymentCurrency}
             onCurrencyChange={(id) => setPaymentCurrency(id as StorePaymentCurrency)}
             onCatalogSelect={(opt) => {
               if (opt.kind === 'kas' || opt.kind === 'krex') {
                 setPaymentCurrency(opt.id as StorePaymentCurrency);
+                return;
               }
+              // Token currencies: keep fee rail on KAS for listing fees until token fee rails settle.
+              // Selection still wires the catalog trigger so users see verified tokens publicly.
+              setPaymentCurrency('KAS');
             }}
             splitLegs={
               paymentCurrency === 'KAS'

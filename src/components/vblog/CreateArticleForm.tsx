@@ -19,7 +19,6 @@ import { Alert } from '@/components/Alert';
 import { VBlogMagazineIntegration } from './VBlogMagazineIntegration';
 import { ArticlePreviewModal } from './ArticlePreviewModal';
 import { registerMagazineSubmission } from '@/lib/magazines/submissions';
-import { KREXBuyWizard } from '@/components/rewards/KREXBuyWizard';
 import { getVBlogModuleEffectivePriceKas, getEnabledVBlogModuleIds, getArticlePaidModuleIds, VBLOG_MODULE_OFFERS } from '@/lib/vblog/modules';
 import { useIPFSUpload } from '@/lib/ipfs/hooks';
 import { getBestGatewayUrl, normalizeIpfsUrlForForm } from '@/lib/hub/ipfsStandard';
@@ -43,6 +42,12 @@ import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 import { HubFlowProgress } from '@/components/hub/HubFlowProgress';
 import { getHubFlowPreset } from '@/lib/hub/hubFlowProgress';
 import { KxFormFieldLabel } from '@/components/ui/KxFormFieldLabel';
+import { HubListingCalculationBreakdown } from '@/components/hub/HubListingCalculationBreakdown';
+import { hubCatalogSelectionToStoreCurrency } from '@/hooks/useHubPayWithCatalog';
+import type { HubListingPriceQuote } from '@/lib/hub/listingPricing';
+import { formatHubPaymentAmount, buildKasKrexCurrencyOptions } from '@/lib/payments/hubPaymentTypes';
+import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
+import type { StorePaymentCurrency } from '@/lib/store/currencies';
 
 const FORM_PANEL_CLASS =
   'bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 sm:p-8';
@@ -98,7 +103,7 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
   const [socialLinks, setSocialLinks] = useState<KxLinkRow[]>(() => vBlogSocialLinksToRows(article?.socialLinks));
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [isKrexWizardOpen, setIsKrexWizardOpen] = useState(false);
+  const [paymentCurrency, setPaymentCurrency] = useState<StorePaymentCurrency>('KAS');
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [magazineIntegrationEnabled, setMagazineIntegrationEnabled] = useState(Boolean(article?.linkedMagazineId && article?.linkedIssueNumber));
   const [premiumSectionEnabled, setPremiumSectionEnabled] = useState(Boolean(article?.modules?.premiumSectionEnabled));
@@ -221,6 +226,24 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
   const discountKas = formQuote.discountKas;
   const discountPercent =
     formQuote.subtotalKas > 0 ? Math.round((discountKas / formQuote.subtotalKas) * 100) : 0;
+  const listingQuote = useMemo(
+    (): HubListingPriceQuote => ({
+      action: formQuote.action,
+      payloadBytes: formQuote.payloadBytes,
+      chunkCount: formQuote.chunkCount,
+      baseFeeKas: formQuote.baseFeeKas,
+      sizeFeeKas: formQuote.sizeFeeKas,
+      networkFeeBufferKas: formQuote.networkFeeBufferKas,
+      modulesFeeKas: formQuote.modulesFeeKas,
+      moduleLines: formQuote.moduleLines,
+      subtotalKas: formQuote.subtotalKas,
+      discountPercent,
+      discountKas,
+      totalKas: formQuote.totalKas,
+      contentHash: '',
+    }),
+    [formQuote, discountKas, discountPercent],
+  );
 
   const tagsArray = useMemo(
     () => tags.split(',').map((tag) => tag.trim()).filter(Boolean),
@@ -865,61 +888,35 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
       <HubAsideRail adSlotId="HALO_VBLOG_RIGHT" adId="ad-slot-vblog-article-form-rail">
         <VBlogDashboardBenefitsPanel />
         <aside className="flex flex-col bg-gradient-to-b from-white to-zinc-50 dark:from-zinc-900 dark:to-zinc-900/80 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 space-y-4 shadow-[0_10px_30px_-18px_rgba(227, 13, 27,0.4)]">
-        <DAppSectionHeader title="Calculation breakdown" className="mb-1" />
-        <div className="space-y-1.5 text-xs text-zinc-600 dark:text-zinc-400">
-          <div className="flex justify-between"><span>Base fee</span><span className="font-semibold text-zinc-900 dark:text-zinc-100">{formQuote.baseFeeKas} KAS</span></div>
-          <div className="flex justify-between"><span>Size fee</span><span className="font-semibold text-zinc-900 dark:text-zinc-100">{formQuote.sizeFeeKas} KAS</span></div>
-          <div className="flex justify-between"><span>Network buffer</span><span className="font-semibold text-zinc-900 dark:text-zinc-100">{formQuote.networkFeeBufferKas} KAS</span></div>
-          {formQuote.moduleLines.map((line) => (
-            <div key={line.id} className="flex justify-between gap-2">
-              <span className="truncate">{line.title}</span>
-              <span className="font-semibold text-zinc-900 dark:text-zinc-100 shrink-0">+{line.kas} KAS</span>
-            </div>
-          ))}
-          {formQuote.modulesFeeKas > 0 ? (
-            <div className="flex justify-between border-t border-zinc-200 dark:border-zinc-700 pt-1.5">
-              <span>Modules subtotal</span>
-              <span className="font-semibold text-[color:var(--hub-accent)]">{formQuote.modulesFeeKas} KAS</span>
-            </div>
-          ) : null}
-          {formQuote.discountKas > 0 ? (
-            <div className="flex justify-between border-t border-zinc-200 dark:border-zinc-700 pt-1.5">
-              <span>Subtotal</span>
-              <span className="font-semibold text-zinc-900 dark:text-zinc-100">{formQuote.subtotalKas} KAS</span>
-            </div>
-          ) : null}
-          <div className="flex justify-between"><span>Payload bytes</span><span className="font-semibold text-zinc-900 dark:text-zinc-100">{formQuote.payloadBytes}</span></div>
-          <div className="flex justify-between"><span>Chunk estimate</span><span className="font-semibold text-zinc-900 dark:text-zinc-100">{formQuote.chunkCount}</span></div>
-        </div>
-        <div className="rounded-xl border border-zinc-200 dark:border-zinc-700 p-3">
-          <p className="text-xs uppercase tracking-widest text-zinc-500">Total to pay</p>
-          <p className="text-2xl font-black text-zinc-900 dark:text-zinc-100">{formQuote.totalKas} KAS</p>
-        </div>
-        <div className="rounded-xl bg-[color:var(--hub-accent-muted)] border border-[color:var(--hub-accent-border)] p-3 text-sm text-zinc-700 dark:text-zinc-300">
-          {isEditMode
-            ? 'One Kaspa L1 payment refreshes on-chain metadata. Module and payload growth add to the 1 KAS base fee.'
-            : 'One Kaspa L1 payment covers the article and any enabled modules. Ensure your wallet has enough KAS.'}
-        </div>
-        {pricing.tier.hasKREXDiscount && (
-          <div className="rounded-xl bg-emerald-500/10 border border-emerald-500/20 p-3 text-sm text-emerald-800 dark:text-emerald-300">
-            KREX discount: -{discountKas.toFixed(2)} KAS ({discountPercent}% off total).
-          </div>
-        )}
-        {!pricing.tier.hasKREXDiscount && (
-          <button
-            type="button"
-            onClick={() => setIsKrexWizardOpen(true)}
-            className="w-full k-control-btn !border-emerald-500/30 !text-emerald-700 dark:!text-emerald-300"
-          >
-            Buy KREX to unlock discount
-          </button>
-        )}
+        <HubListingCalculationBreakdown
+          quote={listingQuote}
+          hubPoints={isEditMode ? undefined : HUB_EARN_POINTS.vblogArticleCreate}
+          footerNote={
+            isEditMode
+              ? 'One Kaspa L1 payment refreshes on-chain metadata. Module and payload growth add to the 1 KAS base fee.'
+              : 'One Kaspa L1 payment covers the article and any enabled modules. Ensure your wallet has enough KAS.'
+          }
+          selectedCurrencyId={paymentCurrency}
+          onCurrencySelect={(opt) => {
+            const next = hubCatalogSelectionToStoreCurrency(opt);
+            if (next === 'KAS' || next === 'KREX') setPaymentCurrency(next);
+            else setPaymentCurrency('KAS');
+          }}
+        />
         <button
           type="submit"
           disabled={isSubmitting || isUploading}
           className="w-full k-control-btn hub-cta-btn disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {isSubmitting ? (isEditMode ? 'Updating...' : 'Creating...') : (isEditMode ? 'Update Article' : 'Create Article')}
+          {isSubmitting
+            ? isEditMode
+              ? 'Updating...'
+              : 'Creating...'
+            : `${isEditMode ? 'Update Article' : 'Create Article'} (${formatHubPaymentAmount(
+                buildKasKrexCurrencyOptions().find((c) => c.id === paymentCurrency) ??
+                  buildKasKrexCurrencyOptions()[0],
+                formQuote.totalKas,
+              )})`}
         </button>
         <button
           type="button"
@@ -942,7 +939,6 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
         />
         </aside>
         </HubAsideRail>
-      <KREXBuyWizard isOpen={isKrexWizardOpen} onClose={() => setIsKrexWizardOpen(false)} />
       <ArticlePreviewModal
         isOpen={isPreviewOpen}
         onClose={() => setIsPreviewOpen(false)}
