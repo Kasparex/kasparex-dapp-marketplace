@@ -216,12 +216,30 @@ export function paymentPlanPrimaryAddress(plan: PaymentPlan): string {
 export function mergeSameAddressLegs(plan: PaymentPlan): PaymentPlan {
   const map = new Map<string, PaymentLeg>();
   for (const leg of plan.legs) {
-    const key = `${leg.role}:${normAddress(leg.address)}`;
+    if (!(leg.amount > 0)) continue;
+    const address = normAddress(leg.address);
+    const key = address.toLowerCase();
     const existing = map.get(key);
     if (!existing) {
-      map.set(key, { ...leg, address: normAddress(leg.address) });
-    } else {
-      existing.amount = roundKas(existing.amount + leg.amount);
+      map.set(key, { ...leg, address, amount: roundKas(leg.amount) });
+      continue;
+    }
+    existing.amount = roundKas(existing.amount + leg.amount);
+    if (leg.label && existing.label && leg.label !== existing.label) {
+      existing.label = `${existing.label} + ${leg.label}`;
+    } else if (leg.label && !existing.label) {
+      existing.label = leg.label;
+    }
+    // Prefer treasury/platform role when collapsing creator+platform to one output.
+    if (
+      (leg.role === 'treasury' || leg.role === 'platform') &&
+      existing.role !== 'treasury' &&
+      existing.role !== 'platform'
+    ) {
+      existing.role = leg.role;
+    }
+    if (leg.required !== false) {
+      existing.required = true;
     }
   }
   return { ...plan, legs: Array.from(map.values()) };
