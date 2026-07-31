@@ -219,6 +219,49 @@ export function buildAuthorHubFeePlan(args: {
   };
 }
 
+/**
+ * Standard Hub listing vote plan (dApps / Games / Tokens).
+ * Always mirrors the KasWare multi-out shape users expect:
+ * primary share (author or treasury) + rewards pool + change to voter.
+ * Never emits author + treasury + rewards as three payment outs.
+ */
+export function buildListingVotePlan(args: {
+  authorAddress: string;
+  note?: string;
+  payloadHex?: string;
+}): PaymentPlan {
+  const authorRaw = args.authorAddress.trim();
+  if (!authorRaw) throw new Error('Vote author address is required');
+
+  const author = normAddress(authorRaw);
+  const treasuryFallback = getHubTreasuryAddress().trim() || authorRaw;
+  const totalKas = HUB_PAYMENT_MIN_LEG_KAS * 3;
+
+  const plan = buildHubPlatformFeePlan({
+    totalKas,
+    treasuryAddress: treasuryFallback,
+    note: args.note,
+    payloadHex: args.payloadHex,
+  });
+
+  const authorKey = author.toLowerCase();
+  const treasuryKey = normAddress(treasuryFallback).toLowerCase();
+  if (authorKey === treasuryKey) return plan;
+
+  return {
+    ...plan,
+    legs: plan.legs.map((leg) => {
+      if (leg.role !== 'treasury') return leg;
+      return {
+        ...leg,
+        role: 'creator' as const,
+        address: author,
+        label: 'Author',
+      };
+    }),
+  };
+}
+
 /** Author / creator share + optional platform fee (vBlog-style). */
 export function buildCreatorPlatformPlan(args: {
   creatorAddress: string;
