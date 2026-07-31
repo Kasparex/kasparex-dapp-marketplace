@@ -5,7 +5,7 @@ import { useAccount, useSignMessage } from 'wagmi';
 import { Alert } from '@/components/Alert';
 import { KX_FORM_ADD_BTN_CLASS } from '@/components/ui/KxLinkRowsEditor';
 import { useKaspaWallet } from '@/lib/kaspa/context';
-import { signKaspaMessage } from '@/lib/kaspa/wallet';
+import { getWalletProvider, signKaspaMessage } from '@/lib/kaspa/wallet';
 import { normalizeKaspaAddress } from '@/lib/kaspa/sdk';
 import type { KaspaWalletProvider } from '@/lib/kaspa/types';
 import type { TokenListingNetwork } from '@/lib/tokens/listingNetwork';
@@ -183,12 +183,13 @@ export function TokenFormOwnershipGate({
         }
 
         if (expectedDeployer && isPubkeyHex(expectedDeployer)) {
-          const getPk = kaspaState.provider.getPublicKey;
+          const wallet = getWalletProvider(kaspaState.provider as KaspaWalletProvider);
+          const getPk = wallet?.getPublicKey;
           if (typeof getPk !== 'function') {
             setError('This wallet cannot expose a public key for deployer matching. Try KasWare / Kastle.');
             return;
           }
-          const pk = await getPk();
+          const pk = await getPk.call(wallet);
           const expectedX = toXOnlyPubkeyHex(expectedDeployer);
           const walletX = pk ? toXOnlyPubkeyHex(pk) : null;
           if (!expectedX || !walletX || expectedX !== walletX) {
