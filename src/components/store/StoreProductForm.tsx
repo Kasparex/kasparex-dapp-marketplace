@@ -41,7 +41,9 @@ import { estimateStoreListingQuote } from '@/lib/store/listingQuote';
 import { KxInFormPremiumRow } from '@/components/ui/KxInFormPremiumRow';
 import { STORE_MODULE_OFFERS, type StoreModuleId } from '@/lib/store/modules';
 import { StoreFileUpload } from '@/components/store/StoreFileUpload';
-import { parseStoreProductTags, normalizeStoreProductTags } from '@/lib/store/tags';
+import { normalizeStoreProductTags } from '@/lib/store/tags';
+import { KxTagsField } from '@/components/ui/KxTagsField';
+import { normalizeHubTags } from '@/lib/hub/suggestedTags';
 
 import { STORE_LISTING_FEE_KAS, STORE_UPDATE_FEE_KAS } from '@/lib/store/listingQuote';
 const TREASURY = process.env.NEXT_PUBLIC_STORE_TREASURY_ADDRESS || '';
@@ -74,7 +76,7 @@ export function StoreProductForm({ product }: StoreProductFormProps) {
 
   const [description, setDescription] = useState(() => contentForRichEditor(product?.description ?? ''));
   const [content, setContent] = useState(() => contentForRichEditor(product?.content ?? ''));
-  const [tagsRaw, setTagsRaw] = useState(() => (product?.tags ?? []).join(', '));
+  const [tags, setTags] = useState<string[]>(() => normalizeHubTags(product?.tags ?? []));
   const [thumbnailSource, setThumbnailSource] = useState<'url' | 'file'>('file');
   const [thumbnailUrl, setThumbnailUrl] = useState(
     product?.thumbnailCid ? getBestGatewayUrl(product.thumbnailCid) : '',
@@ -112,7 +114,6 @@ export function StoreProductForm({ product }: StoreProductFormProps) {
 
   const categories: ProductCategory[] = ['Software', 'Art', 'Music', 'Templates', 'Other'];
   const actionFee = isEdit ? STORE_UPDATE_FEE_KAS : STORE_LISTING_FEE_KAS;
-  const parsedTags = useMemo(() => parseStoreProductTags(tagsRaw), [tagsRaw]);
 
   const listingQuote = useMemo(
     () =>
@@ -214,7 +215,7 @@ export function StoreProductForm({ product }: StoreProductFormProps) {
       const feeTxHash = await payActionFee();
       const descriptionPayload = description.trim();
       const contentPayload = content.trim() || undefined;
-      const tagsPayload = normalizeStoreProductTags(parsedTags);
+      const tagsPayload = normalizeStoreProductTags(tags);
 
       if (isEdit && product) {
         const result = await updateProduct(product.id, state.address, {
@@ -440,18 +441,12 @@ export function StoreProductForm({ product }: StoreProductFormProps) {
           </div>
 
           <div>
-            <KxFormFieldLabel>Tags (comma-separated)</KxFormFieldLabel>
-            <input
-              type="text"
-              value={tagsRaw}
-              onChange={(e) => setTagsRaw(e.target.value)}
-              placeholder="tag1, tag2, tag3"
-              className="k-input"
+            <KxTagsField
+              value={tags}
+              onChange={setTags}
               disabled={isProcessing}
+              hint="Select up to 3 tags. They appear on the product page and help buyers find your listing in the Store sidebar filter."
             />
-            <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
-              Tags appear on the product page and help buyers find your listing in the Store sidebar filter.
-            </p>
           </div>
 
           <div className="k-form-group !mb-0">

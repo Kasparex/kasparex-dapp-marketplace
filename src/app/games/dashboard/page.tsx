@@ -34,7 +34,12 @@ import {
 } from '@/lib/hub/listingPricing';
 import { krexTierDiscountPercent } from '@/lib/chronicles/vault/pricing';
 import { HubListingCalculationBreakdown } from '@/components/hub/HubListingCalculationBreakdown';
-import { hubCatalogSelectionToStoreCurrency } from '@/hooks/useHubPayWithCatalog';
+import { KxTagsField } from '@/components/ui/KxTagsField';
+import { normalizeHubTags } from '@/lib/hub/suggestedTags';
+import type { StorePaymentCurrency } from '@/lib/store/currencies';
+import { formatHubPaymentAmount } from '@/lib/payments/hubPaymentTypes';
+import { resolveCatalogPaymentOption } from '@/lib/payments/currencyCatalog';
+import { useHubPayWithCatalog, hubCatalogSelectionToStoreCurrency } from '@/hooks/useHubPayWithCatalog';
 import { creditHubListingEarn } from '@/lib/rewards/creditHubListingEarn';
 import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
 import { HUB_DELETE_FEE_KAS_STANDARD } from '@/lib/hub/paidDelete';
@@ -160,9 +165,9 @@ export default function GamesDashboardPage() {
   const [version, setVersion] = useState('0.1.0');
   const [gameUrl, setGameUrl] = useState('');
   const [categories, setCategories] = useState<string[]>([]);
-  const [tagsRaw, setTagsRaw] = useState('');
+  const [tags, setTags] = useState<string[]>([]);
   const [boostEnabled, setBoostEnabled] = useState(false);
-  const [paymentCurrency, setPaymentCurrency] = useState<'KAS' | 'KREX'>('KAS');
+  const [paymentCurrency, setPaymentCurrency] = useState<StorePaymentCurrency>('KAS');
   const [listingsVersion, setListingsVersion] = useState(0);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -171,7 +176,6 @@ export default function GamesDashboardPage() {
     () => readGamePromoListingsForWallet(state.address),
     [state.address, listingsVersion],
   );
-  const tags = useMemo(() => parseTags(tagsRaw), [tagsRaw]);
   const earnPoints = useMemo(
     () => computeEarnedHubPoints(HUB_EARN_POINTS.gamesPromoList, krexTier),
     [krexTier],
@@ -231,6 +235,11 @@ export default function GamesDashboardPage() {
     ],
   );
 
+  const { catalogEntries: payCatalog, pricingSnapshot: payPricingSnapshot } = useHubPayWithCatalog({
+    amountKas: formQuote.totalKas,
+  });
+  const paymentOption = resolveCatalogPaymentOption(payCatalog, paymentCurrency);
+
   const canSubmit = Boolean(
     state.isConnected &&
       state.address &&
@@ -284,7 +293,7 @@ export default function GamesDashboardPage() {
     setVersion('0.1.0');
     setGameUrl('');
     setCategories([]);
-    setTagsRaw('');
+    setTags([]);
     setBoostEnabled(false);
     setEditingId(null);
   };
@@ -307,7 +316,7 @@ export default function GamesDashboardPage() {
     setVersion(item.version || '0.1.0');
     setGameUrl(item.gameUrl);
     setCategories(item.categories ?? []);
-    setTagsRaw((item.tags ?? []).join(', '));
+    setTags(normalizeHubTags(item.tags ?? []));
     setBoostEnabled(false);
     setTab('create');
     window.setTimeout(() => {
@@ -844,20 +853,11 @@ export default function GamesDashboardPage() {
                   </div>
 
                   <div>
-                    <div className="mb-2 flex items-center justify-between gap-2">
-                      <KxFormFieldLabel>Tags</KxFormFieldLabel>
-                      <KxFieldCharCount value={tagsRaw} max={HUB_FORM_LIMITS.tags.max} />
-                    </div>
-                    <input
-                      className="k-input"
-                      value={tagsRaw}
-                      maxLength={HUB_FORM_LIMITS.tags.max}
-                      onChange={(e) => setTagsRaw(e.target.value)}
-                      placeholder="Timers, Refine, GRID (comma separated)"
+                    <KxTagsField
+                      value={tags}
+                      onChange={setTags}
+                      hint="Shown on the Metadata panel and halo chips (max 3)."
                     />
-                    <p className="mt-1.5 text-xs text-zinc-500">
-                      Wired to the Metadata panel and halo chips (max 12).
-                    </p>
                   </div>
                 </div>
 
@@ -899,9 +899,7 @@ export default function GamesDashboardPage() {
                     footerNote="One Kaspa L1 payment covers the listing, payload size, and any enabled modules."
                     selectedCurrencyId={paymentCurrency}
                     onCurrencySelect={(opt) => {
-                      const next = hubCatalogSelectionToStoreCurrency(opt);
-                      if (next === 'KAS' || next === 'KREX') setPaymentCurrency(next);
-                      else setPaymentCurrency('KAS');
+                      setPaymentCurrency(hubCatalogSelectionToStoreCurrency(opt));
                     }}
                   />
 
@@ -920,8 +918,12 @@ export default function GamesDashboardPage() {
                     {isProcessing || isUploading
                       ? 'Processing...'
                       : editingId
-                        ? `Update listing (${paymentCurrency})`
-                        : `Publish Game (${paymentCurrency})`}
+                        ? `Update listing (${formatHubPaymentAmount(paymentOption, formQuote.totalKas, {
+                            snapshot: payPricingSnapshot,
+                          })})`
+                        : `Publish Game (${formatHubPaymentAmount(paymentOption, formQuote.totalKas, {
+                            snapshot: payPricingSnapshot,
+                          })})`}
                   </button>
                   <HubFlowProgress steps={getHubFlowPreset('hubPublish')} busy={isProcessing || isUploading} />
                 </aside>

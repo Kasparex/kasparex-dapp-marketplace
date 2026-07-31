@@ -7,6 +7,7 @@ import { KxModalHeader } from '@/components/payments/KxPaymentUi';
 import type { HubCurrencyCatalogEntry } from '@/lib/payments/currencyCatalog';
 import { catalogEntryToOption } from '@/lib/payments/currencyCatalog';
 import type { HubPaymentCurrencyOption } from '@/lib/payments/hubPaymentTypes';
+import { prefetchImageUrls } from '@/lib/cache/aggressiveCache';
 
 type NetworkFilter = 'all' | 'kaspa_l1' | 'l2';
 type DexFilter = 'all' | 'native' | 'kron' | 'kaspacom' | 'zealous';
@@ -84,8 +85,10 @@ export function HubPaymentCurrencyCatalogModal({
       setQuery('');
       setNetworkFilter('all');
       setDexFilter('all');
+      return;
     }
-  }, [isOpen]);
+    prefetchImageUrls(entries.map((entry) => entry.imageUrl));
+  }, [isOpen, entries]);
 
   const filtered = useMemo(() => {
     return entries.filter((entry) => {
@@ -312,6 +315,21 @@ export function HubPaymentCurrencyCatalogTrigger({
         aria-expanded={open}
       >
         <span className="inline-flex min-w-0 items-center gap-2 truncate">
+          {selected?.imageUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={selected.imageUrl}
+              alt=""
+              className="h-6 w-6 shrink-0 rounded-full border border-zinc-200 object-cover dark:border-zinc-600"
+            />
+          ) : selected ? (
+            <span
+              className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-zinc-200 bg-white text-[9px] font-bold uppercase text-zinc-700 dark:border-zinc-600 dark:bg-zinc-900 dark:text-zinc-200"
+              aria-hidden
+            >
+              {(selected.tick ?? selected.label).slice(0, 3)}
+            </span>
+          ) : null}
           <span className="font-semibold">{selected?.label ?? 'Select currency'}</span>
           {selected?.amountLabel ? (
             <span className="truncate text-xs font-normal text-zinc-500">{selected.amountLabel}</span>

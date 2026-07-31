@@ -1,24 +1,16 @@
 import type { Product } from './types';
 
+import { HUB_MAX_LISTING_TAGS, normalizeHubTags } from '@/lib/hub/suggestedTags';
+
 export function parseStoreProductTags(raw: string): string[] {
-  return raw
-    .split(/[,#]/)
-    .map((t) => t.trim().toLowerCase())
-    .filter(Boolean)
-    .slice(0, 12);
+  return normalizeHubTags(
+    raw.split(/[,#]/).map((t) => t.trim()),
+    HUB_MAX_LISTING_TAGS,
+  );
 }
 
 export function normalizeStoreProductTags(tags?: string[]): string[] {
-  if (!tags?.length) return [];
-  const seen = new Set<string>();
-  const out: string[] = [];
-  for (const tag of tags) {
-    const normalized = tag.trim().toLowerCase();
-    if (!normalized || seen.has(normalized)) continue;
-    seen.add(normalized);
-    out.push(normalized);
-  }
-  return out.slice(0, 12);
+  return normalizeHubTags(tags ?? [], HUB_MAX_LISTING_TAGS);
 }
 
 export function getProductTagsFromCatalog(products: Product[]): string[] {

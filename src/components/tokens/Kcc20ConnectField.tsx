@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { KxFormFieldLabel } from '@/components/ui/KxFormFieldLabel';
+import { KX_FORM_ADD_BTN_CLASS } from '@/components/ui/KxLinkRowsEditor';
 import { KxSegmentToggle } from '@/components/ui/KxSegmentToggle';
 import { DEFAULT_PROGRAMMABLE_NETWORK } from '@/lib/programmable/config';
 import { normalizeKcc20ConnectPaste } from '@/lib/programmable/kron';
@@ -146,7 +147,7 @@ export function Kcc20ConnectField({
         </KxFormFieldLabel>
         <p className="kx-body-sm mb-2">
           Paste a KCC-20 covenant id, genesis transaction id, or a DEX token link (for example{' '}
-          <span className="text-[11px]">kron.technology/token/…</span>). Lookups use mainnet indexers
+          <span>kron.technology/token/…</span>). Lookups use mainnet indexers
           (kcc20.info, with KaspaCom / kascov fallback). Nothing is deployed from this form.
         </p>
         <input
@@ -166,7 +167,7 @@ export function Kcc20ConnectField({
           type="button"
           onClick={() => void runLookup()}
           disabled={disabled || isSearching || normalizeKcc20ConnectPaste(value).length < 64}
-          className="k-control-btn text-sm disabled:opacity-50"
+          className={`${KX_FORM_ADD_BTN_CLASS} disabled:opacity-50`}
         >
           {isSearching ? 'Looking up covenant…' : 'Look up covenant'}
         </button>

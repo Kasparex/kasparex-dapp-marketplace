@@ -5,6 +5,8 @@ import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 import { KxFormFieldLabel } from '@/components/ui/KxFormFieldLabel';
 import { KxInFormPremiumRow } from '@/components/ui/KxInFormPremiumRow';
 import { KxRichTextEditor } from '@/components/ui/KxRichTextEditor';
+import { KxTagsField } from '@/components/ui/KxTagsField';
+import { normalizeHubTags } from '@/lib/hub/suggestedTags';
 import { Krc20TickerSearchField } from '@/components/tokens/Krc20TickerSearchField';
 import { Kcc20ConnectField } from '@/components/tokens/Kcc20ConnectField';
 import { TokensBenefitsPanel } from '@/components/tokens/TokensBenefitsPanel';
@@ -221,7 +223,7 @@ export function CreateTokenForm({
   const [name, setName] = useState(listing?.name ?? '');
   const [description, setDescription] = useState(() => contentForRichEditor(listing?.description ?? ''));
   const [shortDescription, setShortDescription] = useState(listing?.shortDescription ?? '');
-  const [tags, setTags] = useState((listing?.tags ?? []).join(', '));
+  const [tags, setTags] = useState<string[]>(() => normalizeHubTags(listing?.tags ?? []));
   const [category, setCategory] = useState(listing?.category ?? 'Other');
   const [assetKind] = useState<TokenAssetKind>('real');
   const [listingNetwork, setListingNetwork] = useState<TokenListingNetwork>(() => {
@@ -403,10 +405,7 @@ export function CreateTokenForm({
   const tierDiscount = krexTierDiscountPercent(tier);
   const moduleDiscountPercent = getTokenModuleDiscountPercent(tier);
 
-  const tagsArray = useMemo(
-    () => tags.split(',').map((tag) => tag.trim()).filter(Boolean).slice(0, TOKEN_CONTENT_LIMITS.tags.max),
-    [tags],
-  );
+  const tagsArray = tags;
 
   const resolvedMedia = useMemo(() => resolveTokenListingMedia(media), [media]);
 
@@ -800,7 +799,7 @@ export function CreateTokenForm({
         onChainSnapshot: onChainSnapshot ?? undefined,
         networks: assembledNetworks,
         modulesConfig,
-        paymentCurrency: paymentOption.kind === 'krex' ? 'KREX' : 'KAS',
+        paymentCurrency: paymentOption.id,
       };
       const result = listing
         ? await updateExistingListing(listing.id, input, kaspaState.address!)
@@ -1006,12 +1005,12 @@ export function CreateTokenForm({
                     </span>
                   ) : null}
                   {onChainSnapshot.source === 'kcc20' && onChainSnapshot.covenantId ? (
-                    <span className="col-span-2 truncate font-mono text-[10px]" title={onChainSnapshot.covenantId}>
+                    <span className="col-span-2 truncate text-xs" title={onChainSnapshot.covenantId}>
                       Covenant: {onChainSnapshot.covenantId}
                     </span>
                   ) : null}
                   {deployerAddress ? (
-                    <span className="col-span-2 truncate font-mono text-[10px]" title={deployerAddress}>
+                    <span className="col-span-2 truncate text-xs" title={deployerAddress}>
                       {onChainSnapshot.source === 'l2' ? 'Owner' : 'Deployer'}: {deployerAddress}
                     </span>
                   ) : null}
@@ -1101,14 +1100,11 @@ export function CreateTokenForm({
             </div>
 
             <div>
-              <KxFormFieldLabel>Tags (comma-separated)</KxFormFieldLabel>
-              <input
-                type="text"
+              <KxTagsField
                 value={tags}
-                onChange={(e) => setTags(e.target.value)}
-                placeholder="defi, governance, utility"
-                className="k-input mt-2 w-full"
+                onChange={setTags}
                 disabled={isSubmitting}
+                hint="Select up to 3 tags. Search suggestions or add your own."
               />
             </div>
           </div>

@@ -53,8 +53,9 @@ import {
 import { krexTierDiscountPercent } from '@/lib/chronicles/vault/pricing';
 import { HubListingCalculationBreakdown } from '@/components/hub/HubListingCalculationBreakdown';
 import { useHubPayment } from '@/hooks/useHubPayment';
-import { hubCatalogSelectionToStoreCurrency } from '@/hooks/useHubPayWithCatalog';
-import { formatHubPaymentAmount, buildKasKrexCurrencyOptions } from '@/lib/payments/hubPaymentTypes';
+import { hubCatalogSelectionToStoreCurrency, useHubPayWithCatalog } from '@/hooks/useHubPayWithCatalog';
+import { resolveCatalogPaymentOption } from '@/lib/payments/currencyCatalog';
+import { formatHubPaymentAmount } from '@/lib/payments/hubPaymentTypes';
 import { buildHubPlatformFeePlan } from '@/lib/payments/paymentPlan';
 import { htmlToPlainText } from '@/lib/richText/html';
 
@@ -91,7 +92,7 @@ export function MagazineEditor() {
   const [includedVblogSlugs, setIncludedVblogSlugs] = useState<string[]>([]);
   const [spotlightEnabled, setSpotlightEnabled] = useState(false);
   const [collectibleCoverEnabled, setCollectibleCoverEnabled] = useState(false);
-  const [paymentCurrency, setPaymentCurrency] = useState<'KAS' | 'KREX'>('KAS');
+  const [paymentCurrency, setPaymentCurrency] = useState<string>('KAS');
 
   const myMagazines = useMemo(() => {
     if (!kaspa.isConnected || !kaspa.address) return [];
@@ -212,6 +213,11 @@ export function MagazineEditor() {
     ],
   );
 
+  const { catalogEntries, pricingSnapshot } = useHubPayWithCatalog({
+    amountKas: formQuote.totalKas,
+  });
+  const paymentOption = resolveCatalogPaymentOption(catalogEntries, paymentCurrency);
+
   const resolveMagazineHeading = useCallback((): Magazine | null => {
     if (!kaspa.address) return null;
     if (existingMagazineId) {
@@ -301,11 +307,9 @@ export function MagazineEditor() {
 
       const plainNote = buildMagazineBindingPlainNote({ cid, magazineSlug: mag.slug, issueNumber });
       const payloadHex = buildMagazineBindingPayloadHex({ cid, magazineSlug: mag.slug, issueNumber });
-      const currencyOpt =
-        buildKasKrexCurrencyOptions().find((c) => c.id === paymentCurrency) ??
-        buildKasKrexCurrencyOptions()[0];
+      const currencyOpt = paymentOption;
       const plan =
-        paymentCurrency === 'KAS'
+        currencyOpt.kind === 'kas'
           ? buildHubPlatformFeePlan({
               totalKas: formQuote.totalKas,
               treasuryAddress: MAGAZINE_TREASURY,
@@ -319,6 +323,7 @@ export function MagazineEditor() {
         plan,
         note: plainNote,
         payloadHex,
+        pricingSnapshot,
       });
       const txHash = extractKaspaTransactionId(txHashRaw) ?? txHashRaw;
 
@@ -635,9 +640,7 @@ export function MagazineEditor() {
             footerNote="One Kaspa L1 payment anchors the issue metadata (IPFS CID) on-chain."
             selectedCurrencyId={paymentCurrency}
             onCurrencySelect={(opt) => {
-              const next = hubCatalogSelectionToStoreCurrency(opt);
-              if (next === 'KAS' || next === 'KREX') setPaymentCurrency(next);
-              else setPaymentCurrency('KAS');
+              setPaymentCurrency(hubCatalogSelectionToStoreCurrency(opt));
             }}
           />
           {publishNote ? (
@@ -652,11 +655,9 @@ export function MagazineEditor() {
           >
             {busyPublish || isPaying
               ? 'Publishing...'
-              : `Publish Issue (${formatHubPaymentAmount(
-                  buildKasKrexCurrencyOptions().find((c) => c.id === paymentCurrency) ??
-                    buildKasKrexCurrencyOptions()[0],
-                  formQuote.totalKas,
-                )})`}
+              : `Publish Issue (${formatHubPaymentAmount(paymentOption, formQuote.totalKas, {
+                  snapshot: pricingSnapshot,
+                })})`}
           </button>
           <HubFlowProgress steps={getHubFlowPreset('hubPublish')} busy={busyPublish} />
         </aside>

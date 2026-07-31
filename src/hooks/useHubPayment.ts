@@ -71,7 +71,18 @@ export function useHubPayment() {
         if (currency.kind === 'krc20') {
           const treasury = (params.to ?? '').replace(/^kaspa:/i, '');
           if (!treasury) throw new Error('Recipient address is not configured');
-          const amount = params.amountDirect;
+          let amount = params.amountDirect;
+          if (amount == null || amount <= 0) {
+            const feeKas =
+              params.amountKas ??
+              (params.plan ? params.plan.legs.reduce((s, l) => s + l.amount, 0) : undefined);
+            if (feeKas == null || feeKas <= 0) throw new Error('Invalid token amount');
+            amount = resolveTokenAmountFromKas(
+              feeKas,
+              currency.tick ?? currency.id,
+              params.pricingSnapshot,
+            );
+          }
           if (amount == null || amount <= 0) throw new Error('Invalid token amount');
           return await transferKrc20(state.provider, {
             tick: currency.tick ?? currency.id,

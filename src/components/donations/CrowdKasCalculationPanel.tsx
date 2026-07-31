@@ -5,8 +5,9 @@ import { HubPaymentPanel } from '@/components/payments/HubPaymentPanel';
 import { KREXBuyWizard } from '@/components/rewards/KREXBuyWizard';
 import { Alert } from '@/components/Alert';
 import { buildKasKrexCurrencyOptions, formatHubPaymentAmount } from '@/lib/payments/hubPaymentTypes';
+import type { HubPaymentCurrencyOption } from '@/lib/payments/hubPaymentTypes';
+import { resolveCatalogPaymentOption } from '@/lib/payments/currencyCatalog';
 import { useHubPayWithCatalog, hubCatalogSelectionToStoreCurrency } from '@/hooks/useHubPayWithCatalog';
-import { usePricingSnapshot } from '@/hooks/usePricingSnapshot';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
 import { computeEarnedHubPoints, formatHubPointsTierLabel } from '@/lib/rewards/hub-points';
@@ -15,9 +16,13 @@ import type { CrowdKasL1PriceQuote, CrowdKasL2PriceQuote } from '@/lib/donations
 import { CROWDKAS_CALCULATION_ASIDE } from '@/components/donations/crowdkasFormTheme';
 import type { StorePaymentCurrency } from '@/lib/store/currencies';
 import type { HubPaymentQuoteLine } from '@/lib/payments/hubPaymentTypes';
+import type { PricingSnapshot } from '@/lib/pricing/types';
 
-function formatLineKas(kas: number, currencyId: StorePaymentCurrency, snapshot: ReturnType<typeof usePricingSnapshot>['snapshot']) {
-  const currency = buildKasKrexCurrencyOptions().find((c) => c.id === currencyId) ?? buildKasKrexCurrencyOptions()[0];
+function formatLineKas(
+  kas: number,
+  currency: HubPaymentCurrencyOption,
+  snapshot: PricingSnapshot | null | undefined,
+) {
   if (kas <= 0) return 'Free';
   return formatHubPaymentAmount(currency, kas, { snapshot });
 }
@@ -28,36 +33,36 @@ function formatIkasAmount(ikas: number) {
 
 function buildL1BreakdownLines(
   quote: CrowdKasL1PriceQuote,
-  paymentCurrency: StorePaymentCurrency,
-  pricingSnapshot: ReturnType<typeof usePricingSnapshot>['snapshot'],
+  paymentOption: HubPaymentCurrencyOption,
+  pricingSnapshot: PricingSnapshot | null | undefined,
 ) {
   const lines: HubPaymentQuoteLine[] = [
-    { label: 'Base fee', value: formatLineKas(quote.baseFeeKas, paymentCurrency, pricingSnapshot) },
-    { label: 'Size fee', value: formatLineKas(quote.sizeFeeKas, paymentCurrency, pricingSnapshot) },
-    { label: 'Network buffer', value: formatLineKas(quote.networkFeeBufferKas, paymentCurrency, pricingSnapshot) },
+    { label: 'Base fee', value: formatLineKas(quote.baseFeeKas, paymentOption, pricingSnapshot) },
+    { label: 'Size fee', value: formatLineKas(quote.sizeFeeKas, paymentOption, pricingSnapshot) },
+    { label: 'Network buffer', value: formatLineKas(quote.networkFeeBufferKas, paymentOption, pricingSnapshot) },
   ];
   if (quote.payoutSplitAddonKas > 0) {
     lines.push({
       label: 'Payout split recipients',
-      value: formatLineKas(quote.payoutSplitAddonKas, paymentCurrency, pricingSnapshot),
+      value: formatLineKas(quote.payoutSplitAddonKas, paymentOption, pricingSnapshot),
     });
   }
   for (const line of quote.moduleLines) {
     lines.push({
       label: line.label,
-      value: formatLineKas(line.kas, paymentCurrency, pricingSnapshot),
+      value: formatLineKas(line.kas, paymentOption, pricingSnapshot),
     });
   }
   if (quote.modulesFeeKas > 0) {
     lines.push({
       label: 'Modules subtotal',
-      value: formatLineKas(quote.modulesFeeKas, paymentCurrency, pricingSnapshot),
+      value: formatLineKas(quote.modulesFeeKas, paymentOption, pricingSnapshot),
       dividerBefore: true,
     });
   }
   lines.push({
     label: 'Subtotal',
-    value: formatLineKas(quote.subtotalKas, paymentCurrency, pricingSnapshot),
+    value: formatLineKas(quote.subtotalKas, paymentOption, pricingSnapshot),
     dividerBefore: true,
   });
   lines.push({ label: 'Payload bytes', value: String(quote.payloadBytes) });
@@ -99,22 +104,19 @@ export function CrowdKasL1CalculationPanel({
   const [paymentCurrency, setPaymentCurrency] = useState<StorePaymentCurrency>('KAS');
   const [isKrexWizardOpen, setIsKrexWizardOpen] = useState(false);
   const { balance: krexBalance } = useKREXBalance();
-  const { snapshot: pricingSnapshot } = usePricingSnapshot(['KREX']);
-  const { catalogEntries } = useHubPayWithCatalog({
+  const { catalogEntries, pricingSnapshot } = useHubPayWithCatalog({
     amountKas: quote.totalKas,
-    pricingSnapshot,
   });
+  const paymentOption = resolveCatalogPaymentOption(catalogEntries, paymentCurrency);
   const discountPercent = KREX_TIERS[tier].feeDiscountPercent;
   const hasKrexDiscount = discountPercent > 0;
-  const selectedCurrency =
-    buildKasKrexCurrencyOptions().find((c) => c.id === paymentCurrency) ?? buildKasKrexCurrencyOptions()[0];
 
   const lines = useMemo(
-    () => buildL1BreakdownLines(quote, paymentCurrency, pricingSnapshot),
-    [paymentCurrency, pricingSnapshot, quote],
+    () => buildL1BreakdownLines(quote, paymentOption, pricingSnapshot),
+    [paymentOption, pricingSnapshot, quote],
   );
 
-  const totalDisplay = formatHubPaymentAmount(selectedCurrency, quote.totalKas, { snapshot: pricingSnapshot });
+  const totalDisplay = formatHubPaymentAmount(paymentOption, quote.totalKas, { snapshot: pricingSnapshot });
   const totalSubtitle = '+ network gas on Kaspa L1';
   const hubPoints =
     quote.action === 'create' ? computeEarnedHubPoints(HUB_EARN_POINTS.crowdkasCampaignCreate, tier) : 0;
@@ -134,15 +136,15 @@ export function CrowdKasL1CalculationPanel({
         selectedCurrencyId={paymentCurrency}
         onCurrencyChange={(id) => setPaymentCurrency(id as StorePaymentCurrency)}
         onCatalogSelect={(opt) => {
-          const next = hubCatalogSelectionToStoreCurrency(opt);
-          if (next === 'KAS' || next === 'KREX') setPaymentCurrency(next);
-          else setPaymentCurrency('KAS');
+          setPaymentCurrency(hubCatalogSelectionToStoreCurrency(opt));
         }}
         tier={tier}
         krexBalance={krexBalance}
         discountNote={
           quote.discountKas > 0
-            ? `KREX discount: -${quote.discountKas.toFixed(2)} KAS (${discountPercent}% off total).`
+            ? `KREX discount: -${formatHubPaymentAmount(paymentOption, quote.discountKas, {
+                snapshot: pricingSnapshot,
+              })} (${discountPercent}% off total).`
             : hasKrexDiscount
               ? `KREX discount: ${discountPercent}% off platform and module fees (${KREX_TIERS[tier].label}).`
               : undefined

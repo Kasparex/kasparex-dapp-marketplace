@@ -7,9 +7,12 @@ import { KxTabStrip } from '@/components/ui/KxTabStrip';
 import { useDAppListingPayment } from '@/hooks/useDAppListingPayment';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { HubListingCalculationBreakdown } from '@/components/hub/HubListingCalculationBreakdown';
-import { hubCatalogSelectionToStoreCurrency } from '@/hooks/useHubPayWithCatalog';
+import { hubCatalogSelectionToStoreCurrency, useHubPayWithCatalog } from '@/hooks/useHubPayWithCatalog';
 import type { StorePaymentCurrency } from '@/lib/store/currencies';
-import { formatHubPaymentAmount, buildKasKrexCurrencyOptions } from '@/lib/payments/hubPaymentTypes';
+import { formatHubPaymentAmount } from '@/lib/payments/hubPaymentTypes';
+import { resolveCatalogPaymentOption } from '@/lib/payments/currencyCatalog';
+import { KxTagsField } from '@/components/ui/KxTagsField';
+import { normalizeHubTags } from '@/lib/hub/suggestedTags';
 import {
   CHRONICLES_CONTENT_KIND_LABELS,
   saveCommunitySubmission,
@@ -96,20 +99,12 @@ export function ChroniclesListingForm({ onSubmitted }: { onSubmitted?: () => voi
   const [timeline, setTimeline] = useState<ChronicleTimeline>('current');
   const [characterKind, setCharacterKind] = useState<CharacterKind>('person');
   const [vehicleKind, setVehicleKind] = useState<VehicleKind>('vehicle');
-  const [tags, setTags] = useState('');
+  const [tags, setTags] = useState<string[]>(() => normalizeHubTags([]));
   const [illustratedEnabled, setIllustratedEnabled] = useState(false);
   const [canonHintEnabled, setCanonHintEnabled] = useState(false);
 
   const baseFeeKas = useMemo(() => submissionFeeKas(kind), [kind]);
-  const parsedTags = useMemo(
-    () =>
-      tags
-        .split(/[,#]/)
-        .map((t) => t.trim())
-        .filter(Boolean)
-        .slice(0, 12),
-    [tags],
-  );
+  const parsedTags = tags;
   const moduleLines = useMemo((): HubListingModuleLine[] => {
     const lines: HubListingModuleLine[] = [];
     if (illustratedEnabled) {
@@ -159,6 +154,10 @@ export function ChroniclesListingForm({ onSubmitted }: { onSubmitted?: () => voi
       canonHintEnabled,
     ],
   );
+  const { catalogEntries: payCatalog, pricingSnapshot: payPricingSnapshot } = useHubPayWithCatalog({
+    amountKas: formQuote.totalKas,
+  });
+  const paymentOption = resolveCatalogPaymentOption(payCatalog, paymentCurrency);
   const featuredPreviewUrl =
     featuredImageSource === 'url' && featuredImageUrl.trim()
       ? featuredImageUrl.trim()
@@ -442,13 +441,10 @@ export function ChroniclesListingForm({ onSubmitted }: { onSubmitted?: () => voi
           ) : null}
 
           <div className="k-form-group !mb-0">
-            <KxFormFieldLabel>Tags</KxFormFieldLabel>
-            <input
-              type="text"
-              className="k-input"
+            <KxTagsField
               value={tags}
-              onChange={(e) => setTags(e.target.value)}
-              placeholder="Comma-separated tags"
+              onChange={setTags}
+              hint="Select up to 3 tags."
             />
           </div>
         </div>
@@ -529,9 +525,7 @@ export function ChroniclesListingForm({ onSubmitted }: { onSubmitted?: () => voi
             footerNote="One Kaspa L1 payment covers the submission, payload size, and any enabled modules."
             selectedCurrencyId={paymentCurrency}
             onCurrencySelect={(opt) => {
-              const next = hubCatalogSelectionToStoreCurrency(opt);
-              if (next === 'KAS' || next === 'KREX') setPaymentCurrency(next);
-              else setPaymentCurrency('KAS');
+              setPaymentCurrency(hubCatalogSelectionToStoreCurrency(opt));
             }}
           />
 
@@ -550,11 +544,9 @@ export function ChroniclesListingForm({ onSubmitted }: { onSubmitted?: () => voi
               ? 'Processing...'
               : isUploading
                 ? 'Uploading...'
-                : `Create Lore Entry (${formatHubPaymentAmount(
-                    buildKasKrexCurrencyOptions().find((c) => c.id === paymentCurrency) ??
-                      buildKasKrexCurrencyOptions()[0],
-                    formQuote.totalKas,
-                  )})`}
+                : `Create Lore Entry (${formatHubPaymentAmount(paymentOption, formQuote.totalKas, {
+                    snapshot: payPricingSnapshot,
+                  })})`}
           </button>
 
           <HubFlowProgress steps={getHubFlowPreset('hubPublish')} busy={isProcessing || isUploading} />

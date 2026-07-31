@@ -43,11 +43,14 @@ import { HubFlowProgress } from '@/components/hub/HubFlowProgress';
 import { getHubFlowPreset } from '@/lib/hub/hubFlowProgress';
 import { KxFormFieldLabel } from '@/components/ui/KxFormFieldLabel';
 import { HubListingCalculationBreakdown } from '@/components/hub/HubListingCalculationBreakdown';
-import { hubCatalogSelectionToStoreCurrency } from '@/hooks/useHubPayWithCatalog';
+import { formatHubPaymentAmount } from '@/lib/payments/hubPaymentTypes';
+import { resolveCatalogPaymentOption } from '@/lib/payments/currencyCatalog';
+import { useHubPayWithCatalog, hubCatalogSelectionToStoreCurrency } from '@/hooks/useHubPayWithCatalog';
 import type { HubListingPriceQuote } from '@/lib/hub/listingPricing';
-import { formatHubPaymentAmount, buildKasKrexCurrencyOptions } from '@/lib/payments/hubPaymentTypes';
 import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
 import type { StorePaymentCurrency } from '@/lib/store/currencies';
+import { KxTagsField } from '@/components/ui/KxTagsField';
+import { normalizeHubTags } from '@/lib/hub/suggestedTags';
 
 const FORM_PANEL_CLASS =
   'bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 sm:p-8';
@@ -96,7 +99,7 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
   const [featuredImageCid, setFeaturedImageCid] = useState<string | null>(null);
   const [featuredImageName, setFeaturedImageName] = useState<string | null>(null);
   const [category, setCategory] = useState(article?.category ?? DEFAULT_VBLOG_CATEGORIES[0]);
-  const [tags, setTags] = useState(article?.tags.join(', ') ?? '');
+  const [tags, setTags] = useState<string[]>(() => normalizeHubTags(article?.tags ?? []));
   const [linkedMagazineId, setLinkedMagazineId] = useState<string | undefined>(article?.linkedMagazineId);
   const [linkedIssueNumber, setLinkedIssueNumber] = useState<number | undefined>(article?.linkedIssueNumber);
   const [primaryLink, setPrimaryLink] = useState(article?.primaryLink ?? '');
@@ -202,7 +205,7 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
       description,
       content,
       category,
-      tags: tags.split(',').map((tag) => tag.trim()).filter(Boolean),
+      tags: tags,
       featuredImage: resolvedFeaturedImage,
       linkedMagazineId: magazineIntegrationEnabled ? linkedMagazineId : undefined,
       linkedIssueNumber: magazineIntegrationEnabled ? linkedIssueNumber : undefined,
@@ -245,10 +248,12 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
     [formQuote, discountKas, discountPercent],
   );
 
-  const tagsArray = useMemo(
-    () => tags.split(',').map((tag) => tag.trim()).filter(Boolean),
-    [tags],
-  );
+  const tagsArray = tags;
+
+  const { catalogEntries: payCatalog, pricingSnapshot: payPricingSnapshot } = useHubPayWithCatalog({
+    amountKas: formQuote.totalKas,
+  });
+  const paymentOption = resolveCatalogPaymentOption(payCatalog, paymentCurrency);
 
   const previewArticle = useMemo((): VBlogArticle => {
     const author = walletAddress ?? article?.author ?? 'preview';
@@ -351,7 +356,7 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
     setFeaturedImageCid(null);
     setFeaturedImageName(null);
     setCategory(article.category);
-    setTags(article.tags.join(', '));
+    setTags(normalizeHubTags(article.tags ?? []));
     setLinkedMagazineId(article.linkedMagazineId);
     setLinkedIssueNumber(article.linkedIssueNumber);
     setPrimaryLink(article.primaryLink ?? '');
@@ -542,7 +547,7 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
       setFeaturedImageName(null);
       setFeaturedImageSource('file');
       setCategory(DEFAULT_VBLOG_CATEGORIES[0]);
-      setTags('');
+      setTags([]);
       setPrimaryLink('');
       setSocialLinks([{ label: '', url: '' }]);
       setMagazineIntegrationEnabled(false);
@@ -733,14 +738,11 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
             />
           </div>
           <div>
-            <KxFormFieldLabel>Tags (comma-separated)</KxFormFieldLabel>
-            <input
-              type="text"
+            <KxTagsField
               value={tags}
-              onChange={(e) => setTags(e.target.value)}
-              placeholder="tag1, tag2, tag3"
-              className="k-input"
+              onChange={setTags}
               disabled={isSubmitting}
+              hint="Select up to 3 tags. Search suggestions or add your own."
             />
           </div>
         </div>
@@ -898,9 +900,7 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
           }
           selectedCurrencyId={paymentCurrency}
           onCurrencySelect={(opt) => {
-            const next = hubCatalogSelectionToStoreCurrency(opt);
-            if (next === 'KAS' || next === 'KREX') setPaymentCurrency(next);
-            else setPaymentCurrency('KAS');
+            setPaymentCurrency(hubCatalogSelectionToStoreCurrency(opt));
           }}
         />
         <button
@@ -913,9 +913,9 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
               ? 'Updating...'
               : 'Creating...'
             : `${isEditMode ? 'Update Article' : 'Create Article'} (${formatHubPaymentAmount(
-                buildKasKrexCurrencyOptions().find((c) => c.id === paymentCurrency) ??
-                  buildKasKrexCurrencyOptions()[0],
+                paymentOption,
                 formQuote.totalKas,
+                { snapshot: payPricingSnapshot },
               )})`}
         </button>
         <button

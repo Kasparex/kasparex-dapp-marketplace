@@ -26,7 +26,8 @@ import type {
   KascovCovenantDetail,
 } from './types';
 
-const CACHE_TTL_MS = 60_000;
+/** Aggressive in-session cache for covenant / token metadata lookups. */
+const CACHE_TTL_MS = 60 * 60 * 1000;
 const covenantCache = new Map<string, { at: number; detail: CovenantReadDetail }>();
 
 function cacheKey(network: ProgrammableNetworkId, covenantId: string): string {

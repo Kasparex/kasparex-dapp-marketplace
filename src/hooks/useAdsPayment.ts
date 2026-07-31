@@ -1,10 +1,9 @@
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { getWalletProvider } from '@/lib/kaspa/wallet';
 import { formatKaspaWalletError } from '@/lib/kaspa/formatWalletError';
-import { signKrc20Transfer } from '@/lib/kaspa/l1WalletActions';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { usePricingSnapshot } from '@/hooks/usePricingSnapshot';
 import type { PricingSnapshot } from '@/lib/pricing/types';
@@ -13,45 +12,23 @@ import { expectedPriceKrexFromTotalKas } from '@/lib/ads/adPriceValidation';
 import { sendAdsMetadataBindingTx } from '@/lib/ads/sendBindingTx';
 import type { AdPaymentCurrency } from '@/lib/ads/metadata';
 import { extractKaspaTransactionId } from '@/lib/kaspa/transactionId';
-import { KRC20_TRANSFER_TYPE, KREX_DECIMALS } from '@/lib/game/diamond-veins-config';
+import { transferKrc20 } from '@/lib/payments/krc20Payment';
+import { listPublicVerifiedPaymentTokens } from '@/lib/payments/publicPaymentTokens';
+import { resolveTokenAmountFromKas } from '@/lib/pricing/registry';
+import { mergePricingTickers } from '@/lib/pricing';
 import type { KaspaWalletProvider } from '@/lib/kaspa/types';
-
-const KREX_PRIORITY_FEE_KAS = 0.1;
-
-async function transferKrex(
-  provider: KaspaWalletProvider,
-  amountKrex: number,
-  to: string,
-): Promise<string> {
-  const amountSmallest = Math.floor(amountKrex * Math.pow(10, KREX_DECIMALS));
-  if (!Number.isFinite(amountSmallest) || amountSmallest <= 0) {
-    throw new Error('KREX amount too small to transfer');
-  }
-  const inscribeJson = {
-    p: 'KRC-20',
-    op: 'transfer',
-    tick: 'KREX',
-    amt: amountSmallest.toString(),
-    to,
-  };
-  const raw = await signKrc20Transfer(
-    provider,
-    JSON.stringify(inscribeJson),
-    KRC20_TRANSFER_TYPE,
-    to,
-    KREX_PRIORITY_FEE_KAS,
-  );
-  const txId = extractKaspaTransactionId(raw) ?? (typeof raw === 'string' ? raw.trim() : null);
-  if (!txId) {
-    throw new Error('KREX transfer did not return a transaction id. Check KasWare history and retry.');
-  }
-  return txId;
-}
 
 export function useAdsPayment() {
   const { state } = useKaspaWallet();
   const { balance: krexL1Balance } = useKREXBalance();
-  const { snapshot: pricingSnapshot } = usePricingSnapshot(['KREX']);
+  const publicTicks = useMemo(
+    () =>
+      listPublicVerifiedPaymentTokens()
+        .filter((t) => t.kind === 'krc20' && t.tick)
+        .map((t) => t.tick!),
+    [],
+  );
+  const { snapshot: pricingSnapshot } = usePricingSnapshot(mergePricingTickers(['KREX', ...publicTicks]));
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -77,22 +54,50 @@ export function useAdsPayment() {
 
       const treasuryAddress = getAdsTreasuryL1Address();
       const provider = state.provider as KaspaWalletProvider;
+      const currencyId = String(currency || 'KAS').trim();
 
       setIsProcessing(true);
       setError(null);
 
       try {
-        if (currency === 'KREX') {
+        if (currencyId.startsWith('kcc20:')) {
+          throw new Error(
+            'KCC-20 Hub fee settlement is enabling next. Pay with KAS, KREX, or a KRC-20 for now.',
+          );
+        }
+
+        if (currencyId === 'KREX') {
           const priceKrex = expectedPriceKrexFromTotalKas(priceKas, pricingSnapshot);
           let krexPaymentTxHash = existingKrexHash;
           if (!krexPaymentTxHash) {
             if (krexL1Balance + 1e-12 < priceKrex) {
               throw new Error('Insufficient KREX balance for this ad campaign');
             }
-            krexPaymentTxHash = await transferKrex(provider, priceKrex, treasuryAddress);
+            const raw = await transferKrc20(provider, {
+              tick: 'KREX',
+              amount: priceKrex,
+              to: treasuryAddress,
+            });
+            krexPaymentTxHash = extractKaspaTransactionId(raw) ?? raw;
           }
           const txHash = await sendAdsMetadataBindingTx(provider, metadataCid);
           return { txHash, krexPaymentTxHash };
+        }
+
+        if (currencyId !== 'KAS') {
+          const tick = currencyId.toUpperCase();
+          const match = listPublicVerifiedPaymentTokens().find(
+            (t) => t.kind === 'krc20' && (t.tick === tick || t.id === tick),
+          );
+          const amount = resolveTokenAmountFromKas(priceKas, tick, pricingSnapshot);
+          await transferKrc20(provider, {
+            tick,
+            amount,
+            to: treasuryAddress,
+            decimals: match?.decimals ?? 8,
+          });
+          const txHash = await sendAdsMetadataBindingTx(provider, metadataCid);
+          return { txHash };
         }
 
         const txHash = await sendAdsMetadataBindingTx(provider, metadataCid, priceKas);
@@ -118,7 +123,12 @@ export async function transferKrexForAdsPayment(
   snapshot?: PricingSnapshot | null,
 ): Promise<string> {
   const priceKrex = expectedPriceKrexFromTotalKas(priceKas, snapshot);
-  return transferKrex(provider, priceKrex, treasuryAddress);
+  const raw = await transferKrc20(provider, {
+    tick: 'KREX',
+    amount: priceKrex,
+    to: treasuryAddress,
+  });
+  return extractKaspaTransactionId(raw) ?? raw;
 }
 
 /** KREX amount for display and settlement (market rate with peg fallback). */

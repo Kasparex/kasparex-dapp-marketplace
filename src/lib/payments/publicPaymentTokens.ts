@@ -6,6 +6,11 @@
 import type { PublishedTokenListing } from '@/lib/tokens/listingRecord';
 import { getAllPublishedListings } from '@/lib/tokens/data';
 import {
+  aggressiveCacheGet,
+  aggressiveCacheSet,
+  prefetchImageUrls,
+} from '@/lib/cache/aggressiveCache';
+import {
   buildHubCurrencyCatalog,
   buildKcc20CurrencyOption,
   type BuildCurrencyCatalogArgs,
@@ -15,6 +20,23 @@ import { buildKrc20CurrencyOption } from '@/lib/payments/hubPaymentTypes';
 import type { PricingSnapshot } from '@/lib/pricing/types';
 import { getTokenImageUrl } from '@/lib/tokens/metadata';
 import { getBaseTokenLogo, getBaseTokenLogoUrl } from '@/lib/tokens/baseLogos';
+
+export type PublicVerifiedPaymentToken = {
+  kind: 'krc20' | 'kcc20';
+  id: string;
+  label: string;
+  tick?: string;
+  covenantId?: string;
+  decimals: number;
+  listingSlug: string;
+  name?: string;
+  imageUrl?: string;
+};
+
+const PUBLIC_TOKENS_CACHE_NS = 'public-pay-tokens';
+const PUBLIC_TOKENS_CACHE_KEY = 'all';
+let publicTokensMemory: PublicVerifiedPaymentToken[] | null = null;
+let publicTokensMemoryAt = 0;
 
 function isPublicVerifiedListing(listing: PublishedTokenListing): boolean {
   if (listing.assetKind !== 'real') return false;
@@ -73,21 +95,8 @@ function resolveBuiltinLogoUrl(symbol: string): string | undefined {
   return getTokenImageUrl(raw) ?? undefined;
 }
 
-export type PublicVerifiedPaymentToken = {
-  kind: 'krc20' | 'kcc20';
-  id: string;
-  label: string;
-  tick?: string;
-  covenantId?: string;
-  decimals: number;
-  listingSlug: string;
-  name?: string;
-  imageUrl?: string;
-};
-
-/** Registry-wide deployer-verified tokens available to any Hub payer. */
-export function listPublicVerifiedPaymentTokens(
-  listings: PublishedTokenListing[] = getAllPublishedListings(),
+function buildPublicVerifiedPaymentTokens(
+  listings: PublishedTokenListing[],
 ): PublicVerifiedPaymentToken[] {
   const out: PublicVerifiedPaymentToken[] = [];
   const seen = new Set<string>();
@@ -137,6 +146,59 @@ export function listPublicVerifiedPaymentTokens(
   }
 
   return out;
+}
+
+/** Registry-wide deployer-verified tokens available to any Hub payer (aggressively cached). */
+export function listPublicVerifiedPaymentTokens(
+  listings?: PublishedTokenListing[],
+): PublicVerifiedPaymentToken[] {
+  const useDefaultListings = listings == null;
+  if (useDefaultListings) {
+    if (publicTokensMemory && Date.now() - publicTokensMemoryAt < 60 * 60 * 1000) {
+      return publicTokensMemory;
+    }
+    const cached = aggressiveCacheGet<PublicVerifiedPaymentToken[]>(
+      PUBLIC_TOKENS_CACHE_NS,
+      PUBLIC_TOKENS_CACHE_KEY,
+    );
+    if (cached?.length) {
+      publicTokensMemory = cached;
+      publicTokensMemoryAt = Date.now();
+      prefetchImageUrls(cached.map((t) => t.imageUrl));
+      return cached;
+    }
+  }
+
+  const source = listings ?? getAllPublishedListings();
+  const out = buildPublicVerifiedPaymentTokens(source);
+
+  if (useDefaultListings) {
+    publicTokensMemory = out;
+    publicTokensMemoryAt = Date.now();
+    aggressiveCacheSet(PUBLIC_TOKENS_CACHE_NS, PUBLIC_TOKENS_CACHE_KEY, out);
+    prefetchImageUrls([
+      resolveBuiltinLogoUrl('KAS'),
+      resolveBuiltinLogoUrl('KREX'),
+      ...out.map((t) => t.imageUrl),
+    ]);
+  }
+
+  return out;
+}
+
+/** Drop cached public payment tokens (e.g. after a new verified listing). */
+export function invalidatePublicVerifiedPaymentTokensCache(): void {
+  publicTokensMemory = null;
+  publicTokensMemoryAt = 0;
+  if (typeof window !== 'undefined') {
+    try {
+      window.localStorage.removeItem(
+        `kx.cache.v1:${PUBLIC_TOKENS_CACHE_NS}:${PUBLIC_TOKENS_CACHE_KEY}`,
+      );
+    } catch {
+      /* ignore */
+    }
+  }
 }
 
 /** Build a Hub currency catalog that includes builtins + public verified tokens. */

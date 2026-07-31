@@ -6,11 +6,11 @@ import { sendKaspaTransaction } from '@/lib/kaspa/wallet';
 import type { KaspaWalletProvider } from '@/lib/kaspa/types';
 import { extractKaspaTransactionId } from '@/lib/kaspa/transactionId';
 import { kasToSompi } from '@/lib/ads/config';
-import { signKrc20Transfer } from '@/lib/kaspa/l1WalletActions';
 import { type StorePaymentCurrency } from '@/lib/store/currencies';
 import { usePricingSnapshot } from '@/hooks/usePricingSnapshot';
 import { resolveTokenAmountFromKas } from '@/lib/pricing/registry';
-import { KRC20_TRANSFER_TYPE, KREX_DECIMALS } from '@/lib/game/diamond-veins-config';
+import { KREX_DECIMALS } from '@/lib/game/diamond-veins-config';
+import { transferKrc20 } from '@/lib/payments/krc20Payment';
 import { getTokensTreasuryL1Address } from '@/lib/tokens/config';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { krexTierDiscountPercent } from '@/lib/chronicles/vault/pricing';
@@ -257,26 +257,24 @@ export function useTokens() {
       });
 
       let commitTxHash: string;
-      if (args.paymentCurrency === 'KREX') {
-        const amountKrex = resolveTokenAmountFromKas(paymentKas, 'KREX', pricingSnapshot);
-        if (krexBalance + 1e-12 < amountKrex) {
+      const currencyId = String(args.paymentCurrency || 'KAS').trim();
+      if (currencyId.startsWith('kcc20:')) {
+        throw new Error(
+          'KCC-20 Hub fee settlement is enabling next. Pay with KAS, KREX, or a KRC-20 for now.',
+        );
+      }
+      if (currencyId === 'KREX' || (currencyId !== 'KAS' && !currencyId.startsWith('kcc20:'))) {
+        const tick = currencyId === 'KREX' ? 'KREX' : currencyId.toUpperCase();
+        const amount = resolveTokenAmountFromKas(paymentKas, tick, pricingSnapshot);
+        if (tick === 'KREX' && krexBalance + 1e-12 < amount) {
           throw new Error('Insufficient KREX balance for listing payment');
         }
-        const amountSmallest = Math.floor(amountKrex * Math.pow(10, KREX_DECIMALS));
-        const inscribeJson = {
-          p: 'KRC-20',
-          op: 'transfer',
-          tick: 'KREX',
-          amt: amountSmallest.toString(),
+        commitTxHash = await transferKrc20(kaspaState.provider as KaspaWalletProvider, {
+          tick,
+          amount,
           to: treasury,
-        };
-        commitTxHash = await signKrc20Transfer(
-          kaspaState.provider as KaspaWalletProvider,
-          JSON.stringify(inscribeJson),
-          KRC20_TRANSFER_TYPE,
-          treasury,
-          0.1,
-        );
+          decimals: tick === 'KREX' ? KREX_DECIMALS : 8,
+        });
       } else {
         const commitTx = await sendKaspaTransaction(kaspaState.provider as KaspaWalletProvider, {
           to: treasury,

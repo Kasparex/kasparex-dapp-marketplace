@@ -201,3 +201,16 @@ export function catalogEntryToOption(entry: HubCurrencyCatalogEntry): HubPayment
   } = entry;
   return option;
 }
+
+/** Resolve a Pay with selection to a settlement option (falls back to KAS). */
+export function resolveCatalogPaymentOption(
+  catalog: HubCurrencyCatalogEntry[],
+  selectedId?: string | null,
+): HubPaymentCurrencyOption {
+  const entry =
+    catalog.find((e) => e.id === selectedId) ??
+    catalog.find((e) => e.id === 'KAS') ??
+    catalog.find((e) => e.status === 'available') ??
+    catalog[0];
+  return entry ? catalogEntryToOption(entry) : buildKasKrexCurrencyOptions()[0];
+}

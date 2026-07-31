@@ -3,36 +3,16 @@
 import { useCallback, useState } from 'react';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { sendKaspaTransaction } from '@/lib/kaspa/wallet';
-import { signKrc20Transfer } from '@/lib/kaspa/l1WalletActions';
 import { kasToSompis } from '@/lib/kaspa/api';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { resolveTokenAmountFromKas } from '@/lib/pricing/registry';
 import type { PricingSnapshot } from '@/lib/pricing/types';
+import { transferKrc20 } from '@/lib/payments/krc20Payment';
+import { listPublicVerifiedPaymentTokens } from '@/lib/payments/publicPaymentTokens';
 import type { StorePaymentCurrency } from '@/lib/store/currencies';
-import { KRC20_TRANSFER_TYPE, KREX_DECIMALS } from '@/lib/game/diamond-veins-config';
 
 const COMMENT_CREDITS_TREASURY =
   'kaspa:qqd36zqt94yr23cmjj73d34e2lc05ltd9duw582s303m30ux567ps9ljnhp6y';
-const KREX_PRIORITY_FEE_KAS = 0.1;
-
-async function transferKrex(
-  provider: NonNullable<ReturnType<typeof useKaspaWallet>['state']['provider']>,
-  amountKrex: number,
-  to: string,
-): Promise<string> {
-  const amountSmallest = Math.floor(amountKrex * Math.pow(10, KREX_DECIMALS));
-  if (!Number.isFinite(amountSmallest) || amountSmallest <= 0) {
-    throw new Error('KREX amount too small to transfer');
-  }
-  const inscribeJson = {
-    p: 'KRC-20',
-    op: 'transfer',
-    tick: 'KREX',
-    amt: amountSmallest.toString(),
-    to,
-  };
-  return signKrc20Transfer(provider, JSON.stringify(inscribeJson), KRC20_TRANSFER_TYPE, to, KREX_PRIORITY_FEE_KAS);
-}
 
 export function useCommentCreditsPayment() {
   const { state } = useKaspaWallet();
@@ -59,13 +39,38 @@ export function useCommentCreditsPayment() {
 
       try {
         const treasuryAddress = COMMENT_CREDITS_TREASURY.replace(/^kaspa:/, '');
+        const currencyId = String(currency || 'KAS').trim();
 
-        if (currency === 'KREX') {
+        if (currencyId.startsWith('kcc20:')) {
+          throw new Error(
+            'KCC-20 Hub fee settlement is enabling next. Pay with KAS, KREX, or a KRC-20 for now.',
+          );
+        }
+
+        if (currencyId === 'KREX') {
           const amountKrex = resolveTokenAmountFromKas(feeKas, 'KREX', pricingSnapshot);
           if (krexL1Balance + 1e-12 < amountKrex) {
             throw new Error('Insufficient KREX balance');
           }
-          return await transferKrex(state.provider, amountKrex, treasuryAddress);
+          return await transferKrc20(state.provider, {
+            tick: 'KREX',
+            amount: amountKrex,
+            to: treasuryAddress,
+          });
+        }
+
+        if (currencyId !== 'KAS') {
+          const tick = currencyId.toUpperCase();
+          const match = listPublicVerifiedPaymentTokens().find(
+            (t) => t.kind === 'krc20' && (t.tick === tick || t.id === tick),
+          );
+          const amount = resolveTokenAmountFromKas(feeKas, tick, pricingSnapshot);
+          return await transferKrc20(state.provider, {
+            tick,
+            amount,
+            to: treasuryAddress,
+            decimals: match?.decimals ?? 8,
+          });
         }
 
         const result = await sendKaspaTransaction(state.provider, {

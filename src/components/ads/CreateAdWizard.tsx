@@ -911,9 +911,7 @@ export function CreateAdWizard({
                   entries={catalogEntries}
                   selectedId={paymentCurrency}
                   onSelect={(opt) => {
-                    const next = hubCatalogSelectionToStoreCurrency(opt);
-                    if (next === 'KAS' || next === 'KREX') setPaymentCurrency(next);
-                    else setPaymentCurrency('KAS');
+                    setPaymentCurrency(hubCatalogSelectionToStoreCurrency(opt) as AdPaymentCurrency);
                   }}
                 />
               </div>

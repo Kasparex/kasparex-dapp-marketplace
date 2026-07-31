@@ -6,7 +6,11 @@ import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useIPFSUpload } from '@/lib/ipfs/hooks';
 import { categories, type Category } from '@/lib/categories';
 import { KxSegmentToggle } from '@/components/ui/KxSegmentToggle';
-import { hubCatalogSelectionToStoreCurrency } from '@/hooks/useHubPayWithCatalog';
+import { hubCatalogSelectionToStoreCurrency, useHubPayWithCatalog } from '@/hooks/useHubPayWithCatalog';
+import { KxTagsField } from '@/components/ui/KxTagsField';
+import { normalizeHubTags } from '@/lib/hub/suggestedTags';
+import { formatHubPaymentAmount } from '@/lib/payments/hubPaymentTypes';
+import { resolveCatalogPaymentOption } from '@/lib/payments/currencyCatalog';
 import { KxTabStrip } from '@/components/ui/KxTabStrip';
 import { KxFilterDropdown } from '@/components/ui/KxFilterDropdown';
 import { StoreFileUpload } from '@/components/store/StoreFileUpload';
@@ -120,7 +124,7 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
   const [shortDescription, setShortDescription] = useState(listing?.shortDescription ?? '');
   const [fullDescription, setFullDescription] = useState(listing?.fullDescription ?? '');
   const [category, setCategory] = useState<Category>(listing?.category ?? 'general');
-  const [tagsRaw, setTagsRaw] = useState(listing?.tags.join(', ') ?? '');
+  const [tags, setTags] = useState<string[]>(() => normalizeHubTags(listing?.tags ?? []));
   const [utility, setUtility] = useState(listing?.utility ?? '');
   const [process, setProcess] = useState(listing?.process ?? '');
   const [benefits, setBenefits] = useState(listing?.benefits ?? '');
@@ -176,7 +180,7 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
     setShortDescription(listing.shortDescription);
     setFullDescription(listing.fullDescription);
     setCategory(listing.category);
-    setTagsRaw(listing.tags.join(', '));
+    setTags(normalizeHubTags(listing.tags ?? []));
     setUtility(listing.utility);
     setProcess(listing.process ?? '');
     setBenefits(listing.benefits ?? '');
@@ -238,7 +242,7 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
           shortDescription: shortDescription.trim(),
           fullDescription: htmlToPlainText(fullDescription).trim(),
           category,
-          tags: parseTags(tagsRaw),
+          tags,
           networkLayer,
           chains,
           websiteUrl: websiteUrl.trim(),
@@ -256,7 +260,7 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
       shortDescription,
       fullDescription,
       category,
-      tagsRaw,
+      tags,
       networkLayer,
       chains,
       websiteUrl,
@@ -266,9 +270,13 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
     ],
   );
 
+  const { catalogEntries: payCatalog, pricingSnapshot: payPricingSnapshot } = useHubPayWithCatalog({
+    amountKas: formQuote.totalKas,
+  });
+  const paymentOption = resolveCatalogPaymentOption(payCatalog, paymentCurrency);
   const feeLabel = useMemo(
-    () => listingActionFeeLabel(paymentCurrency, formQuote.totalKas),
-    [paymentCurrency, formQuote.totalKas],
+    () => formatHubPaymentAmount(paymentOption, formQuote.totalKas, { snapshot: payPricingSnapshot }),
+    [paymentOption, formQuote.totalKas, payPricingSnapshot],
   );
   const logoPreviewUrl =
     logoSource === 'url' && logoUrl.trim()
@@ -368,7 +376,7 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
     shortDescription: shortDescription.trim(),
     fullDescription: fullDescription.trim(),
     category,
-    tags: parseTags(tagsRaw),
+          tags,
     utility: utility.trim() || shortDescription.trim(),
     process: process.trim(),
     benefits: benefits.trim(),
@@ -578,18 +586,7 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
           </div>
 
           <div className="k-form-group">
-            <div className="mb-2 flex items-center justify-between gap-2">
-              <KxFormFieldLabel>Tags</KxFormFieldLabel>
-              <KxFieldCharCount value={tagsRaw} max={HUB_FORM_LIMITS.tags.max} />
-            </div>
-            <input
-              type="text"
-              className="k-input"
-              value={tagsRaw}
-              maxLength={HUB_FORM_LIMITS.tags.max}
-              onChange={(e) => setTagsRaw(e.target.value)}
-              placeholder="defi, gaming, nft (comma separated)"
-            />
+            <KxTagsField value={tags} onChange={setTags} hint="Select up to 3 tags." />
           </div>
 
           <div className="k-form-group">
@@ -887,9 +884,7 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
             footerNote="One Kaspa L1 payment covers the listing, payload size, and any enabled modules."
             selectedCurrencyId={paymentCurrency}
             onCurrencySelect={(opt) => {
-              const next = hubCatalogSelectionToStoreCurrency(opt);
-              if (next === 'KAS' || next === 'KREX') setPaymentCurrency(next);
-              else setPaymentCurrency('KAS');
+              setPaymentCurrency(hubCatalogSelectionToStoreCurrency(opt));
             }}
           />
 

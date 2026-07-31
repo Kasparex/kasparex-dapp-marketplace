@@ -9,7 +9,7 @@ export type AdImageRef =
   | { type: 'url'; value: string }
   | { type: 'ipfs'; value: string };
 
-export type AdPaymentCurrency = 'KAS' | 'KREX';
+export type AdPaymentCurrency = 'KAS' | 'KREX' | (string & {});
 
 /** Canonical JSON pinned to IPFS before L1 payment */
 export interface AdCampaignMetadataV1 {

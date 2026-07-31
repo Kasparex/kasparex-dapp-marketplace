@@ -4,6 +4,8 @@ import {
   vaultEffectivePriceKas,
 } from '@/lib/chronicles/vault/pricing';
 import type { KREXTier, NFTStatus } from '@/lib/rewards/types';
+import { formatHubPaymentFromKas } from '@/lib/pricing/registry';
+import type { PricingSnapshot } from '@/lib/pricing/types';
 import { kasToKrexAmount, type StorePaymentCurrency } from '@/lib/store/currencies';
 import { generateDAppSlug } from '@/lib/utils';
 import type { DApp, DeveloperLink } from '@/lib/dapps';
@@ -477,11 +479,18 @@ export function calculateDirectoryListingFeeKas(
   return { baseKas: baseFeeKas, effectiveKas, discountPercent };
 }
 
-export function listingActionFeeLabel(currency: StorePaymentCurrency, feeKas: number): string {
-  const formattedKas =
-    Number.isInteger(feeKas) ? `${feeKas}` : feeKas.toFixed(2).replace(/\.?0+$/, '');
-  if (currency === 'KREX') {
+export function listingActionFeeLabel(
+  currency: StorePaymentCurrency,
+  feeKas: number,
+  snapshot?: PricingSnapshot | null,
+): string {
+  if (currency === 'KAS') {
+    const formattedKas =
+      Number.isInteger(feeKas) ? `${feeKas}` : feeKas.toFixed(2).replace(/\.?0+$/, '');
+    return `${formattedKas} KAS`;
+  }
+  if (currency === 'KREX' && !snapshot) {
     return `${kasToKrexAmount(feeKas).toLocaleString(undefined, { maximumFractionDigits: 2 })} KREX`;
   }
-  return `${formattedKas} KAS`;
+  return formatHubPaymentFromKas(feeKas, String(currency), snapshot, { showKasSuffix: false });
 }

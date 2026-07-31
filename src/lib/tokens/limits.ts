@@ -5,7 +5,7 @@ export const TOKEN_CONTENT_LIMITS = {
   name: { min: 2, max: 80 },
   shortDescription: { min: 10, max: 200 },
   description: { min: 20, max: 5000 },
-  tags: { max: 12, tagMaxLength: 32 },
+  tags: { max: 3, tagMaxLength: 32 },
   contractAddress: { max: 128 },
 } as const;
 

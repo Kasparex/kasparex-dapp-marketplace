@@ -19,4 +19,5 @@ export type PricingSnapshot = {
   rates: Record<string, TokenPriceRate>;
 };
 
-export const PRICING_SNAPSHOT_TTL_MS = 5 * 60 * 1000;
+/** Aggressive client TTL for FX snapshots used by Pay with / Select currency. */
+export const PRICING_SNAPSHOT_TTL_MS = 60 * 60 * 1000;

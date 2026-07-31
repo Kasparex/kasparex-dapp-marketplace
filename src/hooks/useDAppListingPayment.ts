@@ -1,43 +1,32 @@
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { sendKaspaTransaction } from '@/lib/kaspa/wallet';
 import { kasToSompis } from '@/lib/kaspa/api';
-import { signKrc20Transfer } from '@/lib/kaspa/l1WalletActions';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { usePricingSnapshot } from '@/hooks/usePricingSnapshot';
 import { resolveTokenAmountFromKas } from '@/lib/pricing/registry';
+import { transferKrc20 } from '@/lib/payments/krc20Payment';
+import { listPublicVerifiedPaymentTokens } from '@/lib/payments/publicPaymentTokens';
 import type { StorePaymentCurrency } from '@/lib/store/currencies';
 import { DAPP_LISTING_FEE_KAS } from '@/lib/dapps/listingSubmissions';
-import { KRC20_TRANSFER_TYPE, KREX_DECIMALS } from '@/lib/game/diamond-veins-config';
+import { mergePricingTickers } from '@/lib/pricing';
 
 const TREASURY = process.env.NEXT_PUBLIC_STORE_TREASURY_ADDRESS || '';
-const KREX_PRIORITY_FEE_KAS = 0.1;
-
-async function transferKrex(
-  provider: NonNullable<ReturnType<typeof useKaspaWallet>['state']['provider']>,
-  amountKrex: number,
-  to: string,
-): Promise<string> {
-  const amountSmallest = Math.floor(amountKrex * Math.pow(10, KREX_DECIMALS));
-  if (!Number.isFinite(amountSmallest) || amountSmallest <= 0) {
-    throw new Error('KREX amount too small to transfer');
-  }
-  const inscribeJson = {
-    p: 'KRC-20',
-    op: 'transfer',
-    tick: 'KREX',
-    amt: amountSmallest.toString(),
-    to,
-  };
-  return signKrc20Transfer(provider, JSON.stringify(inscribeJson), KRC20_TRANSFER_TYPE, to, KREX_PRIORITY_FEE_KAS);
-}
 
 export function useDAppListingPayment() {
   const { state } = useKaspaWallet();
   const { balance: krexL1Balance } = useKREXBalance();
-  const { snapshot: pricingSnapshot } = usePricingSnapshot(['KREX']);
+  const publicTicks = useMemo(
+    () =>
+      listPublicVerifiedPaymentTokens()
+        .filter((t) => t.kind === 'krc20' && t.tick)
+        .map((t) => t.tick!),
+    [],
+  );
+  const pricingTickers = useMemo(() => mergePricingTickers(['KREX', ...publicTicks]), [publicTicks]);
+  const { snapshot: pricingSnapshot } = usePricingSnapshot(pricingTickers);
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -54,12 +43,38 @@ export function useDAppListingPayment() {
       setError(null);
 
       try {
-        if (currency === 'KREX') {
+        const currencyId = String(currency || 'KAS').trim();
+
+        if (currencyId.startsWith('kcc20:')) {
+          throw new Error(
+            'KCC-20 Hub fee settlement is enabling next. Pay with KAS, KREX, or a KRC-20 for now.',
+          );
+        }
+
+        if (currencyId === 'KREX') {
           const amountKrex = resolveTokenAmountFromKas(feeKas, 'KREX', pricingSnapshot);
           if (krexL1Balance + 1e-12 < amountKrex) {
             throw new Error('Insufficient KREX balance for listing fee');
           }
-          return await transferKrex(state.provider, amountKrex, TREASURY);
+          return await transferKrc20(state.provider, {
+            tick: 'KREX',
+            amount: amountKrex,
+            to: TREASURY,
+          });
+        }
+
+        if (currencyId !== 'KAS') {
+          const tick = currencyId.toUpperCase();
+          const match = listPublicVerifiedPaymentTokens().find(
+            (t) => t.kind === 'krc20' && (t.tick === tick || t.id === tick),
+          );
+          const amount = resolveTokenAmountFromKas(feeKas, tick, pricingSnapshot);
+          return await transferKrc20(state.provider, {
+            tick,
+            amount,
+            to: TREASURY,
+            decimals: match?.decimals ?? 8,
+          });
         }
 
         const result = await sendKaspaTransaction(state.provider, {

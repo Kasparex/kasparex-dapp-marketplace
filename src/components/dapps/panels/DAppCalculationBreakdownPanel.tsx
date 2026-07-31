@@ -6,7 +6,6 @@ import { usePaymentAmount } from '@/lib/dapps/PaymentAmountContext';
 import { DApp, getDAppNetworkType } from '@/lib/dapps';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { getDAppPaymentConfig } from '@/lib/payments/config';
-import { formatPrice } from '@/lib/payments/calculator';
 import {
   calculateDAppHubQuote,
   isCovenantDAppSlug,
@@ -21,6 +20,8 @@ import { HubPointsEarnBadge } from '@/components/hub/HubPointsEarnBadge';
 import { TierBadge } from '@/components/rewards/TierBadge';
 import { HubPaymentCurrencyCatalogTrigger } from '@/components/payments/HubPaymentCurrencyCatalogModal';
 import { useHubPayWithCatalog, hubCatalogSelectionToStoreCurrency } from '@/hooks/useHubPayWithCatalog';
+import { resolveCatalogPaymentOption } from '@/lib/payments/currencyCatalog';
+import { formatHubPaymentAmount } from '@/lib/payments/hubPaymentTypes';
 import { KREXBuyWizard } from '@/components/rewards/KREXBuyWizard';
 import type { ReactNode } from 'react';
 
@@ -50,9 +51,10 @@ export const DAppCalculationBreakdownPanel = memo(function DAppCalculationBreakd
   const { balance: krexBalance, tier } = useKREXBalance();
   const [isKrexWizardOpen, setIsKrexWizardOpen] = useState(false);
   const [payCurrencyId, setPayCurrencyId] = useState('KAS');
-  const { catalogEntries } = useHubPayWithCatalog({
+  const { catalogEntries, pricingSnapshot } = useHubPayWithCatalog({
     amountKas: paymentAmount ?? undefined,
   });
+  const paymentOption = resolveCatalogPaymentOption(catalogEntries, payCurrencyId);
 
   const paymentConfig = useMemo(() => getDAppPaymentConfig(dapp, networkType), [dapp, networkType]);
 
@@ -110,7 +112,8 @@ export const DAppCalculationBreakdownPanel = memo(function DAppCalculationBreakd
   }
 
   const showBuyKrex = !quote?.hasKrexDiscount && krexBalance < KREX_TIERS.Tier1.minKREX;
-  const discountCurrency = quote?.discountCurrency ?? quote?.currency ?? currency;
+  const formatPayAmount = (kas: number) =>
+    formatHubPaymentAmount(paymentOption, kas, { snapshot: pricingSnapshot });
   const baseSpendKas = paymentAmount ?? quote?.subtotalKas ?? quote?.totalKas;
   const steps =
     flowSteps ?? getHubFlowPreset(isCovenant ? 'covenantCreate' : 'hubPay');
@@ -141,7 +144,7 @@ export const DAppCalculationBreakdownPanel = memo(function DAppCalculationBreakd
               <div className="flex justify-between gap-2 border-t border-zinc-200 pt-2 dark:border-zinc-700">
                 <span>Subtotal</span>
                 <span className="font-semibold text-zinc-900 dark:text-zinc-100 tabular-nums">
-                  {formatPrice(quote.subtotalKas)} {discountCurrency}
+                  {formatPayAmount(quote.subtotalKas)}
                 </span>
               </div>
             ) : null}
@@ -150,7 +153,7 @@ export const DAppCalculationBreakdownPanel = memo(function DAppCalculationBreakd
           <div className="rounded-xl border border-zinc-200 p-3 dark:border-zinc-700">
             <p className="text-xs uppercase tracking-widest text-zinc-500">Total to pay</p>
             <p className="text-2xl font-black text-zinc-900 dark:text-zinc-100 tabular-nums">
-              {formatPrice(quote.totalKas)} {quote.currency}
+              {formatPayAmount(quote.totalKas)}
             </p>
           </div>
 
@@ -161,8 +164,7 @@ export const DAppCalculationBreakdownPanel = memo(function DAppCalculationBreakd
                 entries={catalogEntries}
                 selectedId={payCurrencyId}
                 onSelect={(opt) => {
-                  const next = hubCatalogSelectionToStoreCurrency(opt);
-                  setPayCurrencyId(typeof next === 'string' ? next : 'KAS');
+                  setPayCurrencyId(hubCatalogSelectionToStoreCurrency(opt));
                 }}
               />
             </div>
@@ -176,7 +178,7 @@ export const DAppCalculationBreakdownPanel = memo(function DAppCalculationBreakd
 
           {quote.discountKas > 0 ? (
             <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-3 text-sm text-emerald-800 dark:text-emerald-300">
-              KREX discount: -{formatPrice(quote.discountKas)} {discountCurrency} ({quote.discountPercent}%
+              KREX discount: -{formatPayAmount(quote.discountKas)} ({quote.discountPercent}%
               {quote.subtotalKas != null && quote.totalKas < quote.subtotalKas ? ' off total' : ' off platform fees'}).
             </div>
           ) : null}
