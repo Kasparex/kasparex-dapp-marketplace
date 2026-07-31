@@ -7,7 +7,7 @@ import { KxModalHeader } from '@/components/payments/KxPaymentUi';
 import type { HubCurrencyCatalogEntry } from '@/lib/payments/currencyCatalog';
 import { catalogEntryToOption } from '@/lib/payments/currencyCatalog';
 import type { HubPaymentCurrencyOption } from '@/lib/payments/hubPaymentTypes';
-import { prefetchImageUrls } from '@/lib/cache/aggressiveCache';
+import { prefetchImageUrls } from '@/lib/hub/aggressiveCache';
 
 type NetworkFilter = 'all' | 'kaspa_l1' | 'l2';
 type DexFilter = 'all' | 'native' | 'kron' | 'kaspacom' | 'zealous';

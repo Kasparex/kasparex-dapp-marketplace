@@ -9,7 +9,7 @@ import {
   aggressiveCacheGet,
   aggressiveCacheSet,
   prefetchImageUrls,
-} from '@/lib/cache/aggressiveCache';
+} from '@/lib/hub/aggressiveCache';
 import {
   buildHubCurrencyCatalog,
   buildKcc20CurrencyOption,
