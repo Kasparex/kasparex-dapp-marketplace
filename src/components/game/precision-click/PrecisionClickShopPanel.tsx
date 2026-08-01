@@ -93,12 +93,12 @@ export function PrecisionClickShopPanel(props: {
                 { currency: 'KREX', unitPrice: krexFromKas(discounted) },
               ]}
               buyLabel={props.buyBusyId === item.id ? 'Buying…' : 'Buy'}
-              onBuy={({ currency }) =>
-                props.onBuy({
+              onBuy={async ({ currency }) => {
+                await props.onBuy({
                   itemId: item.id,
                   currency: currency === 'KREX' ? 'KREX' : 'KAS',
-                })
-              }
+                });
+              }}
             />
           );
         })}
