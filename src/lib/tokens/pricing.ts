@@ -52,7 +52,6 @@ export function estimateTokenListingQuote(args: {
   const payload = buildCanonicalListingPayload(args.draft, args.action);
   const { payloadBytes, chunkCount } = computeArticleChunkPlan(payload);
   const discount = Math.min(Math.max(args.discountPercent ?? 0, 0), 90) / 100;
-  const baseFeeKas = args.action === 'edit' ? TOKEN_LISTING_FEES.updateListingKas : TOKEN_LISTING_FEES.createListingKas;
 
   let sizeFeeKas = chunkCount * VBLOG_PER_CHUNK_KAS + (payloadBytes / 1024) * VBLOG_PER_KB_KAS;
   if (args.action === 'edit' && args.priorPricingSnapshot) {
@@ -72,6 +71,14 @@ export function estimateTokenListingQuote(args: {
     return { id, title: offer?.title ?? id.replace(/_/g, ' '), kas: modulePriceById[id] ?? 0 };
   });
   const modulesFeeKas = moduleLines.reduce((sum, line) => sum + line.kas, 0);
+
+  // Edits: charge only new payload growth and newly unlocked modules (not a full re-list).
+  const baseFeeKas =
+    args.action === 'edit'
+      ? sizeFeeKas > 0 || modulesFeeKas > 0
+        ? TOKEN_LISTING_FEES.updateListingKas
+        : 0
+      : TOKEN_LISTING_FEES.createListingKas;
 
   const networkFeeBufferKas =
     args.action === 'edit'

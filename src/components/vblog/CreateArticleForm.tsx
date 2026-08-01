@@ -52,12 +52,12 @@ import type { StorePaymentCurrency } from '@/lib/store/currencies';
 import { KxTagsField } from '@/components/ui/KxTagsField';
 import { normalizeHubTags } from '@/lib/hub/suggestedTags';
 
-const FORM_PANEL_CLASS =
-  'bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 sm:p-8';
+import { KX_FORM_PANEL, KX_PREMIUM_MODULE_CARD } from '@/lib/hub/shellTokens';
 
-/** Premium module card: amber dashed accent + subtle gradient so paid features stand out. */
-const PREMIUM_MODULE_CARD_CLASS =
-  'rounded-2xl border-2 border-dashed border-amber-400/60 dark:border-amber-300/40 bg-gradient-to-b from-amber-50/70 to-white dark:from-amber-500/[0.08] dark:to-zinc-900 p-5 sm:p-6 shadow-sm';
+const FORM_PANEL_CLASS = KX_FORM_PANEL;
+
+/** Premium module card: shared Hub amber dashed chrome. */
+const PREMIUM_MODULE_CARD_CLASS = KX_PREMIUM_MODULE_CARD;
 
 interface CreateArticleFormProps {
   onSubmit?: (article: Omit<VBlogArticle, 'id' | 'slug' | 'publishDate' | 'cid' | 'articleId' | 'txHash' | 'status'>) => Promise<void>;

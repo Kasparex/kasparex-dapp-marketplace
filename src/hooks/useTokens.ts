@@ -129,7 +129,29 @@ function buildDraft(input: CreateTokenListingInput, author: string): TokenListin
 function listingUpdateFields(
   draft: TokenListingDraft,
   existing?: PublishedTokenListing,
+  ownership?: { ownership?: TokenOwnershipStatus; ownershipProof?: TokenOwnershipProof },
 ) {
+  const keepVerified =
+    existing?.ownership === 'deployer_verified' ||
+    Boolean(ownership?.ownershipProof) ||
+    ownership?.ownership === 'deployer_verified';
+  const nextOwnership: TokenOwnershipStatus = keepVerified
+    ? 'deployer_verified'
+    : ownership?.ownership ?? existing?.ownership ?? 'none';
+  const nextProof =
+    ownership?.ownershipProof ??
+    (nextOwnership === 'deployer_verified' ? existing?.ownershipProof : undefined);
+
+  const networks = (draft.networks ?? existing?.networks)?.map((entry) => {
+    if (!keepVerified) return entry;
+    if (entry.network !== draft.listingNetwork && entry.network !== existing?.listingNetwork) return entry;
+    return {
+      ...entry,
+      verified: true,
+      deployerVerified: true,
+    };
+  });
+
   return {
     symbol: draft.symbol.trim().toUpperCase(),
     name: draft.name.trim(),
@@ -157,8 +179,10 @@ function listingUpdateFields(
     totalSupply: draft.totalSupply ?? existing?.totalSupply,
     decimals: draft.decimals ?? existing?.decimals,
     onChainSnapshot: draft.onChainSnapshot ?? existing?.onChainSnapshot,
-    networks: draft.networks ?? existing?.networks,
+    networks,
     modulesConfig: draft.modulesConfig ?? existing?.modulesConfig,
+    ownership: nextOwnership,
+    ownershipProof: nextProof,
   };
 }
 
@@ -468,7 +492,13 @@ export function useTokens() {
       });
 
       if (quote.totalKas <= 0) {
-        const updated = updatePublishedListing(id, listingUpdateFields(draft, existing));
+        const updated = updatePublishedListing(
+          id,
+          listingUpdateFields(draft, existing, {
+            ownership: input.ownership,
+            ownershipProof: input.ownershipProof,
+          }),
+        );
         if (updated) void syncHubContentItem('tokens', 'upsert', { item: updated });
         loadListings();
         return updated;
@@ -485,7 +515,10 @@ export function useTokens() {
 
       const updated = updatePublishedListing(
         id,
-        listingUpdateFields(draft, existing),
+        listingUpdateFields(draft, existing, {
+          ownership: input.ownership,
+          ownershipProof: input.ownershipProof,
+        }),
         {
           txHash: bundle.commitTxHash,
           commitTxHash: bundle.commitTxHash,

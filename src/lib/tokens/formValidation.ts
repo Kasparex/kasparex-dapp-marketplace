@@ -40,8 +40,9 @@ export function validateTokenModulesForPublish(args: {
   }
 
   if (enabled.has('covenant_utilities_hub')) {
-    if (!(config.covenantUtilityTemplates ?? []).length) {
-      return 'Covenant utilities needs at least one template selected when enabled.';
+    // Undefined means "all templates" (same default as the module UI). Only fail when explicitly empty.
+    if (Array.isArray(config.covenantUtilityTemplates) && config.covenantUtilityTemplates.length === 0) {
+      return 'Covenant utilities needs at least one template selected when enabled. Scroll to Covenant utilities hub under Premium modules.';
     }
   }
 

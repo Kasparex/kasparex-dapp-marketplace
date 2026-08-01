@@ -66,46 +66,45 @@ export function GameDeckResourceRows({
         const Wrapper = r.tooltip ? Tooltip : null;
         const wrapperProps = r.tooltip ? ({ content: gameTooltipRich(r.label, r.tooltip) } as const) : null;
         const wide = layout === 'smart' && isWideDeckResource(r);
-        const isControl = typeof r.value !== 'string' && typeof r.value !== 'number' && r.value != null;
 
         const innerContent = (
           <>
             <div className="min-w-0 flex-1 text-left">
-              <div className="flex items-center gap-2 text-sm">
+              <div className="flex items-center gap-2 text-sm leading-tight">
                 {r.icon ? (
-                  <span className="inline-flex h-4 w-4 items-center justify-center text-zinc-500 dark:text-zinc-400">
+                  <span className="inline-flex h-4 w-4 shrink-0 items-center justify-center text-zinc-500 dark:text-zinc-400">
                     {r.icon}
                   </span>
                 ) : null}
-                <span className="truncate font-medium text-zinc-900 dark:text-zinc-100">{r.label}</span>
+                <span className="truncate font-semibold text-zinc-900 dark:text-zinc-100">{r.label}</span>
               </div>
               {r.description ? (
-                <div className="mt-0.5 text-[11px] leading-snug text-zinc-500 dark:text-zinc-500">{r.description}</div>
-              ) : null}
-              {isControl ? <div className="mt-2 flex justify-end">{r.value}</div> : null}
-            </div>
-            {!isControl ? (
-              <div className="ml-auto flex min-w-0 flex-shrink-0 flex-col items-end text-right">
-                <div
-                  className={`text-sm font-black tabular-nums ${
-                    typeof r.value === 'string' || typeof r.value === 'number' ? accentValueClass(r.accent) : ''
-                  }`}
-                >
-                  {r.value}
+                <div className="mt-0.5 line-clamp-1 text-[11px] leading-snug text-zinc-500 dark:text-zinc-500">
+                  {r.description}
                 </div>
-                {r.subValue ? (
-                  <div className="mt-0.5 text-[11px] font-semibold leading-snug text-zinc-500 dark:text-zinc-400">
-                    {r.subValue}
-                  </div>
-                ) : null}
+              ) : null}
+            </div>
+            <div className="flex shrink-0 items-center gap-2">
+              <div
+                className={
+                  typeof r.value === 'string' || typeof r.value === 'number'
+                    ? `text-sm font-black tabular-nums ${accentValueClass(r.accent)}`
+                    : 'flex items-center'
+                }
+              >
+                {r.value}
               </div>
-            ) : null}
+              {r.subValue ? (
+                <div className="text-[11px] font-semibold leading-snug text-zinc-500 dark:text-zinc-400">
+                  {r.subValue}
+                </div>
+              ) : null}
+            </div>
           </>
         );
 
         const rowClassName = [
-          'kx-metadata-stat-card flex w-full items-center justify-between gap-3 rounded-xl border border-zinc-200 bg-zinc-100 px-3 py-2.5 text-left dark:border-zinc-800 dark:bg-white/[0.06]',
-          isControl ? 'flex-col items-stretch sm:flex-row sm:items-center' : '',
+          'kx-metadata-stat-card flex w-full flex-row items-center justify-between gap-3 rounded-xl border border-zinc-200 bg-zinc-100 px-3 py-2 text-left dark:border-zinc-800 dark:bg-white/[0.06]',
           clickable ? 'cursor-pointer' : '',
         ].join(' ');
 

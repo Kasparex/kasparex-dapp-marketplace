@@ -21,6 +21,7 @@ import {
   type TokenListingMediaState,
 } from '@/components/tokens/TokenListingMediaPanel';
 import { TOKEN_MODULE_OFFERS, type TokenModuleId, getTokenModuleDiscountPercent, getTokenModuleEffectivePriceKas, type TokenModulesConfig, DEFAULT_HIGHLIGHT_HALO_COLOR } from '@/lib/tokens/modules';
+import { COVENANT_UTILITY_TEMPLATES } from '@/lib/programmable/covenantUtilities';
 import { validateTokenModulesForPublish } from '@/lib/tokens/formValidation';
 import { HubPaymentPanel } from '@/components/payments/HubPaymentPanel';
 import { buildKasKrexCurrencyOptions, formatHubPaymentAmount } from '@/lib/payments/hubPaymentTypes';
@@ -397,6 +398,16 @@ export function CreateTokenForm({
     () => new Set(listing?.paidModuleIds ?? []),
   );
   const [modulesConfig, setModulesConfig] = useState<TokenModulesConfig>(listing?.modulesConfig ?? {});
+
+  useEffect(() => {
+    if (!enabledModules.has('covenant_utilities_hub')) return;
+    if (modulesConfig.covenantUtilityTemplates?.length) return;
+    setModulesConfig((prev) => ({
+      ...prev,
+      covenantUtilityTemplates: COVENANT_UTILITY_TEMPLATES.map((t) => t.id),
+    }));
+  }, [enabledModules, modulesConfig.covenantUtilityTemplates?.length]);
+
   const [paymentCurrency, setPaymentCurrency] = useState<string>('KAS');
   const [paymentOption, setPaymentOption] = useState<HubPaymentCurrencyOption>(
     () => buildKasKrexCurrencyOptions()[0],
@@ -620,6 +631,15 @@ export function CreateTokenForm({
     if (id === 'roadmap_editor') setSectionToggles((prev) => ({ ...prev, roadmap: true }));
     if (id === 'utility_integrations') setSectionToggles((prev) => ({ ...prev, utility: true }));
     if (id === 'on_chain_poll') setSectionToggles((prev) => ({ ...prev, utility: true }));
+    if (id === 'covenant_utilities_hub') {
+      setModulesConfig((prev) => ({
+        ...prev,
+        covenantUtilityTemplates:
+          prev.covenantUtilityTemplates?.length
+            ? prev.covenantUtilityTemplates
+            : COVENANT_UTILITY_TEMPLATES.map((t) => t.id),
+      }));
+    }
     if (id === 'creator_showcase') {
       setSectionToggles((prev) => ({ ...prev, shop: true, author: true }));
       setModulesConfig((prev) => ({
@@ -791,6 +811,13 @@ export function CreateTokenForm({
       return;
     }
 
+    const publishModulesConfig: TokenModulesConfig = {
+      ...modulesConfig,
+      ...(enabledModules.has('covenant_utilities_hub') && !modulesConfig.covenantUtilityTemplates?.length
+        ? { covenantUtilityTemplates: COVENANT_UTILITY_TEMPLATES.map((t) => t.id) }
+        : null),
+    };
+
     if (isRealToken && isKrc20Network && !onChainSnapshot) {
       setError('Select a KRC-20 token from the lookup results before publishing.');
       return;
@@ -829,7 +856,7 @@ export function CreateTokenForm({
         decimals: tokenDecimals,
         onChainSnapshot: onChainSnapshot ?? undefined,
         networks: assembledNetworks,
-        modulesConfig,
+        modulesConfig: publishModulesConfig,
         paymentCurrency: paymentOption.id,
         ownershipProof: ownershipProof ?? undefined,
         ownership: (primaryOwnershipVerified ? 'deployer_verified' : 'none') as TokenOwnershipStatus,

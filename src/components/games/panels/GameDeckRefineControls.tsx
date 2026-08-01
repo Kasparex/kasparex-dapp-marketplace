@@ -100,7 +100,7 @@ export function gameDeckRefineResource(opts: {
   return {
     id: 'refine',
     label: 'Refine to Hub',
-    description: opts.description ?? `Min ${min} Diamonds → Hub points (1:1) on /rewards`,
+    description: opts.description ?? `Min ${min} → Hub points`,
     tooltip:
       'Enter how many Diamonds to refine. Each diamond credits exactly 1 Hub redeem point on /rewards. Amount does not auto-follow your live balance.',
     fullWidth: true,

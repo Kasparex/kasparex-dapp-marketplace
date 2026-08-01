@@ -48,11 +48,11 @@ import { normalizeHubTags } from '@/lib/hub/suggestedTags';
 import { STORE_LISTING_FEE_KAS, STORE_UPDATE_FEE_KAS } from '@/lib/store/listingQuote';
 const TREASURY = process.env.NEXT_PUBLIC_STORE_TREASURY_ADDRESS || '';
 
-const FORM_PANEL_CLASS =
-  'bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 sm:p-8';
+import { KX_FORM_PANEL, KX_PREMIUM_MODULE_CARD } from '@/lib/hub/shellTokens';
 
-const PREMIUM_MODULE_CARD_CLASS =
-  'rounded-2xl border-2 border-dashed border-amber-400/60 dark:border-amber-300/40 bg-gradient-to-b from-amber-50/70 to-white dark:from-amber-500/[0.08] dark:to-zinc-900 p-5 sm:p-6 shadow-sm';
+const FORM_PANEL_CLASS = KX_FORM_PANEL;
+
+const PREMIUM_MODULE_CARD_CLASS = KX_PREMIUM_MODULE_CARD;
 
 type StoreProductFormProps = {
   product?: Product;

@@ -370,9 +370,13 @@ export function TokenModuleConfigFields({
       ) : null}
 
       {showCovenantHub ? (
-        <div className={setupShellClass}>
+        <div id="token-module-covenant-utilities" className={setupShellClass}>
           {!bare ? <DAppSectionHeader title="Covenant utilities hub" className="mb-1" /> : null}
-          <p className="kx-body-sm">Choose which Kasparex covenant tools to surface on your token page.</p>
+          <p className="kx-body-sm">
+            Pick at least one covenant tool (Lockbox, Split, Milestone, Crowdfund, Voucher) to show on your token
+            page. This is the paid <span className="font-semibold">Covenant Utilities Hub</span> module in Premium
+            modules above.
+          </p>
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             {COVENANT_UTILITY_TEMPLATES.map((template) => {
               const checked = covenantTemplates.includes(template.id);
