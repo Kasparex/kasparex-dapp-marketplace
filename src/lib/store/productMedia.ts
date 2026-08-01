@@ -1,10 +1,14 @@
 import { getBestGatewayUrl } from '@/lib/ipfs/gateway';
 
 /** Resolve product thumbnail for cards / detail (HTTPS URL or IPFS CID). */
-export function resolveStoreProductImageUrl(product: {
-  thumbnailUrl?: string | null;
-  thumbnailCid?: string | null;
-}): string | undefined {
+export function resolveStoreProductImageUrl(
+  product?: {
+    thumbnailUrl?: string | null;
+    thumbnailCid?: string | null;
+  } | null,
+): string | undefined {
+  if (!product) return undefined;
+
   const url = product.thumbnailUrl?.trim();
   if (url && /^https?:\/\//i.test(url)) return url;
 
