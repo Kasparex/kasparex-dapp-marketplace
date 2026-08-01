@@ -15,7 +15,7 @@ import type { GameCapability } from '@/lib/games/registry';
 import { resolveGameAuthorWallet } from '@/lib/games/author';
 import { formatAddress } from '@/lib/vblog/utils';
 import { Tooltip } from '@/components/ui/Tooltip';
-import { KxBadge } from '@/components/ui/KxBadge';
+import { KxBadge, type KxBadgeVariant } from '@/components/ui/KxBadge';
 
 type GamesHaloHeaderProps = {
   game: Pick<
@@ -54,9 +54,16 @@ function formatStatus(status: Game['status']): string {
   return 'Active';
 }
 
+function statusBadgeVariant(status: Game['status']): KxBadgeVariant {
+  if (status === 'beta') return 'violet';
+  if (status === 'coming-soon') return 'amber';
+  if (status === 'maintenance') return 'orange';
+  return 'emerald';
+}
+
 /**
  * Two-column game header (above tabs).
- * Left: kicker + tilt title, author, badges, Game Deck. Right: featured cover + vote box.
+ * Left: kicker + tilt title, author, badges + vote (Tokens-style), Game Deck. Right: featured cover.
  */
 export function GamesHaloHeader({ game, resources = [], deckFooter, playerLevel }: GamesHaloHeaderProps) {
   const typeName = gameTypes[game.gameType]?.name ?? game.gameType;
@@ -67,18 +74,18 @@ export function GamesHaloHeader({ game, resources = [], deckFooter, playerLevel 
   const canVote = Boolean(game.id?.trim());
 
   /** Max 3–4 game-related chips. No entry-cost badge. */
-  const badges: { key: string; label: string; tone?: 'accent' | 'player' | 'default' }[] = [
-    { key: 'status', label: formatStatus(game.status), tone: 'accent' },
-    { key: 'type', label: typeName },
-    { key: 'difficulty', label: difficultyName },
+  const badges: { key: string; label: string; variant: KxBadgeVariant }[] = [
+    { key: 'status', label: formatStatus(game.status), variant: statusBadgeVariant(game.status) },
+    { key: 'type', label: typeName, variant: 'zinc' },
+    { key: 'difficulty', label: difficultyName, variant: 'zinc' },
   ];
   if (typeof playerLevel === 'number' && playerLevel > 0) {
-    badges.splice(1, 0, { key: 'player-level', label: `Player Lv ${playerLevel}`, tone: 'player' });
+    badges.splice(1, 0, { key: 'player-level', label: `Player Lv ${playerLevel}`, variant: 'sky' });
   }
   const extra = [...(game.categories ?? []), ...(game.tags ?? []).map((t) => `#${t}`)].filter(Boolean);
   for (const label of extra) {
     if (badges.length >= 5) break;
-    badges.push({ key: `extra-${label}`, label });
+    badges.push({ key: `extra-${label}`, label, variant: 'zinc' });
   }
 
   return (
@@ -112,17 +119,22 @@ export function GamesHaloHeader({ game, resources = [], deckFooter, playerLevel 
             className="mb-4"
           />
 
-          <div className="mb-5 flex flex-wrap gap-2">
-            {badges.map((b) => {
-              const tone = b.tone ?? 'default';
-              const variant =
-                tone === 'player' ? 'sky' : tone === 'accent' ? 'emerald' : 'zinc';
-              return (
-                <KxBadge key={b.key} variant={variant}>
+          <div className="mb-5 flex items-center justify-between gap-3">
+            <div className="flex min-w-0 flex-wrap gap-2">
+              {badges.map((b) => (
+                <KxBadge key={b.key} variant={b.variant}>
                   {b.label}
                 </KxBadge>
-              );
-            })}
+              ))}
+            </div>
+            {canVote ? (
+              <div className="shrink-0">
+                <GameVoteControls
+                  game={{ id: game.id, name: game.name, slug: game.slug || game.id }}
+                  compact
+                />
+              </div>
+            ) : null}
           </div>
 
           {resources.length > 0 ? (
@@ -170,16 +182,6 @@ export function GamesHaloHeader({ game, resources = [], deckFooter, playerLevel 
               )}
             </div>
           </Tooltip>
-
-          {canVote ? (
-            <div className="absolute right-4 top-4 z-30 sm:right-6 sm:top-6">
-              <div className="rounded-xl border border-zinc-200 bg-white/90 p-1 backdrop-blur-md dark:border-zinc-800 dark:bg-zinc-900/90">
-                <GameVoteControls
-                  game={{ id: game.id, name: game.name, slug: game.slug || game.id }}
-                />
-              </div>
-            </div>
-          ) : null}
         </div>
       </div>
     </div>

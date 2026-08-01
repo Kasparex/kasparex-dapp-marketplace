@@ -1,5 +1,6 @@
-import type { ReactElement } from 'react';
+import type { ReactElement, ReactNode } from 'react';
 import type { HubProject } from '@/lib/hubProjects';
+import { KxBadge } from '@/components/ui/KxBadge';
 
 export function getHubProjectIcon(projectId: string) {
   const iconMap: Record<string, (props: { className?: string }) => ReactElement> = {
@@ -90,20 +91,19 @@ export function getHubProjectIcon(projectId: string) {
 }
 
 export function HubProjectStatusBadge({ status }: { status: HubProject['status'] }) {
-  const base = 'px-1.5 py-0.5 text-[10px] font-medium rounded shrink-0';
   switch (status) {
     case 'demo':
-      return <span className={`${base} bg-blue-100/80 dark:bg-blue-900/40 text-blue-800 dark:text-blue-300`}>Demo</span>;
+      return <KxBadge variant="sky">Demo</KxBadge>;
     case 'beta':
-      return <span className={`${base} bg-purple-100/80 dark:bg-purple-900/40 text-purple-800 dark:text-purple-300`}>Beta</span>;
+      return <KxBadge variant="violet">Beta</KxBadge>;
     case 'coming-soon':
-      return <span className={`${base} bg-yellow-100/80 dark:bg-yellow-900/40 text-yellow-800 dark:text-yellow-300`}>Soon</span>;
+      return <KxBadge variant="amber">Soon</KxBadge>;
     default:
       return null;
   }
 }
 
-export function HubMenuSectionTitle({ children }: { children: React.ReactNode }) {
+export function HubMenuSectionTitle({ children }: { children: ReactNode }) {
   return (
     <p className="px-2 pb-1.5 text-[11px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
       {children}

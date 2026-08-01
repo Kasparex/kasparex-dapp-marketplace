@@ -2,11 +2,12 @@
 
 import type { NftModuleItem } from '@/lib/nft/nftModules';
 import { KxListingCard, KxListingCardBody, KxListingCardMedia } from '@/components/kx/KxListingCard';
+import { KxBadge } from '@/components/ui/KxBadge';
 
 export function NFTModuleCard({ module }: { module: NftModuleItem }) {
   return (
     <KxListingCard href={module.href} accent="nftTools" className="flex flex-col h-full">
-      <KxListingCardMedia aspectClass="aspect-[5/2]" className="border-b border-zinc-200/50 dark:border-zinc-800/50">
+      <KxListingCardMedia aspectClass="aspect-video" className="border-b border-zinc-200/50 dark:border-zinc-800/50">
         <div className="absolute inset-0 bg-gradient-to-br from-zinc-100 via-zinc-50 to-lime-500/15 dark:from-zinc-900 dark:via-zinc-950 dark:to-lime-950/35 flex items-center justify-center">
           <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-lime-700 dark:text-lime-300">
             <svg className="w-5 h-5 opacity-80" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden>
@@ -16,12 +17,12 @@ export function NFTModuleCard({ module }: { module: NftModuleItem }) {
           </div>
         </div>
         {module.status === 'beta' ? (
-          <span className="absolute top-3 left-3 inline-flex items-center px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-widest backdrop-blur-sm border bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300 border-amber-300 dark:border-amber-700 z-20">
-            Beta
+          <span className="absolute top-3 left-3 z-20">
+            <KxBadge variant="violet">Beta</KxBadge>
           </span>
         ) : (
-          <span className="absolute top-3 left-3 inline-flex items-center px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-widest backdrop-blur-sm border bg-lime-100 dark:bg-lime-900/30 text-lime-800 dark:text-lime-300 border-lime-300 dark:border-lime-700 z-20">
-            Live
+          <span className="absolute top-3 left-3 z-20">
+            <KxBadge variant="emerald">Live</KxBadge>
           </span>
         )}
       </KxListingCardMedia>

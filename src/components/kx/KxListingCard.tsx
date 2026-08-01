@@ -58,7 +58,7 @@ export function KxListingCard({
 
 /** CrowdKAS listing media: 16/9, zinc plate, no extra divider (campaign cards). */
 export function KxListingCardMedia({
-  aspectClass = 'aspect-[3/2]',
+  aspectClass = 'aspect-video',
   className,
   children,
 }: {

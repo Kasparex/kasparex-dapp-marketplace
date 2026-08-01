@@ -2,7 +2,6 @@
 
 import { useState, type ReactNode } from 'react';
 import Link from 'next/link';
-import { GameTooltip } from '@/components/game/diamond-veins/GameTooltip';
 import { GameItemCard } from '@/components/games/shop/GameItemCard';
 import { IconBoosters, IconBot, IconSignal } from '@/components/games/icons/TabIcons';
 import { CardsFilterBar } from '@/components/games/CardsFilterBar';
@@ -29,7 +28,7 @@ export function UpgradesPanel({
   krexL1Balance,
   kasBalance: _kasBalance,
   kasBalanceLoading,
-  krexTier,
+  krexTier: _krexTier,
   getKasPriceAfterDiscount,
   buyingItemId,
   revenuePoolPct,
@@ -60,6 +59,7 @@ export function UpgradesPanel({
   const [sortBy, setSortBy] = useState('recommended');
   const shopGridClass = useGamesMainAdaptiveWideGrid('gap-6');
   void _kasBalance;
+  void _krexTier;
   const categories = ['supplies', 'boosts', 'yield', 'luck', 'efficiency'];
 
   type ShopRow =
@@ -94,20 +94,6 @@ export function UpgradesPanel({
 
   return (
     <div className="space-y-6">
-      <div className="rounded-2xl border border-zinc-200 bg-zinc-100 p-4 dark:border-zinc-800 dark:bg-zinc-900/60">
-        <p className="text-sm text-zinc-600 dark:text-zinc-400">
-          <GameTooltip
-            title="Shop rules"
-            description="Buy worker supplies to restore energy, or boosts for higher Diamond flow. KREX tier discount applies to the full KAS price."
-          >
-            <span className="cursor-help border-b border-dotted border-zinc-400 font-semibold text-zinc-800 dark:text-zinc-200">
-              Shop rules
-            </span>
-          </GameTooltip>
-          : tier <strong>{krexTier}</strong> · KasWare/Kastle for payments.
-        </p>
-      </div>
-
       {!canPayWithL1 && (
         <div className="rounded-xl border border-amber-500/20 bg-amber-500/10 p-3 text-sm text-amber-800 dark:text-amber-200">
           Connect <strong>KasWare</strong> to pay with KREX or KAS.
@@ -124,14 +110,7 @@ export function UpgradesPanel({
         onSortChange={setSortBy}
       />
 
-      <div className="space-y-3">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <h2 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">Shop</h2>
-          <span className="rounded-full border border-zinc-300 bg-zinc-200 px-3 py-1 text-xs font-semibold text-zinc-600 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400">
-            Supplies & boosts
-          </span>
-        </div>
-        <div className={shopGridClass}>
+      <div className={shopGridClass}>
           {rows.map((row) => {
             if (row.kind === 'supply') {
               const item = row.item;
@@ -228,7 +207,6 @@ export function UpgradesPanel({
               />
             );
           })}
-        </div>
       </div>
 
       <p className="text-xs text-zinc-500 dark:text-zinc-500">

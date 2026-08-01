@@ -13,6 +13,7 @@ import { GameNetworkBadge } from './GameNetworkBadge';
 import type { GameCapability } from '@/lib/games/registry';
 import { resolveGameAuthorWallet } from '@/lib/games/author';
 import { formatAddress } from '@/lib/vblog/utils';
+import { KxBadge } from '@/components/ui/KxBadge';
 
 interface GameCardProps {
   game: Game & { capabilities?: GameCapability[] };
@@ -63,9 +64,9 @@ export function GameCard({ game, onCategoryFilter }: GameCardProps) {
 
         <div className="absolute left-3 top-3 z-20 flex flex-col items-start gap-1.5">
           {game.status === 'beta' ? (
-            <span className="inline-flex items-center gap-1.5 rounded-md border border-purple-300 bg-purple-100 px-2.5 py-1 text-xs font-semibold text-purple-800 shadow-sm backdrop-blur-sm dark:border-purple-700 dark:bg-purple-900/30 dark:text-purple-300">
+            <KxBadge variant="violet" className="shadow-sm backdrop-blur-sm">
               Beta
-            </span>
+            </KxBadge>
           ) : null}
           <GameDifficultyBadge difficulty={game.difficulty} size="sm" />
         </div>

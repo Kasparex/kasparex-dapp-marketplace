@@ -8,8 +8,6 @@ import { getCategoryById } from '@/lib/categories';
 import { getDAppNetworkType } from '@/lib/dapps';
 import { DAppIcon } from './DAppIcon';
 import { DAppPageHeaderActions, useMergedDApp } from './DAppPageHeaderActions';
-import { KxTagChip } from '@/components/ui/KxTagChip';
-import { KxListingCategoryChip } from '@/components/ui/KxListingCategoryChip';
 import { AuthorInline } from '@/components/ui/AuthorInline';
 import { resolveDAppAuthor } from '@/lib/dapps/deployer';
 import { HubPointsEarnBadge } from '@/components/hub/HubPointsEarnBadge';
@@ -23,6 +21,7 @@ import { usePaymentAmount } from '@/lib/dapps/PaymentAmountContext';
 import { getDAppPaymentConfig } from '@/lib/payments/config';
 import { getHubPointsBaseForAction } from '@/lib/payments/hubQuote';
 import type { DirectoryListing } from '@/lib/dapps/listingSubmissions';
+import { DAppVoteControls } from '@/components/dapps/DAppVoteControls';
 
 function SocialLink({ label, url }: { label: string; url: string }) {
   return (
@@ -123,27 +122,37 @@ export function DAppPageHeader({
             </div>
           ) : null}
 
-          <div className="mb-4 flex flex-wrap items-center gap-2">
-            {mergedDApp.tags?.map((tag) => (
-              <KxTagChip key={tag} label={tag} prefix="" />
-            ))}
-            {category ? (
-              <KxListingCategoryChip
-                icon={category.emoji}
-                onClick={() => router.push(`/dapps?category=${encodeURIComponent(mergedDApp.category)}`)}
-                title={`Browse ${category.name}`}
-              >
-                {category.name}
-              </KxListingCategoryChip>
-            ) : null}
-            <DAppCovenantHeaderBadges dapp={mergedDApp} />
+          <div className="mb-4 flex items-center justify-between gap-3">
+            <div className="flex min-w-0 flex-wrap items-center gap-2">
+              {mergedDApp.tags?.map((tag) => (
+                <KxBadge key={tag} variant="zinc">
+                  {tag}
+                </KxBadge>
+              ))}
+              {category ? (
+                <button
+                  type="button"
+                  onClick={() => router.push(`/dapps?category=${encodeURIComponent(mergedDApp.category)}`)}
+                  title={`Browse ${category.name}`}
+                  className="inline-flex"
+                >
+                  <KxBadge variant="zinc" icon={category.emoji ? <span>{category.emoji}</span> : undefined}>
+                    {category.name}
+                  </KxBadge>
+                </button>
+              ) : null}
+              <DAppCovenantHeaderBadges dapp={mergedDApp} />
+            </div>
+            <div className="shrink-0">
+              <DAppVoteControls dapp={mergedDApp} compact />
+            </div>
           </div>
         </div>
 
         <div className="relative min-h-[220px] w-full border-t border-zinc-200 bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-800 lg:min-h-full lg:w-1/2 lg:border-l lg:border-t-0">
           <div className="absolute left-4 top-4 z-20 flex flex-col items-start gap-2 sm:left-6 sm:top-6">
             <DAppNetworkBadge dapp={mergedDApp} preferRequired size="sm" />
-            <KxBadge variant="zinc">{statusLabel}</KxBadge>
+            <KxBadge variant={/beta/i.test(statusLabel) ? 'violet' : 'zinc'}>{statusLabel}</KxBadge>
           </div>
           {featuredImage ? (
             <Image
@@ -162,7 +171,7 @@ export function DAppPageHeader({
 
       <div className="absolute right-4 top-4 z-30 sm:right-6 sm:top-6">
         <div className="rounded-xl border border-zinc-200 bg-white/90 p-1 backdrop-blur-md dark:border-zinc-800 dark:bg-zinc-900/90">
-          <DAppPageHeaderActions dapp={mergedDApp} contractAddress={contractAddress} />
+          <DAppPageHeaderActions dapp={mergedDApp} contractAddress={contractAddress} hideVote />
         </div>
       </div>
     </div>

@@ -2,27 +2,16 @@
 
 import type { NftToolsRoadmapItem } from '@/lib/nft/nftToolsRoadmap';
 import { KxListingCard, KxListingCardBody, KxListingCardMedia } from '@/components/kx/KxListingCard';
+import { KxBadge } from '@/components/ui/KxBadge';
 
 function statusBadge(status: NftToolsRoadmapItem['status']) {
   if (status === 'beta') {
-    return (
-      <span className="text-[10px] font-black uppercase tracking-widest text-amber-700 dark:text-amber-300 px-2 py-0.5 rounded-full border border-amber-500/30 bg-amber-500/10">
-        Beta
-      </span>
-    );
+    return <KxBadge variant="violet">Beta</KxBadge>;
   }
   if (status === 'in-progress') {
-    return (
-      <span className="text-[10px] font-black uppercase tracking-widest text-lime-700 dark:text-lime-300 px-2 py-0.5 rounded-full border border-lime-500/30 bg-lime-500/10">
-        In progress
-      </span>
-    );
+    return <KxBadge variant="emerald">In progress</KxBadge>;
   }
-  return (
-    <span className="text-[10px] font-black uppercase tracking-widest text-zinc-500 dark:text-zinc-400 px-2 py-0.5 rounded-full border border-zinc-300 dark:border-zinc-600 bg-zinc-100/80 dark:bg-zinc-800/60">
-      Planned
-    </span>
-  );
+  return <KxBadge variant="zinc">Planned</KxBadge>;
 }
 
 export function NFTToolCard({ item }: { item: NftToolsRoadmapItem }) {

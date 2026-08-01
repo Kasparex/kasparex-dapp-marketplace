@@ -3,6 +3,7 @@
 import { Game, gameTypes, difficultyLevels } from '@/lib/games/games';
 import { GameDifficultyBadge } from './GameDifficultyBadge';
 import { GameTypeIcon } from './GameTypeIcon';
+import { KxBadge } from '@/components/ui/KxBadge';
 
 interface GameInfoPanelProps {
   game: Game;
@@ -34,26 +35,10 @@ export function GameInfoPanel({ game }: GameInfoPanelProps) {
           </div>
           <div className="flex items-center justify-between">
             <span className="kx-body">Status:</span>
-            {game.status === 'beta' && (
-              <span className="px-2 py-1 text-xs font-medium bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300 rounded">
-                Beta
-              </span>
-            )}
-            {game.status === 'active' && (
-              <span className="px-2 py-1 text-xs font-medium bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 rounded">
-                Active
-              </span>
-            )}
-            {game.status === 'coming-soon' && (
-              <span className="px-2 py-1 text-xs font-medium bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300 rounded">
-                Coming Soon
-              </span>
-            )}
-            {game.status === 'maintenance' && (
-              <span className="px-2 py-1 text-xs font-medium bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-300 rounded">
-                Maintenance
-              </span>
-            )}
+            {game.status === 'beta' ? <KxBadge variant="violet">Beta</KxBadge> : null}
+            {game.status === 'active' ? <KxBadge variant="emerald">Active</KxBadge> : null}
+            {game.status === 'coming-soon' ? <KxBadge variant="amber">Coming Soon</KxBadge> : null}
+            {game.status === 'maintenance' ? <KxBadge variant="orange">Maintenance</KxBadge> : null}
           </div>
           <div className="flex items-center justify-between">
             <span className="kx-body">Developer:</span>

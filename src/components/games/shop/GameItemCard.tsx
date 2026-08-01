@@ -509,7 +509,7 @@ export function GameItemCard(props: {
 
   return (
     <KxListingCard accent={listingAccent} className="relative flex min-h-0 flex-col" onClick={props.onCardNavigate}>
-      <KxListingCardMedia aspectClass="aspect-[3/2]">
+      <KxListingCardMedia aspectClass="aspect-video">
         <div className="absolute inset-0 bg-zinc-100 dark:bg-zinc-800" />
         <div className="absolute inset-0 flex items-center justify-center">
           {mainMedia}

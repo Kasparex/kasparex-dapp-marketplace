@@ -20,6 +20,7 @@ import {
 } from '@/components/games/panels/GameDeckPanel';
 import { TokenVoteControls } from '@/components/tokens/TokenVoteControls';
 import { TokenNetworkChips } from '@/components/tokens/TokenNetworkChips';
+import { KxBadge } from '@/components/ui/KxBadge';
 import {
   getNetworkChipShortLabel,
   getTokenNetworkEntries,
@@ -156,16 +157,11 @@ export function TokenPageHeader({ token, onNavigateTab }: TokenPageHeaderProps) 
 
   const badgeNodes = badges.slice(0, MAX_HEADER_BADGES).map((b) => {
     const tone = b.tone ?? 'default';
-    const className =
-      tone === 'player'
-        ? 'rounded-lg border border-cyan-500/35 bg-cyan-500/10 px-3 py-1.5 text-xs font-medium text-cyan-800 dark:text-cyan-200'
-        : tone === 'accent'
-          ? 'rounded-lg border border-[color:var(--hub-accent-border)] bg-[color:var(--hub-accent-muted)] px-3 py-1.5 text-xs font-medium text-[color:var(--hub-accent)]'
-          : 'rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-xs font-medium text-zinc-700 dark:border-zinc-700 dark:bg-zinc-800/50 dark:text-zinc-300';
+    const variant = tone === 'player' ? 'sky' : tone === 'accent' ? 'emerald' : 'zinc';
     return (
-      <span key={b.key} className={className}>
+      <KxBadge key={b.key} variant={variant}>
         {b.label}
-      </span>
+      </KxBadge>
     );
   });
 

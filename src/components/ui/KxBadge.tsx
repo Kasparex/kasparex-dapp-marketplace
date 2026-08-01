@@ -21,8 +21,9 @@ export type KxBadgeVariant =
 const VARIANT_CLASS: Record<KxBadgeVariant, string> = {
   cyan: 'bg-cyan-500/15 text-cyan-700 dark:text-cyan-300',
   emerald: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300',
-  violet: 'bg-violet-500/15 text-violet-700 dark:text-violet-300',
-  'violet-solid': 'bg-violet-500/90 text-white',
+  /** Hub mega-menu Beta purple (use for all Beta badges). */
+  violet: 'bg-purple-100/80 text-purple-800 dark:bg-purple-900/40 dark:text-purple-300',
+  'violet-solid': 'bg-purple-600 text-white shadow-sm dark:bg-purple-500',
   amber: 'bg-amber-500/15 text-amber-800 dark:text-amber-300',
   zinc: 'bg-zinc-200/90 text-zinc-800 dark:bg-zinc-700/90 dark:text-zinc-200',
   rose: 'bg-rose-500/15 text-rose-800 dark:text-rose-300',

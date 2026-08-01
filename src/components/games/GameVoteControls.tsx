@@ -14,6 +14,7 @@ const GAMES_LISTING_VOTE_KEY = 'games_listing_votes';
 type GameVoteControlsProps = {
   game: Pick<Game, 'id' | 'name' | 'slug'>;
   className?: string;
+  compact?: boolean;
 };
 
 function resolveVoteAuthor(gameId: string): string {
@@ -24,7 +25,7 @@ function resolveVoteAuthor(gameId: string): string {
 }
 
 /** Games listing vote control (shared Hub multi-out payment standard). */
-export function GameVoteControls({ game, className = '' }: GameVoteControlsProps) {
+export function GameVoteControls({ game, className = '', compact = false }: GameVoteControlsProps) {
   const authorWallet = resolveVoteAuthor(game.id);
 
   return (
@@ -41,6 +42,7 @@ export function GameVoteControls({ game, className = '' }: GameVoteControlsProps
         authorWallet={authorWallet}
         paymentNote={`Game vote:{vote}:${game.slug || game.id}`}
         className={className}
+        compact={compact}
         activeClassName="border-[color:var(--hub-accent-border,#10b981)] bg-[color:var(--hub-accent-muted,rgba(16,185,129,0.15))] text-[color:var(--hub-accent,#10b981)]"
         onVoteSaved={() => {
           notifyGamesListingVotesChanged();

@@ -15,9 +15,16 @@ interface DAppPageHeaderActionsProps {
   dapp: DApp;
   contractAddress?: string;
   className?: string;
+  /** When true, vote controls are rendered elsewhere (e.g. badges row). */
+  hideVote?: boolean;
 }
 
-export function DAppPageHeaderActions({ dapp, contractAddress, className = '' }: DAppPageHeaderActionsProps) {
+export function DAppPageHeaderActions({
+  dapp,
+  contractAddress,
+  className = '',
+  hideVote = false,
+}: DAppPageHeaderActionsProps) {
   const chainId = useChainId();
   const [showInfoModal, setShowInfoModal] = useState(false);
   const [showEmbedModal, setShowEmbedModal] = useState(false);
@@ -74,7 +81,7 @@ export function DAppPageHeaderActions({ dapp, contractAddress, className = '' }:
           </button>
         </Tooltip>
 
-        <DAppVoteControls dapp={mergedDApp} compact />
+        {!hideVote ? <DAppVoteControls dapp={mergedDApp} compact /> : null}
       </div>
 
       {showInfoModal ? (
