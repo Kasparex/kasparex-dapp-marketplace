@@ -372,8 +372,18 @@ export function KrexWrapBridgeWidget() {
     <DAppWidgetShell
       title="Wrap"
       heading="KREX Wrap Bridge"
-      description="Move KRC-20 KREX into the wrap vault. When mint is live, you receive matching KCC20 (counted toward Hub tiers). One-way until unwrap is enabled."
+      description="One-way migrate: KRC-20 KREX → wrap vault → KCC20. Same supply story, Hub-ready utility. Wallets may list KRC20 and KCC20 separately; Hub tiers count both when mint is live."
     >
+      <div className="rounded-xl border border-dashed border-[color:var(--hub-accent-border,rgba(6,182,212,0.35))] bg-[color:var(--hub-accent-muted,rgba(6,182,212,0.06))] px-3.5 py-3 text-sm leading-snug text-zinc-700 dark:text-zinc-300">
+        <p className="font-semibold text-zinc-900 dark:text-zinc-100">Before you wrap</p>
+        <ul className="mt-2 list-disc space-y-1 pl-4">
+          <li>This release is <strong>one-way</strong>. You cannot unwrap back to KRC-20 here yet.</li>
+          <li>CEX deposits still use KRC-20. Keep exchange inventory unwrapped if you trade there.</li>
+          <li>Wrapped KCC20 is meant for Hub utility (tiers, covenants). It is not a new free allocation.</li>
+          <li>Only send to the vault address shown in this dApp.</li>
+        </ul>
+      </div>
+
       {!config.ready ? (
         <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-100">
           Vault not configured. Set <code className="font-mono text-xs">NEXT_PUBLIC_KREX_WRAP_VAULT</code> and a
@@ -436,8 +446,8 @@ export function KrexWrapBridgeWidget() {
           </div>
 
           <p className="text-xs text-zinc-500 dark:text-zinc-400">
-            You pay ~{feeKas} KAS wrap fee (tier-discounted), then send {tick} 1:1 to the vault. Wrapped KCC20
-            keeps the same Hub tier benefits once the covenant id is set.
+            You pay ~{feeKas} KAS wrap fee (tier-discounted), then send {tick} 1:1 to the vault. After mint,
+            wallets can show a separate KCC20 row; Hub still counts wrapped balance toward the same tiers.
           </p>
         </>
       )}

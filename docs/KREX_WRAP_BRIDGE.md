@@ -2,6 +2,28 @@
 
 Hub dApp: [`/dapps/krex-wrap-bridge`](../src/components/dapps/KrexWrapBridgeWidget.tsx)
 
+## Deploying wrapped KCC20 KREX (ops)
+
+Do **not** fair-launch a second free-supply KREX on KRON/Kcom. That creates a competing token.
+
+Best path:
+
+1. Deploy a **mint-controlled / capped KCC20** (same decimals as KRC-20, usually 8; same max supply story).
+2. Mint authority = wrap controller only (vault watcher), never open public mint.
+3. Circulating KCC20 must never exceed KRC-20 locked in the wrap vault.
+4. Use **KRON / KaspaCom / kascov** afterward for discovery, listing, and trading the wrapped asset, not for inventing new supply.
+5. Keep ticker branding as **KREX** (or clearly “Wrapped KREX”) so wallets show two rails of the same project, not two projects.
+
+Tokenomics checklist vs KRC-20:
+
+| Field | Rule |
+|-------|------|
+| Decimals | Match KRC-20 |
+| Max supply | Match (or cap at remaining unwrapped + vault) |
+| Team / investor unlocks | Do **not** remint on KCC20 |
+| Circulating | Only mint 1:1 against vault deposits |
+| Naming | Same brand; wallets may still show two rows (KRC20 tab / KCC20 tab) |
+
 ## What shipped (v0.1)
 
 - One-way wrap UI: pay tier-discounted KAS fee → send KRC-20 KREX to configured vault.

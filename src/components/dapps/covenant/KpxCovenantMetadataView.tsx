@@ -9,7 +9,20 @@ import {
   type KpxCovenantMetadataRow,
 } from '@/lib/covenant/kpxCovenantMetadata';
 import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
+import { HubMetadataStatGrid, type HubMetadataStat } from '@/components/hub/HubMetadataStatGrid';
 import { KxDataTable, type KxDataTableRow } from '@/components/kx/KxDataTable';
+
+function toStatCards(rows: KpxCovenantMetadataRow[]): HubMetadataStat[] {
+  return rows
+    .filter((row) => row.value?.trim() || row.hint?.trim())
+    .map((row) => ({
+      label: row.label,
+      value: row.value?.trim() || row.hint || '—',
+      hint: row.value?.trim() ? row.hint : undefined,
+      mono: row.mono,
+      copyable: Boolean(row.value?.trim()),
+    }));
+}
 
 function toTableRows(rows: KpxCovenantMetadataRow[]): KxDataTableRow[] {
   return rows.map((row) => ({
@@ -76,10 +89,15 @@ export function KpxCovenantMetadataView({
     [selected?.covenantId],
   );
 
+  const selectedStatRows = useMemo(() => {
+    if (!selected) return [];
+    return toStatCards(selected.rows ?? []);
+  }, [selected]);
+
   return (
     <div className="space-y-6">
       <MetadataBlock title="Product" description="What this dApp uses on Kaspa L1.">
-        <KxDataTable rows={toTableRows(templateRows)} />
+        <HubMetadataStatGrid stats={toStatCards(templateRows)} />
       </MetadataBlock>
 
       {showInstances ? (
@@ -88,7 +106,10 @@ export function KpxCovenantMetadataView({
             <p className="text-sm text-zinc-600 dark:text-zinc-400">{emptyMessage}</p>
           </MetadataBlock>
         ) : (
-          <MetadataBlock title="Selected lock" description="Pick a lock to see status, amounts, and explorer links.">
+          <MetadataBlock
+            title="Selected lock"
+            description="Pick a lock to see status, amounts, and explorer links."
+          >
             {instances.length > 1 ? (
               <div>
                 <label htmlFor="kpx-metadata-instance" className="k-label">
@@ -113,12 +134,18 @@ export function KpxCovenantMetadataView({
             {selected ? (
               <div className="space-y-3">
                 <div>
-                  <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">{selected.title}</p>
+                  <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+                    {selected.title}
+                  </p>
                   {selected.subtitle ? (
                     <p className="text-xs text-zinc-500 dark:text-zinc-400">{selected.subtitle}</p>
                   ) : null}
                 </div>
-                <KxDataTable rows={toTableRows(selected.rows)} />
+                {selectedStatRows.length > 0 ? (
+                  <HubMetadataStatGrid stats={selectedStatRows} />
+                ) : (
+                  <KxDataTable rows={toTableRows(selected.rows ?? [])} />
+                )}
               </div>
             ) : null}
           </MetadataBlock>
@@ -131,7 +158,10 @@ export function KpxCovenantMetadataView({
         </MetadataBlock>
       )}
 
-      <MetadataBlock title="Explorers" description="Open the selected lock on Kaspa explorers when an on-chain ID exists.">
+      <MetadataBlock
+        title="Explorers"
+        description="Open the selected lock on Kaspa explorers when an on-chain ID exists."
+      >
         <KxDataTable rows={toTableRows(explorerRows)} />
       </MetadataBlock>
     </div>

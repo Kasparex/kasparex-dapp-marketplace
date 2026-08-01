@@ -68,6 +68,12 @@ export const KX_DETAIL_HEADER =
 export const KX_EMPTY_STATE =
   'rounded-xl border border-dashed border-zinc-300 bg-zinc-50 p-8 text-center dark:border-zinc-800 dark:bg-zinc-950/50';
 
+/** 2-col metadata stat cards (Market Cap-style boxes on detail Metadata tabs). */
+export const KX_METADATA_STAT_CARD =
+  'rounded-2xl border border-zinc-200 bg-zinc-100/90 p-4 sm:p-5 dark:border-zinc-800 dark:bg-zinc-950/70';
+
+export const KX_METADATA_STAT_GRID = 'grid grid-cols-1 gap-3 sm:grid-cols-2';
+
 /** Dashed informational callout (field context, not post-CTA alerts). */
 export const KX_INFO_DASHED =
   'rounded-xl border border-dashed border-[color:var(--hub-accent-border,rgba(6,182,212,0.35))] bg-[color:var(--hub-accent-muted,rgba(6,182,212,0.06))] px-3.5 py-3 text-sm leading-snug text-zinc-700 dark:text-zinc-300';
