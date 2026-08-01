@@ -268,7 +268,7 @@ export function GameDeckPanel(props: {
           </div>
         ) : null}
 
-        <GameDeckResourceRows resources={resources} bordered={false} />
+        <GameDeckResourceRows resources={resources} bordered={false} layout="stack" />
 
         {props.footer ? <div className="mt-4 text-xs text-zinc-600 dark:text-zinc-400">{props.footer}</div> : null}
       </GamePanelCard>
