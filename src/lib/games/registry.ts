@@ -245,15 +245,15 @@ export const gamesRegistry: UnifiedGame[] = [
       name: 'Precision Click: ARIA Lock',
       slug: 'precision-click',
       description:
-        'ARIA Lock precision training. Hit timed targets in short skill runs; smaller targets score higher. Miss too many and the run ends.',
+        'ARIA Lock precision training across 10 levels. Click shard, chip, and character targets for Aria fragments; avoid Null hazards. Refine fragments into Hub points.',
       instructions:
-        'Pay the KAS training entry. Click targets as they appear in each session. Boosters multiply your final score; claim Hub rewards later via Rewards & Points.',
+        'Pay the 10 KAS training entry (optional add-ons). Clear each level fragment goal to unlock the next. Shop boosters multiply fragment gains; refine to Hub points from the Game Deck.',
       gameType: 'skill',
       difficulty: 'expert',
-      entryCostKAS: 0.3,
+      entryCostKAS: 10,
       status: 'beta',
       developer: 'Kasparex',
-      version: '1.0.0',
+      version: '2.0.0',
       rewardConfig: { gridReward: 3, xpReward: 20 },
       createdAt: '2025-01-19T10:00:00.000Z',
       featuredImage: 'https://static.wixstatic.com/media/de4185_aedf26d623274f75aa8322e9a2266b7f~mv2.jpg',
@@ -261,7 +261,7 @@ export const gamesRegistry: UnifiedGame[] = [
     route: { kind: 'custom', href: '/games/precision-click' },
     capabilities: ['wallet_l1', 'payments_l1_kas', 'leaderboard_unified'],
     skus: [
-      { id: 'precision-click:entry', type: 'entry', title: 'Training Entry', currency: 'KAS', amount: 0.3, kasTreasuryAddress: DEFAULT_GAMES_TREASURY },
+      { id: 'precision-click:entry', type: 'entry', title: 'Training Entry', currency: 'KAS', amount: 10, kasTreasuryAddress: DEFAULT_GAMES_TREASURY },
       { id: 'precision-click:boost:krex', type: 'boost', title: 'KREX Booster', currency: 'KREX', amount: 25 },
     ],
     categories: ['Skill', 'Training', 'Lore'],

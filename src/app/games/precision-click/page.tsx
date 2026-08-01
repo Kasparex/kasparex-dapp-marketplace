@@ -44,7 +44,7 @@ function PageInner() {
                 featuredImage={game.featuredImage ?? ''}
                 gameDescription={game.description}
                 gameName={game.name}
-                loreStory="ARIA's fragments flicker in short windows. Lock them fast, lock them clean - and you'll be ready for the vault grids that don't forgive mistakes."
+                loreStory="ARIA fragments flicker across ten training locks. Clear each level, bank what you catch, and refine the rest into Hub points before the Null Gang static eats the feed."
               />
             </GamePlayWalletGate>
           </div>

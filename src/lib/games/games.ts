@@ -159,13 +159,15 @@ export const placeholderGames: Game[] = [
   },
   {
     id: 'game-5',
-    name: 'Precision Click',
+    name: 'Precision Click: ARIA Lock',
     slug: 'precision-click',
-    description: 'Test your reflexes and precision in this skill-based clicking game. Accuracy is key!',
-    instructions: 'Click targets as they appear. Smaller targets give more points. Miss too many and the game ends.',
+    description:
+      'Ten-level ARIA Lock training. Click shard and character targets for Aria fragments; refine them into Hub points.',
+    instructions:
+      'Pay the 10 KAS entry. Clear each level fragment goal to unlock the next. Avoid hazard glyphs. Shop boosters multiply fragment gains.',
     gameType: 'skill',
     difficulty: 'expert',
-    entryCostKAS: 0.3,
+    entryCostKAS: 10,
     status: 'beta',
     developer: 'Kasparex',
     version: '1.0.0',

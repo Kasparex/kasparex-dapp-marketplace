@@ -9,6 +9,7 @@ export type GameMilestoneMetric =
   | 'quiz_levels'
   | 'cipher_clears'
   | 'precision_score'
+  | 'precision_levels'
   | 'strategy_rounds'
   | 'generic_progress';
 
@@ -153,25 +154,46 @@ export const GAME_MILESTONES: Record<string, GameMilestoneDef[]> = {
   ],
   'precision-click': [
     {
-      id: 'pc-1k',
-      name: 'Reach a 1,000 score',
-      metric: 'precision_score',
-      target: 1_000,
+      id: 'pc-level-1',
+      name: 'Clear Signal Trace',
+      metric: 'precision_levels',
+      target: 1,
       level: 1,
     },
     {
-      id: 'pc-10k',
-      name: 'Reach a 10,000 score',
-      metric: 'precision_score',
-      target: 10_000,
+      id: 'pc-level-5',
+      name: 'Clear Fragment Storm',
+      metric: 'precision_levels',
+      target: 5,
       level: 3,
     },
     {
+      id: 'pc-level-10',
+      name: 'Clear Full Sync',
+      metric: 'precision_levels',
+      target: 10,
+      level: 5,
+    },
+    {
+      id: 'pc-1k',
+      name: 'Bank 1,000 Aria fragments',
+      metric: 'precision_score',
+      target: 1_000,
+      level: 2,
+    },
+    {
+      id: 'pc-10k',
+      name: 'Bank 10,000 Aria fragments',
+      metric: 'precision_score',
+      target: 10_000,
+      level: 4,
+    },
+    {
       id: 'pc-100k',
-      name: 'Reach a 100,000 score',
+      name: 'Bank 100,000 Aria fragments',
       metric: 'precision_score',
       target: 100_000,
-      level: 5,
+      level: 6,
     },
   ],
   'token-strategy': [

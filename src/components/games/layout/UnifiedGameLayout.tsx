@@ -33,6 +33,8 @@ interface UnifiedGameLayoutProps {
   showDeckInfoButton?: boolean;
   /** Milestone player level shown in the game header badge row. */
   playerLevel?: number;
+  /** Extra aside panels (e.g. Calculation breakdown for paid entry games). */
+  asideExtras?: ReactNode;
 }
 
 export function UnifiedGameLayout({
@@ -44,6 +46,7 @@ export function UnifiedGameLayout({
   children,
   deckFooter,
   playerLevel,
+  asideExtras,
 }: UnifiedGameLayoutProps) {
   const haloGame = {
     id: game.id ?? game.slug ?? game.name,
@@ -67,6 +70,7 @@ export function UnifiedGameLayout({
   const sidebar = (
     <GamesAsideRail>
       <HubBenefitsPanel variant="panel" scope="games" className="w-full" />
+      {asideExtras}
       <GameMetadataPanel categories={game.categories || []} tags={game.tags || []} />
       <GamesSecurityPanel />
     </GamesAsideRail>
