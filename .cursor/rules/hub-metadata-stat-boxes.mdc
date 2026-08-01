@@ -22,9 +22,10 @@ Reference: **vBlog aside “On-chain metadata”** and **dApps Metadata** tab bo
 | Label | `KX_METADATA_STAT_LABEL` |
 | Value | `KX_METADATA_STAT_VALUE` / `_ACCENT` / `_MUTED` / `_LINK` |
 | Grid | `metadataStatGridClassForCount(n)`: 1→1, 2/4→2 cols, 3→3, 5+→up to 3. **Never leave an empty third column for 2 items; never full-width leftover for 4.** |
-| Stack | `KX_METADATA_STAT_GRID_STACK` (aside On-chain metadata) |
+| Stack / smart pack | `smartPack` or `KX_METADATA_STAT_GRID_SMART`: short values 2-up, long ids/txs `sm:col-span-2` |
 | Tooltips | On the **whole card** via `tooltipTitle` + `tooltipDescription`. **No** inline `?` icons. Never pass height classes (`h-full`) into `Tooltip` `className` (that styles the portal surface). |
 | Section titles (token / game overview body) | `GameOverviewTitleBlock` with `as="h3"`: locked tilt (`h-4`), `kx-page-kicker`, `GAME_OVERVIEW_H3`, bottom divider. `compact` is **margin only**. |
+| Datetime presets | `CovenantDatetimeField`: chips **inline** with the input (same row height), not stacked below. |
 
 ## Section titles
 

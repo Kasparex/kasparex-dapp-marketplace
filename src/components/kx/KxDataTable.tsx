@@ -20,7 +20,7 @@ function TableLinks({ links }: { links: { label: string; href: string }[] }) {
           href={link.href}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-xs font-medium text-[#02abb8] hover:underline"
+          className="text-xs font-medium text-[color:var(--hub-accent)] hover:underline"
         >
           {link.label}
         </a>
@@ -29,6 +29,7 @@ function TableLinks({ links }: { links: { label: string; href: string }[] }) {
   );
 }
 
+/** Shared Hub key/value table (Store Info, dApp metadata-style rows). Left-aligned; mono for ids. */
 export function KxDataTable({ rows, className = '' }: { rows: KxDataTableRow[]; className?: string }) {
   const visible = rows.filter(
     (row) => row.value?.trim() || row.valueNode || row.links?.length || row.hint?.trim(),
@@ -37,26 +38,32 @@ export function KxDataTable({ rows, className = '' }: { rows: KxDataTableRow[]; 
 
   return (
     <div
-      className={`overflow-x-auto rounded-xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900 ${className}`.trim()}
+      className={`kx-metadata-stat-card overflow-x-auto rounded-xl border border-zinc-200 bg-zinc-100 dark:border-zinc-800 dark:bg-white/[0.06] ${className}`.trim()}
     >
-      <table className="w-full border-collapse text-sm">
+      <table className="w-full border-collapse text-left text-sm">
         <tbody>
           {visible.map((row) => (
             <tr
               key={row.label}
-              className="border-b border-zinc-200/50 align-top last:border-b-0 dark:border-zinc-700/50"
+              className="border-b border-zinc-200/60 align-top last:border-b-0 dark:border-zinc-700/50"
             >
               <th
                 scope="row"
-                className="w-[36%] px-3 py-2.5 text-left text-sm font-medium text-zinc-600 dark:text-zinc-300"
+                className="w-[36%] px-3 py-2.5 text-left text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400"
               >
                 {row.label}
               </th>
-              <td className="px-3 py-2.5 text-zinc-800 dark:text-zinc-200">
+              <td className="px-3 py-2.5 text-left text-zinc-800 dark:text-zinc-200">
                 {row.valueNode ? (
-                  row.valueNode
+                  <div className="text-left">{row.valueNode}</div>
                 ) : row.value ? (
-                  <span className={row.mono ? 'font-mono text-xs break-all' : 'text-sm'}>
+                  <span
+                    className={
+                      row.mono
+                        ? 'break-all font-mono text-xs leading-snug text-[color:var(--hub-accent)]'
+                        : 'text-sm font-semibold tabular-nums text-zinc-900 dark:text-zinc-100'
+                    }
+                  >
                     {row.value}
                   </span>
                 ) : row.links?.length ? null : (

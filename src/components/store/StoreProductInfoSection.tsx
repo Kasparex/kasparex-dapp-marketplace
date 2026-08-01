@@ -2,14 +2,13 @@
 
 import { getProductPaymentCurrency } from '@/lib/store/currencies';
 import type { Product } from '@/lib/store/types';
-import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 import { KxDataTable, type KxDataTableRow } from '@/components/kx/KxDataTable';
 import { StoreProductTags } from '@/components/store/StoreProductTags';
 import { normalizeStoreProductTags } from '@/lib/store/tags';
 
 function formatSellerAddress(address: string): string {
   if (address.length <= 20) return address;
-  return `${address.slice(0, 12)}...${address.slice(-8)}`;
+  return `${address.slice(0, 12)}…${address.slice(-8)}`;
 }
 
 function NetworkBadge({ network }: { network: Product['network'] }) {
@@ -28,7 +27,7 @@ function NetworkBadge({ network }: { network: Product['network'] }) {
 
 function CategoryBadge({ category }: { category: Product['category'] }) {
   return (
-    <span className="inline-flex rounded border border-cyan-500/20 bg-cyan-500/10 px-2.5 py-1 text-xs font-bold uppercase tracking-wider text-cyan-800 dark:text-cyan-300">
+    <span className="inline-flex rounded border border-[color:var(--hub-accent-border)] bg-[color:var(--hub-accent-muted)] px-2.5 py-1 text-xs font-bold uppercase tracking-wider text-[color:var(--hub-accent)]">
       {category}
     </span>
   );
@@ -38,7 +37,7 @@ export function StoreProductInfoSection({ product }: { product: Product }) {
   const listedCurrency = getProductPaymentCurrency(product);
   const tags = normalizeStoreProductTags(product.tags);
 
-  const metadataRows: KxDataTableRow[] = [
+  const rows: KxDataTableRow[] = [
     {
       label: 'Network',
       valueNode: <NetworkBadge network={product.network} />,
@@ -52,37 +51,23 @@ export function StoreProductInfoSection({ product }: { product: Product }) {
   ];
 
   if (tags.length > 0) {
-    metadataRows.push({
+    rows.push({
       label: 'Tags',
       valueNode: <StoreProductTags tags={tags} />,
       mono: false,
     });
   }
 
-  const listingRows: KxDataTableRow[] = [
+  rows.push(
     { label: 'Price', value: `${product.priceKAS} ${listedCurrency}`, mono: false },
     { label: 'Listed currency', value: listedCurrency, mono: false },
-    { label: 'Seller', value: formatSellerAddress(product.sellerAddress) },
+    { label: 'Seller', value: formatSellerAddress(product.sellerAddress), mono: true },
     { label: 'Purchases', value: String(product.purchaseCount ?? 0), mono: false },
-  ];
+  );
 
   return (
-    <div id="store-tab-info" className="scroll-mt-24 space-y-6">
-      <DAppSectionHeader title="Info" className="mb-0" />
-
-      <section>
-        <DAppSectionHeader
-          title="Metadata"
-          hint="Network, category, and listing identifiers for this product."
-          className="mb-3"
-        />
-        <KxDataTable rows={metadataRows} />
-      </section>
-
-      <section>
-        <DAppSectionHeader title="Listing details" hint="Pricing and seller information." className="mb-3" />
-        <KxDataTable rows={listingRows} />
-      </section>
+    <div id="store-tab-info" className="scroll-mt-24 space-y-4">
+      <KxDataTable rows={rows} />
     </div>
   );
 }

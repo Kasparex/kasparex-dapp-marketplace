@@ -229,7 +229,7 @@ export function TokenPageHeader({ token, onNavigateTab }: TokenPageHeaderProps) 
           >
             <TokenLogo token={token} size={40} showName={false} showSymbol={false} shape="rounded" className="flex-shrink-0" />
             <span className="hub-tilt-bar h-7 w-1.5 shrink-0 rounded-full" aria-hidden="true" />
-            <h1 className="hub-tokens-title min-w-0 text-3xl font-black leading-tight tracking-tight text-zinc-900 sm:text-4xl">
+            <h1 className="hub-tokens-title min-w-0 text-3xl font-black leading-tight tracking-tight text-zinc-900 dark:text-zinc-100 sm:text-4xl">
               {token.name}
             </h1>
           </div>

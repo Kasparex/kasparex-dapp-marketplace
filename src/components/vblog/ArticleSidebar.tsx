@@ -30,7 +30,7 @@ import { HubMetadataStatGrid } from '@/components/hub/HubMetadataStatGrid';
 import { HubPaymentCurrencyCatalogTrigger } from '@/components/payments/HubPaymentCurrencyCatalogModal';
 import { useHubPayWithCatalog, hubCatalogSelectionToStoreCurrency } from '@/hooks/useHubPayWithCatalog';
 import { markCatalogByAcceptedCurrencies } from '@/lib/payments/markCatalogByAccepted';
-import { KX_METADATA_STAT_GRID_STACK, KX_METADATA_STAT_VALUE_LINK } from '@/lib/hub/shellTokens';
+import { KX_METADATA_STAT_VALUE_LINK } from '@/lib/hub/shellTokens';
 
 function getArticleLinkEntries(article: VBlogArticle): Array<{ href: string; label: string }> {
   const entries: Array<{ href: string; label: string }> = [];
@@ -289,7 +289,7 @@ export function ArticleSidebar({
       rawBody: true as const,
       body: (
         <HubMetadataStatGrid
-          gridClassName={KX_METADATA_STAT_GRID_STACK}
+          smartPack
           stats={[
             {
               label: 'Article CID (IPFS)',

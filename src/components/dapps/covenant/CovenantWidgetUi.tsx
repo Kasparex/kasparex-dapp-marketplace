@@ -112,8 +112,8 @@ export function CovenantTabs<T extends string>({
           onClick={() => onChange(t.id)}
           className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
             active === t.id
-              ? 'bg-[#02abb8] text-white'
-              : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800'
+              ? 'bg-[color:var(--hub-accent)] text-white'
+              : 'text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800'
           }`}
         >
           {t.label}

@@ -1,0 +1,29 @@
+---
+description: Hub UI/UX changes must ship globally (no local forks)
+alwaysApply: true
+---
+
+# Global Hub UI changes (no forks)
+
+When changing **main styling, layout, UX patterns, boxes, headers, tables, tabs, forms, or hover/interaction chrome**, update the **shared tokens / shared components** and wire every surface through them. Do not fix one page and leave forks elsewhere.
+
+## Do this
+
+1. Change the **source of truth** first: `src/lib/hub/shellTokens.ts`, `src/app/globals.css` Hub classes, `HubMetadataStatGrid`, `GameOverviewTitleBlock`, `DAppSectionHeader` / `GameSectionHeader`, `KxDataTable`, `CovenantDatetimeField`, shared form field chrome, etc.
+2. Replace local one-offs (`rounded-* border bg-*`, hardcoded `#02abb8`, custom title stacks) with those shared pieces.
+3. Sweep **all** Hub products that use the same pattern: Tokens, dApps, Store, Games, Chronicles, Magazines, vBlog, Ads, Rewards / covenant widgets.
+4. Prefer content-smart layouts (short metadata → 2-up; long ids/txs → full width) from one helper, not per-page grids.
+5. Push the shared change so production stays one look.
+
+## Do not
+
+- Patch only Tokens (or only Store / only one dApp) when the pattern is Hub-wide.
+- Invent a second metadata box, section header, datetime preset row, or table chrome for a single screen.
+- Leave `compact` / “temporary” visual forks that change title size, tilt, or dividers.
+
+## Related locked rules
+
+- `.cursor/rules/hub-metadata-stat-boxes.mdc`
+- `.cursor/rules/hub-surface-nesting.mdc`
+- `.cursor/rules/hub-dashboard-ui.mdc`
+- `.cursor/rules/hub-payments-global.mdc`

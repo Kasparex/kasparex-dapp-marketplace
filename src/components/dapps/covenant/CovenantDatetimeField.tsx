@@ -1,5 +1,6 @@
 /**
  * Shared datetime-local field with LockBox-style quick presets.
+ * Presets sit inline with the input (same row height) to save vertical space.
  */
 
 'use client';
@@ -15,7 +16,7 @@ export const COVENANT_DATETIME_PRESETS = [
 ] as const;
 
 export const covenantDatetimeChipClass =
-  'rounded-lg border border-zinc-300 px-2.5 py-1.5 text-xs text-zinc-600 hover:border-[#02abb8] hover:text-[#02abb8] dark:border-zinc-700 dark:text-zinc-400';
+  'inline-flex h-full min-h-[2.75rem] shrink-0 items-center rounded-lg border border-zinc-300 px-2.5 text-xs font-medium text-zinc-600 transition-colors hover:border-[color:var(--hub-accent)] hover:text-[color:var(--hub-accent)] dark:border-zinc-700 dark:text-zinc-400';
 
 export function toDatetimeLocalValue(ms: number): string {
   const d = new Date(ms);
@@ -54,36 +55,41 @@ export function CovenantDatetimeField({
     onChange(bumpDatetimeLocalValue(value, ms));
   };
 
+  const chipClass = compact
+    ? covenantDatetimeChipClass.replace('min-h-[2.75rem]', 'min-h-[2.5rem]').replace('px-2.5', 'px-2')
+    : covenantDatetimeChipClass;
+
   return (
     <div className="space-y-2">
       <CovenantFieldLabel label={label} htmlFor={id} tooltip={tooltip} required={required} />
-      <input
-        id={id}
-        type="datetime-local"
-        value={value}
-        min={minNow ? toDatetimeLocalValue(Date.now()) : undefined}
-        onChange={(e) => onChange(e.target.value)}
-        className={compact ? `${covenantInputClass} text-sm` : covenantInputClass}
-        required={required}
-      />
-      <div className="flex flex-wrap gap-2">
-        <button
-          type="button"
-          onClick={() => onChange(toDatetimeLocalValue(Date.now()))}
-          className={covenantDatetimeChipClass}
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-stretch">
+        <input
+          id={id}
+          type="datetime-local"
+          value={value}
+          min={minNow ? toDatetimeLocalValue(Date.now()) : undefined}
+          onChange={(e) => onChange(e.target.value)}
+          className={`min-w-0 flex-1 ${compact ? `${covenantInputClass} text-sm` : covenantInputClass}`}
+          required={required}
+        />
+        <div
+          className="flex flex-wrap items-stretch gap-1.5 sm:max-w-[min(100%,22rem)] sm:justify-end"
+          role="group"
+          aria-label={`${label} quick presets`}
         >
-          Now
-        </button>
-        {COVENANT_DATETIME_PRESETS.map((p) => (
           <button
-            key={p.label}
             type="button"
-            onClick={() => bump(p.ms)}
-            className={covenantDatetimeChipClass}
+            onClick={() => onChange(toDatetimeLocalValue(Date.now()))}
+            className={chipClass}
           >
-            {p.label}
+            Now
           </button>
-        ))}
+          {COVENANT_DATETIME_PRESETS.map((p) => (
+            <button key={p.label} type="button" onClick={() => bump(p.ms)} className={chipClass}>
+              {p.label}
+            </button>
+          ))}
+        </div>
       </div>
     </div>
   );

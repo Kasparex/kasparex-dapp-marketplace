@@ -93,6 +93,7 @@ export const KX_METADATA_STAT_CARD =
 
 /**
  * Pick columns from item count so panels do not leave an empty third slot.
+ * Prefer metadataStatSmartGridClass + per-item span for mixed short/long values.
  * 1 → 1 col. 2 or 4 → 2 cols (2×2 for four). 3 → 3 cols. 5+ → up to 3 cols.
  */
 export function metadataStatGridClassForCount(count: number): string {
@@ -103,12 +104,34 @@ export function metadataStatGridClassForCount(count: number): string {
   return `${base} sm:grid-cols-2 lg:grid-cols-3`;
 }
 
+/**
+ * Smart pack: 2 columns; long values (ids / txs / addresses) span full width.
+ * Use for aside stacks and any mixed short/long metadata panel.
+ */
+export const KX_METADATA_STAT_GRID_SMART = 'grid grid-cols-1 items-stretch gap-3 sm:grid-cols-2';
+
+/** @deprecated Alias of smart pack (short 2-up, long full-width via item span). */
+export const KX_METADATA_STAT_GRID_STACK = KX_METADATA_STAT_GRID_SMART;
+
+/** True when the value should occupy a full row (not sit beside another short box). */
+export function isMetadataStatValueLong(value: string, opts?: { dense?: boolean }): boolean {
+  const v = value.trim();
+  if (!v) return false;
+  if (v.length >= 28) return true;
+  if (v.startsWith('0x') && v.length >= 20) return true;
+  if (v.startsWith('kaspa:') || v.startsWith('kaspatest:')) return true;
+  if (/^[a-f0-9]{40,}$/i.test(v)) return true;
+  if (opts?.dense && v.length >= 18) return true;
+  return false;
+}
+
+export function metadataStatItemSpanClassForValue(value: string, opts?: { dense?: boolean }): string {
+  return isMetadataStatValueLong(value, opts) ? 'sm:col-span-2' : '';
+}
+
 /** @deprecated Prefer metadataStatGridClassForCount(n). Kept as 3-col default for explicit overrides. */
 export const KX_METADATA_STAT_GRID =
   'grid grid-cols-1 items-stretch gap-3 sm:grid-cols-2 lg:grid-cols-3';
-
-/** Single-column stack (vBlog / Tokens aside On-chain metadata). */
-export const KX_METADATA_STAT_GRID_STACK = 'grid grid-cols-1 items-stretch gap-3';
 
 /** Alias. */
 export const KX_METADATA_STAT_GRID_3 = KX_METADATA_STAT_GRID;

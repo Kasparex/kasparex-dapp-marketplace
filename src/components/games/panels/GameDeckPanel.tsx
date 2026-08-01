@@ -27,11 +27,13 @@ function accentValueClass(accent?: GameDeckResource['accent']) {
   return 'text-emerald-700 dark:text-emerald-300';
 }
 
-/** Resource rows used in Game Deck panel and in-game Halo header left column. */
+/** Resource rows used in Game Deck panel and in-game Halo header left column.
+ * Short capsules pack 2-up; keeps one shared chrome for Tokens / Games.
+ */
 export function GameDeckResourceRows({
   resources,
   className = '',
-  bordered = true,
+  bordered: _bordered = true,
 }: {
   resources: GameDeckResource[];
   className?: string;
@@ -39,13 +41,7 @@ export function GameDeckResourceRows({
 }) {
   if (resources.length === 0) return null;
   return (
-    <ul
-      className={`space-y-0 ${
-        bordered
-          ? 'rounded-xl border border-zinc-200 bg-white/80 dark:border-zinc-700 dark:bg-zinc-900/70'
-          : ''
-      } ${className}`}
-    >
+    <ul className={`grid grid-cols-1 gap-2 sm:grid-cols-2 ${className}`.trim()}>
       {resources.map((r) => {
         const clickable = typeof r.onClick === 'function';
         const Row = clickable ? 'button' : 'div';
@@ -53,14 +49,14 @@ export function GameDeckResourceRows({
         const wrapperProps = r.tooltip ? ({ content: gameTooltipRich(r.label, r.tooltip) } as const) : null;
         const innerContent = (
           <>
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-2 kx-body">
+            <div className="min-w-0 flex-1 text-left">
+              <div className="flex items-center gap-2 text-sm">
                 {r.icon ? (
                   <span className="inline-flex h-4 w-4 items-center justify-center text-zinc-500 dark:text-zinc-400">
                     {r.icon}
                   </span>
                 ) : null}
-                <span className="truncate font-medium">{r.label}</span>
+                <span className="truncate font-medium text-zinc-900 dark:text-zinc-100">{r.label}</span>
               </div>
               {r.description ? (
                 <div className="mt-0.5 text-[11px] leading-snug text-zinc-500 dark:text-zinc-500">{r.description}</div>
@@ -68,37 +64,39 @@ export function GameDeckResourceRows({
             </div>
             <div className="ml-auto flex min-w-0 flex-shrink-0 flex-col items-end text-right">
               <div
-                className={`text-base font-black tabular-nums ${
+                className={`text-sm font-black tabular-nums ${
                   typeof r.value === 'string' || typeof r.value === 'number' ? accentValueClass(r.accent) : ''
                 }`}
               >
                 {r.value}
               </div>
               {r.subValue ? (
-                <div className="mt-0.5 text-[11px] leading-snug font-semibold text-zinc-500 dark:text-zinc-400">{r.subValue}</div>
+                <div className="mt-0.5 text-[11px] font-semibold leading-snug text-zinc-500 dark:text-zinc-400">{r.subValue}</div>
               ) : null}
             </div>
           </>
         );
 
         const rowClassName = [
-          'w-full flex items-center justify-between gap-3 py-2 px-3 text-left transition-colors',
-          clickable ? 'hover:bg-zinc-50 dark:hover:bg-zinc-800/50 rounded-lg' : '',
+          'kx-metadata-stat-card flex w-full items-center justify-between gap-3 rounded-xl border border-zinc-200 bg-zinc-100 px-3 py-2.5 text-left dark:border-zinc-800 dark:bg-white/[0.06]',
+          clickable ? 'cursor-pointer' : '',
         ].join(' ');
 
+        const cell = Wrapper ? (
+          <Wrapper {...wrapperProps!}>
+            <Row type={clickable ? 'button' : undefined} onClick={r.onClick} className={rowClassName}>
+              {innerContent}
+            </Row>
+          </Wrapper>
+        ) : (
+          <Row type={clickable ? 'button' : undefined} onClick={r.onClick} className={rowClassName}>
+            {innerContent}
+          </Row>
+        );
+
         return (
-          <li key={r.id} className="border-b border-zinc-100 dark:border-zinc-800 last:border-0">
-            {Wrapper ? (
-              <Wrapper {...wrapperProps!}>
-                <Row type={clickable ? 'button' : undefined} onClick={r.onClick} className={rowClassName}>
-                  {innerContent}
-                </Row>
-              </Wrapper>
-            ) : (
-              <Row type={clickable ? 'button' : undefined} onClick={r.onClick} className={rowClassName}>
-                {innerContent}
-              </Row>
-            )}
+          <li key={r.id} className="min-w-0">
+            {cell}
           </li>
         );
       })}

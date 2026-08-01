@@ -12,7 +12,10 @@ import {
   KX_METADATA_STAT_VALUE_ACCENT,
   KX_METADATA_STAT_VALUE_LINK,
   KX_METADATA_STAT_VALUE_MUTED,
+  isMetadataStatValueLong,
   metadataStatGridClassForCount,
+  metadataStatItemSpanClassForValue,
+  KX_METADATA_STAT_GRID_SMART,
 } from '@/lib/hub/shellTokens';
 
 export type HubMetadataStat = {
@@ -43,12 +46,7 @@ function shortenDisplay(value: string): string {
 }
 
 function looksLikeLongId(value: string): boolean {
-  const v = value.trim();
-  if (v.length >= 28) return true;
-  if (v.startsWith('0x') && v.length >= 20) return true;
-  if (v.startsWith('kaspa:') || v.startsWith('kaspatest:')) return true;
-  if (/^[a-f0-9]{40,}$/i.test(v)) return true;
-  return false;
+  return isMetadataStatValueLong(value);
 }
 
 function resolveValueClass(args: {
@@ -116,30 +114,54 @@ export function HubMetadataStatGrid({
   stats,
   className = '',
   gridClassName,
+  smartPack = false,
   footer,
 }: {
   stats: HubMetadataStat[];
   className?: string;
-  /** Override auto count-based grid (e.g. KX_METADATA_STAT_GRID_STACK). */
+  /** Override auto grid. Prefer omitting this and using smartPack for mixed short/long panels. */
   gridClassName?: string;
+  /**
+   * Short values sit 2-up; long ids/txs span full width.
+   * Default true when gridClassName is omitted and values are mixed, or when caller sets it.
+   */
+  smartPack?: boolean;
   footer?: ReactNode;
 }) {
   const visible = stats.filter((s) => s.value?.trim() || s.valueNode);
   if (visible.length === 0 && !footer) return null;
 
-  const resolvedGrid = gridClassName ?? metadataStatGridClassForCount(visible.length);
+  const useSmart =
+    smartPack ||
+    (!gridClassName &&
+      visible.some((s) => isMetadataStatValueLong(s.value || '', { dense: s.dense })));
+
+  const resolvedGrid =
+    gridClassName ??
+    (useSmart ? KX_METADATA_STAT_GRID_SMART : metadataStatGridClassForCount(visible.length));
+
+  const applySpans =
+    useSmart ||
+    resolvedGrid.includes('sm:grid-cols-2') ||
+    resolvedGrid === KX_METADATA_STAT_GRID_SMART;
 
   return (
     <div className={className}>
       {visible.length > 0 ? (
         <div className={resolvedGrid}>
-          {visible.map((stat, index) => (
-            <HubMetadataStatCard
-              key={`${stat.label}-${stat.value}-${index}`}
-              {...stat}
-              className={stat.className}
-            />
-          ))}
+          {visible.map((stat, index) => {
+            const span = applySpans
+              ? metadataStatItemSpanClassForValue(stat.value || '', { dense: stat.dense })
+              : '';
+            const key = `${stat.label}-${stat.value}-${index}`;
+            const card = <HubMetadataStatCard {...stat} className={stat.className} />;
+            if (!span) return <div key={key} className="min-w-0 h-full">{card}</div>;
+            return (
+              <div key={key} className={`${span} min-w-0 h-full`}>
+                {card}
+              </div>
+            );
+          })}
         </div>
       ) : null}
       {footer}

@@ -16,7 +16,6 @@ import {
 } from '@/lib/tokens/networks';
 import { resolveTokenCreatorWallet } from '@/lib/tokens/creatorWallet';
 import { isProgrammableToken, resolveProgrammableCovenantId } from '@/lib/programmable/eligibility';
-import { KX_METADATA_STAT_GRID_STACK } from '@/lib/hub/shellTokens';
 
 const PANEL_CLASS =
   'rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900';
@@ -103,7 +102,7 @@ export function TokenAside({ token }: { token: Token }) {
     sections.push({
       title: 'On-chain metadata',
       rawBody: true,
-      body: <HubMetadataStatGrid gridClassName={KX_METADATA_STAT_GRID_STACK} stats={onChainStats} />,
+      body: <HubMetadataStatGrid smartPack stats={onChainStats} />,
     });
   }
 
