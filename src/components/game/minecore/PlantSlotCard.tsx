@@ -187,8 +187,9 @@ function plantStatusVariant(status: PlantSlotState['status']): KxBadgeVariant {
   return 'zinc';
 }
 
+/** Compact overlay chips: same capsule radius as Hub vote / KxBadge, tighter type. */
 const STAT_BADGE_COMPACT =
-  'inline-flex max-h-[14px] items-center !py-0 !px-1.5 !text-[9px] !leading-none !rounded-full normal-case tracking-normal tabular-nums';
+  'inline-flex items-center !rounded-lg !px-2 !py-1 !text-[10px] !leading-none normal-case tracking-normal tabular-nums';
 
 function StatBadge({
   variant,
@@ -370,8 +371,8 @@ function CheckRow(props: {
 }) {
   const statCls =
     props.statTone === 'rose'
-      ? 'inline-flex max-h-[14px] items-center flex-shrink-0 rounded-full px-1.5 py-0 text-[9px] font-bold leading-none bg-rose-100 text-rose-800 dark:bg-rose-950/50 dark:text-rose-300'
-      : 'inline-flex max-h-[14px] items-center flex-shrink-0 rounded-full px-1.5 py-0 text-[9px] font-bold leading-none text-zinc-500 dark:text-zinc-400 bg-zinc-100 dark:bg-zinc-800';
+      ? 'inline-flex items-center flex-shrink-0 rounded-lg px-2 py-1 text-[10px] font-bold leading-none bg-rose-100 text-rose-800 dark:bg-rose-950/50 dark:text-rose-300'
+      : 'inline-flex items-center flex-shrink-0 rounded-lg px-2 py-1 text-[10px] font-bold leading-none text-zinc-500 dark:text-zinc-400 bg-zinc-100 dark:bg-zinc-800';
   const interactive = Boolean(props.onClick) && !props.disabled;
   const rowCls = `flex w-full items-center gap-2 py-1.5 px-2 rounded-lg transition-colors group text-left font-sans ${
     interactive ? 'hover:bg-zinc-50 dark:hover:bg-zinc-800/50 cursor-pointer' : 'cursor-not-allowed opacity-55'
@@ -1380,7 +1381,7 @@ export function PlantSlotCard(props: {
   const moduleOverlayBadge =
     moduleSlots <= 0 ? 'No modules' : `${moduleSlots} Module${moduleSlots === 1 ? '' : 's'}`;
   const statCapsuleCls =
-    'inline-flex max-w-full items-center rounded-full border border-white/30 bg-black/50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white shadow-sm backdrop-blur-sm';
+    'inline-flex max-w-full items-center rounded-lg border border-white/30 bg-black/50 px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-white shadow-sm backdrop-blur-sm';
 
   const amberBatteryCtaCls =
     'h-10 w-full rounded-xl px-4 text-sm font-bold border-2 border-amber-500/60 bg-amber-500/25 text-amber-950 shadow-sm transition-colors hover:bg-amber-500/35 dark:border-amber-400/50 dark:bg-amber-500/20 dark:text-amber-50 dark:hover:bg-amber-500/30 disabled:cursor-not-allowed disabled:opacity-50';
@@ -2435,7 +2436,7 @@ export function PlantSlotCard(props: {
                   trailing={
                     isSelected ? (
                       cntHere > 1 ? (
-                        <span className="shrink-0 rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-bold tabular-nums text-emerald-800 dark:text-emerald-200">
+                        <span className="shrink-0 rounded-lg bg-emerald-500/15 px-2 py-1 text-[10px] font-bold tabular-nums text-emerald-800 dark:text-emerald-200">
                           ×{cntHere}
                         </span>
                       ) : (

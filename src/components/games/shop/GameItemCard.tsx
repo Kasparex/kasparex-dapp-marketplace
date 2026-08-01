@@ -8,9 +8,14 @@ import { GameCurrencyMenu } from '@/components/games/shop/GameCurrencyMenu';
 import { HubPaymentCurrencyCatalogTrigger } from '@/components/payments/HubPaymentCurrencyCatalogModal';
 import { useHubPayWithCatalog } from '@/hooks/useHubPayWithCatalog';
 import { Tooltip } from '@/components/ui/Tooltip';
+import { KxBadge } from '@/components/ui/KxBadge';
 import { gameTooltipRich } from '@/components/games/gameTooltipRich';
 import type { HubCurrencyCatalogEntry } from '@/lib/payments/currencyCatalog';
 import type { HubPaymentCurrencyOption } from '@/lib/payments/hubPaymentTypes';
+
+/** Shared surface for qty input + Pay With on in-game shop cards. */
+const SHOP_CONTROL_SURFACE =
+  'rounded-lg border border-zinc-200 bg-zinc-50 text-zinc-900 dark:border-zinc-600 dark:bg-zinc-950/50 dark:text-zinc-100';
 
 export type GameItemCurrency = 'KAS' | 'KREX' | 'GRID' | 'TICKET' | string;
 
@@ -181,9 +186,9 @@ export function GameItemCard(props: {
   const listingAccent = props.kxListingAccent ?? 'games';
   const hubChrome = listingAccent === 'hub' || listingAccent === 'store';
   const currencyMenuAccent = hubChrome ? 'store' : 'default';
-  const currencyMenuButtonClass = hubChrome
-    ? 'k-input flex !h-10 w-full min-w-0 items-center justify-between gap-2 !py-0 text-left text-sm font-semibold tabular-nums'
-    : 'flex !h-10 w-full min-w-0 items-center justify-between gap-2 rounded-xl border border-zinc-200 bg-white px-4 py-0 text-sm font-medium transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:bg-zinc-900';
+  const currencyMenuButtonClass = `flex !h-10 w-full min-w-0 items-center justify-between gap-2 px-3 py-0 text-sm font-semibold tabular-nums transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-900 ${SHOP_CONTROL_SURFACE}`;
+  const hubCurrencyTriggerClass =
+    '!h-10 !rounded-lg !border-zinc-200 !bg-zinc-50 !px-3 hover:!bg-zinc-100 dark:!border-zinc-600 dark:!bg-zinc-950/50 dark:hover:!bg-zinc-900';
   const { catalogEntries: publicCatalog } = useHubPayWithCatalog({
     amountKas: amountKasForCatalog > 0 ? amountKasForCatalog : undefined,
   });
@@ -236,17 +241,12 @@ export function GameItemCard(props: {
     else if (option.kind === 'krex') setCurrency('KREX');
     else setCurrency(option.id as GameItemCurrency);
   };
-  const quantityLabelLayout = props.quantityLabelLayout ?? 'inline';
-  const pricingActionsLayout = props.pricingActionsLayout ?? 'stacked';
-  const hideQuantityLabel = props.hideQuantityLabel ?? false;
+  const hideQuantityLabel = props.hideQuantityLabel ?? true;
   const specificationsBelowPricing = props.specificationsBelowPricing ?? false;
+  void props.quantityLabelLayout;
+  void props.pricingActionsLayout;
 
   const ownedInactive = props.ownedCount != null && props.ownedCount <= 0;
-  const ownedBadgeClass = ownedInactive
-    ? 'border-zinc-200 bg-zinc-100/90 text-zinc-500 dark:border-zinc-600 dark:bg-zinc-800/60 dark:text-zinc-400'
-    : hubChrome
-      ? 'border-[#02abb8]/35 bg-[#02abb8]/12 text-teal-900 dark:text-cyan-200'
-      : 'border-emerald-500/30 bg-emerald-500/10 text-emerald-800 dark:text-emerald-200';
 
   const cur = selected?.currency ?? currency;
   const priceText = `${formatGameItemPriceAmount(cur, total)} ${formatCurrencyTicker(cur)}`;
@@ -349,28 +349,31 @@ export function GameItemCard(props: {
     );
   }
 
-  const categoryPillClass = hubChrome
-    ? 'border-[#02abb8]/30 bg-[#02abb8]/12 text-teal-900 dark:text-cyan-200'
-    : 'border-emerald-500/25 bg-emerald-500/10 text-emerald-800 dark:text-emerald-200';
-
   const primaryCtaClass = hubChrome
     ? 'k-cta-primary flex !h-10 w-full items-center justify-center !px-4 !py-0 text-center text-xs disabled:opacity-50 disabled:grayscale sm:text-[13px]'
     : 'k-cta-games flex !h-10 w-full items-center justify-center !px-4 !py-0 text-center text-xs disabled:opacity-50 disabled:grayscale sm:text-[13px]';
 
   const qtyAriaLabel = hideQuantityLabel ? 'Amount' : props.quantityLabel ?? 'Quantity';
 
-  const calculationBoxClass =
-    'k-control-btn flex min-h-[2.5rem] w-full flex-col items-center justify-center gap-0.5 px-4 py-2 text-center text-sm font-bold tabular-nums text-zinc-900 dark:text-zinc-100';
+  const calculationBoxClass = `flex h-10 w-full items-center justify-center gap-0.5 px-3 text-center text-sm font-bold tabular-nums ${SHOP_CONTROL_SURFACE}`;
 
-  function qtyStepperCompact() {
+  function qtyStepper(opts?: { growInput?: boolean; showMax?: boolean }) {
     const stepDisabled = !qtyCfg || !qtyCtlInteractive;
+    const grow = opts?.growInput ?? false;
+    const showMax = opts?.showMax ?? Boolean(props.showQuantityMaxButton && qtyCfg);
+    const iconBtn =
+      `inline-flex h-10 w-10 shrink-0 items-center justify-center ${SHOP_CONTROL_SURFACE} text-sm font-bold transition hover:bg-zinc-100 disabled:opacity-40 dark:hover:bg-zinc-900`;
+    const inputCls = grow
+      ? `h-10 min-w-0 flex-1 px-2 text-center text-sm font-black tabular-nums disabled:opacity-50 ${SHOP_CONTROL_SURFACE}`
+      : `h-10 w-14 shrink-0 px-1 text-center text-sm font-black tabular-nums disabled:opacity-50 ${SHOP_CONTROL_SURFACE}`;
     return (
-      <div className="flex items-center gap-2">
+      <div className={`flex items-stretch gap-1.5 ${grow ? 'w-full' : 'shrink-0'}`}>
         <button
           type="button"
-          className="k-control-icon-btn h-9 w-9"
+          className={iconBtn}
           onClick={() => setQty(qtyCommitted - 1)}
           disabled={stepDisabled || qtyCommitted <= qtyMin}
+          aria-label="Decrease quantity"
         >
           −
         </button>
@@ -382,7 +385,7 @@ export function GameItemCard(props: {
           aria-label={`${qtyAriaLabel} (type custom amount)`}
           title="Type amount or use +/−"
           disabled={stepDisabled}
-          className="min-w-[3.5rem] max-w-[6rem] rounded-lg border border-zinc-200 bg-zinc-50 px-2 py-1 text-center text-sm font-black tabular-nums text-zinc-900 disabled:opacity-50 dark:border-zinc-600 dark:bg-zinc-950/50 dark:text-zinc-100"
+          className={inputCls}
           value={qtyEditDraft !== null ? qtyEditDraft : String(qtyCommitted)}
           onFocus={() => {
             if (!qtyCfg) return;
@@ -400,74 +403,17 @@ export function GameItemCard(props: {
         />
         <button
           type="button"
-          className="k-control-icon-btn h-9 w-9"
+          className={iconBtn}
           onClick={() => setQty(qtyCommitted + 1)}
           disabled={stepDisabled || qtyCommitted >= qtyMax}
+          aria-label="Increase quantity"
         >
           +
         </button>
-        {props.showQuantityMaxButton && qtyCfg ? (
+        {showMax ? (
           <button
             type="button"
-            className="h-9 shrink-0 rounded-lg px-2.5 text-[10px] font-bold uppercase tracking-wide bg-zinc-100 hover:bg-zinc-200 disabled:opacity-40 dark:bg-zinc-700 dark:hover:bg-zinc-600 dark:text-zinc-100 transition-colors disabled:pointer-events-none"
-            disabled={stepDisabled || qtyMax <= qtyMin}
-            onClick={() => setQty(qtyMax)}
-          >
-            Max
-          </button>
-        ) : null}
-      </div>
-    );
-  }
-
-  function qtyStepperFullWidth() {
-    const stepDisabled = !qtyCfg || !qtyCtlInteractive;
-    return (
-      <div className="flex w-full items-stretch gap-2">
-        <button
-          type="button"
-          className="k-control-icon-btn h-10 w-10 shrink-0"
-          onClick={() => setQty(qtyCommitted - 1)}
-          disabled={stepDisabled || qtyCommitted <= qtyMin}
-        >
-          −
-        </button>
-        <input
-          id={qtyInputId}
-          type="text"
-          inputMode="numeric"
-          autoComplete="off"
-          aria-label={`${qtyAriaLabel} (type custom amount)`}
-          title="Type amount or use +/−"
-          disabled={stepDisabled}
-          className="h-10 min-w-0 flex-1 rounded-lg border border-zinc-200 bg-zinc-50 px-2 text-center text-sm font-black tabular-nums text-zinc-900 disabled:opacity-50 dark:border-zinc-600 dark:bg-zinc-950/50 dark:text-zinc-100"
-          value={qtyEditDraft !== null ? qtyEditDraft : String(qtyCommitted)}
-          onFocus={() => {
-            if (!qtyCfg) return;
-            setQtyEditDraft(String(qtyCommitted));
-          }}
-          onChange={(e) => {
-            if (!qtyCfg) return;
-            const t = e.target.value.replace(/\D/g, '').slice(0, 9);
-            setQtyEditDraft(t);
-          }}
-          onBlur={() => commitDraftAndBlur()}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') commitDraftAndBlur();
-          }}
-        />
-        <button
-          type="button"
-          className="k-control-icon-btn h-10 w-10 shrink-0"
-          onClick={() => setQty(qtyCommitted + 1)}
-          disabled={stepDisabled || qtyCommitted >= qtyMax}
-        >
-          +
-        </button>
-        {props.showQuantityMaxButton && qtyCfg ? (
-          <button
-            type="button"
-            className="h-10 min-w-0 flex-1 rounded-lg px-2 text-[10px] font-bold uppercase tracking-wide bg-zinc-100 hover:bg-zinc-200 disabled:opacity-40 dark:bg-zinc-700 dark:hover:bg-zinc-600 dark:text-zinc-100 transition-colors disabled:pointer-events-none"
+            className={`h-10 shrink-0 px-2.5 text-[10px] font-bold uppercase tracking-wide transition disabled:opacity-40 disabled:pointer-events-none hover:bg-zinc-100 dark:hover:bg-zinc-900 ${SHOP_CONTROL_SURFACE}`}
             disabled={stepDisabled || qtyMax <= qtyMin}
             onClick={() => setQty(qtyMax)}
           >
@@ -481,13 +427,13 @@ export function GameItemCard(props: {
   const currencyPicker =
     options.length > 1 ? (
       hubPayCatalog.length > 0 ? (
-        <div className="w-full min-w-0">
+        <div className="min-w-0 w-full">
           <HubPaymentCurrencyCatalogTrigger
             entries={hubPayCatalog}
             selectedId={String(currency)}
             onSelect={handleHubCurrencySelect}
             accent={hubChrome ? 'store' : 'default'}
-            className={currencyMenuButtonClass}
+            className={hubCurrencyTriggerClass}
           />
         </div>
       ) : (
@@ -500,7 +446,7 @@ export function GameItemCard(props: {
             const txt = `${formatGameItemPriceAmount(o.currency, t)} ${formatCurrencyTicker(o.currency)}`;
             return { value: o.currency, label: txt, disabled: o.disabled };
           })}
-          className="w-full min-w-0"
+          className="min-w-0 w-full"
           accent={currencyMenuAccent}
           buttonClassName={currencyMenuButtonClass}
         />
@@ -516,11 +462,7 @@ export function GameItemCard(props: {
         </div>
 
         <div className="pointer-events-none absolute right-4 top-4 z-20 flex justify-end">
-          <span
-            className={`inline-flex items-center rounded-full border px-2.5 py-1 text-[10px] font-black uppercase tracking-widest ${categoryPillClass}`}
-          >
-            {props.category}
-          </span>
+          <KxBadge variant={hubChrome ? 'cyan' : 'emerald'}>{props.category}</KxBadge>
         </div>
         {props.mediaOverlay ? (
           <div className="pointer-events-none absolute right-3 top-3 z-20 max-w-[55%] text-right sm:right-4 sm:top-4">{props.mediaOverlay}</div>
@@ -537,11 +479,9 @@ export function GameItemCard(props: {
           </h3>
           <div className="flex shrink-0 flex-col items-end gap-1.5">
             {props.ownedCount != null ? (
-              <span
-                className={`rounded-md border px-2 py-1 text-[10px] font-black uppercase tracking-wide ${ownedBadgeClass}`}
-              >
+              <KxBadge variant={ownedInactive ? 'zinc' : hubChrome ? 'cyan' : 'emerald'}>
                 Owned · {props.ownedCount.toLocaleString()}
-              </span>
+              </KxBadge>
             ) : null}
             {props.titleAccessory ? <div className="text-right">{props.titleAccessory}</div> : null}
           </div>
@@ -604,79 +544,43 @@ export function GameItemCard(props: {
           onKeyDown={(e) => e.stopPropagation()}
           role="presentation"
         >
-          {lockedQtyProp == null ? (
-            hideQuantityLabel ? (
-              <div className={`w-full ${qtyCfg && qtyCtlInteractive ? '' : 'opacity-60'}`}>{qtyStepperFullWidth()}</div>
-            ) : quantityLabelLayout === 'stacked' ? (
-              <div className={`space-y-2 ${qtyCfg && qtyCtlInteractive ? '' : 'opacity-60'}`}>
-                <span className="block text-xs font-semibold text-zinc-500 dark:text-zinc-500">
-                  {props.quantityLabel ?? 'Quantity'}
-                </span>
-                {qtyStepperCompact()}
-              </div>
-            ) : (
-              <div className={`flex flex-wrap items-center justify-between gap-3 ${qtyCfg && qtyCtlInteractive ? '' : 'opacity-60'}`}>
-                <span className="text-xs font-semibold text-zinc-500 dark:text-zinc-500">{props.quantityLabel ?? 'Quantity'}</span>
-                {qtyStepperCompact()}
-              </div>
-            )
-          ) : null}
-
           <div className="flex flex-col gap-2">
-            {pricingActionsLayout === 'stacked' ? (
-              <div className="flex w-full flex-col gap-2">
-                {currencyPicker ?? <div className={calculationBoxClass}>{calculationBoxBody}</div>}
-                <button
-                  type="button"
-                  onClick={() => void props.onBuy({ currency: cur, quantity })}
-                  disabled={props.buyDisabled || Boolean(selected?.disabled)}
-                  className={
-                    props.buyButtonClassName
-                      ? `${props.buyButtonClassName} !h-10 w-full !py-0`
-                      : primaryCtaClass
-                  }
-                >
-                  {props.buyLabel === 'Locked'
-                    ? 'Locked'
-                    : props.primaryActionLabelBuilder
-                      ? props.primaryActionLabelBuilder(summaryCtx)
-                      : props.buyLabel ?? 'Buy'}
-                </button>
-                {props.pricingFooterExtra ? (
-                  <div className="text-center">{props.pricingFooterExtra(summaryCtx)}</div>
-                ) : null}
+            {lockedQtyProp == null && qtyCfg ? (
+              <div className={`flex w-full items-stretch gap-2 ${qtyCtlInteractive ? '' : 'opacity-60'}`}>
+                {qtyStepper({ growInput: false, showMax: Boolean(props.showQuantityMaxButton) })}
+                <div className="min-w-0 flex-1">
+                  {currencyPicker ?? <div className={calculationBoxClass}>{calculationBoxBody}</div>}
+                </div>
               </div>
             ) : (
-              <>
-                <div className="flex w-full flex-col gap-2">
-                  {currencyPicker ?? <div className={calculationBoxClass}>{calculationBoxBody}</div>}
-
-                  <button
-                    type="button"
-                    onClick={() => void props.onBuy({ currency: cur, quantity })}
-                    disabled={props.buyDisabled || Boolean(selected?.disabled)}
-                    className={
-                      props.buyButtonClassName
-                        ? `${props.buyButtonClassName} !h-10 w-full !py-0`
-                        : primaryCtaClass
-                    }
-                  >
-                    {props.buyLabel === 'Locked'
-                      ? 'Locked'
-                      : props.primaryActionLabelBuilder
-                        ? props.primaryActionLabelBuilder(summaryCtx)
-                        : props.buyLabel ?? 'Buy'}
-                  </button>
-                </div>
-                {props.pricingFooterExtra ? (
-                  <div className="text-center">{props.pricingFooterExtra(summaryCtx)}</div>
-                ) : null}
-              </>
+              currencyPicker ?? <div className={calculationBoxClass}>{calculationBoxBody}</div>
             )}
+
+            <button
+              type="button"
+              onClick={() => void props.onBuy({ currency: cur, quantity })}
+              disabled={props.buyDisabled || Boolean(selected?.disabled)}
+              className={
+                props.buyButtonClassName
+                  ? `${props.buyButtonClassName} !h-10 w-full !py-0`
+                  : primaryCtaClass
+              }
+            >
+              {props.buyLabel === 'Locked'
+                ? 'Locked'
+                : props.primaryActionLabelBuilder
+                  ? props.primaryActionLabelBuilder(summaryCtx)
+                  : props.buyLabel ?? 'Buy'}
+            </button>
+            {props.pricingFooterExtra ? (
+              <div className="text-center">{props.pricingFooterExtra(summaryCtx)}</div>
+            ) : null}
             {hasDiscount ? (
               <div
                 className={
-                  hubChrome ? 'text-[11px] font-semibold text-[#0097b2] dark:text-cyan-300' : 'text-[11px] font-semibold text-emerald-700 dark:text-emerald-300'
+                  hubChrome
+                    ? 'text-[11px] font-semibold text-[#0097b2] dark:text-cyan-300'
+                    : 'text-[11px] font-semibold text-emerald-700 dark:text-emerald-300'
                 }
               >
                 Discount applied

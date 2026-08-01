@@ -277,7 +277,7 @@ export function HubListingVoteControls({
   };
 
   const btnClass = (active: boolean) =>
-    `rounded-lg border px-2 py-1 text-xs font-bold transition disabled:opacity-50 ${
+    `inline-flex h-7 min-w-[1.75rem] items-center justify-center rounded-lg border px-2 text-xs font-bold transition disabled:opacity-50 ${
       active
         ? activeClassName
         : 'border-zinc-200 text-zinc-500 hover:border-zinc-300 dark:border-zinc-700 dark:hover:border-zinc-600'
@@ -297,7 +297,7 @@ export function HubListingVoteControls({
             ▲
           </button>
         </Tooltip>
-        <span className="min-w-[1.5rem] text-center text-xs font-bold tabular-nums text-zinc-600 dark:text-zinc-300">
+        <span className="inline-flex h-7 min-w-[1.75rem] items-center justify-center rounded-lg border border-zinc-200 px-2 text-xs font-bold tabular-nums text-zinc-600 dark:border-zinc-700 dark:text-zinc-300">
           {score}
         </span>
         <Tooltip content={tooltip}>

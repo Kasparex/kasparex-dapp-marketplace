@@ -9,9 +9,9 @@ function BadgeList({ items, tagStyle }: { items: string[]; tagStyle?: boolean })
     return <span className="text-sm font-semibold text-zinc-400 dark:text-zinc-500">None</span>;
   }
   return (
-    <div className="mt-1 flex flex-wrap gap-1.5">
+    <div className="mt-1 flex flex-wrap gap-2">
       {items.map((item) => (
-        <KxBadge key={item} variant={tagStyle ? 'zinc' : 'emerald'} size="sm">
+        <KxBadge key={item} variant={tagStyle ? 'zinc' : 'emerald'}>
           {tagStyle ? `#${item.replace(/^#/, '')}` : item}
         </KxBadge>
       ))}

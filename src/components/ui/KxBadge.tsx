@@ -37,9 +37,10 @@ const VARIANT_CLASS: Record<KxBadgeVariant, string> = {
   'zinc-solid': 'bg-zinc-800 text-white shadow-sm dark:bg-zinc-600',
 };
 
+/** Match Hub listing vote capsules (`rounded-lg px-2 py-1 text-xs`). */
 const SIZE_CLASS = {
-  default: 'inline-flex items-center gap-1 rounded-lg px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide',
-  sm: 'inline-flex items-center gap-1 rounded-lg px-1.5 py-px text-[9px] font-semibold uppercase tracking-wide',
+  default: 'inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-bold uppercase tracking-wide',
+  sm: 'inline-flex items-center gap-1 rounded-lg px-2 py-1 text-[10px] font-bold uppercase tracking-wide',
 } as const;
 
 export function kxBadgeClassName(
