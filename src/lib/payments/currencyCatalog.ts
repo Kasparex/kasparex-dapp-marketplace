@@ -103,7 +103,13 @@ export function buildHubCurrencyCatalog(args: BuildCurrencyCatalogArgs): HubCurr
           });
         }
       } else {
-        detail = 'KRC-20 · Kasparex utility token';
+        const krexRate = args.pricingSnapshot?.rates?.KREX;
+        detail =
+          krexRate?.kind === 'market'
+            ? `KRC-20 · Market rate (${krexRate.source})`
+            : krexRate?.kind === 'fixed_peg'
+              ? 'KRC-20 · Minecore peg (market unavailable)'
+              : 'KRC-20 · Kasparex utility token';
         if (amountKas != null && amountKas > 0) {
           amountLabel = formatHubPaymentFromKas(amountKas, 'KREX', args.pricingSnapshot, {
             showKasSuffix: false,

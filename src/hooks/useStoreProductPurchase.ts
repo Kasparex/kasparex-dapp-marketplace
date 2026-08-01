@@ -17,12 +17,13 @@ import {
 import type { Product } from '@/lib/store/types';
 import { transferKrc20 } from '@/lib/payments/krc20Payment';
 import { payKasPaymentPlan } from '@/lib/payments/kasMultiOutPay';
-import { buildCreatorPlatformPlan } from '@/lib/payments/paymentPlan';
+import { buildCreatorPlatformPlan, paymentPlanTotal } from '@/lib/payments/paymentPlan';
 import { splitTokenPayment } from '@/lib/payments/splitTokenPayment';
 import { resolveTokenAmountFromKas, toKasEq } from '@/lib/pricing/registry';
 import type { PricingSnapshot } from '@/lib/pricing/types';
 import { extractKaspaTransactionId } from '@/lib/kaspa/transactionId';
 import { normalizeKaspaAddress } from '@/lib/kaspa/sdk';
+import { getBalanceInKas } from '@/lib/kaspa/api';
 
 const STORE_TREASURY_ADDRESS = process.env.NEXT_PUBLIC_STORE_TREASURY_ADDRESS || '';
 
@@ -126,6 +127,12 @@ export function useStoreProductPurchase(product: Product) {
           purchaseTxHash = extractKaspaTransactionId(purchaseTxHash) ?? purchaseTxHash;
 
           if (fee.feeAmount > 1e-9) {
+            const kasBalance = await getBalanceInKas(state.address);
+            if (kasBalance + 1e-8 < fee.feeAmount) {
+              throw new Error(
+                `Insufficient KAS for the platform fee. You have ${kasBalance.toFixed(4)} KAS; need ${fee.feeAmount.toFixed(4)} KAS.`,
+              );
+            }
             const feeResult = await sendKaspaTransaction(state.provider, {
               to: STORE_TREASURY_ADDRESS,
               amount: kasToSompis(fee.feeAmount).toString(),
@@ -144,6 +151,13 @@ export function useStoreProductPurchase(product: Product) {
             platformAddress: STORE_TREASURY_ADDRESS,
             note: `Store purchase ${product.id}`,
           });
+          const needKas = paymentPlanTotal(plan);
+          const kasBalance = await getBalanceInKas(state.address);
+          if (kasBalance + 1e-8 < needKas) {
+            throw new Error(
+              `Insufficient KAS balance. You have ${kasBalance.toFixed(4)} KAS; this purchase needs ${needKas.toFixed(4)} KAS (seller + platform fee). Top up before signing.`,
+            );
+          }
           try {
             const multi = await payKasPaymentPlan(state.provider, plan, state.address);
             purchaseTxHash = multi.txHash;

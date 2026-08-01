@@ -12,7 +12,8 @@ type CacheEntry = {
   key: string;
 };
 
-const PRICING_CACHE_NS = 'pricing-snapshot';
+/** Bump when FX source / shape changes so stale localStorage pegs do not stick. */
+const PRICING_CACHE_NS = 'pricing-snapshot-v2';
 
 let memoryCache: CacheEntry | null = null;
 let inflight: Promise<PricingSnapshot> | null = null;

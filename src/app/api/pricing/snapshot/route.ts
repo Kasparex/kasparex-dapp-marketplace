@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { buildPricingSnapshot, normalizePricingTickers } from '@/lib/pricing/buildSnapshot';
 
-export const revalidate = 3600;
+export const revalidate = 900;
 
 /**
  * Cached KAS-equivalent rates for Hub checkout and Pay with.
  * Query: ?tickers=KREX,NACHO,MYTOKEN (comma-separated).
- * All KRC-20 ticks (including KREX) use market rates; KREX falls back to Minecore peg if market is missing.
+ * Primary source: KasLab `price_kas` (same as kaspatoken.kaslab.space converters).
+ * Fallback: api.kaspa.com, then Minecore peg for KREX only.
  */
 export async function GET(request: NextRequest) {
   const raw = request.nextUrl.searchParams.get('tickers') ?? '';
@@ -16,8 +17,8 @@ export async function GET(request: NextRequest) {
     const snapshot = await buildPricingSnapshot(tickers);
     return NextResponse.json(snapshot, {
       headers: {
-        // Aggressive edge cache to cut FX fetch cost / spikes.
-        'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400',
+        // Keep FX near public converters; still edge-cached to avoid fetch storms.
+        'Cache-Control': 'public, s-maxage=900, stale-while-revalidate=3600',
       },
     });
   } catch (error) {

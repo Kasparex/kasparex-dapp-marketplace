@@ -14,7 +14,8 @@ export function normalizePricingTickers(tickers: string[]): string[] {
 
 /**
  * Hub pricing standard: every KRC-20 (including KREX) converts from a KAS base
- * using market `kasPerToken` when available. Minecore peg is KREX fallback only.
+ * using market `kasPerToken` when available (KasLab first, then kaspa.com).
+ * Minecore peg is KREX fallback only.
  */
 export async function buildPricingSnapshot(tickers: string[]): Promise<PricingSnapshot> {
   const asOf = new Date().toISOString();
