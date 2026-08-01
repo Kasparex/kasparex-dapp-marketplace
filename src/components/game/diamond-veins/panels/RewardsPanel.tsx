@@ -52,17 +52,6 @@ export function RewardsPanel({
 
   return (
     <div className="space-y-6">
-      <div>
-        <h3 className="text-base font-bold text-zinc-900 dark:text-zinc-100">Refine history</h3>
-        <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
-          Refine Diamonds into Hub points from the Game Deck above. Spend points on the{' '}
-          <a href="/rewards" className="font-semibold text-emerald-600 underline dark:text-emerald-400">
-            Rewards
-          </a>{' '}
-          page.
-        </p>
-      </div>
-
       <CardsFilterBar
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}

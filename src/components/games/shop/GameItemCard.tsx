@@ -441,15 +441,14 @@ export function GameItemCard(props: {
           {mainMedia}
         </div>
 
-        <div className="pointer-events-none absolute right-3 top-3 z-20 flex max-w-[55%] flex-col items-end gap-1.5 sm:right-4 sm:top-4">
+        <div className="pointer-events-none absolute right-4 top-4 z-20 flex justify-end">
           <KxBadge variant={hubChrome ? 'cyan' : 'emerald'}>{props.category}</KxBadge>
-          {props.ownedCount != null ? (
-            <KxBadge variant={ownedInactive ? 'zinc' : hubChrome ? 'cyan' : 'emerald'}>
-              Owned · {props.ownedCount.toLocaleString()}
-            </KxBadge>
-          ) : null}
-          {props.mediaOverlay ? <div className="text-right">{props.mediaOverlay}</div> : null}
         </div>
+        {props.mediaOverlay ? (
+          <div className="pointer-events-none absolute right-3 top-3 z-20 max-w-[55%] text-right sm:right-4 sm:top-4">
+            {props.mediaOverlay}
+          </div>
+        ) : null}
         {props.mediaOverlayBottom ? (
           <div className="pointer-events-none absolute bottom-3 left-3 right-3 z-20 flex flex-wrap gap-1.5">{props.mediaOverlayBottom}</div>
         ) : null}
@@ -460,7 +459,14 @@ export function GameItemCard(props: {
           <h3 className="min-w-0 flex-1 truncate text-[15px] font-semibold text-zinc-900 dark:text-zinc-100" title={props.title}>
             {props.title}
           </h3>
-          {props.titleAccessory ? <div className="shrink-0 text-right">{props.titleAccessory}</div> : null}
+          <div className="flex shrink-0 flex-col items-end gap-1.5">
+            {props.ownedCount != null ? (
+              <KxBadge variant={ownedInactive ? 'zinc' : hubChrome ? 'cyan' : 'emerald'}>
+                Owned · {props.ownedCount.toLocaleString()}
+              </KxBadge>
+            ) : null}
+            {props.titleAccessory ? <div className="text-right">{props.titleAccessory}</div> : null}
+          </div>
         </div>
 
         {props.titleBelow ? <div className="mb-3 min-w-0">{props.titleBelow}</div> : null}

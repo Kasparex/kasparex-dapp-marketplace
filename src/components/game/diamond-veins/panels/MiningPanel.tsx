@@ -185,7 +185,7 @@ export function MiningPanel({
   return (
       <div className="space-y-6">
       <div className="grid gap-4 sm:grid-cols-3">
-        <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900/60">
+        <div className="kx-metadata-stat-card rounded-2xl border border-zinc-200 bg-zinc-100 p-4 dark:border-zinc-800 dark:bg-white/[0.06]">
           <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
             Flow rate
             <GameTooltip
@@ -206,7 +206,7 @@ export function MiningPanel({
               : '0.00 D/min'}
           </p>
         </div>
-        <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900/60">
+        <div className="kx-metadata-stat-card rounded-2xl border border-zinc-200 bg-zinc-100 p-4 dark:border-zinc-800 dark:bg-white/[0.06]">
           <div className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
             Diamonds in bag
           </div>
@@ -218,7 +218,7 @@ export function MiningPanel({
             Refine from the Game Deck above to credit Hub points on /rewards.
           </p>
         </div>
-        <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900/60">
+        <div className="kx-metadata-stat-card rounded-2xl border border-zinc-200 bg-zinc-100 p-4 dark:border-zinc-800 dark:bg-white/[0.06]">
           <div className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
             Active workers
           </div>
@@ -287,7 +287,7 @@ export function MiningPanel({
             return (
               <div
                 key={idx}
-                className="overflow-hidden rounded-2xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900/60"
+                className="kx-metadata-stat-card overflow-hidden rounded-2xl border border-zinc-200 bg-zinc-100 dark:border-zinc-800 dark:bg-white/[0.06]"
               >
                 <div className="flex flex-col gap-4 p-4 sm:flex-row sm:items-stretch">
                   <div className="mx-auto w-full max-w-[11rem] shrink-0 sm:mx-0 sm:w-44">
