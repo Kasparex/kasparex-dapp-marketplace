@@ -20,15 +20,17 @@ export async function buildPricingSnapshot(tickers: string[]): Promise<PricingSn
     KAS: kasNativeRate(asOf),
   };
 
-  const toFetch = normalizePricingTickers([...normalized, 'KREX']);
-  const marketRates = await fetchKrc20KasPrices(toFetch);
-  for (const rate of marketRates) {
-    rates[rate.tick] = rate;
+  // Fetch market rates for listed ticks, but never for KREX: Hub settlement always uses the Minecore peg.
+  const toFetch = normalizePricingTickers(normalized).filter((tick) => tick !== 'KREX');
+  if (toFetch.length > 0) {
+    const marketRates = await fetchKrc20KasPrices(toFetch);
+    for (const rate of marketRates) {
+      if (rate.tick === 'KREX') continue;
+      rates[rate.tick] = rate;
+    }
   }
 
-  if (!rates.KREX) {
-    rates.KREX = krexFixedPegRate(asOf);
-  }
+  rates.KREX = krexFixedPegRate(asOf);
 
   return { asOf, rates };
 }

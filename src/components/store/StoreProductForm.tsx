@@ -17,7 +17,7 @@ import { creditHubListingEarn } from '@/lib/rewards/creditHubListingEarn';
 import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { useNFTStatus } from '@/hooks/useNFTStatus';
-import { contentForRichEditor } from '@/lib/richText/html';
+import { contentForRichEditor, htmlToPlainText } from '@/lib/richText/html';
 import { getBestGatewayUrl, normalizeIpfsUrlForForm, extractCidFromIpfsUrl } from '@/lib/hub/ipfsStandard';
 import { IPFS_MAX_UPLOAD_MB } from '@/lib/ipfs/limits';
 import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
@@ -131,18 +131,22 @@ export function StoreProductForm({ product }: StoreProductFormProps) {
     [thumbnailCid, thumbnailUrl],
   );
 
-  const canSubmit = useMemo(
-    () =>
-      Boolean(
-        formData.title.trim() &&
-          description.trim() &&
-          formData.priceKAS &&
-          parseFloat(formData.priceKAS) > 0 &&
-          resolvedThumbnailCid &&
-          state.isConnected,
-      ),
-    [formData, description, resolvedThumbnailCid, state.isConnected],
-  );
+  const descriptionPlain = useMemo(() => htmlToPlainText(description).trim(), [description]);
+  const priceOk = Boolean(formData.priceKAS && parseFloat(formData.priceKAS) > 0);
+
+  const publishBlockers = useMemo(() => {
+    const missing: string[] = [];
+    if (!state.isConnected) missing.push('Connect your Kaspa L1 wallet');
+    if (!formData.title.trim()) missing.push('Title');
+    if (!descriptionPlain) missing.push('Description (not Protected content)');
+    if (!priceOk) missing.push('Price greater than 0');
+    if (!resolvedThumbnailCid) {
+      missing.push('Thumbnail via IPFS upload (or an IPFS gateway URL with a CID)');
+    }
+    return missing;
+  }, [state.isConnected, formData.title, descriptionPlain, priceOk, resolvedThumbnailCid]);
+
+  const canSubmit = publishBlockers.length === 0;
 
   const payActionFee = async () => {
     if (!state.provider || !state.address) throw new Error('Wallet not connected');
@@ -463,8 +467,8 @@ export function StoreProductForm({ product }: StoreProductFormProps) {
                 setThumbnailCid(null);
                 setThumbnailName(null);
               }}
-              urlPlaceholder="https://..."
-              urlHint="Direct HTTPS image URL, or upload to IPFS below."
+              urlPlaceholder="ipfs://… or hub IPFS gateway URL"
+              urlHint="Upload below, or paste an IPFS / hub gateway URL that includes a CID. Plain HTTPS image links do not unlock Publish."
               fileName={
                 thumbnailName ??
                 (thumbnailCid && !thumbnailName ? 'Uploaded thumbnail' : null)
@@ -588,7 +592,7 @@ export function StoreProductForm({ product }: StoreProductFormProps) {
             <>
               <button
                 type="submit"
-                disabled={!canSubmit || isProcessing || isUploading || !resolvedThumbnailCid}
+                disabled={!canSubmit || isProcessing || isUploading}
                 className="w-full k-control-btn !bg-[#02abb8] !text-white !border-[#02abb8] hover:!bg-[#028a94] disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isUploading
@@ -599,6 +603,11 @@ export function StoreProductForm({ product }: StoreProductFormProps) {
                       ? `Save changes (${listingQuote.totalKas} KAS fee)`
                       : `Publish (${listingQuote.totalKas} KAS fee)`}
               </button>
+              {!canSubmit && !isProcessing && !isUploading ? (
+                <p className="mt-2 text-xs leading-snug text-amber-700 dark:text-amber-300">
+                  Still needed: {publishBlockers.join(' · ')}
+                </p>
+              ) : null}
             </>
           }
         />

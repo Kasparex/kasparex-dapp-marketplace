@@ -172,24 +172,42 @@ export function GameItemCard(props: {
   const originalTotal = originalUnit != null ? originalUnit * quantity : undefined;
   const hasDiscount = originalTotal != null && originalTotal > total + 1e-9;
 
+  /** Catalog FX must always start from the KAS list price, never the selected token total. */
+  const kasUnitPrice =
+    options.find((o) => String(o.currency).toUpperCase() === 'KAS')?.unitPrice ??
+    (String(selected?.currency ?? '').toUpperCase() === 'KAS' ? unit : 0);
+  const amountKasForCatalog = Math.max(0, (kasUnitPrice ?? 0) * quantity);
+
   const listingAccent = props.kxListingAccent ?? 'games';
   const hubChrome = listingAccent === 'hub' || listingAccent === 'store';
   const currencyMenuAccent = hubChrome ? 'store' : 'default';
   const currencyMenuButtonClass = hubChrome
-    ? 'k-input flex h-10 w-full min-w-0 items-center justify-between gap-2 !py-0 text-left text-sm font-semibold tabular-nums'
-    : 'flex h-10 w-full min-w-0 items-center justify-between gap-2 rounded-xl border border-zinc-200 bg-white px-4 py-0 text-sm font-medium transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:bg-zinc-900';
+    ? 'k-input flex !h-10 w-full min-w-0 items-center justify-between gap-2 !py-0 text-left text-sm font-semibold tabular-nums'
+    : 'flex !h-10 w-full min-w-0 items-center justify-between gap-2 rounded-xl border border-zinc-200 bg-white px-4 py-0 text-sm font-medium transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:bg-zinc-900';
   const { catalogEntries: publicCatalog } = useHubPayWithCatalog({
-    amountKas: unit * quantity,
+    amountKas: amountKasForCatalog > 0 ? amountKasForCatalog : undefined,
   });
   const hubPayCatalog = useMemo(() => {
     const optionIds = new Set(options.map((o) => String(o.currency).toUpperCase()));
-    const fromPublic = publicCatalog.filter((entry) => {
-      if (entry.kind === 'kas' || entry.kind === 'krex') return optionIds.has(entry.id.toUpperCase());
-      if (entry.kind === 'krc20' && entry.tick) {
-        return optionIds.has(entry.tick.toUpperCase()) || optionIds.has(entry.id.toUpperCase());
-      }
-      return optionIds.has(entry.id.toUpperCase());
-    });
+    const shopLabel = (currency: string): string | undefined => {
+      const opt = options.find((o) => String(o.currency).toUpperCase() === currency.toUpperCase());
+      if (opt?.unitPrice == null) return undefined;
+      return `${formatGameItemPriceAmount(opt.currency, opt.unitPrice * quantity)} ${formatCurrencyTicker(opt.currency)}`;
+    };
+    const fromPublic = publicCatalog
+      .filter((entry) => {
+        if (entry.kind === 'kas' || entry.kind === 'krex') return optionIds.has(entry.id.toUpperCase());
+        if (entry.kind === 'krc20' && entry.tick) {
+          return optionIds.has(entry.tick.toUpperCase()) || optionIds.has(entry.id.toUpperCase());
+        }
+        return optionIds.has(entry.id.toUpperCase());
+      })
+      .map((entry) => {
+        // Prefer explicit shop list prices over FX labels when the shop defines that currency.
+        const tick = entry.tick ?? entry.id;
+        const label = shopLabel(tick) ?? shopLabel(entry.id) ?? entry.amountLabel;
+        return label ? { ...entry, amountLabel: label } : entry;
+      });
     // Keep shop-only currencies (GRID, PTS, …) searchable in the same modal.
     const extras: HubCurrencyCatalogEntry[] = options
       .filter((o) => !fromPublic.some((e) => e.id.toUpperCase() === String(o.currency).toUpperCase()))
@@ -336,8 +354,8 @@ export function GameItemCard(props: {
     : 'border-emerald-500/25 bg-emerald-500/10 text-emerald-800 dark:text-emerald-200';
 
   const primaryCtaClass = hubChrome
-    ? 'k-cta-primary flex h-10 w-full items-center justify-center px-4 text-center disabled:opacity-50 disabled:grayscale'
-    : 'k-cta-games flex h-10 w-full items-center justify-center px-4 text-center disabled:opacity-50 disabled:grayscale';
+    ? 'k-cta-primary flex !h-10 w-full items-center justify-center !px-4 !py-0 text-center text-xs disabled:opacity-50 disabled:grayscale sm:text-[13px]'
+    : 'k-cta-games flex !h-10 w-full items-center justify-center !px-4 !py-0 text-center text-xs disabled:opacity-50 disabled:grayscale sm:text-[13px]';
 
   const qtyAriaLabel = hideQuantityLabel ? 'Amount' : props.quantityLabel ?? 'Quantity';
 
@@ -614,8 +632,8 @@ export function GameItemCard(props: {
                   disabled={props.buyDisabled || Boolean(selected?.disabled)}
                   className={
                     props.buyButtonClassName
-                      ? `${props.buyButtonClassName} h-10 w-full`
-                      : `${primaryCtaClass} h-10 w-full text-xs sm:text-[13px]`
+                      ? `${props.buyButtonClassName} !h-10 w-full !py-0`
+                      : primaryCtaClass
                   }
                 >
                   {props.buyLabel === 'Locked'
@@ -639,8 +657,8 @@ export function GameItemCard(props: {
                     disabled={props.buyDisabled || Boolean(selected?.disabled)}
                     className={
                       props.buyButtonClassName
-                        ? `${props.buyButtonClassName} h-10 w-full`
-                        : `${primaryCtaClass} h-10 w-full text-xs sm:text-[13px]`
+                        ? `${props.buyButtonClassName} !h-10 w-full !py-0`
+                        : primaryCtaClass
                     }
                   >
                     {props.buyLabel === 'Locked'
