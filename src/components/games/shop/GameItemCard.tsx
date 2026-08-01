@@ -13,9 +13,8 @@ import { gameTooltipRich } from '@/components/games/gameTooltipRich';
 import type { HubCurrencyCatalogEntry } from '@/lib/payments/currencyCatalog';
 import type { HubPaymentCurrencyOption } from '@/lib/payments/hubPaymentTypes';
 
-/** Shared surface for qty input + Pay With on in-game shop cards. */
-const SHOP_CONTROL_SURFACE =
-  'rounded-lg border border-zinc-200 bg-zinc-50 text-zinc-900 dark:border-zinc-600 dark:bg-zinc-950/50 dark:text-zinc-100';
+/** Qty input fill only (Pay With keeps its own border chrome). */
+const QTY_INPUT_FILL = 'bg-zinc-50 dark:bg-zinc-950/50';
 
 export type GameItemCurrency = 'KAS' | 'KREX' | 'GRID' | 'TICKET' | string;
 
@@ -186,13 +185,17 @@ export function GameItemCard(props: {
   const listingAccent = props.kxListingAccent ?? 'games';
   const hubChrome = listingAccent === 'hub' || listingAccent === 'store';
   const currencyMenuAccent = hubChrome ? 'store' : 'default';
-  const currencyMenuButtonClass = `flex !h-10 w-full min-w-0 items-center justify-between gap-2 px-3 py-0 text-sm font-semibold tabular-nums transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-900 ${SHOP_CONTROL_SURFACE}`;
-  const hubCurrencyTriggerClass =
-    '!h-10 !rounded-lg !border-zinc-200 !bg-zinc-50 !px-3 hover:!bg-zinc-100 dark:!border-zinc-600 dark:!bg-zinc-950/50 dark:hover:!bg-zinc-900';
+  /** Same border chrome as before; fill matches qty input only. */
+  const currencyMenuButtonClass =
+    `flex !h-10 w-full min-w-0 items-center justify-between gap-2 rounded-xl border border-zinc-200 ${QTY_INPUT_FILL} px-4 py-0 text-sm font-medium transition-colors hover:bg-zinc-100 dark:border-zinc-800 dark:hover:bg-zinc-900`;
+  /** Keep k-control-btn border; override fill only. */
+  const hubCurrencyTriggerClass = '!bg-zinc-50 hover:!bg-zinc-100 dark:!bg-zinc-950/50 dark:hover:!bg-zinc-900';
   const { catalogEntries: publicCatalog } = useHubPayWithCatalog({
     amountKas: amountKasForCatalog > 0 ? amountKasForCatalog : undefined,
   });
   const hubPayCatalog = useMemo(() => {
+    // In-game cards use GameCurrencyMenu; hub/store keep the catalog modal.
+    if (!hubChrome) return [] as HubCurrencyCatalogEntry[];
     const optionIds = new Set(options.map((o) => String(o.currency).toUpperCase()));
     const shopLabel = (currency: string): string | undefined => {
       const opt = options.find((o) => String(o.currency).toUpperCase() === currency.toUpperCase());
@@ -208,12 +211,10 @@ export function GameItemCard(props: {
         return optionIds.has(entry.id.toUpperCase());
       })
       .map((entry) => {
-        // Prefer explicit shop list prices over FX labels when the shop defines that currency.
         const tick = entry.tick ?? entry.id;
         const label = shopLabel(tick) ?? shopLabel(entry.id) ?? entry.amountLabel;
         return label ? { ...entry, amountLabel: label } : entry;
       });
-    // Keep shop-only currencies (GRID, PTS, …) searchable in the same modal.
     const extras: HubCurrencyCatalogEntry[] = options
       .filter((o) => !fromPublic.some((e) => e.id.toUpperCase() === String(o.currency).toUpperCase()))
       .map((o) => ({
@@ -229,7 +230,7 @@ export function GameItemCard(props: {
             : undefined,
       }));
     return [...fromPublic, ...extras];
-  }, [options, publicCatalog, quantity]);
+  }, [hubChrome, options, publicCatalog, quantity]);
 
   const handleHubCurrencySelect = (option: HubPaymentCurrencyOption) => {
     const id = option.tick ?? option.id;
@@ -355,22 +356,17 @@ export function GameItemCard(props: {
 
   const qtyAriaLabel = hideQuantityLabel ? 'Amount' : props.quantityLabel ?? 'Quantity';
 
-  const calculationBoxClass = `flex h-10 w-full items-center justify-center gap-0.5 px-3 text-center text-sm font-bold tabular-nums ${SHOP_CONTROL_SURFACE}`;
+  const calculationBoxClass =
+    `flex h-10 w-full items-center justify-center rounded-xl border border-zinc-200 px-3 text-center text-sm font-bold tabular-nums text-zinc-900 dark:border-zinc-800 dark:text-zinc-100 ${QTY_INPUT_FILL}`;
 
-  function qtyStepper(opts?: { growInput?: boolean; showMax?: boolean }) {
+  function qtyStepper(opts?: { showMax?: boolean }) {
     const stepDisabled = !qtyCfg || !qtyCtlInteractive;
-    const grow = opts?.growInput ?? false;
     const showMax = opts?.showMax ?? Boolean(props.showQuantityMaxButton && qtyCfg);
-    const iconBtn =
-      `inline-flex h-10 w-10 shrink-0 items-center justify-center ${SHOP_CONTROL_SURFACE} text-sm font-bold transition hover:bg-zinc-100 disabled:opacity-40 dark:hover:bg-zinc-900`;
-    const inputCls = grow
-      ? `h-10 min-w-0 flex-1 px-2 text-center text-sm font-black tabular-nums disabled:opacity-50 ${SHOP_CONTROL_SURFACE}`
-      : `h-10 w-14 shrink-0 px-1 text-center text-sm font-black tabular-nums disabled:opacity-50 ${SHOP_CONTROL_SURFACE}`;
     return (
-      <div className={`flex items-stretch gap-1.5 ${grow ? 'w-full' : 'shrink-0'}`}>
+      <div className="flex h-10 shrink-0 items-stretch overflow-hidden rounded-xl border border-zinc-200 dark:border-zinc-800">
         <button
           type="button"
-          className={iconBtn}
+          className="inline-flex w-9 shrink-0 items-center justify-center border-r border-zinc-200 text-sm font-bold text-zinc-700 transition hover:bg-zinc-100 disabled:opacity-40 dark:border-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-900"
           onClick={() => setQty(qtyCommitted - 1)}
           disabled={stepDisabled || qtyCommitted <= qtyMin}
           aria-label="Decrease quantity"
@@ -385,7 +381,7 @@ export function GameItemCard(props: {
           aria-label={`${qtyAriaLabel} (type custom amount)`}
           title="Type amount or use +/−"
           disabled={stepDisabled}
-          className={inputCls}
+          className={`h-full w-12 shrink-0 border-0 px-1 text-center text-sm font-black tabular-nums text-zinc-900 outline-none disabled:opacity-50 dark:text-zinc-100 ${QTY_INPUT_FILL}`}
           value={qtyEditDraft !== null ? qtyEditDraft : String(qtyCommitted)}
           onFocus={() => {
             if (!qtyCfg) return;
@@ -403,7 +399,7 @@ export function GameItemCard(props: {
         />
         <button
           type="button"
-          className={iconBtn}
+          className="inline-flex w-9 shrink-0 items-center justify-center border-l border-zinc-200 text-sm font-bold text-zinc-700 transition hover:bg-zinc-100 disabled:opacity-40 dark:border-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-900"
           onClick={() => setQty(qtyCommitted + 1)}
           disabled={stepDisabled || qtyCommitted >= qtyMax}
           aria-label="Increase quantity"
@@ -413,7 +409,7 @@ export function GameItemCard(props: {
         {showMax ? (
           <button
             type="button"
-            className={`h-10 shrink-0 px-2.5 text-[10px] font-bold uppercase tracking-wide transition disabled:opacity-40 disabled:pointer-events-none hover:bg-zinc-100 dark:hover:bg-zinc-900 ${SHOP_CONTROL_SURFACE}`}
+            className="inline-flex shrink-0 items-center border-l border-zinc-200 px-2 text-[10px] font-bold uppercase tracking-wide text-zinc-600 transition hover:bg-zinc-100 disabled:opacity-40 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-900"
             disabled={stepDisabled || qtyMax <= qtyMin}
             onClick={() => setQty(qtyMax)}
           >
@@ -546,8 +542,8 @@ export function GameItemCard(props: {
         >
           <div className="flex flex-col gap-2">
             {lockedQtyProp == null && qtyCfg ? (
-              <div className={`flex w-full items-stretch gap-2 ${qtyCtlInteractive ? '' : 'opacity-60'}`}>
-                {qtyStepper({ growInput: false, showMax: Boolean(props.showQuantityMaxButton) })}
+              <div className={`flex w-full items-center gap-2 ${qtyCtlInteractive ? '' : 'opacity-60'}`}>
+                {qtyStepper({ showMax: Boolean(props.showQuantityMaxButton) })}
                 <div className="min-w-0 flex-1">
                   {currencyPicker ?? <div className={calculationBoxClass}>{calculationBoxBody}</div>}
                 </div>
