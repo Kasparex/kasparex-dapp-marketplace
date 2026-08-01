@@ -1,68 +1,39 @@
 {
-  "updatedAt": "2026-07-31T20:52:37.582Z",
+  "updatedAt": "2026-08-01T06:12:35.274Z",
   "vblog": [],
   "tokens": [],
-  "dapps": [
-    {
-      "name": "test 2",
-      "shortDescription": "test 2 test 2 test 2 test 2",
-      "fullDescription": "<p>test 2 test 2 test 2 test 2 test 2 test 2 test 2 test 2 test 2 test 2 test 2 test 2 test 2 test 2 test 2 test 2 </p>",
-      "category": "general",
-      "tags": [
-        "community",
-        "launchpad",
-        "bridge"
-      ],
-      "utility": "test 2 test 2 test 2 test 2",
-      "process": "test 2 test 2 test 2 test 2",
-      "benefits": "test 2 test 2 test 2 test 2",
-      "feesOverview": "5",
-      "feesPricing": "4",
-      "feesCosts": "6",
-      "supportedChains": [
-        "Kaspa",
-        "Kasplex",
-        "Igra"
-      ],
-      "networkLayer": "L1",
-      "websiteUrl": "https://hub.kasparex.com/dapps/dashboard",
-      "socialLinks": [
-        {
-          "label": "test 2 test 2",
-          "url": "https://hub.kasparex.com/dapps/dashboard"
-        }
-      ],
-      "documentationLinks": [],
-      "actionButtons": [],
-      "featureImageUrl": "https://static.wixstatic.com/media/de4185_f76fb3e9bf3e445f95576099cc1d5265~mv2.png/v1/fill/w_511,h_213,al_c,q_80,usm_0.66_1.00_0.01,enc_auto/de4185_f76fb3e9bf3e445f95576099cc1d5265~mv2.png",
-      "logoUrl": "https://static.wixstatic.com/media/de4185_f76fb3e9bf3e445f95576099cc1d5265~mv2.png/v1/fill/w_511,h_213,al_c,q_80,usm_0.66_1.00_0.01,enc_auto/de4185_f76fb3e9bf3e445f95576099cc1d5265~mv2.png",
-      "galleryCids": [],
-      "galleryFileNames": [],
-      "galleryUrls": [
-        "https://static.wixstatic.com/media/de4185_f76fb3e9bf3e445f95576099cc1d5265~mv2.png/v1/fill/w_511",
-        "h_213",
-        "al_c",
-        "q_80",
-        "usm_0.66_1.00_0.01",
-        "enc_auto/de4185_f76fb3e9bf3e445f95576099cc1d5265~mv2.png"
-      ],
-      "optionalFileCids": [],
-      "optionalFileNames": [],
-      "optionalFileUrls": [],
-      "additionalNotes": "test 2 test 2 test 2 test 2",
-      "paymentCurrency": "KAS",
-      "submitterAddress": "kaspa:qzeegrxt993rkwkupx0u8yd8sz94atpeg4e7x8yrjav8x7wgulxszc8svhenj",
-      "feeTxHash": "1927046480341eafe24dec53dae4a68d33136890792777f8bbc56c49e8c73db7",
-      "feeAmountKAS": 15.25,
-      "id": "dapp-listing-1785531151965-8e82ar6",
-      "slug": "test-2",
-      "status": "active",
-      "submittedAt": "2026-07-31T20:52:31.964Z",
-      "updatedAt": "2026-07-31T20:52:31.964Z"
-    }
-  ],
+  "dapps": [],
   "chronicles": [],
   "magazines": [],
   "magazineIssues": [],
-  "store": []
+  "store": [
+    {
+      "title": "Product test 3",
+      "description": "<p>Product test 3 Product test 3 Product test 3</p>",
+      "content": "<p>Product test 3 Product test 3 Product test 3</p>",
+      "sellerAddress": "kaspa:qzsjrd50vw36g4aj7ufj2d9a4fhewehaegxm7xmlt7jntlx6dpv2q77jl6fkn",
+      "priceKAS": 12,
+      "paymentCurrency": "KAS",
+      "network": "L1",
+      "category": "Software",
+      "assetCids": [
+        "bafkreide76myrjkauav6yjjwf7tihhk7ovfbd72x7bylexonvuot2lyu3i"
+      ],
+      "assetFileNames": [
+        "krex-250-250.png.png"
+      ],
+      "thumbnailCid": "bafybeihzs5oh4jx65jblpbhszundrlotopb2yvzjcknm3436ypo6wtlsfe",
+      "tags": [
+        "bridge",
+        "mining",
+        "education"
+      ],
+      "status": "active",
+      "id": "01437c6e-cb94-44b6-b87a-78aa501bb64e",
+      "slug": "product-test-3",
+      "createdAt": 1785564750323,
+      "purchaseCount": 0,
+      "listingFeePaid": true
+    }
+  ]
 }
