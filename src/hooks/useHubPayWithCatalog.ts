@@ -16,6 +16,7 @@ import type { IntegratedToken } from '@/lib/tokens/integrationCore';
 /**
  * Shared Pay-with catalog for listing rails, shop cards, and checkout.
  * Includes KAS/KREX plus deployer-verified public KRC-20 / KCC-20 Tokens.
+ * Always use this (or usePricingSnapshot) for Hub FX. Do not fork per page.
  */
 export function useHubPayWithCatalog(opts?: {
   amountKas?: number;
@@ -32,6 +33,9 @@ export function useHubPayWithCatalog(opts?: {
   catalogEntries: HubCurrencyCatalogEntry[];
   krexBalance: number;
   pricingSnapshot: PricingSnapshot | null | undefined;
+  isPricingLoading: boolean;
+  isPricingRefreshing: boolean;
+  refreshPricing: () => Promise<PricingSnapshot>;
 } {
   const { balance: krexBalance } = useKREXBalance();
   const publicTicks = useMemo(
@@ -49,7 +53,7 @@ export function useHubPayWithCatalog(opts?: {
     () => mergePricingTickers(['KREX', ...publicTicks, ...integratedTicks]),
     [publicTicks, integratedTicks],
   );
-  const { snapshot } = usePricingSnapshot(pricingTickers);
+  const { snapshot, isLoading, isRefreshing, refresh } = usePricingSnapshot(pricingTickers);
   const pricingSnapshot = opts?.pricingSnapshot ?? snapshot;
 
   const catalogEntries = useMemo(
@@ -66,7 +70,14 @@ export function useHubPayWithCatalog(opts?: {
     [opts?.amountKas, opts?.integratedTokens, opts?.kcc20Tokens, pricingSnapshot, krexBalance],
   );
 
-  return { catalogEntries, krexBalance, pricingSnapshot };
+  return {
+    catalogEntries,
+    krexBalance,
+    pricingSnapshot,
+    isPricingLoading: isLoading,
+    isPricingRefreshing: isRefreshing,
+    refreshPricing: refresh,
+  };
 }
 
 /** Map a catalog selection onto KAS/KREX store currency when possible. */

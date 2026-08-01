@@ -22,11 +22,10 @@ import type { Product } from '@/lib/store/types';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useIntegratedTokens } from '@/hooks/useIntegratedToken';
 import { resolveStoreUnitPrice } from '@/lib/store/checkoutPriceOptions';
-import { usePricingSnapshot } from '@/hooks/usePricingSnapshot';
+import { useHubPayWithCatalog } from '@/hooks/useHubPayWithCatalog';
 import {
   formatKasEq,
   formatTokenAmount,
-  mergePricingTickers,
   toKasEq,
 } from '@/lib/pricing';
 
@@ -51,12 +50,10 @@ export function ProductPurchase({ product, onPurchaseComplete }: ProductPurchase
   const listedCurrency = getProductPaymentCurrency(product);
   const { tokens: sellerIntegratedTokens } = useIntegratedTokens(product.sellerAddress, 'store');
   const [currency, setCurrency] = useState<string>('KAS');
-  const integratedTicks = sellerIntegratedTokens.map((t) => t.tick).join(',');
-  const pricingTickers = useMemo(
-    () => mergePricingTickers([listedCurrency, currency, 'KREX', ...sellerIntegratedTokens.map((t) => t.tick)]),
-    [listedCurrency, currency, integratedTicks],
-  );
-  const { snapshot: pricingSnapshot } = usePricingSnapshot(pricingTickers);
+  const { pricingSnapshot } = useHubPayWithCatalog({
+    amountKas: listedCurrency === 'KAS' ? product.priceKAS : undefined,
+    integratedTokens: sellerIntegratedTokens,
+  });
 
   const currencyOptions = useMemo(
     () =>

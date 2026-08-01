@@ -10,6 +10,7 @@ export {
   formatTokenWithKasEq,
   fromKasEq,
   getPriceRate,
+  hasKasConversionRate,
   mergePricingTickers,
   resolveTokenAmountFromKas,
   tickersForCurrencies,

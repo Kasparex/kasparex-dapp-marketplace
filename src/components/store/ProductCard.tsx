@@ -11,13 +11,12 @@ import { GameItemCard } from '@/components/games/shop/GameItemCard';
 import type { GameItemCurrency } from '@/components/games/shop/GameItemCard';
 import { useStoreProductPurchase } from '@/hooks/useStoreProductPurchase';
 import { useIntegratedTokens } from '@/hooks/useIntegratedToken';
-import { usePricingSnapshot } from '@/hooks/usePricingSnapshot';
+import { useHubPayWithCatalog } from '@/hooks/useHubPayWithCatalog';
 import { KxBadge } from '@/components/ui/KxBadge';
 import { KX_CARD_EXCERPT } from '@/lib/ui/kxTypography';
 import { getProductPaymentCurrency } from '@/lib/store/currencies';
 import { htmlToPlainText } from '@/lib/richText/html';
 import { buildStoreCheckoutPriceOptions } from '@/lib/store/checkoutPriceOptions';
-import { mergePricingTickers } from '@/lib/pricing/registry';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { AuthorInline } from '@/components/ui/AuthorInline';
 import { formatAddress } from '@/lib/vblog/utils';
@@ -36,12 +35,10 @@ export function ProductCard({ product }: ProductCardProps) {
 
   const thumbnailUrl = resolveStoreProductImageUrl(product);
   const listedCurrency = getProductPaymentCurrency(product);
-  const integratedTicks = sellerIntegratedTokens.map((t) => t.tick).join(',');
-  const pricingTickers = useMemo(
-    () => mergePricingTickers([listedCurrency, 'KREX', ...sellerIntegratedTokens.map((t) => t.tick)]),
-    [listedCurrency, integratedTicks],
-  );
-  const { snapshot: pricingSnapshot } = usePricingSnapshot(pricingTickers);
+  const { pricingSnapshot } = useHubPayWithCatalog({
+    amountKas: listedCurrency === 'KAS' ? product.priceKAS : undefined,
+    integratedTokens: sellerIntegratedTokens,
+  });
   const priceOptions = useMemo(
     () => buildStoreCheckoutPriceOptions(product, sellerIntegratedTokens, pricingSnapshot),
     [product, sellerIntegratedTokens, pricingSnapshot],

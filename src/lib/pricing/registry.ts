@@ -63,6 +63,18 @@ export function formatTokenAmount(amount: number, currency: string): string {
   return `${formatted} ${cur}`;
 }
 
+/** True when Hub has a usable KAS conversion for this currency (market or KREX peg). */
+export function hasKasConversionRate(
+  currency: string,
+  snapshot: PricingSnapshot | null | undefined,
+): boolean {
+  const cur = currency.trim().toUpperCase();
+  if (!cur || cur === 'KAS') return true;
+  if (getPriceRate(snapshot, cur)) return true;
+  // KREX may still settle via Minecore peg when market snapshot is missing.
+  return cur === 'KREX';
+}
+
 /** Resolve token amount to pay for a KAS-denominated Hub price (market snapshot; KREX peg fallback). */
 export function resolveTokenAmountFromKas(
   kasAmount: number,
@@ -74,7 +86,9 @@ export function resolveTokenAmountFromKas(
   const cur = currency.trim().toUpperCase();
   if (cur === 'KAS') return kasAmount;
   if (cur === 'KREX') return kasToKrexAmount(kasAmount);
-  return kasAmount;
+  throw new Error(
+    `No market rate for ${cur}. Refresh prices in Select currency, or pay with KAS.`,
+  );
 }
 
 /** Display label for a KAS-denominated hub price in the selected currency. */
@@ -91,12 +105,19 @@ export function formatHubPaymentFromKas(
       Number.isInteger(kasAmount) ? `${kasAmount}` : kasAmount.toFixed(2).replace(/\.?0+$/, '');
     return `${formatted} KAS`;
   }
-  const tokenAmt = resolveTokenAmountFromKas(kasAmount, cur, snapshot);
-  const tokenLabel = formatTokenAmount(tokenAmt, cur);
-  if (!showKasSuffix) return tokenLabel;
-  const kasLabel =
-    Number.isInteger(kasAmount) ? `${kasAmount}` : kasAmount.toFixed(2).replace(/\.?0+$/, '');
-  return `${tokenLabel} (= ${kasLabel} KAS)`;
+  if (!hasKasConversionRate(cur, snapshot)) {
+    return 'Rate unavailable';
+  }
+  try {
+    const tokenAmt = resolveTokenAmountFromKas(kasAmount, cur, snapshot);
+    const tokenLabel = formatTokenAmount(tokenAmt, cur);
+    if (!showKasSuffix) return tokenLabel;
+    const kasLabel =
+      Number.isInteger(kasAmount) ? `${kasAmount}` : kasAmount.toFixed(2).replace(/\.?0+$/, '');
+    return `${tokenLabel} (= ${kasLabel} KAS)`;
+  } catch {
+    return 'Rate unavailable';
+  }
 }
 
 export function formatTokenWithKasEq(

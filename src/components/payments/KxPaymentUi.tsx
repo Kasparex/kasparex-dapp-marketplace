@@ -33,10 +33,13 @@ export function KxModalHeader({
   title,
   subtitle,
   onClose,
+  actions,
 }: {
   title: string;
   subtitle?: string;
   onClose: () => void;
+  /** Optional controls (e.g. refresh FX) rendered before close. */
+  actions?: ReactNode;
 }) {
   return (
     <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between gap-3">
@@ -52,16 +55,19 @@ export function KxModalHeader({
           ) : null}
         </div>
       </div>
-      <button
-        type="button"
-        onClick={onClose}
-        className="p-2 text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800"
-        aria-label="Close"
-      >
-        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-        </svg>
-      </button>
+      <div className="flex shrink-0 items-center gap-1">
+        {actions}
+        <button
+          type="button"
+          onClick={onClose}
+          className="p-2 text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800"
+          aria-label="Close"
+        >
+          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
     </div>
   );
 }

@@ -1,0 +1,26 @@
+---
+description: Hub payments, FX, and Pay with must stay one global rail
+alwaysApply: true
+---
+
+# Hub payments and FX: always global
+
+When changing Store, Games, Ads, listing fees, tips, votes, Select currency, or any checkout:
+
+## Do this
+
+- Route **all** Hub pays through shared rails: `hubPayRail`, `payKasPaymentPlan` / `paymentPlan`, `useHubPayment` / `useHubPayWithCatalog`, `usePricingSnapshot`, `currencyCatalog` / `publicPaymentTokens`.
+- Keep **one** FX path: `/api/pricing/snapshot` + `src/lib/pricing/*` (KasLab `price_kas` first). Never invent per-page converters or hardcode KREX/KAS rates in UI.
+- Convert and display amounts only via `fromKasEq` / `toKasEq` / `formatHubPaymentFromKas` / `resolveTokenAmountFromKas` with the shared snapshot.
+- Balance pre-checks use `readWalletKasBalance` / `assertSufficientKasBalance` (wallet first). Do not throw raw upstream strings like `Kaspa API error: 404` at buyers.
+- Tokens without a market rate must **not** quote 1:1 as KAS. Mark rate unavailable / disable pay until refresh or KAS.
+
+## Do not
+
+- Fork a Store-only / Game-only / form-only payment or price fetcher.
+- Call `api.kaspa.com` / KasLab / Minecore peg directly from components.
+- Fix one screen and leave other Pay with / checkout surfaces on old logic.
+
+## After FX or rail changes
+
+Update the shared module once, wire callers through the hooks above, bump pricing client cache namespace when the source/shape changes, and push so every surface picks it up together.

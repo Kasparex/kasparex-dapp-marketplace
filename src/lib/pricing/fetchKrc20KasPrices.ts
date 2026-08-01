@@ -30,7 +30,7 @@ async function fetchJson(
     const res = await fetch(url, {
       signal,
       headers: { Accept: 'application/json', 'User-Agent': 'Kasparex-Hub-Pricing/1.1' },
-      next: { revalidate: 300 },
+      cache: 'no-store',
     });
     if (!res.ok) return null;
     return await res.json();

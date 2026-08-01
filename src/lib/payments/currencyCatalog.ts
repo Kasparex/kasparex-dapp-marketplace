@@ -4,7 +4,7 @@
 
 import { kronTokenUrl } from '@/lib/programmable/kron';
 import type { PricingSnapshot } from '@/lib/pricing/types';
-import { formatHubPaymentFromKas } from '@/lib/pricing/registry';
+import { formatHubPaymentFromKas, hasKasConversionRate } from '@/lib/pricing/registry';
 import type { IntegratedToken } from '@/lib/tokens/integrationCore';
 import {
   buildKasKrexCurrencyOptions,
@@ -136,10 +136,13 @@ export function buildHubCurrencyCatalog(args: BuildCurrencyCatalogArgs): HubCurr
     const tick = token.tick.toUpperCase();
     if (tick === 'KAS' || tick === 'KREX') continue;
     const opt = buildKrc20CurrencyOption(token.tick, token.decimals);
+    const hasRate = hasKasConversionRate(tick, args.pricingSnapshot);
     pushUnique({
       ...opt,
-      status: 'available',
-      detail: 'KRC-20 · Kaspa L1',
+      status: hasRate ? 'available' : 'pay_pending',
+      detail: hasRate
+        ? `KRC-20 · Market rate (${args.pricingSnapshot?.rates?.[tick]?.source ?? 'Hub FX'})`
+        : 'KRC-20 · Market rate unavailable (refresh prices)',
       networkTag: 'krc20_l1',
       dexTag: 'native',
       searchText: `${token.symbol ?? ''} ${token.listingSlug ?? ''}`.trim() || undefined,

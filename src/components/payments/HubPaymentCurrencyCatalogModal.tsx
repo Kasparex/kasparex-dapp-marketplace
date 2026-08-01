@@ -10,6 +10,7 @@ import type { HubCurrencyCatalogEntry } from '@/lib/payments/currencyCatalog';
 import { catalogEntryToOption } from '@/lib/payments/currencyCatalog';
 import type { HubPaymentCurrencyOption } from '@/lib/payments/hubPaymentTypes';
 import { prefetchImageUrls } from '@/lib/hub/aggressiveCache';
+import { usePricingSnapshot } from '@/hooks/usePricingSnapshot';
 
 type NetworkFilter = 'all' | 'kcc20_l1' | 'krc20_l1' | 'kasplex_l2' | 'igra_l2';
 type DexFilter = 'all' | 'kron' | 'kcom' | 'zealous';
@@ -73,6 +74,8 @@ export function HubPaymentCurrencyCatalogModal({
   onSelect,
   title = 'Select currency',
   subtitle = 'Search Hub currencies. Deployer-verified Tokens (KRC-20 and KCC-20) are available to everyone.',
+  onRefreshRates,
+  isRefreshingRates = false,
 }: {
   isOpen: boolean;
   onClose: () => void;
@@ -81,11 +84,38 @@ export function HubPaymentCurrencyCatalogModal({
   onSelect: (option: HubPaymentCurrencyOption) => void;
   title?: string;
   subtitle?: string;
+  /** Clears Hub FX cache and reloads KasLab market rates globally. */
+  onRefreshRates?: () => void | Promise<void>;
+  isRefreshingRates?: boolean;
 }) {
   const [query, setQuery] = useState('');
   const [networkFilter, setNetworkFilter] = useState<NetworkFilter>('all');
   const [dexFilter, setDexFilter] = useState<DexFilter>('all');
   const [krexBuyOpen, setKrexBuyOpen] = useState(false);
+
+  const pricingTickers = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          entries
+            .map((e) => (e.tick || e.id || '').trim().toUpperCase())
+            .filter((t) => t && t !== 'KAS' && !t.startsWith('KCC20:')),
+        ),
+      ),
+    [entries],
+  );
+  const { refresh: refreshPricing, isRefreshing: hookRefreshing } = usePricingSnapshot(
+    pricingTickers.length ? pricingTickers : ['KREX'],
+  );
+  const refreshing = isRefreshingRates || hookRefreshing;
+
+  const handleRefreshRates = async () => {
+    if (onRefreshRates) {
+      await onRefreshRates();
+      return;
+    }
+    await refreshPricing();
+  };
 
   useEffect(() => {
     if (!isOpen) {
@@ -117,7 +147,37 @@ export function HubPaymentCurrencyCatalogModal({
         panelClassName="max-w-lg flex max-h-[min(90vh,640px)] flex-col"
         labelledBy="hub-pay-currency-title"
       >
-        <KxModalHeader title={title} subtitle={subtitle} onClose={onClose} />
+        <KxModalHeader
+          title={title}
+          subtitle={subtitle}
+          onClose={onClose}
+          actions={
+            <Tooltip content="Refresh Hub market conversion rates (clears cached FX)">
+              <button
+                type="button"
+                onClick={() => void handleRefreshRates()}
+                disabled={refreshing}
+                className="p-2 text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:opacity-50"
+                aria-label="Refresh currency prices"
+              >
+                <svg
+                  className={`h-5 w-5 ${refreshing ? 'animate-spin' : ''}`}
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  aria-hidden
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                  />
+                </svg>
+              </button>
+            </Tooltip>
+          }
+        />
         <div className="shrink-0 space-y-3 border-b border-zinc-200 px-4 py-3 dark:border-zinc-800 sm:px-6">
           <label className="sr-only" htmlFor="hub-pay-currency-search">
             Search currencies
@@ -252,17 +312,18 @@ function CurrencyRow({
 }) {
   const locked = entry.status === 'locked';
   const pending = entry.status === 'pay_pending';
+  const disabled = locked || pending;
 
   return (
     <button
       type="button"
-      disabled={locked}
+      disabled={disabled}
       onClick={onSelect}
       className={`flex w-full items-center justify-between gap-3 rounded-xl border px-3 py-3 text-left transition ${
         selected
           ? 'border-[color:var(--hub-accent,#02abb8)] bg-[color:var(--hub-accent,#02abb8)]/10'
           : 'border-zinc-200 bg-zinc-50/80 hover:border-zinc-300 dark:border-zinc-700 dark:bg-zinc-800/40 dark:hover:border-zinc-600'
-      } ${locked ? 'cursor-not-allowed opacity-70' : ''}`}
+      } ${disabled ? 'cursor-not-allowed opacity-70' : ''}`}
     >
       <div className="flex min-w-0 items-center gap-3">
         {entry.imageUrl ? (
@@ -295,7 +356,7 @@ function CurrencyRow({
           <span className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">{entry.amountLabel}</span>
         ) : locked || pending ? (
           <span className="text-[10px] uppercase tracking-wide text-amber-700 dark:text-amber-300">
-            {locked ? 'Locked' : 'Soon'}
+            {locked ? 'Locked' : 'No rate'}
           </span>
         ) : null}
         {entry.actionHref ? (

@@ -8,7 +8,7 @@ import {
 import type { Product } from '@/lib/store/types';
 import type { IntegratedToken } from '@/lib/tokens/integrationCore';
 import { listPublicVerifiedPaymentTokens } from '@/lib/payments/publicPaymentTokens';
-import { resolveTokenAmountFromKas, toKasEq } from '@/lib/pricing/registry';
+import { resolveTokenAmountFromKas, toKasEq, hasKasConversionRate } from '@/lib/pricing/registry';
 import type { PricingSnapshot } from '@/lib/pricing/types';
 
 export type StoreCheckoutPriceOption = {
@@ -72,9 +72,11 @@ export function buildStoreCheckoutPriceOptions(
     integratedTokens: mergeIntegratedWithPublic(integratedTokens),
   });
 
-  return hubOptions.map((option) => ({
-    currency: option.id,
-    unitPrice: resolveStoreUnitPrice(product, option.id, snapshot),
-    label: option.label,
-  }));
+  return hubOptions
+    .filter((option) => hasKasConversionRate(option.id, snapshot))
+    .map((option) => ({
+      currency: option.id,
+      unitPrice: resolveStoreUnitPrice(product, option.id, snapshot),
+      label: option.label,
+    }));
 }
