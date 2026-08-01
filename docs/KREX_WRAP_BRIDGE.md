@@ -2,6 +2,17 @@
 
 Hub dApp: [`/dapps/krex-wrap-bridge`](../src/components/dapps/KrexWrapBridgeWidget.tsx)
 
+## Liquidity if you deploy on kascov first
+
+kascov is an **indexer / explorer / builder**, not a DEX. Deploying there does not by itself create a buy button.
+
+People buy after you:
+
+1. Add a market on a KCC20-capable DEX (KRON / Kcom / others when they list by covenant id), or
+2. Seed Hub Tokens listing + wrap so utility demand exists, then list the covenant id on DEX.
+
+So: deploy (kascov or custom) → connect covenant id in Hub → list/trade on KRON (or peer DEX) when they accept that covenant. Order can be DEX-first if KRON can launch a mint-gated token.
+
 ## Deploying wrapped KCC20 KREX (ops)
 
 Do **not** fair-launch a second free-supply KREX on KRON/Kcom. That creates a competing token.

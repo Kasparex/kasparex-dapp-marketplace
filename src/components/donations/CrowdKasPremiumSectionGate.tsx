@@ -1,5 +1,6 @@
 'use client';
 
+import { useMemo } from 'react';
 import { KxRichTextContent } from '@/components/ui/KxRichTextContent';
 import { HubPaymentPanel } from '@/components/payments/HubPaymentPanel';
 import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
@@ -9,6 +10,8 @@ import type { KREXTier } from '@/lib/rewards/types';
 import type { HubFlowStep } from '@/lib/hub/hubFlowProgress';
 import type { HubPaymentQuoteLine } from '@/lib/payments/hubPaymentTypes';
 import { computeEarnedHubPoints } from '@/lib/rewards/hub-points';
+import { useHubPayWithCatalog } from '@/hooks/useHubPayWithCatalog';
+import { markCatalogByAcceptedCurrencies } from '@/lib/payments/markCatalogByAccepted';
 
 const PREMIUM_PREVIEW_FRAME_CLASS =
   'rounded-xl border-2 border-dashed border-emerald-500/40 dark:border-emerald-400/35 bg-emerald-500/[0.03] dark:bg-emerald-500/[0.06]';
@@ -54,6 +57,15 @@ export function CrowdKasPremiumSectionGate({
   actionError = null,
   onUnlock,
 }: CrowdKasPremiumSectionGateProps) {
+  const { catalogEntries } = useHubPayWithCatalog({
+    amountKas: effectivePriceKas,
+    pricingSnapshot,
+  });
+  const payCatalog = useMemo(
+    () => markCatalogByAcceptedCurrencies(catalogEntries, paymentCurrencies),
+    [catalogEntries, paymentCurrencies],
+  );
+
   if (unlocked) {
     return (
       <div id="crowdkas-premium" className="space-y-4">
@@ -78,11 +90,6 @@ export function CrowdKasPremiumSectionGate({
     { label: 'Creator payout', value: fmt(effectivePriceKas), dividerBefore: true },
   ];
 
-  const currencyOptions = paymentCurrencies.map((c) => ({
-    id: c,
-    label: c,
-    kind: (c === 'KAS' ? 'kas' : c === 'KREX' ? 'krex' : 'krc20') as 'kas' | 'krex' | 'krc20',
-  }));
   const earnPoints = hubPointsBase > 0 ? computeEarnedHubPoints(hubPointsBase, tier) : undefined;
 
   return (
@@ -105,7 +112,7 @@ export function CrowdKasPremiumSectionGate({
           lines={lines}
           totalDisplay={fmt(effectivePriceKas)}
           totalSubtitle="Kaspa L1 payment to the campaign creator."
-          currencies={currencyOptions.length > 1 ? currencyOptions : undefined}
+          catalogEntries={payCatalog}
           selectedCurrencyId={payCurrency}
           onCurrencyChange={onCurrencyChange}
           discountNote={

@@ -9,6 +9,7 @@ import type { Token } from '@/lib/tokens/types';
 import { formatLargeNumber } from '@/lib/rewards/calculator';
 import { GameOverviewTitleBlock } from '@/components/games/panels/GameOverviewSections';
 import { TokenStatCard } from '@/components/tokens/TokenStatCard';
+import { KX_METADATA_STAT_CARD } from '@/lib/hub/shellTokens';
 
 interface TokenomicsSectionProps {
   token: Token;
@@ -74,10 +75,7 @@ export function TokenomicsSection({ token }: TokenomicsSectionProps) {
                 : null;
 
               return (
-                <div
-                  key={index}
-                  className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900/60"
-                >
+                <div key={index} className={KX_METADATA_STAT_CARD}>
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
                       <div className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">

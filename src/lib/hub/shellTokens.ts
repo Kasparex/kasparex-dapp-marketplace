@@ -68,11 +68,15 @@ export const KX_DETAIL_HEADER =
 export const KX_EMPTY_STATE =
   'rounded-xl border border-dashed border-zinc-300 bg-zinc-50 p-8 text-center dark:border-zinc-800 dark:bg-zinc-950/50';
 
-/** 2-col metadata stat cards (Market Cap-style boxes on detail Metadata tabs). */
+/** Tokens / Hub metadata stat card (GRID Overview style). */
 export const KX_METADATA_STAT_CARD =
-  'rounded-2xl border border-zinc-200 bg-zinc-100/90 p-4 sm:p-5 dark:border-zinc-800 dark:bg-zinc-950/70';
+  'rounded-2xl border border-zinc-200 bg-white p-4 font-sans dark:border-zinc-800 dark:bg-zinc-900/60';
 
 export const KX_METADATA_STAT_GRID = 'grid grid-cols-1 gap-3 sm:grid-cols-2';
+
+export const KX_METADATA_STAT_GRID_3 = 'grid gap-4 sm:grid-cols-3';
+
+export const KX_METADATA_STAT_VALUE_ACCENT = 'text-[color:var(--hub-accent)]';
 
 /** Dashed informational callout (field context, not post-CTA alerts). */
 export const KX_INFO_DASHED =

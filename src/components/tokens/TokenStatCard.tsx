@@ -3,8 +3,9 @@
 import type { ReactNode } from 'react';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { gameTooltipRich } from '@/components/games/gameTooltipRich';
+import { KX_METADATA_STAT_CARD } from '@/lib/hub/shellTokens';
 
-/** Mining-tab style summary card used across Tokens Overview / Tokenomics. */
+/** Mining-tab / Tokens Overview summary card (shared Hub metadata box style). */
 export function TokenStatCard(props: {
   label: string;
   value: ReactNode;
@@ -25,10 +26,8 @@ export function TokenStatCard(props: {
   } = props;
 
   return (
-    <div
-      className={`rounded-2xl border border-zinc-200 bg-white p-4 font-sans dark:border-zinc-800 dark:bg-zinc-900/60 ${className}`.trim()}
-    >
-      <div className="flex items-center gap-2 text-xs font-medium text-zinc-500 dark:text-zinc-400">
+    <div className={`${KX_METADATA_STAT_CARD} ${className}`.trim()}>
+      <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
         {label}
         {tooltipTitle && tooltipDescription ? (
           <Tooltip content={gameTooltipRich(tooltipTitle, tooltipDescription)}>
@@ -42,7 +41,9 @@ export function TokenStatCard(props: {
           </Tooltip>
         ) : null}
       </div>
-      <div className={`mt-1 text-xl font-semibold tabular-nums tracking-tight ${valueClassName}`}>{value}</div>
+      <div className={`mt-1 text-xl font-semibold tabular-nums tracking-tight ${valueClassName}`}>
+        {value}
+      </div>
       {hint ? <p className="mt-1 text-xs font-medium text-zinc-500 dark:text-zinc-400">{hint}</p> : null}
     </div>
   );

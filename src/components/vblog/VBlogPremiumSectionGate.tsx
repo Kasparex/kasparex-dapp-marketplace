@@ -1,5 +1,6 @@
 'use client';
 
+import { useMemo } from 'react';
 import { KxRichTextContent } from '@/components/ui/KxRichTextContent';
 import { HubPaymentPanel } from '@/components/payments/HubPaymentPanel';
 import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
@@ -9,6 +10,8 @@ import type { KREXTier } from '@/lib/rewards/types';
 import type { HubFlowStep } from '@/lib/hub/hubFlowProgress';
 import type { HubPaymentQuoteLine } from '@/lib/payments/hubPaymentTypes';
 import { computeEarnedHubPoints } from '@/lib/rewards/hub-points';
+import { useHubPayWithCatalog } from '@/hooks/useHubPayWithCatalog';
+import { markCatalogByAcceptedCurrencies } from '@/lib/payments/markCatalogByAccepted';
 
 const PREMIUM_PREVIEW_FRAME_CLASS =
   'rounded-xl border-2 border-dashed border-[color:var(--hub-accent-border)] dark:border-[color:var(--hub-accent-border)] bg-[color:var(--hub-accent-muted)] dark:bg-[color:var(--hub-accent-muted)]';
@@ -62,6 +65,15 @@ export function VBlogPremiumSectionGate({
   actionError = null,
   onUnlock,
 }: VBlogPremiumSectionGateProps) {
+  const { catalogEntries } = useHubPayWithCatalog({
+    amountKas: effectivePriceKas,
+    pricingSnapshot,
+  });
+  const payCatalog = useMemo(
+    () => markCatalogByAcceptedCurrencies(catalogEntries, paymentCurrencies),
+    [catalogEntries, paymentCurrencies],
+  );
+
   if (unlocked) {
     return (
       <div id="article-premium" className="space-y-4">
@@ -90,11 +102,6 @@ export function VBlogPremiumSectionGate({
     ...(feeAmount > 1e-9 ? [{ label: 'Hub platform fee', value: fmt(feeAmount) }] : []),
   ];
 
-  const currencyOptions = paymentCurrencies.map((c) => ({
-    id: c,
-    label: c,
-    kind: (c === 'KAS' ? 'kas' : c === 'KREX' ? 'krex' : 'krc20') as 'kas' | 'krex' | 'krc20',
-  }));
   const earnPoints = hubPointsBase > 0 ? computeEarnedHubPoints(hubPointsBase, tier) : undefined;
 
   const ctaLabel = isProcessing
@@ -128,7 +135,7 @@ export function VBlogPremiumSectionGate({
               ? 'Two wallet approvals: author payout, then Hub fee.'
               : 'One wallet approval to unlock.'
           }
-          currencies={currencyOptions.length > 1 ? currencyOptions : undefined}
+          catalogEntries={payCatalog}
           selectedCurrencyId={payCurrency}
           onCurrencyChange={onCurrencyChange}
           discountNote={

@@ -1,8 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
-import { KxFormSelect } from '@/components/ui/KxFormSelect';
+import { useMemo, useState } from 'react';
 import type { VBlogArticle } from '@/lib/vblog/types';
 import { getMagazineIssueHref } from '@/lib/magazines/routes';
 import { getMagazineById } from '@/lib/magazines/data';
@@ -10,7 +9,6 @@ import { formatAddress } from '@/lib/vblog/utils';
 import { getVBlogArticleSource } from '@/lib/vblog/source';
 import { Avatar } from '@/components/Avatar';
 import { KxBadge } from '@/components/ui/KxBadge';
-import { KxCopyIconButton } from '@/components/ui/KxCopyIconButton';
 import { VBlogArticleAside, type VBlogAsideSection } from '@/components/vblog/VBlogArticleAside';
 import { VBlogReaderBenefitsPanel } from '@/components/vblog/VBlogReaderBenefitsPanel';
 import { VBlogArticleMetaBadges } from '@/components/vblog/VBlogArticleBadges';
@@ -28,6 +26,11 @@ import {
   formatTokenAmount,
   resolveTokenAmountFromKas,
 } from '@/lib/pricing/registry';
+import { HubMetadataStatGrid } from '@/components/hub/HubMetadataStatGrid';
+import { HubPaymentCurrencyCatalogTrigger } from '@/components/payments/HubPaymentCurrencyCatalogModal';
+import { useHubPayWithCatalog, hubCatalogSelectionToStoreCurrency } from '@/hooks/useHubPayWithCatalog';
+import { markCatalogByAcceptedCurrencies } from '@/lib/payments/markCatalogByAccepted';
+import { KX_METADATA_STAT_GRID } from '@/lib/hub/shellTokens';
 
 function getArticleLinkEntries(article: VBlogArticle): Array<{ href: string; label: string }> {
   const entries: Array<{ href: string; label: string }> = [];
@@ -41,56 +44,6 @@ function getArticleLinkEntries(article: VBlogArticle): Array<{ href: string; lab
     entries.push({ href, label: customLabel || getSocialLinkIconMeta(href, customLabel).label });
   }
   return entries;
-}
-
-function MetadataRow({
-  label,
-  value,
-  mono = false,
-  inline = false,
-}: {
-  label: string;
-  value: React.ReactNode;
-  mono?: boolean;
-  inline?: boolean;
-}) {
-  if (inline) {
-    return (
-      <div className="flex items-center justify-between gap-3 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50/70 dark:bg-zinc-950/40 px-3 py-2">
-        <dt className="text-[10px] font-black uppercase tracking-wider text-zinc-500 dark:text-zinc-400">{label}</dt>
-        <dd className="text-sm font-semibold text-zinc-800 dark:text-zinc-100 text-right">{value}</dd>
-      </div>
-    );
-  }
-  return (
-    <div className="rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50/70 dark:bg-zinc-950/40 px-3 py-2.5">
-      <dt className="text-[10px] font-black uppercase tracking-wider text-zinc-500 dark:text-zinc-400 mb-1.5">{label}</dt>
-      <dd className={`break-all ${mono ? 'font-mono text-xs leading-relaxed text-zinc-700 dark:text-zinc-300' : 'text-sm font-semibold text-zinc-800 dark:text-zinc-100'}`}>
-        {value}
-      </dd>
-    </div>
-  );
-}
-
-function CopyableMonoValue({ value, copyLabel, href }: { value: string; copyLabel: string; href?: string }) {
-  if (!value) return null;
-  return (
-    <span className="inline-flex items-start gap-1.5 max-w-full">
-      {href ? (
-        <a
-          href={href}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="font-mono text-[12px] leading-relaxed text-[color:var(--hub-accent)] hover:underline break-all"
-        >
-          {value}
-        </a>
-      ) : (
-        <span className="font-mono text-[12px] leading-relaxed break-all">{value}</span>
-      )}
-      <KxCopyIconButton value={value} label={copyLabel} className="shrink-0 mt-0.5" />
-    </span>
-  );
 }
 
 export function VBlogAuthorCard({ article, compact = false }: { article: VBlogArticle; compact?: boolean }) {
@@ -178,6 +131,15 @@ export function ArticleSidebar({
 }: ArticleSidebarProps) {
   const acceptedCurrencies = tipCurrencies && tipCurrencies.length > 0 ? tipCurrencies : ['KAS'];
   const [tipCurrency, setTipCurrency] = useState(acceptedCurrencies[0] ?? 'KAS');
+  const customTipKasNum = Number(customTipKas) || 0;
+  const { catalogEntries } = useHubPayWithCatalog({
+    amountKas: customTipKasNum > 0 ? customTipKasNum : tipPresets[0] ?? 10,
+    pricingSnapshot,
+  });
+  const tipCatalog = useMemo(
+    () => markCatalogByAcceptedCurrencies(catalogEntries, acceptedCurrencies),
+    [catalogEntries, acceptedCurrencies],
+  );
   const source = getVBlogArticleSource(article);
   const authorAddress = article.author.replace(/^(evm:|kaspa:)/, '');
   const authorDisplay = formatAddress(article.author);
@@ -201,7 +163,6 @@ export function ArticleSidebar({
     onTip?.(payAmount, tipCurrency);
   };
 
-  const customTipKasNum = Number(customTipKas) || 0;
   const customTipTokenPreview =
     tipCurrency !== 'KAS' && customTipKasNum > 0
       ? resolveTokenAmountFromKas(customTipKasNum, tipCurrency, pricingSnapshot)
@@ -258,16 +219,13 @@ export function ArticleSidebar({
                 ) : null}
               </div>
 
-              {acceptedCurrencies.length > 1 ? (
-                <div className="mb-3 max-w-[160px]">
-                  <KxFormSelect
-                    value={tipCurrency}
-                    onChange={(e) => setTipCurrency(e.target.value)}
-                    ariaLabel="Tip currency"
-                    options={acceptedCurrencies.map((currency) => ({
-                      value: currency,
-                      label: currency,
-                    }))}
+              {acceptedCurrencies.length > 0 ? (
+                <div className="mb-3">
+                  <HubPaymentCurrencyCatalogTrigger
+                    entries={tipCatalog}
+                    selectedId={tipCurrency}
+                    onSelect={(opt) => setTipCurrency(hubCatalogSelectionToStoreCurrency(opt))}
+                    alwaysShow
                   />
                 </div>
               ) : null}
@@ -330,38 +288,66 @@ export function ArticleSidebar({
       title: 'On-chain metadata',
       rawBody: true as const,
       body: (
-        <dl className="space-y-3">
-          <MetadataRow
-            label="Article CID (IPFS)"
-            value={
-              article.cid ? (
-                <CopyableMonoValue value={article.cid} copyLabel="Copy IPFS CID" />
-              ) : (
-                'Not yet published'
-              )
-            }
-            mono
-          />
-          {article.txHash ? (
-            <MetadataRow
-              label="Creation transaction"
-              value={<CopyableMonoValue value={article.txHash} copyLabel="Copy transaction hash" href={txExplorerUrl} />}
-              mono
-            />
-          ) : null}
-          {article.articleId ? <MetadataRow label="Article ID" value={article.articleId} mono /> : null}
-          <div className="grid grid-cols-2 gap-2">
-            {payloadBytes != null ? (
-              <MetadataRow label="Payload" value={`${payloadBytes.toLocaleString()} B`} inline />
-            ) : null}
-            {chunkCount != null && chunkCount > 0 ? (
-              <MetadataRow label="Chunks" value={String(chunkCount)} inline />
-            ) : null}
-          </div>
-          <MetadataRow label="Source" value={<KxBadge variant={source === 'kasparex' ? 'cyan' : 'zinc'}>{source}</KxBadge>} inline />
-          <MetadataRow label="Network" value="Kaspa Mainnet" inline />
-          <MetadataRow label="Status" value={<span className="capitalize">{article.status.replace(/_/g, ' ')}</span>} inline />
-        </dl>
+        <HubMetadataStatGrid
+          gridClassName={KX_METADATA_STAT_GRID}
+          stats={[
+            {
+              label: 'Article CID (IPFS)',
+              value: article.cid || 'Not yet published',
+              mono: Boolean(article.cid),
+              copyable: Boolean(article.cid),
+              accent: Boolean(article.cid),
+            },
+            ...(article.txHash
+              ? [
+                  {
+                    label: 'Creation transaction',
+                    value: article.txHash,
+                    mono: true,
+                    accent: true,
+                    copyable: true,
+                    valueNode: (
+                      <a
+                        href={txExplorerUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-mono text-base break-all text-[color:var(--hub-accent)] hover:underline"
+                      >
+                        {`${article.txHash.slice(0, 12)}…${article.txHash.slice(-8)}`}
+                      </a>
+                    ),
+                  },
+                ]
+              : []),
+            ...(article.articleId
+              ? [{ label: 'Article ID', value: article.articleId, mono: true, copyable: true }]
+              : []),
+            ...(payloadBytes != null
+              ? [
+                  {
+                    label: 'Payload',
+                    value: `${payloadBytes.toLocaleString()} B`,
+                    copyable: false,
+                    accent: true,
+                  },
+                ]
+              : []),
+            ...(chunkCount != null && chunkCount > 0
+              ? [{ label: 'Chunks', value: String(chunkCount), copyable: false, accent: true }]
+              : []),
+            {
+              label: 'Source',
+              value: source === 'kasparex' ? 'Kasparex' : 'Community',
+              copyable: false,
+            },
+            { label: 'Network', value: 'Kaspa Mainnet', copyable: false },
+            {
+              label: 'Status',
+              value: article.status.replace(/_/g, ' '),
+              copyable: false,
+            },
+          ]}
+        />
       ),
     },
   ];
