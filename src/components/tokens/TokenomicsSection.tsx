@@ -9,7 +9,7 @@ import type { Token } from '@/lib/tokens/types';
 import { formatLargeNumber } from '@/lib/rewards/calculator';
 import { GameOverviewTitleBlock } from '@/components/games/panels/GameOverviewSections';
 import { HubMetadataStatGrid, type HubMetadataStat } from '@/components/hub/HubMetadataStatGrid';
-import { KX_METADATA_STAT_CARD, KX_METADATA_STAT_GRID, metadataStatItemSpanClass } from '@/lib/hub/shellTokens';
+import { KX_METADATA_STAT_CARD, metadataStatGridClassForCount } from '@/lib/hub/shellTokens';
 
 interface TokenomicsSectionProps {
   token: Token;
@@ -70,14 +70,13 @@ export function TokenomicsSection({ token }: TokenomicsSectionProps) {
       {allocations.length > 0 ? (
         <div className="space-y-4">
           <h4 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">Distribution</h4>
-          <div className={KX_METADATA_STAT_GRID}>
+          <div className={metadataStatGridClassForCount(allocations.length)}>
             {allocations.map((allocation, index) => {
               const amount = allocation.amount
                 ? `${formatLargeNumber(allocation.amount)} ${token.symbol}`
                 : null;
-              const span = metadataStatItemSpanClass(index, allocations.length);
               return (
-                <div key={index} className={`${KX_METADATA_STAT_CARD} ${span}`.trim()}>
+                <div key={index} className={KX_METADATA_STAT_CARD}>
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
                       <div className="text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">

@@ -6,9 +6,8 @@ import { getLedgerCirculatingSupply, sumLedger } from '@/lib/tokens/ledger';
 import { HubMetadataStatGrid, type HubMetadataStat } from '@/components/hub/HubMetadataStatGrid';
 import {
   KX_METADATA_STAT_CARD,
-  KX_METADATA_STAT_GRID,
   KX_PANEL,
-  metadataStatItemSpanClass,
+  metadataStatGridClassForCount,
 } from '@/lib/hub/shellTokens';
 
 export function TokenLedgerDashboard({ snapshot }: { snapshot: TokenLedgerSnapshot }) {
@@ -57,12 +56,9 @@ export function TokenLedgerDashboard({ snapshot }: { snapshot: TokenLedgerSnapsh
 
       <div className="space-y-2">
         <div className="text-xs font-semibold text-zinc-600 dark:text-zinc-400">Breakdown</div>
-        <div className={KX_METADATA_STAT_GRID}>
-          {snapshot.lines.map((line, index) => (
-            <div
-              key={line.label}
-              className={`${KX_METADATA_STAT_CARD} ${metadataStatItemSpanClass(index, snapshot.lines.length)}`.trim()}
-            >
+        <div className={metadataStatGridClassForCount(snapshot.lines.length)}>
+          {snapshot.lines.map((line) => (
+            <div key={line.label} className={KX_METADATA_STAT_CARD}>
               <div className="text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
                 {line.label}
               </div>

@@ -11,7 +11,7 @@ export function GameSectionHeader(props: { title: string; hint?: string; right?:
     >
       <div className="flex items-center gap-3">
         <div className="hub-tilt-bar-sm h-5 w-1 shrink-0 -skew-y-12 rounded-full" aria-hidden="true" />
-        <h2 className="inline-flex items-center gap-2 text-sm font-semibold leading-tight text-zinc-700 dark:text-zinc-200">
+        <h2 className="inline-flex items-center gap-2 text-sm font-semibold leading-tight text-zinc-900 dark:text-zinc-100">
           {props.title}
           {props.hint ? <FieldHint text={props.hint} /> : null}
         </h2>

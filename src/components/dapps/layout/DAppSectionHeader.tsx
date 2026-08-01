@@ -16,7 +16,7 @@ export function DAppSectionHeader(props: {
           className="hub-tilt-bar-sm h-5 w-1 shrink-0 -skew-y-12 rounded-full"
           aria-hidden="true"
         />
-        <h2 className="text-sm font-semibold text-zinc-700 dark:text-zinc-200 leading-tight inline-flex items-center gap-2">
+        <h2 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 leading-tight inline-flex items-center gap-2">
           {props.title}
           {props.hint ? <FieldHint text={props.hint} /> : null}
         </h2>

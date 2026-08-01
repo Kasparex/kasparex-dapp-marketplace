@@ -10,20 +10,24 @@ export function GameMetadataPanel(props: { categories?: string[]; tags?: string[
   const tagValue = tags.length > 0 ? tags.join(', ') : 'None';
 
   return (
-    <GamePanelCard title="Metadata" hint="Game category and tags.">
+    <GamePanelCard title="Metadata">
       <HubMetadataStatGrid
         stats={[
           {
             label: 'Categories',
             value: categoryValue,
-            hint: categories.length ? `${categories.length} listed` : 'No categories',
+            hint: categories.length ? `${categories.length} listed` : undefined,
             copyable: categories.length > 0,
+            tooltipTitle: 'Categories',
+            tooltipDescription: 'Game categories used for Hub filters and discovery.',
           },
           {
             label: 'Tags',
             value: tagValue,
-            hint: tags.length ? `${tags.length} tags` : 'No tags',
+            hint: tags.length ? `${tags.length} tags` : undefined,
             copyable: tags.length > 0,
+            tooltipTitle: 'Tags',
+            tooltipDescription: 'Freeform tags that describe this game listing.',
           },
         ]}
       />

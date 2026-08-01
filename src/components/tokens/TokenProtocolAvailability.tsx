@@ -10,7 +10,10 @@ import {
 import { TokenCopyableAddress } from '@/components/tokens/TokenCopyableAddress';
 import { GameOverviewTitleBlock } from '@/components/games/panels/GameOverviewSections';
 import { HubMetadataStatGrid, type HubMetadataStat } from '@/components/hub/HubMetadataStatGrid';
-import { KX_METADATA_STAT_CARD, KX_METADATA_STAT_GRID, metadataStatItemSpanClass } from '@/lib/hub/shellTokens';
+import {
+  KX_METADATA_STAT_CARD,
+  metadataStatGridClassForCount,
+} from '@/lib/hub/shellTokens';
 
 type ProtocolDef = {
   id: string;
@@ -57,15 +60,13 @@ export function TokenProtocolAvailability({ token }: { token: Token }) {
   const stats: HubMetadataStat[] = PROTOCOLS.map((protocol) => {
     const match = entries.find((e) => protocol.networks.includes(e.network));
     const available = Boolean(match);
-    const statusHint = !available
-      ? 'Not listed on this network'
-      : match?.verified
-        ? match.primary
-          ? 'Primary · verified'
-          : 'Verified'
-        : match?.primary
-          ? 'Primary'
-          : 'Linked';
+    let hint = 'Not listed';
+    if (available) {
+      if (match?.verified && match?.primary) hint = 'Primary · verified';
+      else if (match?.verified) hint = 'Verified';
+      else if (match?.primary) hint = 'Primary';
+      else hint = protocol.short;
+    }
 
     return {
       label: protocol.label,
@@ -73,7 +74,7 @@ export function TokenProtocolAvailability({ token }: { token: Token }) {
       accent: available,
       muted: !available,
       copyable: false,
-      hint: available ? `${protocol.short} · ${statusHint}` : statusHint,
+      hint,
       tooltipTitle: protocol.label,
       tooltipDescription: protocol.tooltip,
     };
@@ -86,7 +87,7 @@ export function TokenProtocolAvailability({ token }: { token: Token }) {
       <GameOverviewTitleBlock
         kicker="Networks"
         title="Protocol availability"
-        subtitle="Where this token is listed on Kasparex. Open an address to view it on the matching explorer."
+        subtitle="Where this token is listed on Kasparex."
         as="h3"
         compact
       />
@@ -94,12 +95,14 @@ export function TokenProtocolAvailability({ token }: { token: Token }) {
       <HubMetadataStatGrid stats={stats} />
 
       {addressEntries.length > 0 ? (
-        <div className={KX_METADATA_STAT_GRID}>
-          {addressEntries.map((entry, index) => {
+        <div className={metadataStatGridClassForCount(addressEntries.length)}>
+          {addressEntries.map((entry) => {
             const explorerUrl = getNetworkExplorerUrl(entry.network, entry.contractAddress);
-            const span = metadataStatItemSpanClass(index, addressEntries.length);
             return (
-              <div key={`${entry.network}-${entry.contractAddress}`} className={`${KX_METADATA_STAT_CARD} ${span}`.trim()}>
+              <div
+                key={`${entry.network}-${entry.contractAddress}`}
+                className={KX_METADATA_STAT_CARD}
+              >
                 <div className="mb-2 flex flex-wrap items-center gap-2">
                   <span className="text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
                     {getNetworkChipLabel(entry.network)}

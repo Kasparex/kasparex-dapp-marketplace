@@ -85,33 +85,38 @@ export const KX_METADATA_STAT_LABEL =
 
 export const KX_METADATA_STAT_HINT = 'mt-1 text-xs font-medium text-zinc-500 dark:text-zinc-400';
 
-/** Card chrome: equal-height cells stretch via h-full on the card. */
-export const KX_METADATA_STAT_CARD = `${KX_SURFACE_NESTED} flex h-full min-h-0 flex-col p-4 sm:p-5 font-sans`;
+/**
+ * Card chrome: equal-height cells. Discrete nest border; accent border on hover (global).
+ */
+export const KX_METADATA_STAT_CARD =
+  `${KX_SURFACE_NESTED} flex h-full min-h-0 flex-col p-4 sm:p-5 font-sans transition-colors hover:border-[color:var(--hub-accent)]`;
 
 /**
- * Default Hub metadata / stat box grid: max 3 equal columns, uniform gap-3.
- * Leftover single box (4th, 7th, …) spans full width via metadataStatItemSpanClass.
+ * Pick columns from item count so panels do not leave an empty third slot.
+ * 1 → 1 col. 2 or 4 → 2 cols (2×2 for four). 3 → 3 cols. 5+ → up to 3 cols.
  */
+export function metadataStatGridClassForCount(count: number): string {
+  const base = 'grid grid-cols-1 items-stretch gap-3';
+  if (count <= 1) return base;
+  if (count === 2 || count === 4) return `${base} sm:grid-cols-2`;
+  if (count === 3) return `${base} sm:grid-cols-3`;
+  return `${base} sm:grid-cols-2 lg:grid-cols-3`;
+}
+
+/** @deprecated Prefer metadataStatGridClassForCount(n). Kept as 3-col default for explicit overrides. */
 export const KX_METADATA_STAT_GRID =
   'grid grid-cols-1 items-stretch gap-3 sm:grid-cols-2 lg:grid-cols-3';
 
 /** Single-column stack (vBlog / Tokens aside On-chain metadata). */
 export const KX_METADATA_STAT_GRID_STACK = 'grid grid-cols-1 items-stretch gap-3';
 
-/** Alias: same max-3 rule as the default metadata grid. */
+/** Alias. */
 export const KX_METADATA_STAT_GRID_3 = KX_METADATA_STAT_GRID;
 
-/** Full-width span for leftover 4th / 7th / … box under the max-3 grid. */
+/** @deprecated Leftover full-width span removed (caused empty panel gaps). Always returns ''. */
 export const KX_METADATA_STAT_SPAN_FULL = 'sm:col-span-2 lg:col-span-3';
 
-/**
- * Last item spans the full row when it would sit alone under a 3-column grid
- * (4, 7, 10, … items). Single-item grids stay normal width.
- */
-export function metadataStatItemSpanClass(index: number, count: number): string {
-  if (count > 1 && count % 3 === 1 && index === count - 1) {
-    return KX_METADATA_STAT_SPAN_FULL;
-  }
+export function metadataStatItemSpanClass(_index: number, _count: number): string {
   return '';
 }
 

@@ -6,15 +6,13 @@ import { Tooltip } from '@/components/ui/Tooltip';
 import { gameTooltipRich } from '@/components/games/gameTooltipRich';
 import {
   KX_METADATA_STAT_CARD,
-  KX_METADATA_STAT_GRID,
-  KX_METADATA_STAT_GRID_3,
   KX_METADATA_STAT_HINT,
   KX_METADATA_STAT_LABEL,
   KX_METADATA_STAT_VALUE,
   KX_METADATA_STAT_VALUE_ACCENT,
   KX_METADATA_STAT_VALUE_LINK,
   KX_METADATA_STAT_VALUE_MUTED,
-  metadataStatItemSpanClass,
+  metadataStatGridClassForCount,
 } from '@/lib/hub/shellTokens';
 
 export type HubMetadataStat = {
@@ -24,9 +22,7 @@ export type HubMetadataStat = {
   mono?: boolean;
   copyable?: boolean;
   accent?: boolean;
-  /** Muted value (e.g. N/A). */
   muted?: boolean;
-  /** Use link-sized text for long tx / cid strings (still standard sans). */
   dense?: boolean;
   tooltipTitle?: string;
   tooltipDescription?: string;
@@ -61,7 +57,7 @@ function resolveValueClass(args: {
   return KX_METADATA_STAT_VALUE;
 }
 
-/** Locked Hub metadata box (vBlog / dApps / Tokens). Do not restyle per surface. */
+/** Locked Hub metadata box. Tooltip on the whole card (no inline ? icon). */
 export function HubMetadataStatCard({
   label,
   value,
@@ -80,21 +76,10 @@ export function HubMetadataStatCard({
   const canCopy = copyable ?? Boolean(value?.trim());
   const valueClass = resolveValueClass({ dense, accent, muted });
 
-  return (
+  const card = (
     <div className={`${KX_METADATA_STAT_CARD} ${className}`.trim()}>
       <div className={KX_METADATA_STAT_LABEL}>
         {label}
-        {tooltipTitle && tooltipDescription ? (
-          <Tooltip content={gameTooltipRich(tooltipTitle, tooltipDescription)}>
-            <button
-              type="button"
-              className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-zinc-300/80 text-xs font-medium text-zinc-500 dark:border-zinc-700 dark:text-zinc-400"
-              aria-label={`About ${tooltipTitle}`}
-            >
-              ?
-            </button>
-          </Tooltip>
-        ) : null}
         {canCopy && value?.trim() ? (
           <KxCopyIconButton value={value} label={`Copy ${label}`} className="ml-auto shrink-0" />
         ) : null}
@@ -105,39 +90,46 @@ export function HubMetadataStatCard({
       {hint?.trim() ? <p className={KX_METADATA_STAT_HINT}>{hint}</p> : null}
     </div>
   );
+
+  if (tooltipTitle && tooltipDescription) {
+    return (
+      <Tooltip content={gameTooltipRich(tooltipTitle, tooltipDescription)} className="block h-full">
+        {card}
+      </Tooltip>
+    );
+  }
+
+  return card;
 }
 
 export function HubMetadataStatGrid({
   stats,
   className = '',
-  gridClassName = KX_METADATA_STAT_GRID,
+  gridClassName,
   footer,
 }: {
   stats: HubMetadataStat[];
   className?: string;
+  /** Override auto count-based grid (e.g. KX_METADATA_STAT_GRID_STACK). */
   gridClassName?: string;
   footer?: ReactNode;
 }) {
   const visible = stats.filter((s) => s.value?.trim() || s.valueNode);
   if (visible.length === 0 && !footer) return null;
 
-  const applySpan =
-    gridClassName === KX_METADATA_STAT_GRID || gridClassName === KX_METADATA_STAT_GRID_3;
+  const resolvedGrid = gridClassName ?? metadataStatGridClassForCount(visible.length);
 
   return (
     <div className={className}>
       {visible.length > 0 ? (
-        <div className={gridClassName}>
-          {visible.map((stat, index) => {
-            const span = applySpan ? metadataStatItemSpanClass(index, visible.length) : '';
-            return (
-              <HubMetadataStatCard
-                key={`${stat.label}-${stat.value}-${index}`}
-                {...stat}
-                className={`${span} ${stat.className ?? ''}`.trim()}
-              />
-            );
-          })}
+        <div className={resolvedGrid}>
+          {visible.map((stat, index) => (
+            <HubMetadataStatCard
+              key={`${stat.label}-${stat.value}-${index}`}
+              {...stat}
+              className={stat.className}
+            />
+          ))}
         </div>
       ) : null}
       {footer}

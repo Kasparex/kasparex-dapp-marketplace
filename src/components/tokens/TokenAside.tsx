@@ -95,7 +95,6 @@ export function TokenAside({ token }: { token: Token }) {
   if (onChainStats.length > 0) {
     sections.push({
       title: 'On-chain metadata',
-      hint: 'Listing identifiers and network data for this token.',
       rawBody: true,
       body: <HubMetadataStatGrid gridClassName={KX_METADATA_STAT_GRID_STACK} stats={onChainStats} />,
     });
@@ -104,7 +103,6 @@ export function TokenAside({ token }: { token: Token }) {
   if (price !== undefined) {
     sections.push({
       title: 'Market snapshot',
-      hint: 'Latest price fields when available for this listing.',
       body: (
         <div className="space-y-2 text-sm">
           <div className="flex justify-between gap-3">
@@ -129,7 +127,6 @@ export function TokenAside({ token }: { token: Token }) {
   if (networkEntries.length > 0) {
     sections.push({
       title: 'Contracts',
-      hint: 'Copy an address or open it in the matching explorer.',
       body: (
         <ul className="space-y-3">
           {networkEntries.map((entry) => {

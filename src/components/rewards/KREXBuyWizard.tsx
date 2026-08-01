@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { CopyableAddress } from '@/components/donations/CopyableAddress';
 import { BRIDGE_URLS, getAddressExplorerUrl } from '@/lib/walletUi';
+import { KX_METADATA_STAT_CARD, KX_SURFACE_NESTED } from '@/lib/hub/shellTokens';
 
 interface KREXBuyWizardProps {
   isOpen: boolean;
@@ -23,22 +24,17 @@ const KASPLEX_DEXS = [
   {
     name: 'Zealous Swap',
     url: `https://app.zealousswap.com/swap?from=KAS&to=${KASPLEX_KREX_TOKEN_CA}`,
-    description: 'Swap KAS for KREX on Zealous Swap',
+    description: 'Swap KAS for KREX',
   },
   {
     name: 'KaspaCom',
     url: 'https://defi.kaspa.com/swap',
-    description: 'Decentralized exchange on KaspaCom',
+    description: 'KaspaCom DEX',
   },
   {
     name: 'KSPR',
     url: 'https://app.kspr.exchange/trade',
-    description: 'Trade KREX on KSPR Exchange',
-  },
-  {
-    name: 'KaspaFinance',
-    url: `https://app.kaspafinance.io/swap?chain=kasplexMainnet&outputCurrency=${KASPLEX_KREX_TOKEN_CA}`,
-    description: 'Swap tokens on KaspaFinance',
+    description: 'KSPR Exchange',
   },
 ];
 
@@ -57,29 +53,24 @@ const IGRA_DEXS = [
 
 const L1_EXCHANGES = [
   {
-    name: 'AscendEX',
-    url: 'https://www.ascendex.com/en/cashtrade-spottrading/usdt/krex',
-    description: 'Buy KREX/USDT on AscendEX',
-  },
-  {
     name: 'CoinEx',
     url: 'https://www.coinex.com/en/exchange/krex-usdt',
-    description: 'Buy KREX/USDT on CoinEx',
+    description: 'KREX/USDT',
   },
   {
     name: 'KSPR Bot',
     url: 'https://t.me/kspr_home_bot?start=AXFM1TM',
-    description: 'Buy KREX via Telegram bot',
+    description: 'Telegram bot',
   },
   {
     name: 'KaspaCom',
     url: 'https://www.kaspa.com/?ref=01boeP91',
-    description: 'Buy KREX on KaspaCom',
+    description: 'KaspaCom',
   },
   {
     name: 'XT.com',
     url: 'https://www.xt.com/en/trade/krex_usdt',
-    description: 'Buy KREX/USDT on XT.com',
+    description: 'KREX/USDT',
   },
 ];
 
@@ -191,7 +182,7 @@ export function KREXBuyWizard({ isOpen, onClose }: KREXBuyWizardProps) {
                     <div
                       className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold transition-colors ${
                         index <= currentStepIndex
-                          ? 'bg-[#02abb8] text-white'
+                          ? 'bg-[color:var(--hub-accent)] text-white'
                           : 'bg-zinc-200 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400'
                       }`}
                     >
@@ -218,7 +209,7 @@ export function KREXBuyWizard({ isOpen, onClose }: KREXBuyWizardProps) {
                   <div
                     className={`h-0.5 flex-1 mx-2 transition-colors ${
                       index < currentStepIndex
-                        ? 'bg-[#02abb8]'
+                        ? 'bg-[color:var(--hub-accent)]'
                         : 'bg-zinc-200 dark:bg-zinc-800'
                     }`}
                   />
@@ -241,8 +232,8 @@ export function KREXBuyWizard({ isOpen, onClose }: KREXBuyWizardProps) {
                   onClick={() => setSelectedOption('l1')}
                   className={`p-4 rounded-lg border-2 transition-all text-left ${
                     selectedOption === 'l1'
-                      ? 'border-[#02abb8] bg-[#02abb8]/10 dark:bg-[#02abb8]/20'
-                      : 'border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700'
+                      ? 'border-[color:var(--hub-accent)] bg-[color:var(--hub-accent-muted)]'
+                      : 'border-zinc-200 dark:border-zinc-800 hover:border-[color:var(--hub-accent)]'
                   }`}
                 >
                   <div className="font-semibold text-zinc-900 dark:text-zinc-100 mb-1">
@@ -256,8 +247,8 @@ export function KREXBuyWizard({ isOpen, onClose }: KREXBuyWizardProps) {
                   onClick={() => setSelectedOption('l2')}
                   className={`p-4 rounded-lg border-2 transition-all text-left ${
                     selectedOption === 'l2'
-                      ? 'border-[#02abb8] bg-[#02abb8]/10 dark:bg-[#02abb8]/20'
-                      : 'border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700'
+                      ? 'border-[color:var(--hub-accent)] bg-[color:var(--hub-accent-muted)]'
+                      : 'border-zinc-200 dark:border-zinc-800 hover:border-[color:var(--hub-accent)]'
                   }`}
                 >
                   <div className="font-semibold text-zinc-900 dark:text-zinc-100 mb-1">
@@ -284,8 +275,8 @@ export function KREXBuyWizard({ isOpen, onClose }: KREXBuyWizardProps) {
                     Choose a network and DEX to get KREX directly on L2:
                   </p>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <div className="p-3 bg-zinc-50 dark:bg-zinc-800 rounded-lg border border-zinc-200 dark:border-zinc-700">
-                      <div className="text-xs font-black uppercase tracking-widest text-zinc-500 dark:text-zinc-400 mb-2">
+                    <div className={`${KX_SURFACE_NESTED} p-3`}>
+                      <div className="mb-2 text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
                         Kasplex
                       </div>
                       <div className="space-y-2">
@@ -295,20 +286,20 @@ export function KREXBuyWizard({ isOpen, onClose }: KREXBuyWizardProps) {
                             href={dex.url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="flex items-center justify-between p-3 bg-white/60 dark:bg-zinc-900/40 rounded-lg border border-zinc-200/70 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors"
+                            className={`${KX_METADATA_STAT_CARD} flex-row items-center justify-between !p-3`}
                           >
                             <div>
-                              <div className="font-medium text-zinc-900 dark:text-zinc-100 text-sm">{dex.name}</div>
-                              <div className="text-xs text-zinc-600 dark:text-zinc-400 mt-0.5">{dex.description}</div>
+                              <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">{dex.name}</div>
+                              <div className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">{dex.description}</div>
                             </div>
-                            <svg className="w-4 h-4 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <svg className="h-4 w-4 text-[color:var(--hub-accent)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                             </svg>
                           </a>
                         ))}
                       </div>
-                      <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-                        <p className="text-xs text-blue-700 dark:text-blue-300 mb-2">💡 KREX contract (Kasplex):</p>
+                      <div className="mt-3 rounded-xl border border-[color:var(--hub-accent-border)] bg-[color:var(--hub-accent-muted)] p-3">
+                        <p className="mb-2 text-xs font-medium text-[color:var(--hub-accent)]">KREX contract (Kasplex)</p>
                         <CopyableAddress
                           value={KASPLEX_KREX_TOKEN_CA}
                           explorerUrl={
@@ -319,14 +310,14 @@ export function KREXBuyWizard({ isOpen, onClose }: KREXBuyWizardProps) {
                             }) || '#'
                           }
                           explorerLabel="Open in Kasplex explorer"
-                          className="rounded-lg border border-blue-200 dark:border-blue-800 bg-white/60 dark:bg-zinc-900/40 px-3 py-2"
+                          className={`${KX_METADATA_STAT_CARD} !p-3`}
                           truncate={false}
                         />
                       </div>
                     </div>
 
-                    <div className="p-3 bg-zinc-50 dark:bg-zinc-800 rounded-lg border border-zinc-200 dark:border-zinc-700">
-                      <div className="text-xs font-black uppercase tracking-widest text-zinc-500 dark:text-zinc-400 mb-2">
+                    <div className={`${KX_SURFACE_NESTED} p-3`}>
+                      <div className="mb-2 text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
                         IGRA
                       </div>
                       <div className="space-y-2">
@@ -336,20 +327,20 @@ export function KREXBuyWizard({ isOpen, onClose }: KREXBuyWizardProps) {
                             href={dex.url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="flex items-center justify-between p-3 bg-white/60 dark:bg-zinc-900/40 rounded-lg border border-zinc-200/70 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors"
+                            className={`${KX_METADATA_STAT_CARD} flex-row items-center justify-between !p-3`}
                           >
                             <div>
-                              <div className="font-medium text-zinc-900 dark:text-zinc-100 text-sm">{dex.name}</div>
-                              <div className="text-xs text-zinc-600 dark:text-zinc-400 mt-0.5">{dex.description}</div>
+                              <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">{dex.name}</div>
+                              <div className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">{dex.description}</div>
                             </div>
-                            <svg className="w-4 h-4 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <svg className="h-4 w-4 text-[color:var(--hub-accent)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                             </svg>
                           </a>
                         ))}
                       </div>
-                      <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-                        <p className="text-xs text-blue-700 dark:text-blue-300 mb-2">💡 KREX contract (IGRA):</p>
+                      <div className="mt-3 rounded-xl border border-[color:var(--hub-accent-border)] bg-[color:var(--hub-accent-muted)] p-3">
+                        <p className="mb-2 text-xs font-medium text-[color:var(--hub-accent)]">KREX contract (IGRA)</p>
                         <CopyableAddress
                           value={IGRA_KREX_TOKEN_CA}
                           explorerUrl={
@@ -360,7 +351,7 @@ export function KREXBuyWizard({ isOpen, onClose }: KREXBuyWizardProps) {
                             }) || '#'
                           }
                           explorerLabel="Open in IGRA explorer"
-                          className="rounded-lg border border-blue-200 dark:border-blue-800 bg-white/60 dark:bg-zinc-900/40 px-3 py-2"
+                          className={`${KX_METADATA_STAT_CARD} !p-3`}
                           truncate={false}
                         />
                       </div>
@@ -372,32 +363,32 @@ export function KREXBuyWizard({ isOpen, onClose }: KREXBuyWizardProps) {
                   <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-4">
                     Choose an exchange to buy KREX on L1 (you can keep it on L1, or bridge later if you want):
                   </p>
-                  <div className="grid grid-cols-1 gap-3">
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                     {L1_EXCHANGES.map((exchange, index) => (
                       <a
                         key={index}
                         href={exchange.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center justify-between p-3 bg-zinc-50 dark:bg-zinc-800 rounded-lg border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors"
+                        className={`${KX_METADATA_STAT_CARD} flex-row items-center justify-between !p-3`}
                       >
                         <div>
-                          <div className="font-medium text-zinc-900 dark:text-zinc-100 text-sm">
+                          <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
                             {exchange.name}
                           </div>
-                          <div className="text-xs text-zinc-600 dark:text-zinc-400 mt-0.5">
+                          <div className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
                             {exchange.description}
                           </div>
                         </div>
-                        <svg className="w-4 h-4 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <svg className="h-4 w-4 text-[color:var(--hub-accent)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                         </svg>
                       </a>
                     ))}
                   </div>
-                  <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-                    <p className="text-xs text-blue-700 dark:text-blue-300">
-                      💡 After purchasing KREX on L1, proceed to the bridging step to move it to L2.
+                  <div className="rounded-xl border border-[color:var(--hub-accent-border)] bg-[color:var(--hub-accent-muted)] p-3">
+                    <p className="text-xs text-[color:var(--hub-accent)]">
+                      After buying on L1, use the bridge step if you want KREX on L2.
                     </p>
                   </div>
                 </div>
@@ -411,15 +402,15 @@ export function KREXBuyWizard({ isOpen, onClose }: KREXBuyWizardProps) {
               <h3 className="text-base font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
                 Bridge KREX to L2
               </h3>
-              <div className="p-4 bg-zinc-50 dark:bg-zinc-800 rounded-lg border border-zinc-200 dark:border-zinc-700">
-                <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-4">
+              <div className={`${KX_SURFACE_NESTED} p-4`}>
+                <p className="mb-4 text-sm text-zinc-600 dark:text-zinc-400">
                   Use KAT Bridge to transfer KREX (KRC-20) from L1 to L2.
                 </p>
                 <a
                   href={BRIDGE_URLS.katBridge}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-6 py-3 bg-[#02abb8] hover:bg-[#028a94] text-white rounded-lg font-medium transition-colors mb-3"
+                  className="mb-3 inline-flex items-center gap-2 rounded-lg bg-[color:var(--hub-accent)] px-6 py-3 font-medium text-white transition-colors hover:bg-[color:var(--hub-accent-hover)]"
                 >
                   <span>Open KAT Bridge</span>
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -429,7 +420,7 @@ export function KREXBuyWizard({ isOpen, onClose }: KREXBuyWizardProps) {
               </div>
               
               {/* KAS Bridge Option */}
-              <div className="p-4 bg-zinc-50 dark:bg-zinc-800 rounded-lg border border-zinc-200 dark:border-zinc-700">
+              <div className={`${KX_SURFACE_NESTED} p-4`}>
                 <h4 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
                   Need native gas on L2?
                 </h4>
@@ -507,7 +498,7 @@ export function KREXBuyWizard({ isOpen, onClose }: KREXBuyWizardProps) {
               <button
                 onClick={handleNext}
                 disabled={currentStep === 'select' && !selectedOption}
-                className="px-6 py-2 bg-[#02abb8] hover:bg-[#028a94] text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-6 py-2 rounded-lg bg-[color:var(--hub-accent)] font-medium text-white transition-colors hover:bg-[color:var(--hub-accent-hover)] disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {currentStep === 'bridge' || (currentStep === 'buy' && selectedOption === 'l2') ? 'Complete' : 'Next'}
               </button>
