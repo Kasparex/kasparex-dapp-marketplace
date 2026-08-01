@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-08-01T06:12:35.274Z",
+  "updatedAt": "2026-08-01T07:25:16.635Z",
   "vblog": [],
   "tokens": [],
   "dapps": [],
@@ -7,6 +7,30 @@
   "magazines": [],
   "magazineIssues": [],
   "store": [
+    {
+      "title": "Product test 4",
+      "description": "<p>test test test test test test test test </p>",
+      "content": "<p>test test test test test test test test </p>",
+      "sellerAddress": "kaspa:qzeegrxt993rkwkupx0u8yd8sz94atpeg4e7x8yrjav8x7wgulxszc8svhenj",
+      "priceKAS": 15,
+      "paymentCurrency": "KAS",
+      "network": "L1",
+      "category": "Templates",
+      "assetCids": [],
+      "assetFileNames": [],
+      "thumbnailCid": "",
+      "thumbnailUrl": "https://static.wixstatic.com/media/de4185_a6e32e1abc9f45e58d7a757531c642d6~mv2.png/v1/fill/w_1121,h_747,al_c,q_85,usm_0.66_1.00_0.01,enc_auto/de4185_a6e32e1abc9f45e58d7a757531c642d6~mv2.png",
+      "tags": [
+        "media",
+        "community"
+      ],
+      "status": "active",
+      "id": "def2d3b2-f9be-418b-b949-a4b269164582",
+      "slug": "product-test-4",
+      "createdAt": 1785569109188,
+      "purchaseCount": 0,
+      "listingFeePaid": true
+    },
     {
       "title": "Product test 3",
       "description": "<p>Product test 3 Product test 3 Product test 3</p>",
