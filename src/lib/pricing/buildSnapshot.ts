@@ -12,6 +12,10 @@ export function normalizePricingTickers(tickers: string[]): string[] {
   );
 }
 
+/**
+ * Hub pricing standard: every KRC-20 (including KREX) converts from a KAS base
+ * using market `kasPerToken` when available. Minecore peg is KREX fallback only.
+ */
 export async function buildPricingSnapshot(tickers: string[]): Promise<PricingSnapshot> {
   const asOf = new Date().toISOString();
   const normalized = normalizePricingTickers(tickers);
@@ -20,17 +24,15 @@ export async function buildPricingSnapshot(tickers: string[]): Promise<PricingSn
     KAS: kasNativeRate(asOf),
   };
 
-  // Fetch market rates for listed ticks, but never for KREX: Hub settlement always uses the Minecore peg.
-  const toFetch = normalizePricingTickers(normalized).filter((tick) => tick !== 'KREX');
-  if (toFetch.length > 0) {
-    const marketRates = await fetchKrc20KasPrices(toFetch);
-    for (const rate of marketRates) {
-      if (rate.tick === 'KREX') continue;
-      rates[rate.tick] = rate;
-    }
+  const toFetch = normalizePricingTickers([...normalized, 'KREX']);
+  const marketRates = await fetchKrc20KasPrices(toFetch);
+  for (const rate of marketRates) {
+    rates[rate.tick] = rate;
   }
 
-  rates.KREX = krexFixedPegRate(asOf);
+  if (!rates.KREX) {
+    rates.KREX = krexFixedPegRate(asOf);
+  }
 
   return { asOf, rates };
 }

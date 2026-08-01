@@ -20,10 +20,12 @@ export function getProductPaymentCurrency(product: Pick<Product, 'paymentCurrenc
 }
 
 export function kasToKrexAmount(kas: number): number {
+  /** Minecore / no-snapshot fallback. Prefer `resolveTokenAmountFromKas` + pricing snapshot for Hub. */
   return kas * MINECORE_KREX_PER_KAS;
 }
 
 export function krexToKasAmount(krex: number): number {
+  /** Minecore / no-snapshot fallback. Prefer `toKasEq` + pricing snapshot for Hub. */
   return krex / MINECORE_KREX_PER_KAS;
 }
 

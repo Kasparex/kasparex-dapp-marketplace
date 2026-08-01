@@ -4,8 +4,9 @@ import { buildPricingSnapshot, normalizePricingTickers } from '@/lib/pricing/bui
 export const revalidate = 300;
 
 /**
- * Cached KAS-equivalent rates for Hub checkout and policy.
- * Query: ?tickers=KREX,NACHO,MYTOKEN (comma-separated, auto-fetches market prices)
+ * Cached KAS-equivalent rates for Hub checkout and Pay with.
+ * Query: ?tickers=KREX,NACHO,MYTOKEN (comma-separated).
+ * All KRC-20 ticks (including KREX) use market rates; KREX falls back to Minecore peg if market is missing.
  */
 export async function GET(request: NextRequest) {
   const raw = request.nextUrl.searchParams.get('tickers') ?? '';

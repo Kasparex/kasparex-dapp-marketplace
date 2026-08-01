@@ -1,7 +1,10 @@
 import { MINECORE_KREX_PER_KAS } from '@/lib/game/minecore/config';
 import type { TokenPriceRate } from './types';
 
-/** Hub uses the Minecore KREX peg for settlement and policy (not spot market). */
+/**
+ * Minecore list-price peg. Hub Pay with / catalog settlement prefers market KREX;
+ * use this only when the market rate is unavailable.
+ */
 export function krexFixedPegRate(asOf: string): TokenPriceRate {
   return {
     tick: 'KREX',

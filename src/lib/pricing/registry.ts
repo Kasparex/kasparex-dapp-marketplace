@@ -63,7 +63,7 @@ export function formatTokenAmount(amount: number, currency: string): string {
   return `${formatted} ${cur}`;
 }
 
-/** Resolve token amount to pay for a KAS-denominated hub price. */
+/** Resolve token amount to pay for a KAS-denominated Hub price (market snapshot; KREX peg fallback). */
 export function resolveTokenAmountFromKas(
   kasAmount: number,
   currency: string,
