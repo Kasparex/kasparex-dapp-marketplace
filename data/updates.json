@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1785569130-dcece2a",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Sync hub content: 2026-08-01T07:25:16.635Z (by Kasparex)",
+      "date": "2026-08-01T09:25:16+02:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1785564771-30a9544",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Sync hub content: 2026-08-01T06:12:35.274Z (by Kasparex)",
