@@ -13,7 +13,6 @@ import type { HubCurrencyCatalogEntry } from '@/lib/payments/currencyCatalog';
 import type { HubPaymentCurrencyOption } from '@/lib/payments/hubPaymentTypes';
 import { formatHubPaymentAmount } from '@/lib/payments/hubPaymentTypes';
 import { buildHubPlatformFeePlan } from '@/lib/payments/paymentPlan';
-import { resolveHubTokenRailFeeKas } from '@/lib/payments/tokenRailKasFee';
 import { formatHubPointsTierLabel } from '@/lib/rewards/hub-points';
 import { KREX_TIERS } from '@/lib/rewards/types';
 
@@ -75,13 +74,10 @@ export function HubListingCalculationBreakdown({
   const isKasRail = selected?.kind === 'kas' || selectedCurrencyId === 'KAS';
 
   const splitLegs = useMemo(() => {
+    if (!isKasRail) return undefined;
     try {
-      // Match pay path: pure KAS uses the quote total; token rails floor to a splittable Hub fee.
-      const feeKas = isKasRail
-        ? quote.totalKas
-        : resolveHubTokenRailFeeKas(quote.totalKas);
       const legs = buildHubPlatformFeePlan({
-        totalKas: feeKas,
+        totalKas: quote.totalKas,
         treasuryAddress,
       }).legs;
       return legs.length > 1 ? legs : undefined;
@@ -92,6 +88,9 @@ export function HubListingCalculationBreakdown({
 
   const showPayBox = showPayWith && catalogEntries.length > 0;
   const showSplit = Boolean(splitLegs && splitLegs.length > 1);
+  const tokenRailNote = !isKasRail
+    ? 'Settled in one token transfer at the Total above. No second full-price KAS charge.'
+    : null;
 
   return (
     <div className={`flex flex-col gap-4 ${className ?? ''}`.trim()}>
@@ -161,6 +160,9 @@ export function HubListingCalculationBreakdown({
         <div>
           <p className="text-xs uppercase tracking-widest text-zinc-500">Total to pay</p>
           <p className="text-2xl font-black tabular-nums text-zinc-900 dark:text-zinc-100">{totalDisplay}</p>
+          {tokenRailNote ? (
+            <p className="mt-1 text-[11px] leading-snug text-zinc-500">{tokenRailNote}</p>
+          ) : null}
         </div>
         {showPayBox ? (
           <div className="border-t border-zinc-200 pt-3 dark:border-zinc-800">
@@ -187,9 +189,7 @@ export function HubListingCalculationBreakdown({
               </div>
             ))}
             <p className="pt-1 text-[11px] text-zinc-500">
-              {isKasRail
-                ? 'One transaction. Change returns to your wallet.'
-                : 'Token transfer, then the same Hub KAS multi-out split. Change returns to your wallet.'}
+              One transaction. Change returns to your wallet.
             </p>
           </div>
         ) : null}

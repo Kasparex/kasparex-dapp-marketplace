@@ -3,7 +3,6 @@
 import { useCallback, useState } from 'react';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
-import { transferKrc20 } from '@/lib/payments/krc20Payment';
 import { transferKcc20Payment } from '@/lib/payments/kcc20Payment';
 import { payKasPaymentPlan } from '@/lib/payments/kasMultiOutPay';
 import {
@@ -11,11 +10,10 @@ import {
   paymentPlanPrimaryAddress,
   type PaymentPlan,
 } from '@/lib/payments/paymentPlan';
-import { payHubTokenRailKasFee } from '@/lib/payments/tokenRailKasFee';
+import { payHubTokenListingFee } from '@/lib/payments/hubPayRail';
 import { resolveTokenAmountFromKas } from '@/lib/pricing/registry';
 import type { PricingSnapshot } from '@/lib/pricing/types';
 import type { HubPaymentCurrencyOption } from '@/lib/payments/hubPaymentTypes';
-import { extractKaspaTransactionId } from '@/lib/kaspa/transactionId';
 
 export type HubPayParams = {
   /** Preferred: full multi-leg plan (KAS rail). */
@@ -86,23 +84,22 @@ export function useHubPayment() {
             );
           }
           if (amount == null || amount <= 0) throw new Error('Invalid token amount');
-          const tokenTx = await transferKrc20(state.provider, {
-            tick: currency.tick ?? currency.id,
-            amount,
-            to: treasury,
-            decimals: currency.decimals ?? 8,
-          });
-          await payHubTokenRailKasFee({
+          const feeKas =
+            params.amountKas ??
+            (params.plan ? params.plan.legs.reduce((s, l) => s + l.amount, 0) : 0);
+          const paid = await payHubTokenListingFee({
             provider: state.provider,
             senderAddress: state.address,
+            tick: currency.tick ?? currency.id,
+            feeKas: feeKas > 0 ? feeKas : amount,
+            amountToken: amount,
             treasuryAddress: treasury,
-            feeKas:
-              params.amountKas ??
-              (params.plan ? params.plan.legs.reduce((s, l) => s + l.amount, 0) : 0),
+            pricingSnapshot: params.pricingSnapshot,
+            decimals: currency.decimals ?? 8,
             note: params.note,
             payloadHex: params.payloadHex,
           });
-          return extractKaspaTransactionId(tokenTx) ?? tokenTx;
+          return paid.kasCommitTxHash ?? paid.tokenTxHash;
         }
 
         if (currency.kind === 'krex') {
@@ -120,20 +117,18 @@ export function useHubPayment() {
               '',
             );
           if (!treasury) throw new Error('Recipient address is not configured');
-          const tokenTx = await transferKrc20(state.provider, {
-            tick: 'KREX',
-            amount: amountKrex,
-            to: treasury,
-          });
-          await payHubTokenRailKasFee({
+          const paid = await payHubTokenListingFee({
             provider: state.provider,
             senderAddress: state.address,
-            treasuryAddress: treasury,
+            tick: 'KREX',
             feeKas,
+            amountToken: amountKrex,
+            treasuryAddress: treasury,
+            pricingSnapshot: params.pricingSnapshot,
             note: params.note,
             payloadHex: params.payloadHex,
           });
-          return extractKaspaTransactionId(tokenTx) ?? tokenTx;
+          return paid.kasCommitTxHash ?? paid.tokenTxHash;
         }
 
         // KAS rail: prefer explicit plan, else build platform fee plan from amount + to.

@@ -22,8 +22,17 @@ import { splitTokenPayment } from '@/lib/payments/splitTokenPayment';
 import { resolveTokenAmountFromKas, toKasEq } from '@/lib/pricing/registry';
 import type { PricingSnapshot } from '@/lib/pricing/types';
 import { extractKaspaTransactionId } from '@/lib/kaspa/transactionId';
+import { normalizeKaspaAddress } from '@/lib/kaspa/sdk';
 
 const STORE_TREASURY_ADDRESS = process.env.NEXT_PUBLIC_STORE_TREASURY_ADDRESS || '';
+
+function sameKaspaAddress(a: string, b: string): boolean {
+  try {
+    return normalizeKaspaAddress(a).toLowerCase() === normalizeKaspaAddress(b).toLowerCase();
+  } catch {
+    return a.trim().toLowerCase() === b.trim().toLowerCase();
+  }
+}
 
 function resolvePayAmount(
   product: Product,
@@ -77,6 +86,11 @@ export function useStoreProductPurchase(product: Product) {
         return false;
       }
 
+      if (sameKaspaAddress(state.address, product.sellerAddress)) {
+        setError('You cannot purchase your own listing');
+        return false;
+      }
+
       const totalPay = resolvePayAmount(product, quantity, payCurrency, pricingSnapshot);
       const totalKasEquivalent = toKasEq(totalPay, payCurrency, pricingSnapshot) ?? totalPay;
 
@@ -91,31 +105,36 @@ export function useStoreProductPurchase(product: Product) {
         let purchaseTxHash: string;
 
         if (!isBuiltinStoreCurrency(payCurrency) || payCurrency === 'KREX') {
-          if (payCurrency === 'KREX' && krexL1Balance + 1e-12 < totalPay) {
-            throw new Error('Insufficient KREX balance for this purchase');
-          }
-
-          // Mirror KAS economics: buyer pays totalPay in token; fee is taken from that total
-          // (seller + platform shares). Do not add a second Hub KAS fee on top.
-          const { sellerToken, platformToken } = splitTokenPayment(
+          // Same economics as KAS: seller gets seller share in token; platform fee in KAS only.
+          // Wallet prompt #1 = seller token amount (shown as the token part of Total to pay).
+          // No second token transfer and no second full-value KAS charge.
+          const { sellerToken } = splitTokenPayment(
             totalPay,
             fee.sellerRevenue,
             totalKasEquivalent,
           );
+
+          if (payCurrency === 'KREX' && krexL1Balance + 1e-12 < sellerToken) {
+            throw new Error('Insufficient KREX balance for this purchase');
+          }
 
           purchaseTxHash = await transferKrc20(state.provider, {
             tick: payCurrency,
             amount: sellerToken,
             to: product.sellerAddress,
           });
-          if (platformToken > 1e-9) {
-            await transferKrc20(state.provider, {
-              tick: payCurrency,
-              amount: platformToken,
-              to: STORE_TREASURY_ADDRESS,
-            });
-          }
           purchaseTxHash = extractKaspaTransactionId(purchaseTxHash) ?? purchaseTxHash;
+
+          if (fee.feeAmount > 1e-9) {
+            const feeResult = await sendKaspaTransaction(state.provider, {
+              to: STORE_TREASURY_ADDRESS,
+              amount: kasToSompis(fee.feeAmount).toString(),
+              note: `Store purchase platform fee ${product.id}`,
+            });
+            if (feeResult.status === 'failed') {
+              throw new Error(feeResult.error || 'Platform fee payment failed');
+            }
+          }
         } else {
           const plan = buildCreatorPlatformPlan({
             creatorAddress: product.sellerAddress,

@@ -27,7 +27,7 @@ import { buildKasKrexCurrencyOptions, formatHubPaymentAmount } from '@/lib/payme
 import type { HubPaymentCurrencyOption } from '@/lib/payments/hubPaymentTypes';
 import { buildPublicHubCurrencyCatalog, listPublicVerifiedPaymentTokens } from '@/lib/payments/publicPaymentTokens';
 import { buildHubPlatformFeePlan } from '@/lib/payments/paymentPlan';
-import { resolveHubTokenRailFeeKas } from '@/lib/payments/tokenRailKasFee';
+import { HUB_TOKEN_RAIL_FEE_MIN_KAS } from '@/lib/payments/tokenRailKasFee';
 import { filterModulesForAssetKind, filterModuleOffersForListing, isIntegrationModule } from '@/lib/tokens/utilityEligibility';
 import { estimateTokenListingQuote } from '@/lib/tokens/pricing';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
@@ -1292,9 +1292,15 @@ export function CreateTokenForm({
               { label: 'Payload bytes', value: String(formQuote.payloadBytes) },
               { label: 'Chunk estimate', value: String(formQuote.chunkCount) },
             ]}
-            totalDisplay={formatHubPaymentAmount(paymentOption, formQuote.totalKas, {
-              snapshot: pricingSnapshot,
-            })}
+            totalDisplay={
+              paymentOption.kind === 'kas' || paymentCurrency === 'KAS'
+                ? formatHubPaymentAmount(paymentOption, formQuote.totalKas, {
+                    snapshot: pricingSnapshot,
+                  })
+                : `${formatHubPaymentAmount(paymentOption, formQuote.totalKas, {
+                    snapshot: pricingSnapshot,
+                  })} + ${HUB_TOKEN_RAIL_FEE_MIN_KAS} KAS commit`
+            }
             currencies={buildKasKrexCurrencyOptions()}
             catalogEntries={buildPublicHubCurrencyCatalog({
               amountKas: formQuote.totalKas,
@@ -1326,13 +1332,10 @@ export function CreateTokenForm({
               setPaymentOption(opt);
             }}
             splitLegs={(() => {
+              if (paymentOption.kind !== 'kas' && paymentCurrency !== 'KAS') return undefined;
               try {
-                const isKasRail = paymentOption.kind === 'kas' || paymentCurrency === 'KAS';
-                const feeKas = isKasRail
-                  ? formQuote.totalKas
-                  : resolveHubTokenRailFeeKas(formQuote.totalKas);
                 const legs = buildHubPlatformFeePlan({
-                  totalKas: feeKas,
+                  totalKas: formQuote.totalKas,
                   treasuryAddress: getTokensTreasuryL1Address(),
                 }).legs;
                 return legs.length > 1 ? legs : undefined;
@@ -1352,7 +1355,7 @@ export function CreateTokenForm({
             infoText={
               paymentOption.kind === 'kas'
                 ? 'One Kaspa L1 payment commits your listing payload on-chain. Fee rows update for the selected Pay with currency. KAS can split treasury + rewards in a single tx.'
-                : 'Token transfer settles the listing amount, then the same Hub KAS multi-out split commits the on-chain payload.'
+                : `Token transfer settles the listing fee once. Then a ${HUB_TOKEN_RAIL_FEE_MIN_KAS} KAS L1 commit carries the payload (not a second listing fee).`
             }
             hubPoints={
               isEditMode

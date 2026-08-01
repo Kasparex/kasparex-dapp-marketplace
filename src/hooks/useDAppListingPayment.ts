@@ -5,15 +5,15 @@ import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { usePricingSnapshot } from '@/hooks/usePricingSnapshot';
 import { resolveTokenAmountFromKas } from '@/lib/pricing/registry';
-import { transferKrc20 } from '@/lib/payments/krc20Payment';
 import { listPublicVerifiedPaymentTokens } from '@/lib/payments/publicPaymentTokens';
 import type { StorePaymentCurrency } from '@/lib/store/currencies';
 import { DAPP_LISTING_FEE_KAS } from '@/lib/dapps/listingSubmissions';
 import { mergePricingTickers } from '@/lib/pricing';
-import { payKasPaymentPlan } from '@/lib/payments/kasMultiOutPay';
-import { buildHubPlatformFeePlan } from '@/lib/payments/paymentPlan';
-import { payHubTokenRailKasFee } from '@/lib/payments/tokenRailKasFee';
-import { extractKaspaTransactionId } from '@/lib/kaspa/transactionId';
+import {
+  buildHubKasListingPlan,
+  payHubKasPlan,
+  payHubTokenListingFee,
+} from '@/lib/payments/hubPayRail';
 
 const TREASURY = process.env.NEXT_PUBLIC_STORE_TREASURY_ADDRESS || '';
 
@@ -53,58 +53,39 @@ export function useDAppListingPayment() {
           );
         }
 
-        if (currencyId === 'KREX') {
-          const amountKrex = resolveTokenAmountFromKas(feeKas, 'KREX', pricingSnapshot);
-          if (krexL1Balance + 1e-12 < amountKrex) {
+        if (currencyId !== 'KAS') {
+          const tick = currencyId === 'KREX' ? 'KREX' : currencyId.toUpperCase();
+          const amountToken = resolveTokenAmountFromKas(feeKas, tick, pricingSnapshot);
+          if (tick === 'KREX' && krexL1Balance + 1e-12 < amountToken) {
             throw new Error('Insufficient KREX balance for listing fee');
           }
-          const tokenTx = await transferKrc20(state.provider, {
-            tick: 'KREX',
-            amount: amountKrex,
-            to: TREASURY,
-          });
-          await payHubTokenRailKasFee({
-            provider: state.provider,
-            senderAddress: state.address,
-            treasuryAddress: TREASURY,
-            feeKas,
-            note,
-          });
-          return extractKaspaTransactionId(tokenTx) ?? tokenTx;
-        }
-
-        if (currencyId !== 'KAS') {
-          const tick = currencyId.toUpperCase();
           const match = listPublicVerifiedPaymentTokens().find(
             (t) => t.kind === 'krc20' && (t.tick === tick || t.id === tick),
           );
-          const amount = resolveTokenAmountFromKas(feeKas, tick, pricingSnapshot);
-          const tokenTx = await transferKrc20(state.provider, {
-            tick,
-            amount,
-            to: TREASURY,
-            decimals: match?.decimals ?? 8,
-          });
-          await payHubTokenRailKasFee({
+          const paid = await payHubTokenListingFee({
             provider: state.provider,
             senderAddress: state.address,
-            treasuryAddress: TREASURY,
+            tick,
             feeKas,
+            amountToken,
+            treasuryAddress: TREASURY,
+            pricingSnapshot,
+            decimals: match?.decimals ?? 8,
             note,
           });
-          return extractKaspaTransactionId(tokenTx) ?? tokenTx;
+          return paid.kasCommitTxHash ?? paid.tokenTxHash;
         }
 
-        const plan = buildHubPlatformFeePlan({
-          totalKas: feeKas,
+        const plan = buildHubKasListingPlan({
+          feeKas,
           treasuryAddress: TREASURY,
           note,
         });
-        const result = await payKasPaymentPlan(state.provider, plan, state.address);
-        if (!result.txHash) {
-          throw new Error('Listing fee payment failed');
-        }
-        return result.txHash;
+        return await payHubKasPlan({
+          provider: state.provider,
+          senderAddress: state.address,
+          plan,
+        });
       } catch (err) {
         const message = err instanceof Error ? err.message : 'Listing fee payment failed';
         setError(message);

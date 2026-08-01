@@ -23,7 +23,7 @@ import { useHubPayWithCatalog, hubCatalogSelectionToStoreCurrency } from '@/hook
 import { resolveCatalogPaymentOption } from '@/lib/payments/currencyCatalog';
 import { formatHubPaymentAmount } from '@/lib/payments/hubPaymentTypes';
 import { buildHubPlatformFeePlan } from '@/lib/payments/paymentPlan';
-import { resolveHubTokenRailFeeKas } from '@/lib/payments/tokenRailKasFee';
+import { HUB_TOKEN_RAIL_FEE_MIN_KAS } from '@/lib/payments/tokenRailKasFee';
 import { getKaspaCapsuleTreasuryL1Address } from '@/lib/genesis/config';
 import { KREXBuyWizard } from '@/components/rewards/KREXBuyWizard';
 import type { ReactNode } from 'react';
@@ -136,15 +136,13 @@ export const DAppCalculationBreakdownPanel = memo(function DAppCalculationBreakd
 
   const splitLegs = useMemo(() => {
     if (!quote || isPeerTransfer) return undefined;
+    const isKasRail = paymentOption.kind === 'kas' || payCurrencyId === 'KAS';
+    if (!isKasRail) return undefined;
     try {
       const treasury =
         dapp.slug === 'kaspa-capsule' ? getKaspaCapsuleTreasuryL1Address() : undefined;
-      const isKasRail = paymentOption.kind === 'kas' || payCurrencyId === 'KAS';
-      const feeKas = isKasRail
-        ? quote.totalKas
-        : resolveHubTokenRailFeeKas(quote.totalKas);
       const legs = buildHubPlatformFeePlan({
-        totalKas: feeKas,
+        totalKas: quote.totalKas,
         treasuryAddress: treasury,
       }).legs;
       return legs.length > 1 ? legs : undefined;
@@ -163,6 +161,14 @@ export const DAppCalculationBreakdownPanel = memo(function DAppCalculationBreakd
     }));
   }, [quote, paymentOption, pricingSnapshot]);
 
+  const isKasRail = paymentOption.kind === 'kas' || payCurrencyId === 'KAS';
+  const needsTokenCommit = !isKasRail && dapp.slug === 'kaspa-capsule';
+  const totalPayLabel = quote
+    ? needsTokenCommit
+      ? `${formatPayAmount(quote.totalKas)} + ${HUB_TOKEN_RAIL_FEE_MIN_KAS} KAS commit`
+      : formatPayAmount(quote.totalKas)
+    : '';
+
   if (!waitingForAmount && !quote && !showWhenEmpty && !footer) {
     return null;
   }
@@ -175,9 +181,11 @@ export const DAppCalculationBreakdownPanel = memo(function DAppCalculationBreakd
   const showSplit = Boolean(splitLegs && splitLegs.length > 1);
   const infoText =
     quote?.infoText &&
-    (paymentOption.kind === 'kas'
+    (isKasRail
       ? quote.infoText
-      : `${quote.infoText} Token settlement also runs the same Hub KAS multi-out split as a pure-KAS payment.`);
+      : needsTokenCommit
+        ? `${quote.infoText} Token settles the fee once; then a ${HUB_TOKEN_RAIL_FEE_MIN_KAS} KAS L1 commit carries the payload (not a second fee).`
+        : `${quote.infoText} Settled in one token transfer. No second full-price KAS charge.`);
 
   return (
     <aside className={KX_CALCULATION_ASIDE}>
@@ -215,7 +223,7 @@ export const DAppCalculationBreakdownPanel = memo(function DAppCalculationBreakd
             <div>
               <p className="text-xs uppercase tracking-widest text-zinc-500">Total to pay</p>
               <p className="text-2xl font-black text-zinc-900 dark:text-zinc-100 tabular-nums">
-                {formatPayAmount(quote.totalKas)}
+                {totalPayLabel}
               </p>
             </div>
             {showPayWith ? (
@@ -245,9 +253,7 @@ export const DAppCalculationBreakdownPanel = memo(function DAppCalculationBreakd
                   </div>
                 ))}
                 <p className="pt-1 text-[11px] text-zinc-500">
-                  {paymentOption.kind === 'kas'
-                    ? 'One transaction. Change returns to your wallet.'
-                    : 'Token transfer, then the same Hub KAS multi-out split. Change returns to your wallet.'}
+                  One transaction. Change returns to your wallet.
                 </p>
               </div>
             ) : null}

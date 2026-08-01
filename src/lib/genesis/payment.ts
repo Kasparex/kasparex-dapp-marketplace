@@ -1,7 +1,6 @@
 import { payKasPaymentPlan } from '@/lib/payments/kasMultiOutPay';
 import { buildHubPlatformFeePlan } from '@/lib/payments/paymentPlan';
-import { transferKrc20 } from '@/lib/payments/krc20Payment';
-import { payHubTokenRailKasFee } from '@/lib/payments/tokenRailKasFee';
+import { payHubTokenListingFee } from '@/lib/payments/hubPayRail';
 import { resolveTokenAmountFromKas } from '@/lib/pricing/registry';
 import type { PricingSnapshot } from '@/lib/pricing/types';
 import type { HubPaymentCurrencyOption } from '@/lib/payments/hubPaymentTypes';
@@ -83,28 +82,26 @@ export async function sendKaspaCapsulePayment(args: {
     if (kind === 'krex' && args.krexBalance != null && args.krexBalance + 1e-12 < amount) {
       throw new Error('Insufficient KREX balance');
     }
-    const tokenTx = await transferKrc20(args.provider, {
-      tick,
-      amount,
-      to: treasury,
-      decimals: currency?.decimals ?? 8,
-    });
-    // Second step: Hub KAS fee + L1 commit payload (token transfers cannot carry Hub multi-out).
-    const feeTx = await payHubTokenRailKasFee({
+    // Token settles the fee once; min KAS commit carries the L1 payload only (no second full fee).
+    const paid = await payHubTokenListingFee({
       provider: args.provider,
       senderAddress: args.author,
-      treasuryAddress: treasury,
+      tick,
       feeKas: paymentKas,
+      amountToken: amount,
+      treasuryAddress: treasury,
+      pricingSnapshot: args.pricingSnapshot,
+      decimals: currency?.decimals ?? 8,
       note: commitNote,
       payloadHex: commitPayload,
     });
     return {
-      txHash: feeTx,
+      txHash: paid.kasCommitTxHash ?? paid.tokenTxHash,
       messageId,
       contentHash,
       chunkCount,
       payloadBytes,
-      tokenTxHash: extractKaspaTransactionId(tokenTx) ?? tokenTx,
+      tokenTxHash: paid.tokenTxHash,
     };
   }
 

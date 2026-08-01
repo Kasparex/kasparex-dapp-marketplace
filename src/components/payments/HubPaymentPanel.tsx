@@ -222,7 +222,7 @@ export function HubPaymentPanel({
             ))}
             <p className="pt-1 text-[11px] text-zinc-500">
               {splitInfoText ??
-                'KAS: one multi-out tx. Token / KREX: token transfer, then the same Hub KAS split. Change returns to your wallet.'}
+                'KAS: one multi-out tx. Token / KREX listing fees: one token transfer settles the fee (optional min KAS commit only when an L1 payload is required). Change returns to your wallet.'}
             </p>
           </div>
         ) : null}
