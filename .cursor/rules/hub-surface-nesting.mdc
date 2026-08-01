@@ -1,0 +1,29 @@
+---
+description: Nested Hub surfaces must contrast with the parent background
+alwaysApply: true
+---
+
+# Hub surface nesting (do not merge backgrounds)
+
+When placing a box, card, or container **inside** another panel, its background must be **visibly different** from the parent in both light and dark themes. Borders alone are not enough.
+
+## Tokens (`src/lib/hub/shellTokens.ts`)
+
+| Layer | Token | Light | Dark |
+|-------|--------|-------|------|
+| Page | `KX_PAGE_BG` | `zinc-50` | `zinc-950` |
+| Panel / aside section | `KX_PANEL`, `KX_FORM_PANEL`, Chronicles/vBlog aside chrome | `white` | `zinc-900` |
+| Nested box inside panel | `KX_SURFACE_NESTED`, `KX_METADATA_STAT_CARD`, `KX_SURFACE_INSET`, `KX_SURFACE_ROW`, `KX_FORM_NESTED_GROUP` | `zinc-100` | `zinc-800` |
+
+## Rules
+
+1. Never put `bg-white` / `dark:bg-zinc-900` nested boxes inside a white / `zinc-900` panel.
+2. Never use semi-transparent same-tone fills (e.g. `dark:bg-zinc-900/60` on `zinc-900`) for nested cards.
+3. Prefer shared tokens over one-off Tailwind bg classes for Hub UI.
+4. If you invent a new nested surface, add it to `shellTokens.ts` and reuse it.
+
+## Examples
+
+- vBlog "On-chain metadata" rows → `KX_METADATA_STAT_CARD` / `HubMetadataStatGrid`
+- Form fee groups → `KX_FORM_NESTED_GROUP`
+- Inset lists inside asides → `KX_SURFACE_INSET` or `KX_SURFACE_ROW`

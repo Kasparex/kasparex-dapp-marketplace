@@ -44,6 +44,11 @@ Reference implementations: **vBlog Author Dashboard / Create Article**, **Magazi
 - Total / info / discount: each in its own `rounded-xl ... p-3` block; Hub points in a padded row, not bare text glued to the previous block.
 - Premium module expand inside forms: `mt-5 pt-5 border-t` (vBlog), not tighter `mt-4 pt-4`.
 
+## Nested surfaces (contrast)
+
+- Nested boxes inside panels must use `KX_SURFACE_NESTED` / `KX_METADATA_STAT_CARD` / `KX_SURFACE_INSET` (zinc-100 on white, zinc-800 on zinc-900). See `.cursor/rules/hub-surface-nesting.mdc`.
+- Do not nest `bg-white dark:bg-zinc-900` cards inside the same-tone parent panel.
+
 ## Scope reminder
 
 These rules apply to **dashboard chrome and every create/edit tab**, not only the listing form body. When the user says "update dashboards", update tabs, sidebars, headers, fee cards, benefits, and calculation rails together.
