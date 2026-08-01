@@ -30,7 +30,7 @@ import { HubMetadataStatGrid } from '@/components/hub/HubMetadataStatGrid';
 import { HubPaymentCurrencyCatalogTrigger } from '@/components/payments/HubPaymentCurrencyCatalogModal';
 import { useHubPayWithCatalog, hubCatalogSelectionToStoreCurrency } from '@/hooks/useHubPayWithCatalog';
 import { markCatalogByAcceptedCurrencies } from '@/lib/payments/markCatalogByAccepted';
-import { KX_METADATA_STAT_GRID } from '@/lib/hub/shellTokens';
+import { KX_METADATA_STAT_GRID_STACK } from '@/lib/hub/shellTokens';
 
 function getArticleLinkEntries(article: VBlogArticle): Array<{ href: string; label: string }> {
   const entries: Array<{ href: string; label: string }> = [];
@@ -289,12 +289,11 @@ export function ArticleSidebar({
       rawBody: true as const,
       body: (
         <HubMetadataStatGrid
-          gridClassName={KX_METADATA_STAT_GRID}
+          gridClassName={KX_METADATA_STAT_GRID_STACK}
           stats={[
             {
               label: 'Article CID (IPFS)',
               value: article.cid || 'Not yet published',
-              mono: Boolean(article.cid),
               copyable: Boolean(article.cid),
               accent: Boolean(article.cid),
             },
@@ -303,7 +302,6 @@ export function ArticleSidebar({
                   {
                     label: 'Creation transaction',
                     value: article.txHash,
-                    mono: true,
                     accent: true,
                     copyable: true,
                     valueNode: (
@@ -311,16 +309,16 @@ export function ArticleSidebar({
                         href={txExplorerUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="font-mono text-base break-all text-[color:var(--hub-accent)] hover:underline"
+                        className="text-sm font-medium break-all text-[color:var(--hub-accent)] hover:underline"
                       >
-                        {`${article.txHash.slice(0, 12)}…${article.txHash.slice(-8)}`}
+                        {`${article.txHash.slice(0, 14)}…${article.txHash.slice(-10)}`}
                       </a>
                     ),
                   },
                 ]
               : []),
             ...(article.articleId
-              ? [{ label: 'Article ID', value: article.articleId, mono: true, copyable: true }]
+              ? [{ label: 'Article ID', value: article.articleId, copyable: true }]
               : []),
             ...(payloadBytes != null
               ? [

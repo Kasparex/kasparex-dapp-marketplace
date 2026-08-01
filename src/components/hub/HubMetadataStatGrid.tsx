@@ -7,6 +7,7 @@ import { gameTooltipRich } from '@/components/games/gameTooltipRich';
 import {
   KX_METADATA_STAT_CARD,
   KX_METADATA_STAT_GRID,
+  KX_METADATA_STAT_VALUE,
   KX_METADATA_STAT_VALUE_ACCENT,
 } from '@/lib/hub/shellTokens';
 
@@ -14,26 +15,24 @@ export type HubMetadataStat = {
   label: string;
   value: string;
   hint?: string;
+  /** Prefer false: metadata boxes use standard sans, not monospace. */
   mono?: boolean;
   copyable?: boolean;
-  /** Teal accent value (Tokens Overview style). */
   accent?: boolean;
   tooltipTitle?: string;
   tooltipDescription?: string;
-  /** Optional custom value node (links, badges). Overrides string value display. */
   valueNode?: ReactNode;
 };
 
-function shortenDisplay(value: string, mono?: boolean): string {
+function shortenDisplay(value: string): string {
   const v = value.trim();
-  if (!mono) return v;
-  if (v.length <= 22) return v;
-  if (v.startsWith('0x') && v.length >= 42) return `${v.slice(0, 8)}…${v.slice(-6)}`;
+  if (v.length <= 48) return v;
+  if (v.startsWith('0x') && v.length >= 42) return `${v.slice(0, 10)}…${v.slice(-8)}`;
   if (v.startsWith('kaspa:') || v.startsWith('kaspatest:')) {
-    return `${v.slice(0, 12)}…${v.slice(-8)}`;
+    return `${v.slice(0, 14)}…${v.slice(-10)}`;
   }
-  if (/^[a-f0-9]{64}$/i.test(v)) return `${v.slice(0, 10)}…${v.slice(-8)}`;
-  if (v.length > 28) return `${v.slice(0, 12)}…${v.slice(-8)}`;
+  if (/^[a-f0-9]{64}$/i.test(v)) return `${v.slice(0, 12)}…${v.slice(-10)}`;
+  if (v.length > 56) return `${v.slice(0, 24)}…${v.slice(-12)}`;
   return v;
 }
 
@@ -41,7 +40,7 @@ export function HubMetadataStatCard({
   label,
   value,
   hint,
-  mono = false,
+  mono: _mono = false,
   copyable,
   accent = false,
   tooltipTitle,
@@ -50,9 +49,7 @@ export function HubMetadataStatCard({
 }: HubMetadataStat) {
   if (!value?.trim() && !valueNode) return null;
   const canCopy = copyable ?? Boolean(value?.trim());
-  const valueClass = accent
-    ? KX_METADATA_STAT_VALUE_ACCENT
-    : 'text-zinc-900 dark:text-zinc-100';
+  const valueClass = accent ? KX_METADATA_STAT_VALUE_ACCENT : KX_METADATA_STAT_VALUE;
 
   return (
     <div className={KX_METADATA_STAT_CARD}>
@@ -73,13 +70,11 @@ export function HubMetadataStatCard({
           <KxCopyIconButton value={value} label={`Copy ${label}`} className="ml-auto shrink-0" />
         ) : null}
       </div>
-      <div className={`mt-1 text-xl font-semibold tabular-nums tracking-tight ${valueClass}`}>
+      <div className={valueClass}>
         {valueNode ? (
           valueNode
         ) : (
-          <span className={mono ? 'font-mono text-base sm:text-lg break-all' : undefined} title={value}>
-            {shortenDisplay(value, mono)}
-          </span>
+          <span title={value}>{shortenDisplay(value)}</span>
         )}
       </div>
       {hint?.trim() ? (
