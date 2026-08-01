@@ -16,6 +16,8 @@ export type GameDeckResource = {
   icon?: ReactNode;
   accent?: 'games' | 'kas' | 'krex' | 'grid' | 'diamonds' | 'purple';
   onClick?: () => void;
+  /** Force full-width row in smart layout (e.g. refine controls). */
+  fullWidth?: boolean;
 };
 
 function accentValueClass(accent?: GameDeckResource['accent']) {
@@ -27,26 +29,45 @@ function accentValueClass(accent?: GameDeckResource['accent']) {
   return 'text-emerald-700 dark:text-emerald-300';
 }
 
-/** Resource rows used in Game Deck panel and in-game Halo header left column.
- * Short capsules pack 2-up; keeps one shared chrome for Tokens / Games.
+function isWideDeckResource(r: GameDeckResource): boolean {
+  if (r.fullWidth) return true;
+  if (typeof r.value !== 'string' && typeof r.value !== 'number' && r.value != null) return true;
+  if ((r.description?.trim().length ?? 0) >= 48) return true;
+  return false;
+}
+
+/**
+ * Game Deck / Token Deck capsules.
+ * - `stack`: always one column (Games halo).
+ * - `smart`: 2-up for short rows; controls / long copy span full width.
  */
 export function GameDeckResourceRows({
   resources,
   className = '',
   bordered: _bordered = true,
+  layout = 'smart',
 }: {
   resources: GameDeckResource[];
   className?: string;
   bordered?: boolean;
+  layout?: 'stack' | 'smart';
 }) {
   if (resources.length === 0) return null;
+  const grid =
+    layout === 'stack'
+      ? 'grid grid-cols-1 items-stretch gap-2'
+      : 'grid grid-cols-1 items-stretch gap-2 sm:grid-cols-2';
+
   return (
-    <ul className={`grid grid-cols-1 gap-2 sm:grid-cols-2 ${className}`.trim()}>
+    <ul className={`${grid} ${className}`.trim()}>
       {resources.map((r) => {
         const clickable = typeof r.onClick === 'function';
         const Row = clickable ? 'button' : 'div';
         const Wrapper = r.tooltip ? Tooltip : null;
         const wrapperProps = r.tooltip ? ({ content: gameTooltipRich(r.label, r.tooltip) } as const) : null;
+        const wide = layout === 'smart' && isWideDeckResource(r);
+        const isControl = typeof r.value !== 'string' && typeof r.value !== 'number' && r.value != null;
+
         const innerContent = (
           <>
             <div className="min-w-0 flex-1 text-left">
@@ -61,24 +82,30 @@ export function GameDeckResourceRows({
               {r.description ? (
                 <div className="mt-0.5 text-[11px] leading-snug text-zinc-500 dark:text-zinc-500">{r.description}</div>
               ) : null}
+              {isControl ? <div className="mt-2 flex justify-end">{r.value}</div> : null}
             </div>
-            <div className="ml-auto flex min-w-0 flex-shrink-0 flex-col items-end text-right">
-              <div
-                className={`text-sm font-black tabular-nums ${
-                  typeof r.value === 'string' || typeof r.value === 'number' ? accentValueClass(r.accent) : ''
-                }`}
-              >
-                {r.value}
+            {!isControl ? (
+              <div className="ml-auto flex min-w-0 flex-shrink-0 flex-col items-end text-right">
+                <div
+                  className={`text-sm font-black tabular-nums ${
+                    typeof r.value === 'string' || typeof r.value === 'number' ? accentValueClass(r.accent) : ''
+                  }`}
+                >
+                  {r.value}
+                </div>
+                {r.subValue ? (
+                  <div className="mt-0.5 text-[11px] font-semibold leading-snug text-zinc-500 dark:text-zinc-400">
+                    {r.subValue}
+                  </div>
+                ) : null}
               </div>
-              {r.subValue ? (
-                <div className="mt-0.5 text-[11px] font-semibold leading-snug text-zinc-500 dark:text-zinc-400">{r.subValue}</div>
-              ) : null}
-            </div>
+            ) : null}
           </>
         );
 
         const rowClassName = [
           'kx-metadata-stat-card flex w-full items-center justify-between gap-3 rounded-xl border border-zinc-200 bg-zinc-100 px-3 py-2.5 text-left dark:border-zinc-800 dark:bg-white/[0.06]',
+          isControl ? 'flex-col items-stretch sm:flex-row sm:items-center' : '',
           clickable ? 'cursor-pointer' : '',
         ].join(' ');
 
@@ -95,7 +122,7 @@ export function GameDeckResourceRows({
         );
 
         return (
-          <li key={r.id} className="min-w-0">
+          <li key={r.id} className={`min-w-0 ${wide ? 'sm:col-span-2' : ''}`.trim()}>
             {cell}
           </li>
         );

@@ -11,7 +11,11 @@ function toTableRows(rows: KpxCovenantMetadataRow[]): KxDataTableRow[] {
     value: row.value,
     mono: row.mono,
     hint: row.hint,
-    links: row.links,
+    links: row.links?.map((l) => ({
+      label: l.label,
+      href: l.href,
+      icon: l.icon,
+    })),
   }));
 }
 

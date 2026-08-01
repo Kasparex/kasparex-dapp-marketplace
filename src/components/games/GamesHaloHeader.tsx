@@ -15,6 +15,7 @@ import type { GameCapability } from '@/lib/games/registry';
 import { resolveGameAuthorWallet } from '@/lib/games/author';
 import { formatAddress } from '@/lib/vblog/utils';
 import { Tooltip } from '@/components/ui/Tooltip';
+import { KxBadge } from '@/components/ui/KxBadge';
 
 type GamesHaloHeaderProps = {
   game: Pick<
@@ -114,16 +115,12 @@ export function GamesHaloHeader({ game, resources = [], deckFooter, playerLevel 
           <div className="mb-5 flex flex-wrap gap-2">
             {badges.map((b) => {
               const tone = b.tone ?? 'default';
-              const className =
-                tone === 'player'
-                  ? 'rounded-lg border border-sky-500/35 bg-sky-500/15 px-3 py-1.5 text-xs font-bold text-sky-800 dark:text-sky-200'
-                  : tone === 'accent'
-                    ? 'rounded-lg border border-[color:var(--hub-accent-border,rgba(16,185,129,0.25))] bg-[color:var(--hub-accent-muted,rgba(16,185,129,0.1))] px-3 py-1.5 text-xs font-bold text-[color:var(--hub-accent,#10b981)]'
-                    : 'rounded-lg border border-zinc-200 bg-white/90 px-3 py-1.5 text-xs font-bold text-zinc-700 dark:border-zinc-700 dark:bg-zinc-900/70 dark:text-zinc-300';
+              const variant =
+                tone === 'player' ? 'sky' : tone === 'accent' ? 'emerald' : 'zinc';
               return (
-                <span key={b.key} className={className}>
+                <KxBadge key={b.key} variant={variant}>
                   {b.label}
-                </span>
+                </KxBadge>
               );
             })}
           </div>
@@ -138,7 +135,7 @@ export function GamesHaloHeader({ game, resources = [], deckFooter, playerLevel 
                   <p className="text-[10px] font-medium text-zinc-400">Live as you play</p>
                 )}
               </div>
-              <GameDeckResourceRows resources={resources} />
+              <GameDeckResourceRows resources={resources} layout="stack" />
             </div>
           ) : null}
         </div>

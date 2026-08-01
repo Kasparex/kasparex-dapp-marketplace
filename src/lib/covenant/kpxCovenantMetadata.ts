@@ -21,6 +21,7 @@ import { getExplorerTxUrl, getKaspaExplorerAddressUrl } from '@/lib/store/utils'
 export type KpxCovenantMetadataLink = {
   label: string;
   href: string;
+  icon?: 'explorer' | 'kaspacom' | 'kascov' | 'external';
 };
 
 export type KpxCovenantMetadataRow = {
@@ -62,6 +63,12 @@ function shortAddr(address: string): string {
   return `${a.slice(0, 10)}…${a.slice(-6)}`;
 }
 
+function shortId(id: string): string {
+  const v = id.trim().toLowerCase();
+  if (v.length <= 18) return v;
+  return `${v.slice(0, 10)}…${v.slice(-8)}`;
+}
+
 function row(label: string, value?: string, opts?: Partial<KpxCovenantMetadataRow>): KpxCovenantMetadataRow {
   if (!value?.trim()) return { label, ...opts };
   return { label, value, ...opts };
@@ -73,7 +80,7 @@ function addressRow(label: string, address?: string): KpxCovenantMetadataRow {
     label,
     value: shortAddr(address),
     mono: true,
-    links: [{ label: 'Explorer', href: getKaspaExplorerAddressUrl(address) }],
+    links: [{ label: 'Explorer', href: getKaspaExplorerAddressUrl(address), icon: 'explorer' }],
   };
 }
 
@@ -82,11 +89,11 @@ function txRow(label: string, txHash?: string): KpxCovenantMetadataRow {
   const id = txHash.trim().toLowerCase();
   return {
     label,
-    value: `${id.slice(0, 10)}…${id.slice(-8)}`,
+    value: shortId(id),
     mono: true,
     links: [
-      { label: 'KaspaCom', href: kaspaComTxExplorerUrl(id, network) },
-      { label: 'Explorer', href: getExplorerTxUrl(id) },
+      { label: 'KaspaCom', href: kaspaComTxExplorerUrl(id, network), icon: 'kaspacom' },
+      { label: 'Explorer', href: getExplorerTxUrl(id), icon: 'explorer' },
     ],
   };
 }
@@ -97,13 +104,33 @@ function covenantIdRow(covenantId?: string): KpxCovenantMetadataRow {
   if (!isOnChainCovenantId(id)) return row('Covenant ID');
   return {
     label: 'Covenant ID',
-    value: `${id.slice(0, 10)}…${id.slice(-8)}`,
+    value: shortId(id),
     mono: true,
     links: [
-      { label: 'KaspaCom', href: kaspaComCovenantExplorerUrl(id, network) },
-      { label: 'kascov', href: kascovCovenantExplorerUrl(id, network) },
+      { label: 'KaspaCom', href: kaspaComCovenantExplorerUrl(id, network), icon: 'kaspacom' },
+      { label: 'kascov', href: kascovCovenantExplorerUrl(id, network), icon: 'kascov' },
     ],
   };
+}
+
+function shareLinks(args: {
+  address?: string;
+  lockTx?: string;
+}): KpxCovenantMetadataLink[] {
+  const links: KpxCovenantMetadataLink[] = [];
+  if (args.address?.trim()) {
+    links.push({
+      label: 'Explorer',
+      href: getKaspaExplorerAddressUrl(args.address),
+      icon: 'explorer',
+    });
+  }
+  const tx = args.lockTx?.trim().toLowerCase();
+  if (tx && /^[a-f0-9]{64}$/i.test(tx)) {
+    links.push({ label: 'KaspaCom', href: kaspaComTxExplorerUrl(tx, network), icon: 'kaspacom' });
+    links.push({ label: 'Tx', href: getExplorerTxUrl(tx), icon: 'external' });
+  }
+  return links;
 }
 
 export function buildKpxCovenantTemplateMetadataRows(args: {
@@ -130,11 +157,11 @@ export function buildKpxCovenantExplorerLinkRows(covenantId?: string): KpxCovena
   return [
     {
       label: 'KaspaCom',
-      links: [{ label: 'Open', href: kaspaComCovenantExplorerUrl(id, network) }],
+      links: [{ label: 'KaspaCom', href: kaspaComCovenantExplorerUrl(id, network), icon: 'kaspacom' }],
     },
     {
       label: 'kascov',
-      links: [{ label: 'Open', href: kascovCovenantExplorerUrl(id, network) }],
+      links: [{ label: 'kascov', href: kascovCovenantExplorerUrl(id, network), icon: 'kascov' }],
     },
   ];
 }
@@ -178,18 +205,18 @@ export function splitMetadataInstances(splits: SplitPayment[]): KpxCovenantMetad
         row('Status', s.status),
         row('Total', sompiToKasLabel(s.totalSompi)),
         addressRow('From', s.depositor),
-        row('Recipients', `${s.recipients.length}`),
-        row('Claimed', `${claimed} of ${s.recipients.length}`),
         row('Memo', s.memo?.trim() || undefined),
         covenantIdRow(s.covenantId),
-        ...s.recipients.flatMap((r, i) => [
-          addressRow(`Share ${i + 1}`, r.address),
-          row(
-            `Share ${i + 1} amount`,
-            `${(r.shareBps / 100).toFixed(1)}% · ${sompiToKasLabel(r.amountSompi)}${r.claimed ? ' · claimed' : ''}`,
-          ),
-          txRow(`Share ${i + 1} lock`, r.lockTxHash ?? r.utxo?.txId),
-        ]),
+        ...s.recipients.map((r, i) => {
+          const lockTx = r.lockTxHash ?? r.utxo?.txId;
+          const status = r.claimed ? 'claimed' : 'open';
+          return {
+            label: `Share ${i + 1}`,
+            value: `${shortAddr(r.address)} · ${(r.shareBps / 100).toFixed(1)}% · ${sompiToKasLabel(r.amountSompi)} · ${status}`,
+            mono: true,
+            links: shareLinks({ address: r.address, lockTx }),
+          };
+        }),
       ].filter((r) => r.value || r.links?.length),
     };
   });
@@ -210,15 +237,17 @@ export function milestoneMetadataInstances(deals: MilestoneDeal[]): KpxCovenantM
         addressRow('Beneficiary', d.beneficiary),
         row('Memo', d.memo?.trim() || undefined),
         covenantIdRow(d.covenantId),
-        ...d.milestones.flatMap((m, i) => [
-          row(
-            `Step ${i + 1}`,
-            `${m.label} · ${sompiToKasLabel(m.amountSompi)}${m.reclaimed ? ' · reclaimed' : m.claimed ? ' · claimed' : ''}`,
-          ),
-          row(`Step ${i + 1} unlock`, formatTs(m.unlockAt)),
-          row(`Step ${i + 1} deadline`, formatTs(m.deadlineAt ?? undefined)),
-          txRow(`Step ${i + 1} lock`, m.lockTxHash ?? m.utxo?.txId),
-        ]),
+        ...d.milestones.map((m, i) => {
+          const lockTx = m.lockTxHash ?? m.utxo?.txId;
+          const status = m.reclaimed ? 'reclaimed' : m.claimed ? 'claimed' : 'open';
+          const unlock = formatTs(m.unlockAt);
+          return {
+            label: `Step ${i + 1}`,
+            value: `${m.label} · ${sompiToKasLabel(m.amountSompi)} · ${status}${unlock ? ` · ${unlock}` : ''}`,
+            mono: false,
+            links: shareLinks({ lockTx }),
+          };
+        }),
       ].filter((r) => r.value || r.links?.length),
     };
   });
@@ -237,14 +266,17 @@ export function crowdfundMetadataInstances(campaigns: CrowdfundCampaign[]): KpxC
         row('Raised', `${sompiToKasLabel(c.raisedSompi)} / ${sompiToKasLabel(c.goalSompi)}`),
         addressRow('Creator', c.creator),
         row('Deadline', formatTs(c.deadline)),
-        row('Backers', String(activePledges.length)),
         row('Memo', c.memo?.trim() || undefined),
         covenantIdRow(c.covenantId),
-        ...activePledges.slice(0, 8).flatMap((p, i) => [
-          addressRow(`Pledge ${i + 1}`, p.backer),
-          row(`Pledge ${i + 1} amount`, sompiToKasLabel(p.amountSompi)),
-          txRow(`Pledge ${i + 1} tx`, p.txHash ?? p.utxo?.txId),
-        ]),
+        ...activePledges.slice(0, 8).map((p, i) => {
+          const tx = p.txHash ?? p.utxo?.txId;
+          return {
+            label: `Pledge ${i + 1}`,
+            value: `${shortAddr(p.backer)} · ${sompiToKasLabel(p.amountSompi)}`,
+            mono: true,
+            links: shareLinks({ address: p.backer, lockTx: tx }),
+          };
+        }),
       ].filter((r) => r.value || r.links?.length),
     };
   });
