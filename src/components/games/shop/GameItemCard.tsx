@@ -357,7 +357,7 @@ export function GameItemCard(props: {
     const stepDisabled = !qtyCfg || !qtyCtlInteractive;
     const showMax = opts?.showMax ?? Boolean(props.showQuantityMaxButton && qtyCfg);
     const stepBtn =
-      'flex h-1/2 w-full items-center justify-center text-[11px] font-bold leading-none text-zinc-700 transition hover:bg-zinc-100 disabled:opacity-40 dark:text-zinc-200 dark:hover:bg-zinc-900';
+      `flex h-1/2 w-full items-center justify-center text-[11px] font-bold leading-none text-zinc-700 transition hover:bg-zinc-100 disabled:opacity-40 dark:text-zinc-200 dark:hover:bg-zinc-900 ${QTY_INPUT_FILL}`;
     return (
       <div className="flex h-10 w-full min-w-0 items-stretch gap-1.5">
         <input
@@ -384,7 +384,9 @@ export function GameItemCard(props: {
             if (e.key === 'Enter') commitDraftAndBlur();
           }}
         />
-        <div className="flex h-10 w-7 shrink-0 flex-col overflow-hidden rounded-xl border border-zinc-200 dark:border-zinc-800">
+        <div
+          className={`flex h-10 w-7 shrink-0 flex-col overflow-hidden rounded-xl border border-zinc-200 dark:border-zinc-800 ${QTY_INPUT_FILL}`}
+        >
           <button
             type="button"
             className={`${stepBtn} border-b border-zinc-200 dark:border-zinc-800`}
@@ -439,12 +441,15 @@ export function GameItemCard(props: {
           {mainMedia}
         </div>
 
-        <div className="pointer-events-none absolute right-4 top-4 z-20 flex justify-end">
+        <div className="pointer-events-none absolute right-3 top-3 z-20 flex max-w-[55%] flex-col items-end gap-1.5 sm:right-4 sm:top-4">
           <KxBadge variant={hubChrome ? 'cyan' : 'emerald'}>{props.category}</KxBadge>
+          {props.ownedCount != null ? (
+            <KxBadge variant={ownedInactive ? 'zinc' : hubChrome ? 'cyan' : 'emerald'}>
+              Owned · {props.ownedCount.toLocaleString()}
+            </KxBadge>
+          ) : null}
+          {props.mediaOverlay ? <div className="text-right">{props.mediaOverlay}</div> : null}
         </div>
-        {props.mediaOverlay ? (
-          <div className="pointer-events-none absolute right-3 top-3 z-20 max-w-[55%] text-right sm:right-4 sm:top-4">{props.mediaOverlay}</div>
-        ) : null}
         {props.mediaOverlayBottom ? (
           <div className="pointer-events-none absolute bottom-3 left-3 right-3 z-20 flex flex-wrap gap-1.5">{props.mediaOverlayBottom}</div>
         ) : null}
@@ -455,14 +460,7 @@ export function GameItemCard(props: {
           <h3 className="min-w-0 flex-1 truncate text-[15px] font-semibold text-zinc-900 dark:text-zinc-100" title={props.title}>
             {props.title}
           </h3>
-          <div className="flex shrink-0 flex-col items-end gap-1.5">
-            {props.ownedCount != null ? (
-              <KxBadge variant={ownedInactive ? 'zinc' : hubChrome ? 'cyan' : 'emerald'}>
-                Owned · {props.ownedCount.toLocaleString()}
-              </KxBadge>
-            ) : null}
-            {props.titleAccessory ? <div className="text-right">{props.titleAccessory}</div> : null}
-          </div>
+          {props.titleAccessory ? <div className="shrink-0 text-right">{props.titleAccessory}</div> : null}
         </div>
 
         {props.titleBelow ? <div className="mb-3 min-w-0">{props.titleBelow}</div> : null}
@@ -527,10 +525,10 @@ export function GameItemCard(props: {
               <div
                 className={`relative z-20 flex w-full items-center gap-2 overflow-visible ${qtyCtlInteractive ? '' : 'opacity-60'}`}
               >
-                <div className="w-[40%] min-w-0 shrink-0 overflow-visible [&>div]:w-full">
+                <div className="w-[30%] min-w-0 shrink-0 overflow-visible [&>div]:w-full">
                   {qtyStepper({ showMax: Boolean(props.showQuantityMaxButton) })}
                 </div>
-                <div className="relative z-20 w-[60%] min-w-0">{currencyPicker}</div>
+                <div className="relative z-20 w-[70%] min-w-0">{currencyPicker}</div>
               </div>
             ) : (
               <div className="relative z-20 w-full">{currencyPicker}</div>

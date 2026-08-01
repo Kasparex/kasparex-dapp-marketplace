@@ -128,8 +128,8 @@ export function UpgradesPanel({
                   title={item.name}
                   category="Supplies"
                   description={item.desc}
+                  ownedCount={owned}
                   effects={[
-                    { label: 'Owned', value: `×${owned}` },
                     { label: 'Restore', value: `${Math.round(item.restorePct * 100)}% energy` },
                   ]}
                   priceOptions={[
