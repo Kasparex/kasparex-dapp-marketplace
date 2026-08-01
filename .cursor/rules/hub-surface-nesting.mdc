@@ -14,16 +14,13 @@ When placing a box, card, or container **inside** another panel, give it a **sli
 | Panel | `KX_PANEL`, `KX_FORM_PANEL`, aside chrome | `white` / `zinc-900` |
 | Nested box | `KX_SURFACE_NESTED`, `KX_METADATA_STAT_CARD`, `KX_SURFACE_INSET`, `KX_SURFACE_ROW` | Subtle lift: `zinc-50` + soft border / dark `white/[0.04]` + `zinc-800` border |
 
+## Metadata / stat boxes
+
+**Locked.** See `.cursor/rules/hub-metadata-stat-boxes.mdc`. Always `HubMetadataStatGrid` / `HubMetadataStatCard` (or `TokenStatCard` alias). Equal height, `gap-3`, max 3 per row.
+
 ## Rules
 
 1. Nested bg must differ from parent, but **not harshly** (avoid jumping to hard `zinc-800` bricks on `zinc-900` panels).
 2. Borders stay soft (`zinc-200/80`, `zinc-800`), not high-contrast outlines.
-3. Keep the original Hub/dApp stat card look: **xl semibold values**, small uppercase labels, optional hint. Do not shrink cards to body text unless the value is a long tx/cid (`dense` / link style).
-4. Prefer shared tokens; do not invent one-off nested backgrounds.
-5. Fixing merge contrast is **not** permission to restyle the whole card.
-
-## Examples
-
-- Metadata / Overview stats → `KX_METADATA_STAT_CARD` + `HubMetadataStatGrid` / `TokenStatCard`
-- Grids → `KX_METADATA_STAT_GRID` (max 3 cols; leftover single box full-width via `metadataStatItemSpanClass`)
-- Form fee groups → `KX_FORM_NESTED_GROUP`
+3. Prefer shared tokens; do not invent one-off nested backgrounds.
+4. Fixing merge contrast is **not** permission to restyle the whole card.

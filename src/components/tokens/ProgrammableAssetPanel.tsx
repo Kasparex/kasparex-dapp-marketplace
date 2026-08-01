@@ -17,8 +17,8 @@ import { isProgrammableToken, resolveProgrammableCovenantId } from '@/lib/progra
 import type { CovenantReadSource } from '@/lib/programmable/types';
 import { formatKcc20Sompi } from '@/lib/tokens/kcc20Lookup';
 import { TokenCopyableAddress } from '@/components/tokens/TokenCopyableAddress';
-import { TokenStatCard } from '@/components/tokens/TokenStatCard';
-import { KX_METADATA_STAT_GRID } from '@/lib/hub/shellTokens';
+import { HubMetadataStatGrid, type HubMetadataStat } from '@/components/hub/HubMetadataStatGrid';
+import { KX_METADATA_STAT_CARD } from '@/lib/hub/shellTokens';
 
 type ProgrammableAssetPanelProps = {
   token: Token;
@@ -71,6 +71,34 @@ export function ProgrammableAssetPanel({ token }: ProgrammableAssetPanelProps) {
           ? 'via kascov'
           : networkId;
 
+  const stats: HubMetadataStat[] = [
+    {
+      label: 'Status',
+      value: status,
+      hint: sourceHint,
+      accent: status === 'active',
+      muted: status === 'burned',
+      copyable: false,
+      tooltipTitle: 'Covenant status',
+      tooltipDescription: 'Live status from the covenant indexer for this programmable asset.',
+    },
+    {
+      label: 'Live value',
+      value: `${formatKcc20Sompi(liveValue, token.decimals ?? 8)} KAS`,
+      hint: templateLabel ?? 'Covenant balance',
+      accent: true,
+      copyable: false,
+      tooltipTitle: 'Live value',
+      tooltipDescription: 'On-chain KAS value currently associated with this covenant.',
+    },
+    {
+      label: 'Network',
+      value: networkId,
+      hint: templateLabel ? `Template: ${templateLabel}` : 'Programmable L1',
+      copyable: false,
+    },
+  ];
+
   return (
     <section className="scroll-mt-28 space-y-4">
       <GameOverviewTitleBlock
@@ -81,38 +109,10 @@ export function ProgrammableAssetPanel({ token }: ProgrammableAssetPanelProps) {
         compact
       />
 
-      <div className={KX_METADATA_STAT_GRID}>
-        <TokenStatCard
-          label="Status"
-          value={status}
-          hint={sourceHint}
-          valueClassName={
-            status === 'active'
-              ? 'text-emerald-600 dark:text-emerald-400'
-              : status === 'burned'
-                ? 'text-zinc-500'
-                : 'text-amber-600 dark:text-amber-400'
-          }
-          tooltipTitle="Covenant status"
-          tooltipDescription="Live status from the covenant indexer for this programmable asset."
-        />
-        <TokenStatCard
-          label="Live value"
-          value={`${formatKcc20Sompi(liveValue, token.decimals ?? 8)} KAS`}
-          hint={templateLabel ?? 'Covenant balance'}
-          valueClassName="text-[color:var(--hub-accent)]"
-          tooltipTitle="Live value"
-          tooltipDescription="On-chain KAS value currently associated with this covenant."
-        />
-        <TokenStatCard
-          label="Network"
-          value={networkId}
-          hint={templateLabel ? `Template: ${templateLabel}` : 'Programmable L1'}
-        />
-      </div>
+      <HubMetadataStatGrid stats={stats} />
 
-      <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900/60">
-        <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+      <div className={KX_METADATA_STAT_CARD}>
+        <p className="mb-2 text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
           Covenant id
         </p>
         <TokenCopyableAddress

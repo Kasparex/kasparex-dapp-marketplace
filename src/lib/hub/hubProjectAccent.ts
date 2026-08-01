@@ -53,8 +53,8 @@ const HUB_PROJECT_ACCENTS: Record<string, HubProjectAccent> = {
     accentId: 'tokens',
     hex: '#02abb8',
     hexHover: '#029ca8',
-    /** Lime companion for cyan→lime titles / gradients (same scheme as Protocols). */
-    hexLight: '#84cc16',
+    /** Soft cyan companion (closer to primary; avoid high-contrast lime). */
+    hexLight: '#5eead4',
     muted: 'rgba(2, 171, 184, 0.1)',
     border: 'rgba(2, 171, 184, 0.25)',
     shadow: 'rgba(2, 171, 184, 0.35)',

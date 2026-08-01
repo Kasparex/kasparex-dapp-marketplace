@@ -7,12 +7,16 @@ import { HubAsideRail } from '@/components/hub/HubAsideRail';
 import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 import { TokensBenefitsPanel } from '@/components/tokens/TokensBenefitsPanel';
 import { TokenCopyableAddress } from '@/components/tokens/TokenCopyableAddress';
+import { HubMetadataStatGrid, type HubMetadataStat } from '@/components/hub/HubMetadataStatGrid';
 import { formatLargeNumber } from '@/lib/rewards/calculator';
 import {
   getNetworkChipLabel,
   getNetworkExplorerUrl,
   getTokenNetworkEntries,
 } from '@/lib/tokens/networks';
+import { resolveTokenCreatorWallet } from '@/lib/tokens/creatorWallet';
+import { isProgrammableToken, resolveProgrammableCovenantId } from '@/lib/programmable/eligibility';
+import { KX_METADATA_STAT_GRID_STACK } from '@/lib/hub/shellTokens';
 
 const PANEL_CLASS =
   'rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900';
@@ -22,8 +26,80 @@ export function TokenAside({ token }: { token: Token }) {
   const marketCap = token.price?.marketCap;
   const otherLinks = (token.links ?? []).filter((l) => l.type === 'explorer' || l.type === 'other');
   const networkEntries = getTokenNetworkEntries(token).filter((e) => e.contractAddress);
+  const creatorWallet = resolveTokenCreatorWallet(token);
+  const covenantId = resolveProgrammableCovenantId(token);
 
-  const sections: { title: string; hint?: string; body: ReactNode }[] = [];
+  const onChainStats: HubMetadataStat[] = [];
+  if (token.id) {
+    onChainStats.push({ label: 'Token ID', value: token.id, copyable: true });
+  }
+  if (token.slug) {
+    onChainStats.push({ label: 'Slug', value: token.slug, copyable: true });
+  }
+  if (token.symbol) {
+    onChainStats.push({ label: 'Ticker', value: token.symbol, copyable: true, accent: true });
+  }
+  if (token.listingNetwork) {
+    onChainStats.push({
+      label: 'Listing network',
+      value: getNetworkChipLabel(token.listingNetwork),
+      copyable: false,
+    });
+  }
+  if (creatorWallet) {
+    onChainStats.push({
+      label: 'Creator / deployer',
+      value: creatorWallet,
+      dense: true,
+      accent: true,
+      copyable: true,
+    });
+  }
+  if (token.metadataCid) {
+    onChainStats.push({
+      label: 'Metadata CID',
+      value: token.metadataCid,
+      dense: true,
+      accent: true,
+      copyable: true,
+    });
+  }
+  if (isProgrammableToken(token) && covenantId) {
+    onChainStats.push({
+      label: 'Covenant ID',
+      value: covenantId,
+      dense: true,
+      accent: true,
+      copyable: true,
+    });
+  }
+  if (token.onChainSnapshot?.genesisTxid) {
+    onChainStats.push({
+      label: 'Genesis tx',
+      value: token.onChainSnapshot.genesisTxid,
+      dense: true,
+      accent: true,
+      copyable: true,
+    });
+  }
+  if (token.decimals !== undefined) {
+    onChainStats.push({
+      label: 'Decimals',
+      value: String(token.decimals),
+      copyable: false,
+    });
+  }
+
+  const sections: { title: string; hint?: string; body: ReactNode; rawBody?: boolean }[] = [];
+
+  if (onChainStats.length > 0) {
+    sections.push({
+      title: 'On-chain metadata',
+      hint: 'Listing identifiers and network data for this token.',
+      rawBody: true,
+      body: <HubMetadataStatGrid gridClassName={KX_METADATA_STAT_GRID_STACK} stats={onChainStats} />,
+    });
+  }
 
   if (price !== undefined) {
     sections.push({
@@ -60,7 +136,7 @@ export function TokenAside({ token }: { token: Token }) {
             const explorerUrl = getNetworkExplorerUrl(entry.network, entry.contractAddress);
             return (
               <li key={`${entry.network}-${entry.contractAddress}`}>
-                <p className="mb-1 text-[10px] font-black uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+                <p className="mb-1 text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
                   {getNetworkChipLabel(entry.network)}
                 </p>
                 <TokenCopyableAddress

@@ -47,8 +47,7 @@ Reference implementations: **vBlog Author Dashboard / Create Article**, **Magazi
 ## Nested surfaces (contrast)
 
 - Nested boxes inside panels: subtle nest only via `KX_SURFACE_NESTED` / `KX_METADATA_STAT_CARD` (soft lift + discrete border). See `.cursor/rules/hub-surface-nesting.mdc`.
-- Do not restyle card typography when only fixing merge contrast. Keep xl values like Tokens/dApps Overview cards.
-- Metadata / stat grids: use `KX_METADATA_STAT_GRID` (max 3 per row). When count % 3 === 1 and count > 1, the last box spans full width via `metadataStatItemSpanClass`.
+- **Metadata boxes are LOCKED** to vBlog/dApps Metadata: `.cursor/rules/hub-metadata-stat-boxes.mdc`. Use `HubMetadataStatGrid` only. Equal height, `gap-3`, max 3 cols, leftover full-width.
 
 ## Scope reminder
 

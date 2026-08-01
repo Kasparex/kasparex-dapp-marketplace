@@ -75,19 +75,28 @@ export const KX_DETAIL_HEADER =
 export const KX_EMPTY_STATE =
   'rounded-xl border border-dashed border-zinc-300 bg-zinc-50 p-8 text-center dark:border-zinc-800 dark:bg-zinc-950/50';
 
-/** Tokens / Hub metadata / Overview stat card chrome (subtle nest + discrete border). */
-export const KX_METADATA_STAT_CARD = `${KX_SURFACE_NESTED} p-4 sm:p-5 font-sans`;
+/**
+ * LOCKED Hub metadata / stat box standard (vBlog On-chain metadata + dApps Metadata).
+ * Do not fork typography, padding, radius, border, or nest bg for these boxes.
+ * Use HubMetadataStatGrid / HubMetadataStatCard / TokenStatCard only.
+ */
+export const KX_METADATA_STAT_LABEL =
+  'flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400';
+
+export const KX_METADATA_STAT_HINT = 'mt-1 text-xs font-medium text-zinc-500 dark:text-zinc-400';
+
+/** Card chrome: equal-height cells stretch via h-full on the card. */
+export const KX_METADATA_STAT_CARD = `${KX_SURFACE_NESTED} flex h-full min-h-0 flex-col p-4 sm:p-5 font-sans`;
 
 /**
- * Default Hub metadata / stat box grid: max 3 per row.
- * When a row would leave a single leftover (count % 3 === 1), that last box spans full width.
- * Use `metadataStatItemSpanClass(index, count)` on each child.
+ * Default Hub metadata / stat box grid: max 3 equal columns, uniform gap-3.
+ * Leftover single box (4th, 7th, …) spans full width via metadataStatItemSpanClass.
  */
 export const KX_METADATA_STAT_GRID =
-  'grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3';
+  'grid grid-cols-1 items-stretch gap-3 sm:grid-cols-2 lg:grid-cols-3';
 
-/** Single-column stack (vBlog aside On-chain metadata). */
-export const KX_METADATA_STAT_GRID_STACK = 'grid grid-cols-1 gap-3';
+/** Single-column stack (vBlog / Tokens aside On-chain metadata). */
+export const KX_METADATA_STAT_GRID_STACK = 'grid grid-cols-1 items-stretch gap-3';
 
 /** Alias: same max-3 rule as the default metadata grid. */
 export const KX_METADATA_STAT_GRID_3 = KX_METADATA_STAT_GRID;
@@ -106,7 +115,7 @@ export function metadataStatItemSpanClass(index: number, count: number): string 
   return '';
 }
 
-/** Primary value: keep the original Hub/dApp card weight (xl), standard sans. */
+/** Primary value: xl semibold, standard sans (locked). */
 export const KX_METADATA_STAT_VALUE =
   'mt-1 text-xl font-semibold tabular-nums tracking-tight text-zinc-900 dark:text-zinc-100';
 
@@ -116,6 +125,9 @@ export const KX_METADATA_STAT_VALUE_ACCENT =
 /** Long ids / tx links inside metadata cards (slightly smaller than headline values). */
 export const KX_METADATA_STAT_VALUE_LINK =
   'mt-1 text-sm font-semibold leading-snug break-all text-[color:var(--hub-accent)] hover:underline';
+
+export const KX_METADATA_STAT_VALUE_MUTED =
+  'mt-1 text-xl font-semibold tabular-nums tracking-tight text-zinc-400 dark:text-zinc-500';
 
 /** Dashed informational callout (field context, not post-CTA alerts). */
 export const KX_INFO_DASHED =

@@ -7,14 +7,10 @@ import {
   getNetworkExplorerUrl,
   getTokenNetworkEntries,
 } from '@/lib/tokens/networks';
-import { TokenStatCard } from '@/components/tokens/TokenStatCard';
 import { TokenCopyableAddress } from '@/components/tokens/TokenCopyableAddress';
 import { GameOverviewTitleBlock } from '@/components/games/panels/GameOverviewSections';
-import {
-  KX_METADATA_STAT_GRID,
-  KX_SURFACE_NESTED,
-  metadataStatItemSpanClass,
-} from '@/lib/hub/shellTokens';
+import { HubMetadataStatGrid, type HubMetadataStat } from '@/components/hub/HubMetadataStatGrid';
+import { KX_METADATA_STAT_CARD, KX_METADATA_STAT_GRID, metadataStatItemSpanClass } from '@/lib/hub/shellTokens';
 
 type ProtocolDef = {
   id: string;
@@ -24,7 +20,6 @@ type ProtocolDef = {
   tooltip: string;
 };
 
-/** Supported listing protocols shown as availability cards on Overview. */
 const PROTOCOLS: ProtocolDef[] = [
   {
     id: 'krc20',
@@ -59,6 +54,33 @@ const PROTOCOLS: ProtocolDef[] = [
 export function TokenProtocolAvailability({ token }: { token: Token }) {
   const entries = getTokenNetworkEntries(token);
 
+  const stats: HubMetadataStat[] = PROTOCOLS.map((protocol) => {
+    const match = entries.find((e) => protocol.networks.includes(e.network));
+    const available = Boolean(match);
+    const statusHint = !available
+      ? 'Not listed on this network'
+      : match?.verified
+        ? match.primary
+          ? 'Primary · verified'
+          : 'Verified'
+        : match?.primary
+          ? 'Primary'
+          : 'Linked';
+
+    return {
+      label: protocol.label,
+      value: available ? 'Available' : 'N/A',
+      accent: available,
+      muted: !available,
+      copyable: false,
+      hint: available ? `${protocol.short} · ${statusHint}` : statusHint,
+      tooltipTitle: protocol.label,
+      tooltipDescription: protocol.tooltip,
+    };
+  });
+
+  const addressEntries = entries.filter((e) => e.contractAddress);
+
   return (
     <section id="token-protocols" className="scroll-mt-28 space-y-4">
       <GameOverviewTitleBlock
@@ -69,80 +91,43 @@ export function TokenProtocolAvailability({ token }: { token: Token }) {
         compact
       />
 
-      <div className={KX_METADATA_STAT_GRID}>
-        {PROTOCOLS.map((protocol, index) => {
-          const match = entries.find((e) => protocol.networks.includes(e.network));
-          const available = Boolean(match);
-          const statusHint = !available
-            ? 'Not listed on this network'
-            : match?.verified
-              ? match.primary
-                ? 'Primary · verified'
-                : 'Verified'
-              : match?.primary
-                ? 'Primary'
-                : 'Linked';
-          const span = metadataStatItemSpanClass(index, PROTOCOLS.length);
+      <HubMetadataStatGrid stats={stats} />
 
-          return (
-            <div key={protocol.id} className={span || undefined}>
-              <TokenStatCard
-                label={protocol.label}
-                tooltipTitle={protocol.label}
-                tooltipDescription={protocol.tooltip}
-                value={available ? 'Available' : 'N/A'}
-                valueClassName={
-                  available
-                    ? 'text-[color:var(--hub-accent)]'
-                    : 'text-zinc-400 dark:text-zinc-500'
-                }
-                hint={available ? `${protocol.short} · ${statusHint}` : statusHint}
-              />
-            </div>
-          );
-        })}
-      </div>
-
-      {entries.some((e) => e.contractAddress) ? (
+      {addressEntries.length > 0 ? (
         <div className={KX_METADATA_STAT_GRID}>
-          {entries
-            .filter((e) => e.contractAddress)
-            .map((entry, index, arr) => {
-              const explorerUrl = getNetworkExplorerUrl(entry.network, entry.contractAddress);
-              const span = metadataStatItemSpanClass(index, arr.length);
-              return (
-                <div
-                  key={`${entry.network}-${entry.contractAddress}`}
-                  className={`${KX_SURFACE_NESTED} p-4 ${span}`.trim()}
-                >
-                  <div className="mb-2 flex flex-wrap items-center gap-2">
-                    <span className="text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
-                      {getNetworkChipLabel(entry.network)}
-                    </span>
-                    <span
-                      className={`rounded-lg px-2 py-0.5 text-xs font-medium ${
-                        entry.verified
-                          ? 'bg-[color:var(--hub-accent-muted)] text-[color:var(--hub-accent)]'
-                          : 'bg-zinc-200 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400'
-                      }`}
-                    >
-                      {entry.primary
-                        ? entry.verified
-                          ? 'Primary · verified'
-                          : 'Primary'
-                        : entry.verified
-                          ? 'Verified'
-                          : 'Linked'}
-                    </span>
-                  </div>
-                  <TokenCopyableAddress
-                    value={entry.contractAddress!}
-                    copyLabel={`Copy ${getNetworkChipLabel(entry.network)} address`}
-                    explorerUrl={explorerUrl}
-                  />
+          {addressEntries.map((entry, index) => {
+            const explorerUrl = getNetworkExplorerUrl(entry.network, entry.contractAddress);
+            const span = metadataStatItemSpanClass(index, addressEntries.length);
+            return (
+              <div key={`${entry.network}-${entry.contractAddress}`} className={`${KX_METADATA_STAT_CARD} ${span}`.trim()}>
+                <div className="mb-2 flex flex-wrap items-center gap-2">
+                  <span className="text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+                    {getNetworkChipLabel(entry.network)}
+                  </span>
+                  <span
+                    className={`rounded-lg px-2 py-0.5 text-xs font-medium ${
+                      entry.verified
+                        ? 'bg-[color:var(--hub-accent-muted)] text-[color:var(--hub-accent)]'
+                        : 'bg-zinc-200 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400'
+                    }`}
+                  >
+                    {entry.primary
+                      ? entry.verified
+                        ? 'Primary · verified'
+                        : 'Primary'
+                      : entry.verified
+                        ? 'Verified'
+                        : 'Linked'}
+                  </span>
                 </div>
-              );
-            })}
+                <TokenCopyableAddress
+                  value={entry.contractAddress!}
+                  copyLabel={`Copy ${getNetworkChipLabel(entry.network)} address`}
+                  explorerUrl={explorerUrl}
+                />
+              </div>
+            );
+          })}
         </div>
       ) : null}
     </section>

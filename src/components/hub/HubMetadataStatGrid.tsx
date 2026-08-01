@@ -8,10 +8,12 @@ import {
   KX_METADATA_STAT_CARD,
   KX_METADATA_STAT_GRID,
   KX_METADATA_STAT_GRID_3,
-  KX_METADATA_STAT_GRID_STACK,
+  KX_METADATA_STAT_HINT,
+  KX_METADATA_STAT_LABEL,
   KX_METADATA_STAT_VALUE,
   KX_METADATA_STAT_VALUE_ACCENT,
   KX_METADATA_STAT_VALUE_LINK,
+  KX_METADATA_STAT_VALUE_MUTED,
   metadataStatItemSpanClass,
 } from '@/lib/hub/shellTokens';
 
@@ -22,11 +24,14 @@ export type HubMetadataStat = {
   mono?: boolean;
   copyable?: boolean;
   accent?: boolean;
+  /** Muted value (e.g. N/A). */
+  muted?: boolean;
   /** Use link-sized text for long tx / cid strings (still standard sans). */
   dense?: boolean;
   tooltipTitle?: string;
   tooltipDescription?: string;
   valueNode?: ReactNode;
+  className?: string;
 };
 
 function shortenDisplay(value: string): string {
@@ -41,6 +46,22 @@ function shortenDisplay(value: string): string {
   return v;
 }
 
+function resolveValueClass(args: {
+  dense?: boolean;
+  accent?: boolean;
+  muted?: boolean;
+}): string {
+  if (args.dense) {
+    return args.accent
+      ? KX_METADATA_STAT_VALUE_LINK
+      : 'mt-1 text-sm font-semibold leading-snug break-all text-zinc-900 dark:text-zinc-100';
+  }
+  if (args.muted) return KX_METADATA_STAT_VALUE_MUTED;
+  if (args.accent) return KX_METADATA_STAT_VALUE_ACCENT;
+  return KX_METADATA_STAT_VALUE;
+}
+
+/** Locked Hub metadata box (vBlog / dApps / Tokens). Do not restyle per surface. */
 export function HubMetadataStatCard({
   label,
   value,
@@ -48,24 +69,20 @@ export function HubMetadataStatCard({
   mono: _mono = false,
   copyable,
   accent = false,
+  muted = false,
   dense = false,
   tooltipTitle,
   tooltipDescription,
   valueNode,
+  className = '',
 }: HubMetadataStat) {
   if (!value?.trim() && !valueNode) return null;
   const canCopy = copyable ?? Boolean(value?.trim());
-  const valueClass = dense
-    ? accent
-      ? KX_METADATA_STAT_VALUE_LINK
-      : 'mt-1 text-sm font-semibold leading-snug break-all text-zinc-900 dark:text-zinc-100'
-    : accent
-      ? KX_METADATA_STAT_VALUE_ACCENT
-      : KX_METADATA_STAT_VALUE;
+  const valueClass = resolveValueClass({ dense, accent, muted });
 
   return (
-    <div className={KX_METADATA_STAT_CARD}>
-      <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+    <div className={`${KX_METADATA_STAT_CARD} ${className}`.trim()}>
+      <div className={KX_METADATA_STAT_LABEL}>
         {label}
         {tooltipTitle && tooltipDescription ? (
           <Tooltip content={gameTooltipRich(tooltipTitle, tooltipDescription)}>
@@ -85,9 +102,7 @@ export function HubMetadataStatCard({
       <div className={valueClass}>
         {valueNode ? valueNode : <span title={value}>{shortenDisplay(value)}</span>}
       </div>
-      {hint?.trim() ? (
-        <p className="mt-1 text-xs font-medium text-zinc-500 dark:text-zinc-400">{hint}</p>
-      ) : null}
+      {hint?.trim() ? <p className={KX_METADATA_STAT_HINT}>{hint}</p> : null}
     </div>
   );
 }
@@ -116,9 +131,11 @@ export function HubMetadataStatGrid({
           {visible.map((stat, index) => {
             const span = applySpan ? metadataStatItemSpanClass(index, visible.length) : '';
             return (
-              <div key={`${stat.label}-${stat.value}`} className={span || undefined}>
-                <HubMetadataStatCard {...stat} />
-              </div>
+              <HubMetadataStatCard
+                key={`${stat.label}-${stat.value}-${index}`}
+                {...stat}
+                className={`${span} ${stat.className ?? ''}`.trim()}
+              />
             );
           })}
         </div>

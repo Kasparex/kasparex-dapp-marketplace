@@ -3,7 +3,7 @@
 import { formatLargeNumber } from '@/lib/rewards/calculator';
 import type { TokenLedgerSnapshot } from '@/lib/tokens/ledger';
 import { getLedgerCirculatingSupply, sumLedger } from '@/lib/tokens/ledger';
-import { TokenStatCard } from '@/components/tokens/TokenStatCard';
+import { HubMetadataStatGrid, type HubMetadataStat } from '@/components/hub/HubMetadataStatGrid';
 import {
   KX_METADATA_STAT_CARD,
   KX_METADATA_STAT_GRID,
@@ -14,33 +14,34 @@ import {
 export function TokenLedgerDashboard({ snapshot }: { snapshot: TokenLedgerSnapshot }) {
   const circulating = getLedgerCirculatingSupply(snapshot);
   const accounted = sumLedger(snapshot.lines);
-  const metrics = [
+  const metrics: HubMetadataStat[] = [
     {
-      key: 'total',
       label: 'Total supply',
       value: `${formatLargeNumber(snapshot.maxSupply)} ${snapshot.symbol}`,
+      copyable: false,
     },
     {
-      key: 'circ',
       label: 'Circulating (est.)',
       value: `${formatLargeNumber(circulating)} ${snapshot.symbol}`,
+      accent: true,
+      copyable: false,
     },
     {
-      key: 'accounted',
       label: 'Accounted (ledger)',
       value: `${formatLargeNumber(accounted)} ${snapshot.symbol}`,
+      copyable: false,
     },
     {
-      key: 'asof',
       label: 'As of',
       value: new Date(snapshot.asOf).toLocaleString(),
+      copyable: false,
     },
   ];
 
   return (
     <section className={`${KX_PANEL} space-y-4 p-6`}>
       <div className="flex flex-col gap-1">
-        <div className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+        <div className="text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
           Token Dashboard (internal ledger)
         </div>
         <div className="hub-tokens-title text-lg font-bold text-zinc-900 dark:text-zinc-100">
@@ -52,16 +53,7 @@ export function TokenLedgerDashboard({ snapshot }: { snapshot: TokenLedgerSnapsh
         </div>
       </div>
 
-      <div className={KX_METADATA_STAT_GRID}>
-        {metrics.map((metric, index) => (
-          <div
-            key={metric.key}
-            className={metadataStatItemSpanClass(index, metrics.length) || undefined}
-          >
-            <TokenStatCard label={metric.label} value={metric.value} />
-          </div>
-        ))}
-      </div>
+      <HubMetadataStatGrid stats={metrics} />
 
       <div className="space-y-2">
         <div className="text-xs font-semibold text-zinc-600 dark:text-zinc-400">Breakdown</div>
@@ -71,7 +63,7 @@ export function TokenLedgerDashboard({ snapshot }: { snapshot: TokenLedgerSnapsh
               key={line.label}
               className={`${KX_METADATA_STAT_CARD} ${metadataStatItemSpanClass(index, snapshot.lines.length)}`.trim()}
             >
-              <div className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+              <div className="text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
                 {line.label}
               </div>
               <div className="mt-1 text-xl font-semibold tabular-nums tracking-tight text-zinc-900 dark:text-zinc-100">

@@ -1,0 +1,40 @@
+---
+description: LOCKED Hub metadata / stat boxes (vBlog + dApps Metadata standard)
+alwaysApply: true
+---
+
+# Hub metadata boxes (LOCKED)
+
+Reference: **vBlog aside “On-chain metadata”** and **dApps Metadata** tab boxes.
+
+## Single implementation
+
+- Component: `HubMetadataStatCard` / `HubMetadataStatGrid` in `src/components/hub/HubMetadataStatGrid.tsx`
+- Tokens alias only: `TokenStatCard` must wrap `HubMetadataStatCard` (no local chrome)
+- Tokens: `src/lib/hub/shellTokens.ts` (`KX_METADATA_STAT_*`)
+
+## Locked look (do not fork)
+
+| Piece | Token / class |
+|-------|----------------|
+| Surface | `KX_SURFACE_NESTED` (`bg-zinc-50` / dark `white/[0.04]`, border `zinc-200/80` / `zinc-800`) |
+| Card | `KX_METADATA_STAT_CARD` (`h-full`, `p-4 sm:p-5`, `rounded-2xl`, `font-sans`) |
+| Label | `KX_METADATA_STAT_LABEL` (`text-xs font-medium uppercase tracking-wide` muted) |
+| Value | `KX_METADATA_STAT_VALUE` (`text-xl font-semibold`) |
+| Accent value | `KX_METADATA_STAT_VALUE_ACCENT` (`--hub-accent`) |
+| Dense / tx | `KX_METADATA_STAT_VALUE_LINK` (`text-sm`) |
+| Grid | `KX_METADATA_STAT_GRID` (`gap-3`, max 3 cols, `items-stretch`) |
+| Stack | `KX_METADATA_STAT_GRID_STACK` (aside On-chain metadata) |
+| Leftover 4th | `metadataStatItemSpanClass` full-width when `count % 3 === 1` |
+
+## Forbidden
+
+- Local `rounded-* border bg-*` boxes for the same job
+- Different label sizes (`text-[11px]`, `font-black`, etc.)
+- `gap-4` / 4-col grids for these metadata boxes
+- Wrapping cards in bare divs that break equal height (put span class on the card)
+- Restyling padding/fonts when “fixing contrast”
+
+## Scope
+
+dApps Metadata, Games metadata, Tokens Overview / Protocol / Tokenomics / Price / Programmable / Ledger, vBlog On-chain metadata, Covenant metadata, and any new Hub project panels.
