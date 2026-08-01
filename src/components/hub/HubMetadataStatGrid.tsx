@@ -9,16 +9,18 @@ import {
   KX_METADATA_STAT_GRID,
   KX_METADATA_STAT_VALUE,
   KX_METADATA_STAT_VALUE_ACCENT,
+  KX_METADATA_STAT_VALUE_LINK,
 } from '@/lib/hub/shellTokens';
 
 export type HubMetadataStat = {
   label: string;
   value: string;
   hint?: string;
-  /** Prefer false: metadata boxes use standard sans, not monospace. */
   mono?: boolean;
   copyable?: boolean;
   accent?: boolean;
+  /** Use link-sized text for long tx / cid strings (still standard sans). */
+  dense?: boolean;
   tooltipTitle?: string;
   tooltipDescription?: string;
   valueNode?: ReactNode;
@@ -43,23 +45,30 @@ export function HubMetadataStatCard({
   mono: _mono = false,
   copyable,
   accent = false,
+  dense = false,
   tooltipTitle,
   tooltipDescription,
   valueNode,
 }: HubMetadataStat) {
   if (!value?.trim() && !valueNode) return null;
   const canCopy = copyable ?? Boolean(value?.trim());
-  const valueClass = accent ? KX_METADATA_STAT_VALUE_ACCENT : KX_METADATA_STAT_VALUE;
+  const valueClass = dense
+    ? accent
+      ? KX_METADATA_STAT_VALUE_LINK
+      : 'mt-1 text-sm font-semibold leading-snug break-all text-zinc-900 dark:text-zinc-100'
+    : accent
+      ? KX_METADATA_STAT_VALUE_ACCENT
+      : KX_METADATA_STAT_VALUE;
 
   return (
     <div className={KX_METADATA_STAT_CARD}>
-      <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+      <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
         {label}
         {tooltipTitle && tooltipDescription ? (
           <Tooltip content={gameTooltipRich(tooltipTitle, tooltipDescription)}>
             <button
               type="button"
-              className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-zinc-300 text-xs font-medium text-zinc-500 dark:border-zinc-600 dark:text-zinc-400"
+              className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-zinc-300/80 text-xs font-medium text-zinc-500 dark:border-zinc-700 dark:text-zinc-400"
               aria-label={`About ${tooltipTitle}`}
             >
               ?
@@ -71,11 +80,7 @@ export function HubMetadataStatCard({
         ) : null}
       </div>
       <div className={valueClass}>
-        {valueNode ? (
-          valueNode
-        ) : (
-          <span title={value}>{shortenDisplay(value)}</span>
-        )}
+        {valueNode ? valueNode : <span title={value}>{shortenDisplay(value)}</span>}
       </div>
       {hint?.trim() ? (
         <p className="mt-1 text-xs font-medium text-zinc-500 dark:text-zinc-400">{hint}</p>

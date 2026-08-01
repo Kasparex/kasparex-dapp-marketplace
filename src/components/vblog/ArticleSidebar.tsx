@@ -30,7 +30,7 @@ import { HubMetadataStatGrid } from '@/components/hub/HubMetadataStatGrid';
 import { HubPaymentCurrencyCatalogTrigger } from '@/components/payments/HubPaymentCurrencyCatalogModal';
 import { useHubPayWithCatalog, hubCatalogSelectionToStoreCurrency } from '@/hooks/useHubPayWithCatalog';
 import { markCatalogByAcceptedCurrencies } from '@/lib/payments/markCatalogByAccepted';
-import { KX_METADATA_STAT_GRID_STACK } from '@/lib/hub/shellTokens';
+import { KX_METADATA_STAT_GRID_STACK, KX_METADATA_STAT_VALUE_LINK } from '@/lib/hub/shellTokens';
 
 function getArticleLinkEntries(article: VBlogArticle): Array<{ href: string; label: string }> {
   const entries: Array<{ href: string; label: string }> = [];
@@ -296,6 +296,7 @@ export function ArticleSidebar({
               value: article.cid || 'Not yet published',
               copyable: Boolean(article.cid),
               accent: Boolean(article.cid),
+              dense: Boolean(article.cid),
             },
             ...(article.txHash
               ? [
@@ -303,13 +304,14 @@ export function ArticleSidebar({
                     label: 'Creation transaction',
                     value: article.txHash,
                     accent: true,
+                    dense: true,
                     copyable: true,
                     valueNode: (
                       <a
                         href={txExplorerUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-sm font-medium break-all text-[color:var(--hub-accent)] hover:underline"
+                        className={KX_METADATA_STAT_VALUE_LINK.replace(/^mt-1\s+/, '')}
                       >
                         {`${article.txHash.slice(0, 14)}…${article.txHash.slice(-10)}`}
                       </a>
@@ -318,7 +320,7 @@ export function ArticleSidebar({
                 ]
               : []),
             ...(article.articleId
-              ? [{ label: 'Article ID', value: article.articleId, copyable: true }]
+              ? [{ label: 'Article ID', value: article.articleId, dense: true, copyable: true }]
               : []),
             ...(payloadBytes != null
               ? [

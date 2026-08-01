@@ -1,29 +1,28 @@
 ---
-description: Nested Hub surfaces must contrast with the parent background
+description: Nested Hub surfaces need subtle parent contrast, not redesign
 alwaysApply: true
 ---
 
-# Hub surface nesting (do not merge backgrounds)
+# Hub surface nesting (subtle contrast only)
 
-When placing a box, card, or container **inside** another panel, its background must be **visibly different** from the parent in both light and dark themes. Borders alone are not enough.
+When placing a box, card, or container **inside** another panel, give it a **slightly** different background and a **discrete** border so it does not merge with the parent. Do **not** redesign typography, sizing, or layout when only contrast was requested.
 
 ## Tokens (`src/lib/hub/shellTokens.ts`)
 
-| Layer | Token | Light | Dark |
-|-------|--------|-------|------|
-| Page | `KX_PAGE_BG` | `zinc-50` | `zinc-950` |
-| Panel / aside section | `KX_PANEL`, `KX_FORM_PANEL`, Chronicles/vBlog aside chrome | `white` | `zinc-900` |
-| Nested box inside panel | `KX_SURFACE_NESTED`, `KX_METADATA_STAT_CARD`, `KX_SURFACE_INSET`, `KX_SURFACE_ROW`, `KX_FORM_NESTED_GROUP` | `zinc-100` | `zinc-800` |
+| Layer | Token | Intent |
+|-------|--------|--------|
+| Panel | `KX_PANEL`, `KX_FORM_PANEL`, aside chrome | `white` / `zinc-900` |
+| Nested box | `KX_SURFACE_NESTED`, `KX_METADATA_STAT_CARD`, `KX_SURFACE_INSET`, `KX_SURFACE_ROW` | Subtle lift: `zinc-50` + soft border / dark `white/[0.04]` + `zinc-800` border |
 
 ## Rules
 
-1. Never put `bg-white` / `dark:bg-zinc-900` nested boxes inside a white / `zinc-900` panel.
-2. Never use semi-transparent same-tone fills (e.g. `dark:bg-zinc-900/60` on `zinc-900`) for nested cards.
-3. Prefer shared tokens over one-off Tailwind bg classes for Hub UI.
-4. If you invent a new nested surface, add it to `shellTokens.ts` and reuse it.
+1. Nested bg must differ from parent, but **not harshly** (avoid jumping to hard `zinc-800` bricks on `zinc-900` panels).
+2. Borders stay soft (`zinc-200/80`, `zinc-800`), not high-contrast outlines.
+3. Keep the original Hub/dApp stat card look: **xl semibold values**, small uppercase labels, optional hint. Do not shrink cards to body text unless the value is a long tx/cid (`dense` / link style).
+4. Prefer shared tokens; do not invent one-off nested backgrounds.
+5. Fixing merge contrast is **not** permission to restyle the whole card.
 
 ## Examples
 
-- vBlog "On-chain metadata" rows → `KX_METADATA_STAT_CARD` / `HubMetadataStatGrid`
+- Metadata / Overview stats → `KX_METADATA_STAT_CARD` + `HubMetadataStatGrid` / `TokenStatCard`
 - Form fee groups → `KX_FORM_NESTED_GROUP`
-- Inset lists inside asides → `KX_SURFACE_INSET` or `KX_SURFACE_ROW`

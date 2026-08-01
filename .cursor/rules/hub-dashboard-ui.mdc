@@ -46,8 +46,8 @@ Reference implementations: **vBlog Author Dashboard / Create Article**, **Magazi
 
 ## Nested surfaces (contrast)
 
-- Nested boxes inside panels must use `KX_SURFACE_NESTED` / `KX_METADATA_STAT_CARD` / `KX_SURFACE_INSET` (zinc-100 on white, zinc-800 on zinc-900). See `.cursor/rules/hub-surface-nesting.mdc`.
-- Do not nest `bg-white dark:bg-zinc-900` cards inside the same-tone parent panel.
+- Nested boxes inside panels: subtle nest only via `KX_SURFACE_NESTED` / `KX_METADATA_STAT_CARD` (soft lift + discrete border). See `.cursor/rules/hub-surface-nesting.mdc`.
+- Do not restyle card typography when only fixing merge contrast. Keep xl values like Tokens/dApps Overview cards.
 
 ## Scope reminder
 
