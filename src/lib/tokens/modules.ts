@@ -19,8 +19,8 @@ export type TokenModuleId =
   | 'on_chain_poll'
   | 'covenant_utilities_hub'
   | 'access_gate'
-  | 'native_subscriptions';
-
+  | 'native_subscriptions'
+  | 'creator_showcase';
 export type TokenPollConfig = {
   question: string;
   options: string[];
@@ -67,6 +67,13 @@ export type TokenHighlightedProfileConfig = {
 /** Default highlighted halo (Hub accent). */
 export const DEFAULT_HIGHLIGHT_HALO_COLOR = '#02abb8';
 
+export type TokenCreatorShowcaseConfig = {
+  /** vBlog article ids to show on the public Author tab (empty = all by creator). */
+  articleIds?: string[];
+  /** Store product ids to show on the public Shop tab (empty = all by creator). */
+  productIds?: string[];
+};
+
 export type TokenModulesConfig = {
   roadmap?: TokenRoadmapMilestone[];
   roadmapIntro?: string;
@@ -82,8 +89,9 @@ export type TokenModulesConfig = {
   accessGate?: TokenAccessGateConfig;
   /** Programmable-only: subscriptions placeholder note for creators. */
   subscriptionsNote?: string;
+  /** Curated Shop + vBlog listings on the token page. */
+  creatorShowcase?: TokenCreatorShowcaseConfig;
 };
-
 export type TokenModuleOffer = {
   id: TokenModuleId;
   title: string;
@@ -162,8 +170,14 @@ export const TOKEN_MODULE_OFFERS: TokenModuleOffer[] = [
       'Surface recurring access plans for your programmable token. Billing rails activate as L1 payment support expands.',
     unlockPriceKas: 28,
   },
+  {
+    id: 'creator_showcase',
+    title: 'Creator Showcase',
+    description:
+      'Add Shop and vBlog Author tabs on your token page. Pick which products and articles the public sees.',
+    unlockPriceKas: 16,
+  },
 ];
-
 export function getTokenModuleDiscountPercent(tier: KREXTier): number {
   return krexTierDiscountPercent(tier);
 }

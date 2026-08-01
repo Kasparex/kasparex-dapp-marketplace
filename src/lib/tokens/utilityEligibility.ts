@@ -14,6 +14,7 @@ export const TOKEN_INFORMATIONAL_MODULE_IDS: TokenModuleId[] = [
   'timeline_builder',
   'featured_listing',
   'highlighted_profile',
+  'creator_showcase',
 ];
 
 /** Modules that require a verified real on-chain token connection. */

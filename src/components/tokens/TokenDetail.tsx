@@ -29,13 +29,18 @@ import { GameOverviewTitleBlock } from '@/components/games/panels/GameOverviewSe
 import { TOKEN_TAB_SECTION_CLASS, type TokenContentTab } from '@/lib/tokens/sections';
 import { canShowUtilityTab } from '@/lib/tokens/utilityEligibility';
 import {
+  IconTokenAuthor,
   IconTokenComments,
   IconTokenMarkets,
   IconTokenOverview,
   IconTokenRoadmap,
+  IconTokenShop,
   IconTokenSwap,
   IconTokenUtility,
 } from '@/components/tokens/icons/TokenTabIcons';
+import { TokenCreatorShopTab } from '@/components/tokens/TokenCreatorShopTab';
+import { TokenCreatorAuthorTab } from '@/components/tokens/TokenCreatorAuthorTab';
+import { tokenHasModule } from '@/lib/tokens/modules';
 
 export type { TokenContentTab } from '@/lib/tokens/sections';
 
@@ -78,9 +83,26 @@ export function TokenDetail({
   const showMintingProgress = Boolean(token.maxSupply && token.circulatingSupply !== undefined && !fullyMinted);
   const showSwap = fullyMinted || token.id === 'krex' || token.type === 'global';
   const showUtility = canShowUtilityTab(token);
+  const showShop =
+    Boolean(pageConfig?.sections.some((s) => s.type === 'shop' && s.enabled)) ||
+    tokenHasModule(token.paidModuleIds, 'creator_showcase');
+  const showAuthor =
+    Boolean(pageConfig?.sections.some((s) => s.type === 'author' && s.enabled)) ||
+    tokenHasModule(token.paidModuleIds, 'creator_showcase');
   const commentsCount = useDAppCommentsCount(tokenCommentsArticleId(token.slug));
-  const orderedTabs = getOrderedTabs(pageConfig);
   const orderedOverviewSubsections = getOrderedOverviewSubsections(pageConfig);
+  const orderedTabs = (() => {
+    const base = getOrderedTabs(pageConfig);
+    const next = [...base];
+    const insertBeforeComments = (tab: TokenContentTab) => {
+      if (next.includes(tab)) return;
+      const idx = next.indexOf('comments');
+      next.splice(idx >= 0 ? idx : next.length, 0, tab);
+    };
+    if (showShop || preview) insertBeforeComments('shop');
+    if (showAuthor || preview) insertBeforeComments('author');
+    return next;
+  })();
 
   const TAB_META: Record<TokenContentTab, DAppTab<TokenContentTab> | null> = {
     overview: { id: 'overview', label: 'Overview', icon: <IconTokenOverview /> },
@@ -88,6 +110,11 @@ export function TokenDetail({
     markets: { id: 'markets', label: 'Markets', icon: <IconTokenMarkets /> },
     swap: showSwap || preview ? { id: 'swap', label: 'Swap', icon: <IconTokenSwap /> } : null,
     utility: showUtility ? { id: 'utility', label: 'Utility', icon: <IconTokenUtility /> } : null,
+    shop: showShop || preview ? { id: 'shop', label: 'Shop', icon: <IconTokenShop /> } : null,
+    author:
+      showAuthor || preview
+        ? { id: 'author', label: 'vBlog Author', icon: <IconTokenAuthor /> }
+        : null,
     comments: {
       id: 'comments',
       label: 'Comments',
@@ -203,6 +230,18 @@ export function TokenDetail({
                 {contentTab === 'utility' && showUtility ? (
                   <div id="token-utility" className={`${TOKEN_TAB_SECTION_CLASS} animate-in fade-in duration-300`}>
                     <TokenUtilitySection token={token} />
+                  </div>
+                ) : null}
+
+                {contentTab === 'shop' && (showShop || preview) ? (
+                  <div id="token-shop" className={`${TOKEN_TAB_SECTION_CLASS} animate-in fade-in duration-300`}>
+                    <TokenCreatorShopTab token={token} />
+                  </div>
+                ) : null}
+
+                {contentTab === 'author' && (showAuthor || preview) ? (
+                  <div id="token-author" className={`${TOKEN_TAB_SECTION_CLASS} animate-in fade-in duration-300`}>
+                    <TokenCreatorAuthorTab token={token} />
                   </div>
                 ) : null}
 

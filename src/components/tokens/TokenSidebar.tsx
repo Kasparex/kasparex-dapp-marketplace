@@ -15,14 +15,17 @@ import type { TokenContentTab } from './TokenDetail';
 import type { TokenPageConfig } from '@/lib/tokens/listingRecord';
 import { getOrderedTabs } from '@/lib/tokens/pageConfig';
 import {
+  IconTokenAuthor,
   IconTokenComments,
   IconTokenMarkets,
   IconTokenOverview,
   IconTokenRoadmap,
+  IconTokenShop,
   IconTokenSwap,
   IconTokenUtility,
 } from '@/components/tokens/icons/TokenTabIcons';
 import { formatLargeNumber } from '@/lib/rewards/calculator';
+import { tokenHasModule } from '@/lib/tokens/modules';
 
 interface TokenSidebarProps {
   token: Token;
@@ -39,6 +42,8 @@ const TAB_NAV: Record<TokenContentTab, { id: string; label: string }> = {
   markets: { id: 'token-markets', label: 'Markets' },
   swap: { id: 'token-swap', label: 'Swap' },
   utility: { id: 'token-utility', label: 'Utility' },
+  shop: { id: 'token-shop', label: 'Shop' },
+  author: { id: 'token-author', label: 'vBlog Author' },
   comments: { id: 'token-comments', label: 'Comments' },
 };
 
@@ -48,6 +53,8 @@ const TAB_ICONS: Record<TokenContentTab, ReactNode> = {
   markets: <IconTokenMarkets />,
   swap: <IconTokenSwap />,
   utility: <IconTokenUtility />,
+  shop: <IconTokenShop />,
+  author: <IconTokenAuthor />,
   comments: <IconTokenComments />,
 };
 
@@ -61,12 +68,31 @@ export function TokenSidebar({
 }: TokenSidebarProps) {
   const price = token.price?.current;
   const priceChange24h = token.price?.change24h;
+  const showShop =
+    Boolean(pageConfig?.sections.some((s) => s.type === 'shop' && s.enabled)) ||
+    tokenHasModule(token.paidModuleIds, 'creator_showcase');
+  const showAuthor =
+    Boolean(pageConfig?.sections.some((s) => s.type === 'author' && s.enabled)) ||
+    tokenHasModule(token.paidModuleIds, 'creator_showcase');
 
-  const orderedTabs = getOrderedTabs(pageConfig);
+  const orderedTabs = (() => {
+    const base = getOrderedTabs(pageConfig);
+    const next = [...base];
+    const insertBeforeComments = (tab: TokenContentTab) => {
+      if (next.includes(tab)) return;
+      const idx = next.indexOf('comments');
+      next.splice(idx >= 0 ? idx : next.length, 0, tab);
+    };
+    if (showShop) insertBeforeComments('shop');
+    if (showAuthor) insertBeforeComments('author');
+    return next;
+  })();
   const navItems: { id: string; label: string; tab: TokenContentTab }[] = orderedTabs
     .filter((tab) => {
       if (tab === 'swap' && !showSwap) return false;
       if (tab === 'utility' && !showUtility) return false;
+      if (tab === 'shop' && !showShop) return false;
+      if (tab === 'author' && !showAuthor) return false;
       return true;
     })
     .map((tab) => ({ ...TAB_NAV[tab], tab }));

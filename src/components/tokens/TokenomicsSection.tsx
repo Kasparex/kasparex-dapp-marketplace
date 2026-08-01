@@ -9,7 +9,7 @@ import type { Token } from '@/lib/tokens/types';
 import { formatLargeNumber } from '@/lib/rewards/calculator';
 import { GameOverviewTitleBlock } from '@/components/games/panels/GameOverviewSections';
 import { TokenStatCard } from '@/components/tokens/TokenStatCard';
-import { KX_METADATA_STAT_CARD } from '@/lib/hub/shellTokens';
+import { KX_METADATA_STAT_CARD, KX_METADATA_STAT_GRID, metadataStatItemSpanClass } from '@/lib/hub/shellTokens';
 
 interface TokenomicsSectionProps {
   token: Token;
@@ -32,36 +32,62 @@ export function TokenomicsSection({ token }: TokenomicsSectionProps) {
       />
 
       {(token.totalSupply || token.circulatingSupply || token.maxSupply) && (
-        <div className="grid gap-4 sm:grid-cols-3">
-          {token.totalSupply != null ? (
-            <TokenStatCard
-              label="Total supply"
-              value={formatLargeNumber(token.totalSupply)}
-              hint={token.symbol}
-              tooltipTitle="Total supply"
-              tooltipDescription="Full supply figure for this token listing."
-              valueClassName="text-[color:var(--hub-accent)]"
-            />
-          ) : null}
-          {token.circulatingSupply != null ? (
-            <TokenStatCard
-              label="Circulating"
-              value={formatLargeNumber(token.circulatingSupply)}
-              hint={token.symbol}
-              tooltipTitle="Circulating supply"
-              tooltipDescription="Tokens currently circulating in the market."
-              valueClassName="text-emerald-600 dark:text-emerald-400"
-            />
-          ) : null}
-          {token.maxSupply != null ? (
-            <TokenStatCard
-              label="Max supply"
-              value={formatLargeNumber(token.maxSupply)}
-              hint={token.symbol}
-              tooltipTitle="Max supply"
-              tooltipDescription="Hard cap on mintable supply when the token is capped."
-            />
-          ) : null}
+        <div className={KX_METADATA_STAT_GRID}>
+          {[
+            token.totalSupply != null
+              ? {
+                  key: 'total',
+                  node: (
+                    <TokenStatCard
+                      label="Total supply"
+                      value={formatLargeNumber(token.totalSupply)}
+                      hint={token.symbol}
+                      tooltipTitle="Total supply"
+                      tooltipDescription="Full supply figure for this token listing."
+                      valueClassName="text-[color:var(--hub-accent)]"
+                    />
+                  ),
+                }
+              : null,
+            token.circulatingSupply != null
+              ? {
+                  key: 'circ',
+                  node: (
+                    <TokenStatCard
+                      label="Circulating"
+                      value={formatLargeNumber(token.circulatingSupply)}
+                      hint={token.symbol}
+                      tooltipTitle="Circulating supply"
+                      tooltipDescription="Tokens currently circulating in the market."
+                      valueClassName="text-emerald-600 dark:text-emerald-400"
+                    />
+                  ),
+                }
+              : null,
+            token.maxSupply != null
+              ? {
+                  key: 'max',
+                  node: (
+                    <TokenStatCard
+                      label="Max supply"
+                      value={formatLargeNumber(token.maxSupply)}
+                      hint={token.symbol}
+                      tooltipTitle="Max supply"
+                      tooltipDescription="Hard cap on mintable supply when the token is capped."
+                    />
+                  ),
+                }
+              : null,
+          ]
+            .filter(Boolean)
+            .map((item, index, arr) => (
+              <div
+                key={item!.key}
+                className={metadataStatItemSpanClass(index, arr.length) || undefined}
+              >
+                {item!.node}
+              </div>
+            ))}
         </div>
       )}
 

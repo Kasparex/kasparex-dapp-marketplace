@@ -502,13 +502,27 @@
   --hub-accent-shadow: rgba(6, 182, 212, 0.35);
 }
 
+.dark [data-hub-accent='tokens'] header h2,
+.dark [data-hub-accent='tokens'] header h3,
+.dark [data-hub-accent='tokens'] .hub-tokens-title {
+  color: var(--hub-accent-light, var(--hub-accent));
+}
+
 .hub-tilt-bar {
-  background-color: var(--hub-accent);
+  background: linear-gradient(
+    to bottom,
+    var(--hub-accent),
+    var(--hub-accent-light, var(--hub-accent))
+  );
   box-shadow: 0 0 10px var(--hub-accent-shadow);
 }
 
 .hub-tilt-bar-sm {
-  background-color: var(--hub-accent);
+  background: linear-gradient(
+    to bottom,
+    var(--hub-accent),
+    var(--hub-accent-light, var(--hub-accent))
+  );
   box-shadow: 0 0 8px var(--hub-accent-shadow);
 }
 

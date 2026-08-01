@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { VBlogPollOptionsEditor } from '@/components/vblog/VBlogPollOptionsEditor';
 import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 import { TokenRoadmapEditor } from '@/components/tokens/TokenRoadmapEditor';
@@ -23,6 +24,11 @@ import {
   COVENANT_UTILITY_TEMPLATES,
   type CovenantUtilityTemplateId,
 } from '@/lib/programmable/covenantUtilities';
+import { getArticlesByAuthor } from '@/lib/vblog/data';
+import { getProductsBySeller } from '@/lib/store/products';
+import { bootstrapHubContent } from '@/lib/hub/contentSync';
+import type { VBlogArticle } from '@/lib/vblog/types';
+import type { Product } from '@/lib/store/types';
 
 export type TokenModuleConfigTarget = TokenModuleId | 'markets';
 
@@ -40,6 +46,8 @@ type TokenModuleConfigFieldsProps = {
   bare?: boolean;
   /** Covenant id for one-click KRON market prefill. */
   covenantId?: string | null;
+  /** Creator wallet used to list Shop products / vBlog articles for Showcase. */
+  creatorWallet?: string | null;
 };
 
 const BADGE_PLACEMENT_OPTIONS: { value: TokenHighlightedBadgePlacement; label: string }[] = [
@@ -58,6 +66,7 @@ function moduleHasConfigFields(moduleId: TokenModuleConfigTarget): boolean {
     moduleId === 'covenant_utilities_hub' ||
     moduleId === 'access_gate' ||
     moduleId === 'native_subscriptions' ||
+    moduleId === 'creator_showcase' ||
     moduleId === 'markets'
   );
 }
@@ -77,8 +86,12 @@ export function TokenModuleConfigFields({
   moduleId,
   bare = false,
   covenantId = null,
+  creatorWallet = null,
 }: TokenModuleConfigFieldsProps) {
   const isProgrammable = isProgrammableListingNetwork(listingNetwork);
+  const [authorArticles, setAuthorArticles] = useState<VBlogArticle[]>([]);
+  const [sellerProducts, setSellerProducts] = useState<Product[]>([]);
+  const [showcaseLoading, setShowcaseLoading] = useState(false);
 
   const showRoadmap =
     (!moduleId || moduleId === 'roadmap_editor' || moduleId === 'timeline_builder') &&
@@ -106,7 +119,39 @@ export function TokenModuleConfigFields({
     isRealToken &&
     isProgrammable &&
     enabledModuleIds.has('native_subscriptions');
+  const showShowcase =
+    (!moduleId || moduleId === 'creator_showcase') && enabledModuleIds.has('creator_showcase');
   const showMarkets = (!moduleId || moduleId === 'markets') && marketsSectionEnabled;
+
+  useEffect(() => {
+    if (!showShowcase || !creatorWallet) {
+      setAuthorArticles([]);
+      setSellerProducts([]);
+      return;
+    }
+    let cancelled = false;
+    setShowcaseLoading(true);
+    void (async () => {
+      try {
+        await bootstrapHubContent(['vblog', 'store']);
+        if (cancelled) return;
+        setAuthorArticles(getArticlesByAuthor(creatorWallet));
+        const products = await getProductsBySeller(creatorWallet);
+        if (cancelled) return;
+        setSellerProducts(products.filter((p) => p.status === 'active'));
+      } catch {
+        if (!cancelled) {
+          setAuthorArticles([]);
+          setSellerProducts([]);
+        }
+      } finally {
+        if (!cancelled) setShowcaseLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [showShowcase, creatorWallet]);
 
   if (
     !showRoadmap &&
@@ -116,7 +161,8 @@ export function TokenModuleConfigFields({
     !showMarkets &&
     !showCovenantHub &&
     !showAccessGate &&
-    !showSubscriptions
+    !showSubscriptions &&
+    !showShowcase
   ) {
     return null;
   }
@@ -128,6 +174,9 @@ export function TokenModuleConfigFields({
   const badgePlacement = highlightedProfile.badgePlacement ?? 'below-title';
   const covenantTemplates = config.covenantUtilityTemplates ?? COVENANT_UTILITY_TEMPLATES.map((t) => t.id);
   const accessGate = config.accessGate ?? { holderOnly: true };
+  const showcase = config.creatorShowcase ?? {};
+  const selectedArticleIds = showcase.articleIds ?? [];
+  const selectedProductIds = showcase.productIds ?? [];
 
   const setupShellClass = bare
     ? 'mt-5 space-y-3 border-t border-zinc-200 pt-5 dark:border-zinc-700'
@@ -438,6 +487,116 @@ export function TokenModuleConfigFields({
               placeholder="Describe your planned subscription tiers or link to a milestone covenant."
             />
           </div>
+        </div>
+      ) : null}
+
+      {showShowcase ? (
+        <div className={setupShellClass}>
+          {!bare ? <DAppSectionHeader title="Creator showcase" className="mb-1" /> : null}
+          <p className="kx-body-sm">
+            Choose which Shop products and vBlog articles appear on the public token page. Leave a list empty to
+            show all content from this creator wallet.
+          </p>
+          {!creatorWallet ? (
+            <p className="text-sm text-amber-700 dark:text-amber-300">
+              Connect a Kaspa wallet to load your Shop and vBlog listings.
+            </p>
+          ) : showcaseLoading ? (
+            <p className="text-sm text-zinc-500">Loading your listings…</p>
+          ) : (
+            <div className="space-y-5">
+              <div>
+                <KxFormFieldLabel>vBlog articles</KxFormFieldLabel>
+                {authorArticles.length === 0 ? (
+                  <p className="mt-2 text-sm text-zinc-500">No articles found for this wallet yet.</p>
+                ) : (
+                  <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                    {authorArticles.map((article) => {
+                      const checked = selectedArticleIds.includes(article.id);
+                      return (
+                        <div
+                          key={article.id}
+                          className={`flex items-start justify-between gap-3 rounded-xl border border-dashed p-3 transition ${
+                            checked
+                              ? 'border-[color:var(--hub-accent)] bg-[color:var(--hub-accent-muted)]'
+                              : 'border-zinc-200 dark:border-zinc-700'
+                          }`}
+                        >
+                          <span className="min-w-0">
+                            <span className="block truncate text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+                              {article.title}
+                            </span>
+                            <span className="block text-xs text-zinc-500 dark:text-zinc-400">
+                              {article.slug}
+                            </span>
+                          </span>
+                          <ToggleSwitch
+                            checked={checked}
+                            disabled={disabled}
+                            label={checked ? 'On' : 'Off'}
+                            onChange={(on) => {
+                              const next = on
+                                ? [...selectedArticleIds, article.id]
+                                : selectedArticleIds.filter((id) => id !== article.id);
+                              onChange({
+                                ...config,
+                                creatorShowcase: { ...showcase, articleIds: next },
+                              });
+                            }}
+                          />
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+              <div>
+                <KxFormFieldLabel>Shop products</KxFormFieldLabel>
+                {sellerProducts.length === 0 ? (
+                  <p className="mt-2 text-sm text-zinc-500">No active Shop products for this wallet yet.</p>
+                ) : (
+                  <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                    {sellerProducts.map((product) => {
+                      const checked = selectedProductIds.includes(product.id);
+                      return (
+                        <div
+                          key={product.id}
+                          className={`flex items-start justify-between gap-3 rounded-xl border border-dashed p-3 transition ${
+                            checked
+                              ? 'border-[color:var(--hub-accent)] bg-[color:var(--hub-accent-muted)]'
+                              : 'border-zinc-200 dark:border-zinc-700'
+                          }`}
+                        >
+                          <span className="min-w-0">
+                            <span className="block truncate text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+                              {product.title}
+                            </span>
+                            <span className="block text-xs text-zinc-500 dark:text-zinc-400">
+                              {product.slug}
+                            </span>
+                          </span>
+                          <ToggleSwitch
+                            checked={checked}
+                            disabled={disabled}
+                            label={checked ? 'On' : 'Off'}
+                            onChange={(on) => {
+                              const next = on
+                                ? [...selectedProductIds, product.id]
+                                : selectedProductIds.filter((id) => id !== product.id);
+                              onChange({
+                                ...config,
+                                creatorShowcase: { ...showcase, productIds: next },
+                              });
+                            }}
+                          />
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       ) : null}
     </div>

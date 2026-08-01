@@ -8,6 +8,8 @@ export const TOKEN_PAGE_SECTION_LABELS: Record<TokenPageSectionType, string> = {
   markets: 'Markets',
   swap: 'Swap',
   utility: 'Hub Utility',
+  shop: 'Shop',
+  author: 'vBlog Author',
   comments: 'Comments',
   links: 'Links',
   whitepaper: 'Whitepaper',
@@ -19,6 +21,8 @@ export const TOKEN_TAB_LABELS: Record<TokenContentTab, string> = {
   markets: 'Markets',
   swap: 'Swap',
   utility: 'Utility',
+  shop: 'Shop',
+  author: 'vBlog Author',
   comments: 'Comments',
 };
 
@@ -39,6 +43,8 @@ export const TOKEN_BUILDER_GROUPS: {
   { tab: 'markets', label: 'Markets', blocks: ['markets'] },
   { tab: 'swap', label: 'Swap', blocks: ['swap'] },
   { tab: 'utility', label: 'Utility', blocks: ['utility'] },
+  { tab: 'shop', label: 'Shop', blocks: ['shop'] },
+  { tab: 'author', label: 'vBlog Author', blocks: ['author'] },
   { tab: 'comments', label: 'Comments', blocks: ['comments'] },
 ];
 
@@ -70,6 +76,8 @@ const BUILDER_BLOCK_DESCRIPTIONS: Partial<Record<TokenPageSectionType, string>> 
   markets: 'Price charts, minting progress, and balances',
   swap: 'In-page token swap widget',
   utility: 'Hub integrations and instant utility',
+  shop: 'Creator Shop products linked from the Showcase module',
+  author: 'Creator vBlog articles linked from the Showcase module',
   comments: 'Community discussion thread',
 };
 
@@ -156,6 +164,8 @@ const DEFAULT_SECTIONS: TokenPageSectionConfig[] = [
   { type: 'markets', enabled: false },
   { type: 'swap', enabled: false },
   { type: 'utility', enabled: false },
+  { type: 'shop', enabled: false },
+  { type: 'author', enabled: false },
   { type: 'comments', enabled: true },
   { type: 'links', enabled: true },
   { type: 'whitepaper', enabled: false },
@@ -170,6 +180,12 @@ export function createDefaultPageConfig(enabledModuleIds: string[] = []): TokenP
       return { ...section, enabled: true };
     }
     if (section.type === 'utility' && enabledModuleIds.includes('on_chain_poll')) {
+      return { ...section, enabled: true };
+    }
+    if (
+      (section.type === 'shop' || section.type === 'author') &&
+      enabledModuleIds.includes('creator_showcase')
+    ) {
       return { ...section, enabled: true };
     }
     return { ...section };
@@ -203,6 +219,10 @@ export function sectionToTab(type: TokenPageSectionType): TokenContentTab | null
       return 'swap';
     case 'utility':
       return 'utility';
+    case 'shop':
+      return 'shop';
+    case 'author':
+      return 'author';
     case 'comments':
       return 'comments';
     default:
@@ -229,7 +249,9 @@ export function getEnabledTabs(config: TokenPageConfig | undefined): Set<TokenCo
  * dashboard (drag-and-reorder). Overview is always present and shown first.
  */
 export function getOrderedTabs(config: TokenPageConfig | undefined): TokenContentTab[] {
-  if (!config) return ['overview', 'roadmap', 'markets', 'swap', 'utility', 'comments'];
+  if (!config) {
+    return ['overview', 'roadmap', 'markets', 'swap', 'utility', 'comments'];
+  }
   const result: TokenContentTab[] = [];
   const seen = new Set<TokenContentTab>();
   for (const section of config.sections) {

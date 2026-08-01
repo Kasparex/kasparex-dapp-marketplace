@@ -18,6 +18,7 @@ import type { CovenantReadSource } from '@/lib/programmable/types';
 import { formatKcc20Sompi } from '@/lib/tokens/kcc20Lookup';
 import { TokenCopyableAddress } from '@/components/tokens/TokenCopyableAddress';
 import { TokenStatCard } from '@/components/tokens/TokenStatCard';
+import { KX_METADATA_STAT_GRID } from '@/lib/hub/shellTokens';
 
 type ProgrammableAssetPanelProps = {
   token: Token;
@@ -80,7 +81,7 @@ export function ProgrammableAssetPanel({ token }: ProgrammableAssetPanelProps) {
         compact
       />
 
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className={KX_METADATA_STAT_GRID}>
         <TokenStatCard
           label="Status"
           value={status}

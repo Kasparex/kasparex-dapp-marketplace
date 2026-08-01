@@ -20,6 +20,8 @@ const TAB_NAV_IDS: Record<string, TokenContentTab> = {
   'token-markets': 'markets',
   'token-swap': 'swap',
   'token-utility': 'utility',
+  'token-shop': 'shop',
+  'token-author': 'author',
   'token-comments': 'comments',
 };
 

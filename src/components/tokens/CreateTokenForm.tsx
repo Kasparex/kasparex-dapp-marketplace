@@ -86,6 +86,8 @@ const PAGE_SECTION_TYPES: TokenPageSectionType[] = [
   'markets',
   'swap',
   'utility',
+  'shop',
+  'author',
   'comments',
   'links',
   'whitepaper',
@@ -618,6 +620,13 @@ export function CreateTokenForm({
     if (id === 'roadmap_editor') setSectionToggles((prev) => ({ ...prev, roadmap: true }));
     if (id === 'utility_integrations') setSectionToggles((prev) => ({ ...prev, utility: true }));
     if (id === 'on_chain_poll') setSectionToggles((prev) => ({ ...prev, utility: true }));
+    if (id === 'creator_showcase') {
+      setSectionToggles((prev) => ({ ...prev, shop: true, author: true }));
+      setModulesConfig((prev) => ({
+        ...prev,
+        creatorShowcase: prev.creatorShowcase ?? { articleIds: [], productIds: [] },
+      }));
+    }
     if (id === 'highlighted_profile') {
       setModulesConfig((prev) => ({
         ...prev,
@@ -1219,6 +1228,7 @@ export function CreateTokenForm({
                       enabledModuleIds={enabledModules}
                       isRealToken={isRealToken}
                       listingNetwork={listingNetwork}
+                      creatorWallet={walletAddress}
                       disabled={isSubmitting}
                     />
                   ) : null}

@@ -9,9 +9,12 @@ import {
 } from '@/lib/tokens/networks';
 import { TokenStatCard } from '@/components/tokens/TokenStatCard';
 import { TokenCopyableAddress } from '@/components/tokens/TokenCopyableAddress';
+import { GameOverviewTitleBlock } from '@/components/games/panels/GameOverviewSections';
 import {
-  GameOverviewTitleBlock,
-} from '@/components/games/panels/GameOverviewSections';
+  KX_METADATA_STAT_GRID,
+  KX_SURFACE_NESTED,
+  metadataStatItemSpanClass,
+} from '@/lib/hub/shellTokens';
 
 type ProtocolDef = {
   id: string;
@@ -66,8 +69,8 @@ export function TokenProtocolAvailability({ token }: { token: Token }) {
         compact
       />
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {PROTOCOLS.map((protocol) => {
+      <div className={KX_METADATA_STAT_GRID}>
+        {PROTOCOLS.map((protocol, index) => {
           const match = entries.find((e) => protocol.networks.includes(e.network));
           const available = Boolean(match);
           const statusHint = !available
@@ -79,38 +82,41 @@ export function TokenProtocolAvailability({ token }: { token: Token }) {
               : match?.primary
                 ? 'Primary'
                 : 'Linked';
+          const span = metadataStatItemSpanClass(index, PROTOCOLS.length);
 
           return (
-            <TokenStatCard
-              key={protocol.id}
-              label={protocol.label}
-              tooltipTitle={protocol.label}
-              tooltipDescription={protocol.tooltip}
-              value={available ? 'Available' : 'N/A'}
-              valueClassName={
-                available
-                  ? 'text-[color:var(--hub-accent)]'
-                  : 'text-zinc-400 dark:text-zinc-500'
-              }
-              hint={available ? `${protocol.short} · ${statusHint}` : statusHint}
-            />
+            <div key={protocol.id} className={span || undefined}>
+              <TokenStatCard
+                label={protocol.label}
+                tooltipTitle={protocol.label}
+                tooltipDescription={protocol.tooltip}
+                value={available ? 'Available' : 'N/A'}
+                valueClassName={
+                  available
+                    ? 'text-[color:var(--hub-accent)]'
+                    : 'text-zinc-400 dark:text-zinc-500'
+                }
+                hint={available ? `${protocol.short} · ${statusHint}` : statusHint}
+              />
+            </div>
           );
         })}
       </div>
 
       {entries.some((e) => e.contractAddress) ? (
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className={KX_METADATA_STAT_GRID}>
           {entries
             .filter((e) => e.contractAddress)
-            .map((entry) => {
+            .map((entry, index, arr) => {
               const explorerUrl = getNetworkExplorerUrl(entry.network, entry.contractAddress);
+              const span = metadataStatItemSpanClass(index, arr.length);
               return (
                 <div
                   key={`${entry.network}-${entry.contractAddress}`}
-                  className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900/60"
+                  className={`${KX_SURFACE_NESTED} p-4 ${span}`.trim()}
                 >
                   <div className="mb-2 flex flex-wrap items-center gap-2">
-                    <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
+                    <span className="text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
                       {getNetworkChipLabel(entry.network)}
                     </span>
                     <span
@@ -120,7 +126,13 @@ export function TokenProtocolAvailability({ token }: { token: Token }) {
                           : 'bg-zinc-200 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400'
                       }`}
                     >
-                      {entry.primary ? (entry.verified ? 'Primary · verified' : 'Primary') : entry.verified ? 'Verified' : 'Linked'}
+                      {entry.primary
+                        ? entry.verified
+                          ? 'Primary · verified'
+                          : 'Primary'
+                        : entry.verified
+                          ? 'Verified'
+                          : 'Linked'}
                     </span>
                   </div>
                   <TokenCopyableAddress

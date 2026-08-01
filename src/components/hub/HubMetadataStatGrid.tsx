@@ -7,9 +7,12 @@ import { gameTooltipRich } from '@/components/games/gameTooltipRich';
 import {
   KX_METADATA_STAT_CARD,
   KX_METADATA_STAT_GRID,
+  KX_METADATA_STAT_GRID_3,
+  KX_METADATA_STAT_GRID_STACK,
   KX_METADATA_STAT_VALUE,
   KX_METADATA_STAT_VALUE_ACCENT,
   KX_METADATA_STAT_VALUE_LINK,
+  metadataStatItemSpanClass,
 } from '@/lib/hub/shellTokens';
 
 export type HubMetadataStat = {
@@ -103,13 +106,21 @@ export function HubMetadataStatGrid({
   const visible = stats.filter((s) => s.value?.trim() || s.valueNode);
   if (visible.length === 0 && !footer) return null;
 
+  const applySpan =
+    gridClassName === KX_METADATA_STAT_GRID || gridClassName === KX_METADATA_STAT_GRID_3;
+
   return (
     <div className={className}>
       {visible.length > 0 ? (
         <div className={gridClassName}>
-          {visible.map((stat) => (
-            <HubMetadataStatCard key={`${stat.label}-${stat.value}`} {...stat} />
-          ))}
+          {visible.map((stat, index) => {
+            const span = applySpan ? metadataStatItemSpanClass(index, visible.length) : '';
+            return (
+              <div key={`${stat.label}-${stat.value}`} className={span || undefined}>
+                <HubMetadataStatCard {...stat} />
+              </div>
+            );
+          })}
         </div>
       ) : null}
       {footer}

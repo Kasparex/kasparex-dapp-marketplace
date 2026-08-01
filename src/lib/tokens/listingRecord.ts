@@ -60,10 +60,11 @@ export type TokenPageSectionType =
   | 'markets'
   | 'swap'
   | 'utility'
+  | 'shop'
+  | 'author'
   | 'comments'
   | 'links'
   | 'whitepaper';
-
 export type TokenPageSectionConfig = {
   type: TokenPageSectionType;
   enabled: boolean;

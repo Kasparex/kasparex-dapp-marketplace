@@ -49,6 +49,8 @@ const TOKEN_BUILDER_TAB_PRIMARY: Partial<Record<TokenPageSectionType, TokenPageS
   markets: 'markets',
   swap: 'swap',
   utility: 'utility',
+  shop: 'shop',
+  author: 'author',
   comments: 'comments',
 };
 

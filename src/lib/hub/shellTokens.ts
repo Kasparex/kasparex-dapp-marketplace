@@ -78,13 +78,33 @@ export const KX_EMPTY_STATE =
 /** Tokens / Hub metadata / Overview stat card chrome (subtle nest + discrete border). */
 export const KX_METADATA_STAT_CARD = `${KX_SURFACE_NESTED} p-4 sm:p-5 font-sans`;
 
-/** Default 2-col metadata grid (dApps / Tokens style). */
-export const KX_METADATA_STAT_GRID = 'grid grid-cols-1 gap-3 sm:grid-cols-2';
+/**
+ * Default Hub metadata / stat box grid: max 3 per row.
+ * When a row would leave a single leftover (count % 3 === 1), that last box spans full width.
+ * Use `metadataStatItemSpanClass(index, count)` on each child.
+ */
+export const KX_METADATA_STAT_GRID =
+  'grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3';
 
 /** Single-column stack (vBlog aside On-chain metadata). */
 export const KX_METADATA_STAT_GRID_STACK = 'grid grid-cols-1 gap-3';
 
-export const KX_METADATA_STAT_GRID_3 = 'grid gap-4 sm:grid-cols-3';
+/** Alias: same max-3 rule as the default metadata grid. */
+export const KX_METADATA_STAT_GRID_3 = KX_METADATA_STAT_GRID;
+
+/** Full-width span for leftover 4th / 7th / … box under the max-3 grid. */
+export const KX_METADATA_STAT_SPAN_FULL = 'sm:col-span-2 lg:col-span-3';
+
+/**
+ * Last item spans the full row when it would sit alone under a 3-column grid
+ * (4, 7, 10, … items). Single-item grids stay normal width.
+ */
+export function metadataStatItemSpanClass(index: number, count: number): string {
+  if (count > 1 && count % 3 === 1 && index === count - 1) {
+    return KX_METADATA_STAT_SPAN_FULL;
+  }
+  return '';
+}
 
 /** Primary value: keep the original Hub/dApp card weight (xl), standard sans. */
 export const KX_METADATA_STAT_VALUE =

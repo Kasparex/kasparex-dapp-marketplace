@@ -25,4 +25,5 @@ When placing a box, card, or container **inside** another panel, give it a **sli
 ## Examples
 
 - Metadata / Overview stats → `KX_METADATA_STAT_CARD` + `HubMetadataStatGrid` / `TokenStatCard`
+- Grids → `KX_METADATA_STAT_GRID` (max 3 cols; leftover single box full-width via `metadataStatItemSpanClass`)
 - Form fee groups → `KX_FORM_NESTED_GROUP`

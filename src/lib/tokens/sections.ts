@@ -1,7 +1,15 @@
 /** Shared layout for token tab panel sections (consistent headline spacing). */
 export const TOKEN_TAB_SECTION_CLASS = 'scroll-mt-28 space-y-6';
 
-export type TokenContentTab = 'overview' | 'roadmap' | 'markets' | 'swap' | 'utility' | 'comments';
+export type TokenContentTab =
+  | 'overview'
+  | 'roadmap'
+  | 'markets'
+  | 'swap'
+  | 'utility'
+  | 'shop'
+  | 'author'
+  | 'comments';
 
 export function getTokenWhitepaperUrl(token: {
   whitepaperUrl?: string;

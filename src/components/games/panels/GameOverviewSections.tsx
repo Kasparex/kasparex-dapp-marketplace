@@ -85,7 +85,7 @@ function splitLoreIntoBlocks(raw: string): Array<{ type: 'heading' | 'p'; text: 
 
 /** Hub-accent kicker (not Chronicles cyan). Tilt sits beside this label only. */
 export const GAME_OVERVIEW_KICKER =
-  'text-xs font-black uppercase tracking-widest text-[color:var(--hub-accent,#10b981)]';
+  'text-xs font-black uppercase tracking-widest text-[color:var(--hub-accent,#10b981)] dark:text-[color:var(--hub-accent-light,var(--hub-accent,#10b981))]';
 
 export const GAME_OVERVIEW_SUBTITLE =
   `${KX_TITLE_TO_TEASER} text-base font-medium leading-7 text-zinc-500 dark:text-zinc-400`;
