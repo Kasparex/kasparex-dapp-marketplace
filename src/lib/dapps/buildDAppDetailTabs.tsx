@@ -26,6 +26,7 @@ function iconForWidgetPageTab(tabId: string) {
     case 'create':
     case 'launch':
     case 'mint':
+    case 'wrap':
       return <IconWidgetCreate />;
     case 'browse':
       return <IconWidgetBrowse />;
@@ -34,6 +35,8 @@ function iconForWidgetPageTab(tabId: string) {
     case 'deals':
     case 'claim':
     case 'messages':
+    case 'history':
+    case 'unwrap':
       return <IconWidgetList />;
     case 'metadata':
       return <IconMetadata />;

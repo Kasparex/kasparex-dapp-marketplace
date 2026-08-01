@@ -14,7 +14,9 @@ export interface UseKREXBalanceReturn {
   balance: number;
   l1Balance: number;
   l2Balance: number;
-  /** Tier from total (L1 + L2). Use for fee/cost UI. */
+  /** Wrapped KREX (KCC20) counted toward Hub tiers when configured. */
+  kcc20Balance: number;
+  /** Tier from total (L1 + L2 + KCC20). Use for fee/cost UI. */
   tier: KREXTier;
   /** Tier from this chain's balance only. */
   tierForChain: KREXTier;
@@ -39,6 +41,7 @@ export function useKREXBalance(): UseKREXBalanceReturn {
   const [balanceData, setBalanceData] = useState<KREXBalanceResult>({
     l1: 0,
     l2: 0,
+    kcc20: 0,
     total: 0,
   });
   const [isLoading, setIsLoading] = useState(false);
@@ -48,7 +51,7 @@ export function useKREXBalance(): UseKREXBalanceReturn {
   const fetchKREXBalance = useCallback(async () => {
     // If no wallets connected, reset state
     if (!isWalletConnected || (!l1Address && !l2Address)) {
-      setBalanceData({ l1: 0, l2: 0, total: 0 });
+      setBalanceData({ l1: 0, l2: 0, kcc20: 0, total: 0 });
       setIsLoading(false);
       setError(null);
       hasLoadedRef.current = false;
@@ -68,7 +71,7 @@ export function useKREXBalance(): UseKREXBalanceReturn {
       console.error('Error fetching KREX balance:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch KREX balance');
       // Set zeros on error
-      setBalanceData({ l1: 0, l2: 0, total: 0 });
+      setBalanceData({ l1: 0, l2: 0, kcc20: 0, total: 0 });
     } finally {
       setIsLoading(false);
     }
@@ -87,6 +90,7 @@ export function useKREXBalance(): UseKREXBalanceReturn {
     balance: balanceData.total,
     l1Balance: balanceData.l1,
     l2Balance: balanceData.l2,
+    kcc20Balance: balanceData.kcc20,
     tier,
     tierForChain,
     isLoading,

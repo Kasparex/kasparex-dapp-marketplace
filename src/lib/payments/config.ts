@@ -70,6 +70,19 @@ const DEFAULT_PAYMENT_CONFIGS: Record<string, PaymentConfig> = {
       },
     ],
   },
+  'krex-wrap-bridge': {
+    dappId: 'krex-wrap-bridge',
+    networkType: 'L1',
+    actions: [
+      {
+        actionId: 'wrap',
+        actionName: 'Wrap KREX',
+        baseCost: 2.0,
+        costL1: 2.0,
+        nextStep: 'Deposit KRC-20 to vault',
+      },
+    ],
+  },
   'kaspa-capsule': {
     dappId: 'kaspa-capsule',
     networkType: 'L1',
@@ -201,7 +214,11 @@ export function getDAppPaymentConfig(
   if (nameLower.includes('send krex') || slug === 'send-krex') {
     return DEFAULT_PAYMENT_CONFIGS['send-krex'];
   }
-  
+
+  if (nameLower.includes('wrap') || slug === 'krex-wrap-bridge') {
+    return DEFAULT_PAYMENT_CONFIGS['krex-wrap-bridge'];
+  }
+
   if (nameLower.includes('vdonation') || slug === 'vdonations') {
     return DEFAULT_PAYMENT_CONFIGS['vdonations'];
   }

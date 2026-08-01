@@ -168,6 +168,7 @@ export function quoteCurrencyForDApp(dapp: DApp, chainId?: number): string {
 export function getHubPointsBaseForAction(dapp: DApp, actionId: string): number {
   const slug = dapp.slug ?? '';
   if (slug === 'send-kas' || slug === 'send-krex') return HUB_EARN_POINTS.dappL1Interaction;
+  if (slug === 'krex-wrap-bridge') return HUB_EARN_POINTS.dappL1Interaction;
   if (actionId === 'submit-proposal') return HUB_EARN_POINTS.dappDirectoryList;
   if (actionId === 'cast-vote') return HUB_EARN_POINTS.dappL1Interaction;
   if (actionId === 'send-payment') return HUB_EARN_POINTS.dappDirectoryList;

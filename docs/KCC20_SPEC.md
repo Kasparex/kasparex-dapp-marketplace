@@ -131,8 +131,10 @@ See also:
 | Today (KREX L1) | Possible KCC20 path |
 |-----------------|---------------------|
 | KRC-20 inscription + external indexer (Kasplex / KasWare) | Covenant UTXOs + TokenDescriptor + Reader |
-| Tier checks via `queryL1KREXBalance` | Tier checks via Reader UTXO set for owner |
+| Tier checks via `queryL1KREXBalance` | Tier checks via Reader UTXO set for owner (**also:** wrapped KCC20 via `queryKcc20KrexBalance` in Hub total) |
 | No on-chain composability with Hub covenants | Atomic KCC20 + covenant flows (e.g. lock KREX in lockbox, crowdfund in KCC20) |
+
+Wrap / migrate path: [KREX_WRAP_BRIDGE.md](./KREX_WRAP_BRIDGE.md) (`/dapps/krex-wrap-bridge`).
 
 ### Architecture alignment
 

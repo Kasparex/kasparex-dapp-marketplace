@@ -172,6 +172,34 @@ export const placeholderDApps: DApp[] = [
     createdAt: new Date().toISOString(),
   },
   {
+    id: 'krex-wrap-bridge',
+    name: 'KREX Wrap Bridge',
+    slug: 'krex-wrap-bridge',
+    featuredImage: 'https://static.wixstatic.com/media/de4185_80a72a2cb33b49909fe69fccc8991a37~mv2.png',
+    category: 'payment',
+    utility: 'Wrap KRC-20 KREX into KCC20 for covenant-native Hub utility while keeping 1:1 economic claim.',
+    process: 'Pay a small KAS wrap fee, send KRC-20 KREX to the keyless vault, then receive matching KCC20 when the mint watcher confirms.',
+    benefits: 'Same Hub tiers and multipliers once wrapped KCC20 is counted. One-way burn-in first; two-way unwrap later.',
+    developer: 'Kasparex',
+    developerLinks: [
+      { label: 'Website', url: 'https://www.kasparex.com' },
+      { label: 'Telegram', url: 'https://t.me/kasparex' },
+      { label: 'X (Twitter)', url: 'https://x.com/kasparex' },
+    ],
+    status: 'Mainnet',
+    network: 'Kaspa Mainnet',
+    networkType: 'L1',
+    provider: 'Kasparex',
+    version: '0.1.0',
+    description:
+      'KREX Wrap Bridge moves inscription KRC-20 KREX into a vault and mints covenant KCC20 1:1. Hub fees are paid in KAS with KREX tier discounts. Wrapped balances count toward Hub tiers when the KCC20 covenant id is configured.',
+    security:
+      'KRC-20 side relies on indexer-confirmed deposits to a configured vault. KCC20 mint is fulfilled by an automated watcher. This is not a fully trustless consensus bridge.',
+    roadmap:
+      'Now: One-way wrap UI + fee rail + deposit verify API + KCC20 balance in tier total\nNext: Production vault address + mint watcher\nLater: Two-way unwrap and multi-token factory',
+    createdAt: new Date().toISOString(),
+  },
+  {
     id: 'kaspa-capsule',
     name: 'Kaspa Capsule',
     slug: 'kaspa-capsule',

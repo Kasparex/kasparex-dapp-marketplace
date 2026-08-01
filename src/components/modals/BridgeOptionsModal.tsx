@@ -47,6 +47,19 @@ export function BridgeOptionsModal({
         <div className="p-5 space-y-3">
           <button
             type="button"
+            onClick={() => {
+              window.location.href = '/dapps/krex-wrap-bridge';
+              onClose();
+            }}
+            className="w-full px-4 py-3 rounded-xl bg-[#02abb8] hover:bg-[#028a94] text-white font-semibold transition-colors text-left"
+            title="Wrap KRC-20 KREX into KCC20 on Kaspa L1"
+          >
+            <div className="text-sm">Wrap KREX (KRC-20 → KCC20)</div>
+            <div className="text-xs text-white/80 mt-0.5">Open KREX Wrap Bridge on Hub</div>
+          </button>
+
+          <button
+            type="button"
             onClick={() => open(BRIDGE_URLS.katBridge)}
             className="w-full px-4 py-3 rounded-xl bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-900 dark:text-zinc-100 font-semibold transition-colors text-left"
             title="Bridge KRC-20 tokens like KREX"

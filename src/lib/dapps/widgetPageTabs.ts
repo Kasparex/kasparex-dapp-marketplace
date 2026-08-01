@@ -32,6 +32,11 @@ export const WIDGET_PAGE_TABS: Record<string, readonly DAppTabDef[]> = {
     { id: 'messages', label: 'Messages' },
     { id: 'metadata', label: 'Metadata' },
   ],
+  'krex-wrap-bridge': [
+    { id: 'wrap', label: 'Wrap' },
+    { id: 'history', label: 'History' },
+    { id: 'unwrap', label: 'Unwrap' },
+  ],
 };
 
 export function getWidgetPageTabs(slug?: string): readonly DAppTabDef[] {
@@ -47,5 +52,6 @@ export function hasWidgetMetadataTab(slug?: string): boolean {
 export function isWidgetCalculationTab(tabId: string, slug?: string): boolean {
   const widgetTabs = getWidgetPageTabs(slug);
   if (widgetTabs.length === 0) return tabId === 'widget';
+  if (slug === 'krex-wrap-bridge') return tabId === 'wrap';
   return tabId === 'create';
 }
