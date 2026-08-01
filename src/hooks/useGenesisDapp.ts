@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { getGenesisDappSimulator } from '@/lib/vprogs/genesis-simulator';
 import { computeGenesisMessageQuote } from '@/lib/genesis/pricing';
@@ -42,10 +42,6 @@ export function useGenesisDapp(): UseGenesisDappReturn {
   const { catalogEntries, pricingSnapshot } = useHubPayWithCatalog({
     amountKas: quoteKasHint,
   });
-  const paymentOption = useMemo(
-    () => resolveCatalogPaymentOption(catalogEntries, payCurrencyId),
-    [catalogEntries, payCurrencyId],
-  );
 
   const simulator = getGenesisDappSimulator();
 
@@ -80,6 +76,8 @@ export function useGenesisDapp(): UseGenesisDappReturn {
       try {
         const quote = computeGenesisMessageQuote(contentHtml, address, tier);
         setQuoteKasHint(quote.totalKas);
+        // Resolve Pay with at click-time so the rail currency matches the wallet prompts.
+        const paymentOption = resolveCatalogPaymentOption(catalogEntries, payCurrencyId);
         const payment = await sendKaspaCapsulePayment({
           provider: provider as KaspaWalletProvider,
           author: address,
@@ -131,7 +129,8 @@ export function useGenesisDapp(): UseGenesisDappReturn {
       loadMessages,
       tier,
       krexBalance,
-      paymentOption,
+      catalogEntries,
+      payCurrencyId,
       pricingSnapshot,
     ],
   );

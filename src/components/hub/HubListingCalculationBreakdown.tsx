@@ -13,6 +13,7 @@ import type { HubCurrencyCatalogEntry } from '@/lib/payments/currencyCatalog';
 import type { HubPaymentCurrencyOption } from '@/lib/payments/hubPaymentTypes';
 import { formatHubPaymentAmount } from '@/lib/payments/hubPaymentTypes';
 import { buildHubPlatformFeePlan } from '@/lib/payments/paymentPlan';
+import { hubPaymentSplitFooter } from '@/lib/payments/paymentSplitCopy';
 import { formatHubPointsTierLabel } from '@/lib/rewards/hub-points';
 import { KREX_TIERS } from '@/lib/rewards/types';
 
@@ -87,7 +88,7 @@ export function HubListingCalculationBreakdown({
   }, [quote.totalKas, treasuryAddress, isKasRail]);
 
   const showPayBox = showPayWith && catalogEntries.length > 0;
-  const showSplit = Boolean(splitLegs && splitLegs.length > 1);
+  const showSplit = Boolean(splitLegs && splitLegs.length >= 1);
   const tokenRailNote = !isKasRail
     ? 'Settled in one token transfer at the Total above. No second full-price KAS charge.'
     : null;
@@ -176,7 +177,7 @@ export function HubListingCalculationBreakdown({
         ) : null}
         {showSplit ? (
           <div className="space-y-1.5 border-t border-zinc-200 pt-3 dark:border-zinc-800">
-            <p className="text-xs uppercase tracking-widest text-zinc-500">Payment split</p>
+            <p className="text-xs uppercase tracking-widest text-zinc-500">Payment outputs</p>
             {splitLegs!.map((leg) => (
               <div
                 key={`${leg.role}-${leg.address}`}
@@ -188,9 +189,11 @@ export function HubListingCalculationBreakdown({
                 </span>
               </div>
             ))}
-            <p className="pt-1 text-[11px] text-zinc-500">
-              One transaction. Change returns to your wallet.
-            </p>
+            <div className="flex justify-between gap-2 text-xs text-zinc-500">
+              <span>Change</span>
+              <span className="shrink-0 tabular-nums">back to your wallet</span>
+            </div>
+            <p className="pt-1 text-[11px] text-zinc-500">{hubPaymentSplitFooter()}</p>
           </div>
         ) : null}
       </div>

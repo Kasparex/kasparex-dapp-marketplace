@@ -187,11 +187,11 @@ export function covenantDeployToHubQuote(
   const lines: HubQuoteLine[] = [];
   if (lockAmountKas != null && lockAmountKas > 0) {
     lines.push({
-      label: 'Amount to lock (covenant)',
+      label: 'Amount to lock (separate wallet prompts)',
       value: `${formatPrice(lockAmountKas)} KAS`,
     });
   }
-  lines.push({ label: 'Base fee (deploy)', value: `${formatPrice(pricing.baseFeeKas)} KAS` });
+  lines.push({ label: 'Hub deploy fee (before discount)', value: `${formatPrice(pricing.baseFeeKas)} KAS` });
 
   if (pricing.premiumAddonKas > 0 && pricing.extraSlotCount > 0) {
     const slotLabel =
@@ -207,6 +207,10 @@ export function covenantDeployToHubQuote(
   }
 
   const grossDeployFeeKas = pricing.baseFeeKas + pricing.premiumAddonKas;
+  const lockNote =
+    lockAmountKas != null && lockAmountKas > 0
+      ? ` Lock principal (${formatPrice(lockAmountKas)} KAS) is signed in separate lock transaction(s) and is not part of the Hub fee total below.`
+      : '';
   const quote = totalDiscountQuote(
     pricing.waived ? 0 : grossDeployFeeKas,
     'KAS',
@@ -216,8 +220,8 @@ export function covenantDeployToHubQuote(
     {
       hubPoints: pricing.hubPointsEarned,
       infoText: pricing.waived
-        ? 'Platform fee is waived when treasury is not configured. Lock principal stays separate from this fee.'
-        : 'Fee is a separate KAS transfer to Kasparex treasury before your covenant deploy. Locked funds are not taken from this fee.',
+        ? `Platform fee is waived when treasury is not configured.${lockNote}`
+        : `Total to pay is the Hub fee only.${lockNote}`,
     },
   );
 
@@ -244,15 +248,26 @@ export function genesisMessageToHubQuote(
     { label: 'Chunk estimate', value: String(quote.chunkCount) },
   ];
 
-  return totalDiscountQuote(quote.subtotalKas, 'KAS', krexTier, krexBalance, lines, {
+  // Use genesis quote totals directly (already discounted once). Do not re-apply tier discount.
+  return {
+    lines,
+    subtotalKas: quote.discountKas > 0 ? quote.subtotalKas : undefined,
+    discountKas: quote.discountKas,
+    discountPercent: quote.discountPercent,
+    discountCurrency: 'KAS',
+    totalKas: quote.totalKas,
+    currency: 'KAS',
     hubPoints: computeHubPointsForAction({
       dapp: { slug: 'kaspa-capsule', networkType: 'L1' } as DApp,
       actionId: 'leave-message',
       tier: krexTier,
     }),
+    hubPointsDetail: formatHubPointsTierLabel(krexTier),
     infoText:
       'Your message is stored on Kaspa L1. Larger messages use more payload chunks and increase the size fee.',
-  });
+    tierLabel: KREX_TIERS[krexTier].label,
+    hasKrexDiscount: quote.discountKas > 0 && krexBalance >= KREX_TIERS.Tier1.minKREX,
+  };
 }
 
 /** L1 native/KRC-20 transfers: tier discount applies to network buffer total. */

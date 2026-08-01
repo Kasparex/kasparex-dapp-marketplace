@@ -163,7 +163,7 @@ export function CovenantSplitWidget() {
       id: 'split-info',
       tone: 'info',
       message:
-        'Split creates one lock per recipient for their share. You approve one lock transaction per recipient, then a single Hub deployment fee.',
+        'Split locks each recipient share in its own wallet prompt first (those amounts are the lock principal). After all locks, you pay the Hub fee shown under Total to pay. That fee is separate from the locked KAS.',
     });
     if (!sharesOk) {
       alerts.push({

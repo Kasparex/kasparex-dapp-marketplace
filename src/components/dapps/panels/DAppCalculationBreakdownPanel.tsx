@@ -23,7 +23,11 @@ import { useHubPayWithCatalog, hubCatalogSelectionToStoreCurrency } from '@/hook
 import { resolveCatalogPaymentOption } from '@/lib/payments/currencyCatalog';
 import { formatHubPaymentAmount } from '@/lib/payments/hubPaymentTypes';
 import { buildHubPlatformFeePlan } from '@/lib/payments/paymentPlan';
-import { HUB_TOKEN_RAIL_FEE_MIN_KAS } from '@/lib/payments/tokenRailKasFee';
+import {
+  buildHubTokenRailCommitPlan,
+  HUB_TOKEN_RAIL_FEE_MIN_KAS,
+} from '@/lib/payments/tokenRailKasFee';
+import { hubPaymentSplitFooter } from '@/lib/payments/paymentSplitCopy';
 import { getKaspaCapsuleTreasuryL1Address } from '@/lib/genesis/config';
 import { KREXBuyWizard } from '@/components/rewards/KREXBuyWizard';
 import type { ReactNode } from 'react';
@@ -134,22 +138,29 @@ export const DAppCalculationBreakdownPanel = memo(function DAppCalculationBreakd
   /** Peer transfers are not Hub platform fees; never preview a treasury/rewards split. */
   const isPeerTransfer = dapp.slug === 'send-kas' || dapp.slug === 'send-krex';
 
+  const isKasRail = paymentOption.kind === 'kas' || payCurrencyId === 'KAS';
+  const needsTokenCommit = !isKasRail && dapp.slug === 'kaspa-capsule';
+
   const splitLegs = useMemo(() => {
     if (!quote || isPeerTransfer) return undefined;
-    const isKasRail = paymentOption.kind === 'kas' || payCurrencyId === 'KAS';
-    if (!isKasRail) return undefined;
     try {
       const treasury =
         dapp.slug === 'kaspa-capsule' ? getKaspaCapsuleTreasuryL1Address() : undefined;
-      const legs = buildHubPlatformFeePlan({
-        totalKas: quote.totalKas,
-        treasuryAddress: treasury,
-      }).legs;
-      return legs.length > 1 ? legs : undefined;
+      if (isKasRail) {
+        const legs = buildHubPlatformFeePlan({
+          totalKas: quote.totalKas,
+          treasuryAddress: treasury,
+        }).legs;
+        return legs.length > 0 ? legs : undefined;
+      }
+      if (needsTokenCommit) {
+        return buildHubTokenRailCommitPlan({ treasuryAddress: treasury }).legs;
+      }
+      return undefined;
     } catch {
       return undefined;
     }
-  }, [quote, dapp.slug, isPeerTransfer, paymentOption.kind, payCurrencyId]);
+  }, [quote, dapp.slug, isPeerTransfer, isKasRail, needsTokenCommit]);
 
   const displayLines = useMemo(() => {
     if (!quote) return [];
@@ -161,8 +172,6 @@ export const DAppCalculationBreakdownPanel = memo(function DAppCalculationBreakd
     }));
   }, [quote, paymentOption, pricingSnapshot]);
 
-  const isKasRail = paymentOption.kind === 'kas' || payCurrencyId === 'KAS';
-  const needsTokenCommit = !isKasRail && dapp.slug === 'kaspa-capsule';
   const totalPayLabel = quote
     ? needsTokenCommit
       ? `${formatPayAmount(quote.totalKas)} + ${HUB_TOKEN_RAIL_FEE_MIN_KAS} KAS commit`
@@ -178,7 +187,7 @@ export const DAppCalculationBreakdownPanel = memo(function DAppCalculationBreakd
   const steps = flowSteps ?? getHubFlowPreset(isCovenant ? 'covenantCreate' : 'hubPay');
   const showPayWith =
     !isCovenant && !isPeerTransfer && networkType === 'L1' && catalogEntries.length > 0;
-  const showSplit = Boolean(splitLegs && splitLegs.length > 1);
+  const showSplit = Boolean(splitLegs && splitLegs.length >= 1);
   const infoText =
     quote?.infoText &&
     (isKasRail
@@ -210,18 +219,28 @@ export const DAppCalculationBreakdownPanel = memo(function DAppCalculationBreakd
               </div>
             ))}
             {quote.subtotalKas != null && quote.discountKas > 0 ? (
-              <div className="flex justify-between gap-2 border-t border-zinc-200 pt-2 dark:border-zinc-700">
-                <span>Subtotal</span>
-                <span className="font-semibold text-zinc-900 dark:text-zinc-100 tabular-nums">
-                  {formatPayAmount(quote.subtotalKas)}
-                </span>
-              </div>
+              <>
+                <div className="flex justify-between gap-2 border-t border-zinc-200 pt-2 dark:border-zinc-700">
+                  <span>Subtotal</span>
+                  <span className="font-semibold text-zinc-900 dark:text-zinc-100 tabular-nums">
+                    {formatPayAmount(quote.subtotalKas)}
+                  </span>
+                </div>
+                <div className="flex justify-between gap-2 text-emerald-700 dark:text-emerald-300">
+                  <span>KREX discount ({quote.discountPercent}%)</span>
+                  <span className="font-semibold tabular-nums">
+                    -{formatPayAmount(quote.discountKas)}
+                  </span>
+                </div>
+              </>
             ) : null}
           </div>
 
           <div className="space-y-3 rounded-xl border border-zinc-200 p-3 dark:border-zinc-700">
             <div>
-              <p className="text-xs uppercase tracking-widest text-zinc-500">Total to pay</p>
+              <p className="text-xs uppercase tracking-widest text-zinc-500">
+                {isCovenant ? 'Hub fee to pay' : 'Total to pay'}
+              </p>
               <p className="text-2xl font-black text-zinc-900 dark:text-zinc-100 tabular-nums">
                 {totalPayLabel}
               </p>
@@ -240,7 +259,9 @@ export const DAppCalculationBreakdownPanel = memo(function DAppCalculationBreakd
             ) : null}
             {showSplit ? (
               <div className="space-y-1.5 border-t border-zinc-200 pt-3 dark:border-zinc-700">
-                <p className="text-xs uppercase tracking-widest text-zinc-500">Payment split</p>
+                <p className="text-xs uppercase tracking-widest text-zinc-500">
+                  {needsTokenCommit ? 'KAS commit outputs' : 'Payment outputs'}
+                </p>
                 {splitLegs!.map((leg) => (
                   <div
                     key={`${leg.role}-${leg.address}`}
@@ -252,8 +273,12 @@ export const DAppCalculationBreakdownPanel = memo(function DAppCalculationBreakd
                     </span>
                   </div>
                 ))}
+                <div className="flex justify-between gap-2 text-xs text-zinc-500">
+                  <span>Change</span>
+                  <span className="shrink-0 tabular-nums">back to your wallet</span>
+                </div>
                 <p className="pt-1 text-[11px] text-zinc-500">
-                  One transaction. Change returns to your wallet.
+                  {hubPaymentSplitFooter({ isTokenCommit: needsTokenCommit })}
                 </p>
               </div>
             ) : null}

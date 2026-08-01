@@ -20,6 +20,7 @@ import {
 } from '@/lib/payments/currencyCatalog';
 import type { HubPaymentCurrencyOption, HubPaymentQuoteLine } from '@/lib/payments/hubPaymentTypes';
 import type { PaymentLeg } from '@/lib/payments/paymentPlan';
+import { hubPaymentSplitFooter } from '@/lib/payments/paymentSplitCopy';
 import type { KREXTier } from '@/lib/rewards/types';
 
 export function HubPaymentPanel({
@@ -203,9 +204,9 @@ export function HubPaymentPanel({
           </div>
         ) : null}
 
-        {splitLegs && splitLegs.length > 1 ? (
+        {splitLegs && splitLegs.length >= 1 ? (
           <div className="space-y-1.5 border-t border-zinc-200 pt-3 dark:border-zinc-700">
-            <p className="text-xs uppercase tracking-widest text-zinc-500">Payment split</p>
+            <p className="text-xs uppercase tracking-widest text-zinc-500">Payment outputs</p>
             {splitLegs.map((leg) => (
               <div
                 key={`${leg.role}-${leg.address}`}
@@ -220,9 +221,12 @@ export function HubPaymentPanel({
                 </span>
               </div>
             ))}
+            <div className="flex justify-between gap-2 text-xs text-zinc-500">
+              <span>Change</span>
+              <span className="shrink-0 tabular-nums">back to your wallet</span>
+            </div>
             <p className="pt-1 text-[11px] text-zinc-500">
-              {splitInfoText ??
-                'KAS: one multi-out tx. Token / KREX listing fees: one token transfer settles the fee (optional min KAS commit only when an L1 payload is required). Change returns to your wallet.'}
+              {splitInfoText ?? hubPaymentSplitFooter()}
             </p>
           </div>
         ) : null}

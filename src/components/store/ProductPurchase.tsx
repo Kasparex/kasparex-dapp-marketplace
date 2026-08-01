@@ -17,6 +17,7 @@ import { buildHubCheckoutCurrencyOptions } from '@/lib/payments/hubPaymentTypes'
 import { buildPublicHubCurrencyCatalog } from '@/lib/payments/publicPaymentTokens';
 import { buildCreatorPlatformPlan } from '@/lib/payments/paymentPlan';
 import { splitTokenPayment } from '@/lib/payments/splitTokenPayment';
+import { hubPaymentSplitFooter } from '@/lib/payments/paymentSplitCopy';
 import type { Product } from '@/lib/store/types';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useIntegratedTokens } from '@/hooks/useIntegratedToken';
@@ -182,7 +183,7 @@ export function ProductPurchase({ product, onPurchaseComplete }: ProductPurchase
           splitInfoText={
             payWithToken
               ? undefined
-              : 'One multi-out KAS transaction. Change returns to your wallet.'
+              : hubPaymentSplitFooter()
           }
           infoText={
             payWithToken

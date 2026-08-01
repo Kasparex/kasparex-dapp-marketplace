@@ -3,20 +3,21 @@
  *
  * Token / KREX already settles the economic amount to treasury.
  * A native KAS tx is only needed when we must attach an L1 payload
- * (capsule / token listing commit). That commit uses the Hub min multi-out
- * floor so treasury + rewards can split — never the full quote again.
+ * (capsule / token listing commit). That commit is a fixed min amount
+ * to treasury only (no rewards split, never the full quote again).
  */
 
 import type { KaspaWalletProvider } from '@/lib/kaspa/types';
 import { extractKaspaTransactionId } from '@/lib/kaspa/transactionId';
 import { payKasPaymentPlan } from '@/lib/payments/kasMultiOutPay';
 import {
-  buildHubPlatformFeePlan,
   HUB_PAYMENT_MIN_LEG_KAS,
   getHubTreasuryAddress,
+  type PaymentPlan,
 } from '@/lib/payments/paymentPlan';
+import { normalizeKaspaAddress } from '@/lib/kaspa/sdk';
 
-/** Min KAS so treasury + rewards can both meet the Hub min-leg when a commit is required. */
+/** Fixed KAS commit after token settlement (single treasury out). */
 export const HUB_TOKEN_RAIL_FEE_MIN_KAS = HUB_PAYMENT_MIN_LEG_KAS * 2;
 
 /** @deprecated Alias of the commit floor (not a listing fee). */
@@ -35,6 +36,41 @@ export function hubTokenRailNeedsKasCommit(args: {
   forceCommit?: boolean;
 }): boolean {
   return Boolean(args.payloadHex?.trim()) || args.forceCommit === true;
+}
+
+function normAddress(address: string): string {
+  const trimmed = address.trim();
+  if (!trimmed) throw new Error('Payment leg address is empty');
+  try {
+    return normalizeKaspaAddress(trimmed);
+  } catch {
+    return trimmed.startsWith('kaspa:') || trimmed.startsWith('kaspatest:')
+      ? trimmed
+      : `kaspa:${trimmed}`;
+  }
+}
+
+/** Single-leg commit plan so wallet payment outs = 1 (+ change), amount = exactly 2 KAS. */
+export function buildHubTokenRailCommitPlan(args: {
+  treasuryAddress?: string;
+  note?: string;
+  payloadHex?: string;
+}): PaymentPlan {
+  const treasury = (args.treasuryAddress ?? getHubTreasuryAddress()).trim();
+  if (!treasury) throw new Error('Treasury address is not configured for the Hub KAS commit step');
+  return {
+    legs: [
+      {
+        role: 'treasury',
+        address: normAddress(treasury),
+        amount: HUB_TOKEN_RAIL_FEE_MIN_KAS,
+        label: 'L1 payload commit',
+        required: true,
+      },
+    ],
+    note: args.note ?? 'hub-token-rail-commit',
+    payloadHex: args.payloadHex,
+  };
 }
 
 /**
@@ -59,15 +95,9 @@ export async function payHubTokenRailKasFee(args: {
     return null;
   }
 
-  const feeKas = HUB_TOKEN_RAIL_FEE_MIN_KAS;
-  const treasury = (args.treasuryAddress ?? getHubTreasuryAddress()).trim();
-  if (!treasury) {
-    throw new Error('Treasury address is not configured for the Hub KAS commit step');
-  }
-  const plan = buildHubPlatformFeePlan({
-    totalKas: feeKas,
-    treasuryAddress: treasury,
-    note: args.note ?? 'hub-token-rail-commit',
+  const plan = buildHubTokenRailCommitPlan({
+    treasuryAddress: args.treasuryAddress,
+    note: args.note,
     payloadHex: args.payloadHex,
   });
   const paid = await payKasPaymentPlan(args.provider, plan, args.senderAddress);

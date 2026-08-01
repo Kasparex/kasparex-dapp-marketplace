@@ -27,7 +27,12 @@ import { buildKasKrexCurrencyOptions, formatHubPaymentAmount } from '@/lib/payme
 import type { HubPaymentCurrencyOption } from '@/lib/payments/hubPaymentTypes';
 import { buildPublicHubCurrencyCatalog, listPublicVerifiedPaymentTokens } from '@/lib/payments/publicPaymentTokens';
 import { buildHubPlatformFeePlan } from '@/lib/payments/paymentPlan';
-import { HUB_TOKEN_RAIL_FEE_MIN_KAS } from '@/lib/payments/tokenRailKasFee';
+import {
+  buildHubTokenRailCommitPlan,
+  HUB_TOKEN_RAIL_FEE_MIN_KAS,
+} from '@/lib/payments/tokenRailKasFee';
+import { hubPaymentSplitFooter } from '@/lib/payments/paymentSplitCopy';
+import { getTokensTreasuryL1Address } from '@/lib/tokens/config';
 import { filterModulesForAssetKind, filterModuleOffersForListing, isIntegrationModule } from '@/lib/tokens/utilityEligibility';
 import { estimateTokenListingQuote } from '@/lib/tokens/pricing';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
@@ -37,7 +42,6 @@ import { TokenModuleConfigFields, tokenModuleHasConfigFields } from '@/component
 import { krexTierDiscountPercent } from '@/lib/chronicles/vault/pricing';
 import type { Token } from '@/lib/tokens/types';
 import type { PublishedTokenListing, TokenAssetKind, TokenOnChainSnapshot, TokenNetworkEntry, TokenPageSectionType, TokenOwnershipProof, TokenOwnershipStatus } from '@/lib/tokens/listingRecord';
-import { getTokensTreasuryL1Address } from '@/lib/tokens/config';
 import { createDefaultPageConfig, applyPageSectionConfig, OVERVIEW_CANVAS_BLOCKS } from '@/lib/tokens/pageConfig';
 import {
   TOKEN_LISTING_NETWORK_OPTIONS,
@@ -1332,17 +1336,27 @@ export function CreateTokenForm({
               setPaymentOption(opt);
             }}
             splitLegs={(() => {
-              if (paymentOption.kind !== 'kas' && paymentCurrency !== 'KAS') return undefined;
               try {
-                const legs = buildHubPlatformFeePlan({
-                  totalKas: formQuote.totalKas,
+                const isKasRail = paymentOption.kind === 'kas' || paymentCurrency === 'KAS';
+                if (isKasRail) {
+                  const legs = buildHubPlatformFeePlan({
+                    totalKas: formQuote.totalKas,
+                    treasuryAddress: getTokensTreasuryL1Address(),
+                  }).legs;
+                  return legs.length > 0 ? legs : undefined;
+                }
+                return buildHubTokenRailCommitPlan({
                   treasuryAddress: getTokensTreasuryL1Address(),
                 }).legs;
-                return legs.length > 1 ? legs : undefined;
               } catch {
                 return undefined;
               }
             })()}
+            splitInfoText={
+              paymentOption.kind === 'kas' || paymentCurrency === 'KAS'
+                ? hubPaymentSplitFooter()
+                : hubPaymentSplitFooter({ isTokenCommit: true })
+            }
             tier={tier}
             krexBalance={krexBalance}
             discountNote={
