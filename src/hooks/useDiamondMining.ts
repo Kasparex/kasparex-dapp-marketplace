@@ -10,8 +10,6 @@ import {
   DIAMOND_VEINS_GARAGE_ADDRESS,
   REFINE_MIN_DIAMONDS,
   GARAGE_REVENUE_TO_POOL_PCT,
-  KRC20_TRANSFER_TYPE,
-  KREX_DECIMALS,
   DIAMOND_VEINS_NFT_SLOT_UNLOCK_COST_KAS,
   DIAMOND_VEINS_CONSUMABLES,
 } from '@/lib/game/diamond-veins-config';
@@ -19,7 +17,10 @@ import { applyKrexFeeDiscount } from '@/lib/hub/applyKrexFeeDiscount';
 import type { KREXTier } from '@/lib/rewards/types';
 import { resolveSlotEnergyMax, syncDiamondVeinsEnergyCaps } from '@/lib/game/engine/compute-yield';
 import { fetchNFTMetadata, type ParsedNFTMetadata } from '@/lib/nft/metadata';
-import { signKrc20Transfer } from '@/lib/kaspa/l1WalletActions';
+import { transferKrc20 } from '@/lib/payments/krc20Payment';
+import { payKasPaymentPlan } from '@/lib/payments/kasMultiOutPay';
+import { buildKasparexL1PaymentNote } from '@/lib/core/l1PaymentNote';
+import { extractKaspaTransactionId } from '@/lib/kaspa/transactionId';
 import {
   applyEvent,
   applyEvents,
@@ -38,10 +39,9 @@ import {
   DIAMOND_VEINS_EXTERNAL_PERSIST_EVENT,
   diamondVeinsStorageKey,
 } from '@/lib/game/diamond-veins-hub';
-import { payKaspaL1, verifyKaspaL1Payment, recordL1Reward } from '@/lib/games/sdk';
+import { verifyKaspaL1Payment, recordL1Reward } from '@/lib/games/sdk';
 import { appendHubActivityEarn } from '@/lib/rewards/appendHubActivityEarn';
 import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
-import { extractKaspaTransactionId } from '@/lib/kaspa/transactionId';
 
 export type { MiningSlot, ActiveBoost } from '@/lib/game/engine';
 
@@ -382,18 +382,43 @@ export function useDiamondMining() {
         setLastPaymentError('Treasury address not configured');
         return { ok: false as const };
       }
+      const amountKas = Math.round(params.amountKas * 1e8) / 1e8;
+      if (!(amountKas > 0)) {
+        setLastPaymentError('Invalid payment amount');
+        return { ok: false as const };
+      }
 
-      const pay = await payKaspaL1({
-        provider: walletState.provider,
-        fromKaspaAddress: walletState.address,
-        toKaspaAddress: DEFAULT_TREASURY,
-        amountKas: params.amountKas,
+      const sessionId = crypto.randomUUID();
+      const note = buildKasparexL1PaymentNote({
         gameId: 'diamond-veins',
         skuId: params.skuId,
-        purchaseType: params.purchaseType,
+        sessionId,
       });
-      if (!pay.ok) {
-        setLastPaymentError(pay.error);
+
+      let txHash: string;
+      try {
+        const paid = await payKasPaymentPlan(
+          walletState.provider,
+          {
+            legs: [
+              {
+                role: 'treasury',
+                address: DEFAULT_TREASURY,
+                amount: amountKas,
+                label: 'Diamond Veins garage',
+              },
+            ],
+            note,
+          },
+          walletState.address,
+        );
+        txHash = paid.txHash;
+      } catch (e) {
+        const message = e instanceof Error ? e.message : 'Payment failed';
+        const friendly = /websocket|not connected|remote error|rpc/i.test(message)
+          ? 'Wallet RPC disconnected. Reopen KasWare / reconnect your wallet, then try again.'
+          : message;
+        setLastPaymentError(friendly);
         return { ok: false as const };
       }
 
@@ -401,23 +426,23 @@ export function useDiamondMining() {
         userAddress: walletState.address,
         dappId: 'diamond-veins',
         actionType: params.purchaseType,
-        actionValue: params.amountKas,
-        txHash: pay.txHash,
+        actionValue: amountKas,
+        txHash,
         network: 'L1',
       }).catch(() => {});
 
       void verifyKaspaL1Payment({
-        txHash: pay.txHash,
+        txHash,
         payerKaspaAddress: walletState.address,
         toKaspaAddress: DEFAULT_TREASURY,
-        minAmountKas: params.amountKas,
+        minAmountKas: amountKas,
         gameId: 'diamond-veins',
         skuId: params.skuId,
         purchaseType: params.purchaseType,
-        sessionId: pay.sessionId,
+        sessionId,
       }).catch(() => {});
 
-      const txNorm = extractKaspaTransactionId(pay.txHash) ?? pay.txHash;
+      const txNorm = extractKaspaTransactionId(txHash) ?? txHash;
       appendHubActivityEarn({
         walletRaw: walletState.address,
         source: 'dapp_l1_interaction',
@@ -428,7 +453,7 @@ export function useDiamondMining() {
       });
 
       void refreshKasBalance();
-      return { ok: true as const, txHash: pay.txHash };
+      return { ok: true as const, txHash };
     },
     [walletState.isConnected, walletState.provider, walletState.address, krexBalance, refreshKasBalance],
   );
@@ -574,21 +599,11 @@ export function useDiamondMining() {
 
       setBuyingItemId(itemId);
       try {
-        const amountInSmallestUnit = Math.floor(totalKrex * Math.pow(10, KREX_DECIMALS));
-        const inscribeJson = {
-          p: 'KRC-20',
-          op: 'transfer',
+        const txHash = await transferKrc20(walletState.provider!, {
           tick: 'KREX',
-          amt: amountInSmallestUnit.toString(),
+          amount: totalKrex,
           to: DIAMOND_VEINS_GARAGE_ADDRESS,
-        };
-        const txHash = await signKrc20Transfer(
-          walletState.provider!,
-          JSON.stringify(inscribeJson),
-          KRC20_TRANSFER_TYPE,
-          DIAMOND_VEINS_GARAGE_ADDRESS,
-          0.001,
-        );
+        });
         await applyGaragePurchase(itemId, name, type, multiplier, txHash, 'KREX', totalKrex, qty);
       } catch (err) {
         console.error('[Diamond Veins] Shop purchase failed:', err);
@@ -660,21 +675,11 @@ export function useDiamondMining() {
           if (!canPayWithL1 || !walletState.provider) return false;
           const totalKrex = item.priceKrex * qty;
           if (krexL1Balance < totalKrex) return false;
-          const amountInSmallestUnit = Math.floor(totalKrex * Math.pow(10, KREX_DECIMALS));
-          const inscribeJson = {
-            p: 'KRC-20',
-            op: 'transfer',
+          await transferKrc20(walletState.provider, {
             tick: 'KREX',
-            amt: amountInSmallestUnit.toString(),
+            amount: totalKrex,
             to: DIAMOND_VEINS_GARAGE_ADDRESS,
-          };
-          await signKrc20Transfer(
-            walletState.provider,
-            JSON.stringify(inscribeJson),
-            KRC20_TRANSFER_TYPE,
-            DIAMOND_VEINS_GARAGE_ADDRESS,
-            0.001,
-          );
+          });
         }
         setTycon((s) => applyEvent(s, { type: 'AddConsumables', itemId, count: qty, at: Date.now() }));
         return true;

@@ -18,7 +18,7 @@ import type { Product } from '@/lib/store/types';
 import { transferKrc20 } from '@/lib/payments/krc20Payment';
 import { payKasPaymentPlan } from '@/lib/payments/kasMultiOutPay';
 import { buildCreatorPlatformPlan } from '@/lib/payments/paymentPlan';
-import { payHubTokenRailKasFee } from '@/lib/payments/tokenRailKasFee';
+import { splitTokenPayment } from '@/lib/payments/splitTokenPayment';
 import { resolveTokenAmountFromKas, toKasEq } from '@/lib/pricing/registry';
 import type { PricingSnapshot } from '@/lib/pricing/types';
 import { extractKaspaTransactionId } from '@/lib/kaspa/transactionId';
@@ -87,14 +87,22 @@ export function useStoreProductPurchase(product: Product) {
 
       try {
         const fee = calculatePlatformFee(totalKasEquivalent, krexTier, nftStatus);
-        const sellerShare = fee.sellerRevenue / totalKasEquivalent;
-        const platformShare = fee.feeAmount / totalKasEquivalent;
 
         let purchaseTxHash: string;
 
-        if (!isBuiltinStoreCurrency(payCurrency)) {
-          const sellerToken = totalPay * sellerShare;
-          const platformToken = totalPay * platformShare;
+        if (!isBuiltinStoreCurrency(payCurrency) || payCurrency === 'KREX') {
+          if (payCurrency === 'KREX' && krexL1Balance + 1e-12 < totalPay) {
+            throw new Error('Insufficient KREX balance for this purchase');
+          }
+
+          // Mirror KAS economics: buyer pays totalPay in token; fee is taken from that total
+          // (seller + platform shares). Do not add a second Hub KAS fee on top.
+          const { sellerToken, platformToken } = splitTokenPayment(
+            totalPay,
+            fee.sellerRevenue,
+            totalKasEquivalent,
+          );
+
           purchaseTxHash = await transferKrc20(state.provider, {
             tick: payCurrency,
             amount: sellerToken,
@@ -107,42 +115,6 @@ export function useStoreProductPurchase(product: Product) {
               to: STORE_TREASURY_ADDRESS,
             });
           }
-          await payHubTokenRailKasFee({
-            provider: state.provider,
-            senderAddress: state.address,
-            treasuryAddress: STORE_TREASURY_ADDRESS,
-            feeKas: fee.feeAmount > 0 ? fee.feeAmount : totalKasEquivalent,
-            note: `Store purchase fee ${product.id}`,
-          });
-          purchaseTxHash = extractKaspaTransactionId(purchaseTxHash) ?? purchaseTxHash;
-        } else if (payCurrency === 'KREX') {
-          if (krexL1Balance + 1e-12 < totalPay) {
-            throw new Error('Insufficient KREX balance for this purchase');
-          }
-
-          const sellerKrex = totalPay * sellerShare;
-          const platformKrex = totalPay * platformShare;
-
-          purchaseTxHash = await transferKrc20(state.provider, {
-            tick: 'KREX',
-            amount: sellerKrex,
-            to: product.sellerAddress,
-          });
-
-          if (platformKrex > 1e-9) {
-            await transferKrc20(state.provider, {
-              tick: 'KREX',
-              amount: platformKrex,
-              to: STORE_TREASURY_ADDRESS,
-            });
-          }
-          await payHubTokenRailKasFee({
-            provider: state.provider,
-            senderAddress: state.address,
-            treasuryAddress: STORE_TREASURY_ADDRESS,
-            feeKas: fee.feeAmount > 0 ? fee.feeAmount : totalKasEquivalent,
-            note: `Store purchase fee ${product.id}`,
-          });
           purchaseTxHash = extractKaspaTransactionId(purchaseTxHash) ?? purchaseTxHash;
         } else {
           const plan = buildCreatorPlatformPlan({

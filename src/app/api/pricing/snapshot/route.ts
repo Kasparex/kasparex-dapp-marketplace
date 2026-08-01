@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { buildPricingSnapshot, normalizePricingTickers } from '@/lib/pricing/buildSnapshot';
 
-export const revalidate = 300;
+export const revalidate = 3600;
 
 /**
  * Cached KAS-equivalent rates for Hub checkout and Pay with.
@@ -16,7 +16,8 @@ export async function GET(request: NextRequest) {
     const snapshot = await buildPricingSnapshot(tickers);
     return NextResponse.json(snapshot, {
       headers: {
-        'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600',
+        // Aggressive edge cache to cut FX fetch cost / spikes.
+        'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400',
       },
     });
   } catch (error) {

@@ -20,4 +20,4 @@ export type PricingSnapshot = {
 };
 
 /** Aggressive client TTL for FX snapshots used by Pay with / Select currency. */
-export const PRICING_SNAPSHOT_TTL_MS = 60 * 60 * 1000;
+export const PRICING_SNAPSHOT_TTL_MS = 6 * 60 * 60 * 1000;

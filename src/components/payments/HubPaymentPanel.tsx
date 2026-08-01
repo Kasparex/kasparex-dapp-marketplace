@@ -36,6 +36,8 @@ export function HubPaymentPanel({
   onCatalogSelect,
   currencyPicker = 'catalog',
   splitLegs,
+  splitUnit = 'KAS',
+  splitInfoText,
   discountNote,
   infoText,
   tier,
@@ -69,8 +71,12 @@ export function HubPaymentPanel({
   catalogEntries?: HubCurrencyCatalogEntry[];
   onCatalogSelect?: (option: HubPaymentCurrencyOption) => void;
   currencyPicker?: 'catalog' | 'dropdown';
-  /** When set, shows how the KAS payment splits across addresses. */
+  /** When set, shows how the payment splits across addresses. */
   splitLegs?: PaymentLeg[];
+  /** Unit shown next to each split leg amount (default KAS). */
+  splitUnit?: string;
+  /** Overrides the default helper copy under Payment split. */
+  splitInfoText?: string;
   discountNote?: string;
   infoText?: string;
   tier?: KREXTier;
@@ -207,13 +213,16 @@ export function HubPaymentPanel({
               >
                 <span className="truncate">{leg.label ?? leg.role}</span>
                 <span className="shrink-0 font-semibold tabular-nums text-zinc-900 dark:text-zinc-100">
-                  {leg.amount} KAS
+                  {leg.amount.toLocaleString(undefined, {
+                    maximumFractionDigits: splitUnit.toUpperCase() === 'KREX' ? 2 : 8,
+                  })}{' '}
+                  {splitUnit}
                 </span>
               </div>
             ))}
             <p className="pt-1 text-[11px] text-zinc-500">
-              KAS: one multi-out tx. Token / KREX: token transfer, then the same Hub KAS split.
-              Change returns to your wallet.
+              {splitInfoText ??
+                'KAS: one multi-out tx. Token / KREX: token transfer, then the same Hub KAS split. Change returns to your wallet.'}
             </p>
           </div>
         ) : null}

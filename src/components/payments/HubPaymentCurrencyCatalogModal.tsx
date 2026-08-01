@@ -375,12 +375,16 @@ export function HubPaymentCurrencyCatalogTrigger({
               {(selected.tick ?? selected.label).slice(0, 3)}
             </span>
           ) : null}
-          <span className="font-semibold">{selected?.label ?? 'Select currency'}</span>
           {selected?.amountLabel ? (
-            <span className="truncate text-xs font-normal text-zinc-500">{selected.amountLabel}</span>
-          ) : selected?.detail ? (
-            <span className="truncate text-xs font-normal text-zinc-500">{selected.detail}</span>
-          ) : null}
+            <span className="truncate font-semibold tabular-nums">{selected.amountLabel}</span>
+          ) : (
+            <>
+              <span className="font-semibold">{selected?.label ?? 'Select currency'}</span>
+              {selected?.detail ? (
+                <span className="truncate text-xs font-normal text-zinc-500">{selected.detail}</span>
+              ) : null}
+            </>
+          )}
         </span>
         <svg
           className="h-4 w-4 shrink-0 text-zinc-500"

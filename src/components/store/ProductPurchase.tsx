@@ -16,6 +16,7 @@ import {
 import { buildHubCheckoutCurrencyOptions } from '@/lib/payments/hubPaymentTypes';
 import { buildPublicHubCurrencyCatalog } from '@/lib/payments/publicPaymentTokens';
 import { buildCreatorPlatformPlan } from '@/lib/payments/paymentPlan';
+import { splitTokenPayment } from '@/lib/payments/splitTokenPayment';
 import type { Product } from '@/lib/store/types';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useIntegratedTokens } from '@/hooks/useIntegratedToken';
@@ -66,6 +67,7 @@ export function ProductPurchase({ product, onPurchaseComplete }: ProductPurchase
   );
 
   const selectedOption = currencyOptions.find((c) => c.id === currency) ?? currencyOptions[0];
+  const payWithToken = currency !== 'KAS';
 
   const unitPrice = useMemo(
     () => resolveStoreUnitPrice(product, currency, pricingSnapshot),
@@ -80,6 +82,11 @@ export function ProductPurchase({ product, onPurchaseComplete }: ProductPurchase
   const fee = useMemo(() => {
     return calculatePlatformFee(unitKasEq, krexTier, nftStatus);
   }, [unitKasEq, krexTier, nftStatus]);
+
+  const tokenSplit = useMemo(() => {
+    if (!payWithToken || !(unitKasEq > 0)) return null;
+    return splitTokenPayment(unitPrice, fee.sellerRevenue, unitKasEq);
+  }, [payWithToken, unitPrice, fee.sellerRevenue, unitKasEq]);
 
   const totalDisplay = useMemo(() => {
     if (selectedOption?.kind === 'krc20' || currency === 'KREX') {
@@ -97,6 +104,8 @@ export function ProductPurchase({ product, onPurchaseComplete }: ProductPurchase
     if (ok && onPurchaseComplete) onPurchaseComplete();
   };
 
+  const treasury = process.env.NEXT_PUBLIC_STORE_TREASURY_ADDRESS || '';
+
   return (
     <>
       <div className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 shadow-sm space-y-5">
@@ -113,14 +122,25 @@ export function ProductPurchase({ product, onPurchaseComplete }: ProductPurchase
             {
               label: 'Unit price',
               value:
-                currency !== 'KAS' && unitKasEq !== unitPrice
+                payWithToken && unitKasEq !== unitPrice
                   ? `${totalDisplay} (${formatKasEq(unitKasEq)})`
                   : totalDisplay,
             },
-            { label: 'Platform fee', value: `${fee.feeAmount.toFixed(4)} KAS` },
-            { label: 'Seller receives', value: `${fee.sellerRevenue.toFixed(4)} KAS` },
+            {
+              label: 'Platform fee',
+              value: tokenSplit
+                ? `${formatTokenAmount(tokenSplit.platformToken, currency)} (${formatKasEq(fee.feeAmount)})`
+                : `${fee.feeAmount.toFixed(4)} KAS`,
+            },
+            {
+              label: 'Seller receives',
+              value: tokenSplit
+                ? `${formatTokenAmount(tokenSplit.sellerToken, currency)} (${formatKasEq(fee.sellerRevenue)})`
+                : `${fee.sellerRevenue.toFixed(4)} KAS`,
+            },
           ]}
           totalDisplay={totalDisplay}
+          totalSubtitle={payWithToken ? formatKasEq(unitKasEq) : undefined}
           currencies={currencyOptions.length > 1 ? currencyOptions : undefined}
           catalogEntries={buildPublicHubCurrencyCatalog({
             amountKas: unitKasEq * 1,
@@ -135,14 +155,39 @@ export function ProductPurchase({ product, onPurchaseComplete }: ProductPurchase
           onCurrencyChange={setCurrency}
           onCatalogSelect={(opt) => setCurrency(opt.id)}
           splitLegs={
-            currency === 'KAS'
+            !payWithToken
               ? buildCreatorPlatformPlan({
                   creatorAddress: product.sellerAddress,
                   creatorKas: fee.sellerRevenue,
                   creatorLabel: 'Seller',
                   platformKas: fee.feeAmount,
                 }).legs
-              : undefined
+              : tokenSplit && treasury
+                ? [
+                    {
+                      role: 'creator' as const,
+                      address: product.sellerAddress,
+                      amount: tokenSplit.sellerToken,
+                      label: 'Seller',
+                    },
+                    ...(tokenSplit.platformToken > 1e-9
+                      ? [
+                          {
+                            role: 'platform' as const,
+                            address: treasury,
+                            amount: tokenSplit.platformToken,
+                            label: 'Platform fee',
+                          },
+                        ]
+                      : []),
+                  ]
+                : undefined
+          }
+          splitUnit={payWithToken ? currency : 'KAS'}
+          splitInfoText={
+            payWithToken
+              ? `Two ${currency} transfers (seller, then platform). Amounts add up to the total above.`
+              : 'One multi-out KAS transaction. Change returns to your wallet.'
           }
           tier={krexTier}
           krexBalance={krexBalance}
