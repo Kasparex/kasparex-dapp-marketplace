@@ -72,20 +72,26 @@ export function HubListingCalculationBreakdown({
     ? formatHubPaymentAmount(selected, quote.totalKas, { snapshot: pricingSnapshot })
     : `${quote.totalKas} KAS`;
 
+  const isKasRail = selected?.kind === 'kas' || selectedCurrencyId === 'KAS';
+
   const splitLegs = useMemo(() => {
     try {
-      return buildHubPlatformFeePlan({
-        totalKas: resolveHubTokenRailFeeKas(quote.totalKas),
+      // Match pay path: pure KAS uses the quote total; token rails floor to a splittable Hub fee.
+      const feeKas = isKasRail
+        ? quote.totalKas
+        : resolveHubTokenRailFeeKas(quote.totalKas);
+      const legs = buildHubPlatformFeePlan({
+        totalKas: feeKas,
         treasuryAddress,
       }).legs;
+      return legs.length > 1 ? legs : undefined;
     } catch {
       return undefined;
     }
-  }, [quote.totalKas, treasuryAddress]);
+  }, [quote.totalKas, treasuryAddress, isKasRail]);
 
   const showPayBox = showPayWith && catalogEntries.length > 0;
-  const showSplit = Boolean(splitLegs && splitLegs.length > 0);
-  const isKasRail = selected?.kind === 'kas' || selectedCurrencyId === 'KAS';
+  const showSplit = Boolean(splitLegs && splitLegs.length > 1);
 
   return (
     <div className={`flex flex-col gap-4 ${className ?? ''}`.trim()}>

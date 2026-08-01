@@ -131,19 +131,27 @@ export const DAppCalculationBreakdownPanel = memo(function DAppCalculationBreakd
   const formatPayAmount = (kas: number) =>
     formatHubPaymentAmount(paymentOption, kas, { snapshot: pricingSnapshot });
 
+  /** Peer transfers are not Hub platform fees; never preview a treasury/rewards split. */
+  const isPeerTransfer = dapp.slug === 'send-kas' || dapp.slug === 'send-krex';
+
   const splitLegs = useMemo(() => {
-    if (!quote) return undefined;
+    if (!quote || isPeerTransfer) return undefined;
     try {
       const treasury =
         dapp.slug === 'kaspa-capsule' ? getKaspaCapsuleTreasuryL1Address() : undefined;
-      return buildHubPlatformFeePlan({
-        totalKas: resolveHubTokenRailFeeKas(quote.totalKas),
+      const isKasRail = paymentOption.kind === 'kas' || payCurrencyId === 'KAS';
+      const feeKas = isKasRail
+        ? quote.totalKas
+        : resolveHubTokenRailFeeKas(quote.totalKas);
+      const legs = buildHubPlatformFeePlan({
+        totalKas: feeKas,
         treasuryAddress: treasury,
       }).legs;
+      return legs.length > 1 ? legs : undefined;
     } catch {
       return undefined;
     }
-  }, [quote, dapp.slug]);
+  }, [quote, dapp.slug, isPeerTransfer, paymentOption.kind, payCurrencyId]);
 
   const displayLines = useMemo(() => {
     if (!quote) return [];
@@ -162,8 +170,9 @@ export const DAppCalculationBreakdownPanel = memo(function DAppCalculationBreakd
   const showBuyKrex = !quote?.hasKrexDiscount && krexBalance < KREX_TIERS.Tier1.minKREX;
   const baseSpendKas = paymentAmount ?? quote?.subtotalKas ?? quote?.totalKas;
   const steps = flowSteps ?? getHubFlowPreset(isCovenant ? 'covenantCreate' : 'hubPay');
-  const showPayWith = !isCovenant && networkType === 'L1' && catalogEntries.length > 0;
-  const showSplit = Boolean(splitLegs && splitLegs.length > 0);
+  const showPayWith =
+    !isCovenant && !isPeerTransfer && networkType === 'L1' && catalogEntries.length > 0;
+  const showSplit = Boolean(splitLegs && splitLegs.length > 1);
   const infoText =
     quote?.infoText &&
     (paymentOption.kind === 'kas'

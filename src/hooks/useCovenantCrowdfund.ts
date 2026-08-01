@@ -78,6 +78,7 @@ export function useCovenantCrowdfund() {
           provider: ctx.provider,
           totalKas: args.studioTotalKas,
           action: 'create',
+          senderAddress: state.address,
         });
         const campaign = await runtime.create({
           creator: state.address!,

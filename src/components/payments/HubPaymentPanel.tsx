@@ -197,7 +197,7 @@ export function HubPaymentPanel({
           </div>
         ) : null}
 
-        {splitLegs && splitLegs.length > 0 ? (
+        {splitLegs && splitLegs.length > 1 ? (
           <div className="space-y-1.5 border-t border-zinc-200 pt-3 dark:border-zinc-700">
             <p className="text-xs uppercase tracking-widest text-zinc-500">Payment split</p>
             {splitLegs.map((leg) => (

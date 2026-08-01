@@ -355,7 +355,7 @@ export function HubPaymentCurrencyCatalogTrigger({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className={`k-control-btn w-full justify-between text-sm ${accentClass} ${className ?? ''}`}
+        className={`k-control-btn h-10 w-full justify-between text-sm ${accentClass} ${className ?? ''}`}
         aria-haspopup="dialog"
         aria-expanded={open}
       >

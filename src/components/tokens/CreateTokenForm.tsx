@@ -1327,10 +1327,15 @@ export function CreateTokenForm({
             }}
             splitLegs={(() => {
               try {
-                return buildHubPlatformFeePlan({
-                  totalKas: resolveHubTokenRailFeeKas(formQuote.totalKas),
+                const isKasRail = paymentOption.kind === 'kas' || paymentCurrency === 'KAS';
+                const feeKas = isKasRail
+                  ? formQuote.totalKas
+                  : resolveHubTokenRailFeeKas(formQuote.totalKas);
+                const legs = buildHubPlatformFeePlan({
+                  totalKas: feeKas,
                   treasuryAddress: getTokensTreasuryL1Address(),
                 }).legs;
+                return legs.length > 1 ? legs : undefined;
               } catch {
                 return undefined;
               }

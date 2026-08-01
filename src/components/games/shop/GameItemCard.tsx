@@ -176,8 +176,8 @@ export function GameItemCard(props: {
   const hubChrome = listingAccent === 'hub' || listingAccent === 'store';
   const currencyMenuAccent = hubChrome ? 'store' : 'default';
   const currencyMenuButtonClass = hubChrome
-    ? 'k-input flex h-10 w-full min-w-0 items-center justify-between gap-2 !py-0 text-left text-sm font-semibold tabular-nums sm:w-auto sm:flex-1 sm:min-w-[170px]'
-    : 'flex h-10 w-full min-w-0 items-center justify-between gap-2 rounded-xl border border-zinc-200 bg-white px-4 py-0 text-sm font-medium transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:bg-zinc-900 sm:w-auto sm:flex-1 sm:min-w-[170px]';
+    ? 'k-input flex h-10 w-full min-w-0 items-center justify-between gap-2 !py-0 text-left text-sm font-semibold tabular-nums'
+    : 'flex h-10 w-full min-w-0 items-center justify-between gap-2 rounded-xl border border-zinc-200 bg-white px-4 py-0 text-sm font-medium transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:bg-zinc-900';
   const { catalogEntries: publicCatalog } = useHubPayWithCatalog({
     amountKas: unit * quantity,
   });
@@ -219,7 +219,7 @@ export function GameItemCard(props: {
     else setCurrency(option.id as GameItemCurrency);
   };
   const quantityLabelLayout = props.quantityLabelLayout ?? 'inline';
-  const pricingActionsLayout = props.pricingActionsLayout ?? 'split';
+  const pricingActionsLayout = props.pricingActionsLayout ?? 'stacked';
   const hideQuantityLabel = props.hideQuantityLabel ?? false;
   const specificationsBelowPricing = props.specificationsBelowPricing ?? false;
 
@@ -463,7 +463,7 @@ export function GameItemCard(props: {
   const currencyPicker =
     options.length > 1 ? (
       hubPayCatalog.length > 0 ? (
-        <div className="w-full min-w-0 sm:flex-1 sm:min-w-[170px]">
+        <div className="w-full min-w-0">
           <HubPaymentCurrencyCatalogTrigger
             entries={hubPayCatalog}
             selectedId={String(currency)}
@@ -482,7 +482,7 @@ export function GameItemCard(props: {
             const txt = `${formatGameItemPriceAmount(o.currency, t)} ${formatCurrencyTicker(o.currency)}`;
             return { value: o.currency, label: txt, disabled: o.disabled };
           })}
-          className="w-full min-w-0 sm:flex-1 sm:min-w-[170px]"
+          className="w-full min-w-0"
           accent={currencyMenuAccent}
           buttonClassName={currencyMenuButtonClass}
         />
@@ -606,13 +606,17 @@ export function GameItemCard(props: {
 
           <div className="flex flex-col gap-2">
             {pricingActionsLayout === 'stacked' ? (
-              <div className="flex w-full flex-col gap-3">
+              <div className="flex w-full flex-col gap-2">
                 {currencyPicker ?? <div className={calculationBoxClass}>{calculationBoxBody}</div>}
                 <button
                   type="button"
                   onClick={() => void props.onBuy({ currency: cur, quantity })}
                   disabled={props.buyDisabled || Boolean(selected?.disabled)}
-                  className={`${primaryCtaClass} min-h-[2.75rem] w-full whitespace-normal text-xs leading-tight sm:text-[13px]`}
+                  className={
+                    props.buyButtonClassName
+                      ? `${props.buyButtonClassName} h-10 w-full`
+                      : `${primaryCtaClass} h-10 w-full text-xs sm:text-[13px]`
+                  }
                 >
                   {props.buyLabel === 'Locked'
                     ? 'Locked'
@@ -626,10 +630,8 @@ export function GameItemCard(props: {
               </div>
             ) : (
               <>
-                <div className="flex flex-col gap-2 sm:flex-row sm:items-stretch sm:justify-between">
-                  {currencyPicker ?? (
-                    <div className={`${calculationBoxClass} sm:w-auto sm:flex-1`}>{calculationBoxBody}</div>
-                  )}
+                <div className="flex w-full flex-col gap-2">
+                  {currencyPicker ?? <div className={calculationBoxClass}>{calculationBoxBody}</div>}
 
                   <button
                     type="button"
@@ -637,8 +639,8 @@ export function GameItemCard(props: {
                     disabled={props.buyDisabled || Boolean(selected?.disabled)}
                     className={
                       props.buyButtonClassName
-                        ? `${props.buyButtonClassName} w-full whitespace-nowrap sm:w-auto`
-                        : `${primaryCtaClass} min-h-[2.75rem] w-full whitespace-normal text-xs leading-tight sm:w-auto sm:shrink-0 sm:text-[13px]`
+                        ? `${props.buyButtonClassName} h-10 w-full`
+                        : `${primaryCtaClass} h-10 w-full text-xs sm:text-[13px]`
                     }
                   >
                     {props.buyLabel === 'Locked'
