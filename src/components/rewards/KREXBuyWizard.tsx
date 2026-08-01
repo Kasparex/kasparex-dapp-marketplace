@@ -286,7 +286,7 @@ export function KREXBuyWizard({ isOpen, onClose }: KREXBuyWizardProps) {
                             href={dex.url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className={`${KX_SURFACE_NESTED} flex !flex-row items-center justify-between gap-3 p-3 text-left transition-colors hover:border-[color:var(--hub-accent)]`}
+                            className={`kx-metadata-stat-card ${KX_SURFACE_NESTED} flex !flex-row items-center justify-between gap-3 p-3 text-left`}
                           >
                             <div className="min-w-0">
                               <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">{dex.name}</div>
@@ -298,7 +298,7 @@ export function KREXBuyWizard({ isOpen, onClose }: KREXBuyWizardProps) {
                           </a>
                         ))}
                       </div>
-                      <div className={`${KX_SURFACE_NESTED} space-y-2 p-3 text-left`}>
+                      <div className={`kx-metadata-stat-card ${KX_SURFACE_NESTED} space-y-2 p-3 text-left`}>
                         <p className="text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
                           KREX contract (Kasplex)
                         </p>
@@ -328,7 +328,7 @@ export function KREXBuyWizard({ isOpen, onClose }: KREXBuyWizardProps) {
                             href={dex.url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className={`${KX_SURFACE_NESTED} flex !flex-row items-center justify-between gap-3 p-3 text-left transition-colors hover:border-[color:var(--hub-accent)]`}
+                            className={`kx-metadata-stat-card ${KX_SURFACE_NESTED} flex !flex-row items-center justify-between gap-3 p-3 text-left`}
                           >
                             <div className="min-w-0">
                               <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">{dex.name}</div>
@@ -340,7 +340,7 @@ export function KREXBuyWizard({ isOpen, onClose }: KREXBuyWizardProps) {
                           </a>
                         ))}
                       </div>
-                      <div className={`${KX_SURFACE_NESTED} space-y-2 p-3 text-left`}>
+                      <div className={`kx-metadata-stat-card ${KX_SURFACE_NESTED} space-y-2 p-3 text-left`}>
                         <p className="text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
                           KREX contract (IGRA)
                         </p>
@@ -372,7 +372,7 @@ export function KREXBuyWizard({ isOpen, onClose }: KREXBuyWizardProps) {
                         href={exchange.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className={`${KX_SURFACE_NESTED} flex !flex-row items-center justify-between gap-3 p-3 text-left transition-colors hover:border-[color:var(--hub-accent)]`}
+                        className={`kx-metadata-stat-card ${KX_SURFACE_NESTED} flex !flex-row items-center justify-between gap-3 p-3 text-left`}
                       >
                         <div>
                           <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">

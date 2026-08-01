@@ -149,7 +149,7 @@ export function TokenDetail({
                 href={link.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-3 rounded-2xl border border-zinc-200 bg-white p-4 transition hover:border-[color:var(--hub-accent-border)] hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900/80"
+                className="kx-metadata-stat-card flex items-center gap-3 rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900/80"
               >
                 <div className="min-w-0 flex-1">
                   <div className="truncate text-sm font-semibold text-zinc-900 dark:text-zinc-100">{link.label}</div>

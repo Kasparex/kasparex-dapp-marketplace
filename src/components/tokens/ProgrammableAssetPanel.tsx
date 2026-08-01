@@ -100,7 +100,7 @@ export function ProgrammableAssetPanel({ token }: ProgrammableAssetPanelProps) {
   ];
 
   return (
-    <section className="scroll-mt-28 space-y-4">
+    <section className="scroll-mt-28 space-y-6">
       <GameOverviewTitleBlock
         kicker="Programmable"
         title="L1 covenant asset"

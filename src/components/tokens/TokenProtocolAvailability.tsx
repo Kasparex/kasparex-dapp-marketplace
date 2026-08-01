@@ -83,7 +83,7 @@ export function TokenProtocolAvailability({ token }: { token: Token }) {
   const addressEntries = entries.filter((e) => e.contractAddress);
 
   return (
-    <section id="token-protocols" className="scroll-mt-28 space-y-4">
+    <section id="token-protocols" className="scroll-mt-28 space-y-6">
       <GameOverviewTitleBlock
         kicker="Networks"
         title="Protocol availability"

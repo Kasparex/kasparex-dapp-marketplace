@@ -6,7 +6,7 @@
 'use client';
 
 import type { Token } from '@/lib/tokens/types';
-import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
+import { GameOverviewTitleBlock } from '@/components/games/panels/GameOverviewSections';
 import { KxRichTextContent } from '@/components/ui/KxRichTextContent';
 
 interface RoadmapSectionProps {
@@ -21,7 +21,13 @@ export function RoadmapSection({ token }: RoadmapSectionProps) {
   if (roadmap.length === 0 && !intro && !outro) {
     return (
       <section id="roadmap" className="space-y-6">
-        <DAppSectionHeader title="Roadmap" />
+        <GameOverviewTitleBlock
+          kicker="Plan"
+          title="Roadmap"
+          subtitle="Milestones for this token listing."
+          as="h3"
+          compact
+        />
         <div className="rounded-2xl border border-dashed border-zinc-300 bg-zinc-50/80 p-6 text-center dark:border-zinc-700 dark:bg-zinc-900/40">
           <p className="text-sm text-zinc-600 dark:text-zinc-400">No roadmap has been published for this token yet.</p>
         </div>
@@ -44,7 +50,13 @@ export function RoadmapSection({ token }: RoadmapSectionProps) {
 
   return (
     <section id="roadmap" className="space-y-6">
-      <DAppSectionHeader title="Roadmap" />
+      <GameOverviewTitleBlock
+        kicker="Plan"
+        title="Roadmap"
+        subtitle="Milestones for this token listing."
+        as="h3"
+        compact
+      />
 
       {intro ? <KxRichTextContent html={intro} className="kx-prose" /> : null}
 
@@ -65,19 +77,19 @@ export function RoadmapSection({ token }: RoadmapSectionProps) {
                   }`}
                 />
 
-                <div className="bg-white dark:bg-zinc-900 rounded-lg p-4 border border-zinc-200 dark:border-zinc-800">
-                  <div className="flex items-start justify-between gap-4 mb-2">
+                <div className="kx-metadata-stat-card rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
+                  <div className="mb-2 flex items-start justify-between gap-4">
                     <div className="flex-1">
                       <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
                         {event.title}
                       </h3>
-                      <div className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
+                      <div className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
                         {event.date}
                       </div>
                     </div>
                     {event.status ? (
                       <span
-                        className={`px-2 py-1 rounded text-xs font-medium border ${getStatusColor(
+                        className={`rounded border px-2 py-1 text-xs font-medium ${getStatusColor(
                           event.status
                         )}`}
                       >

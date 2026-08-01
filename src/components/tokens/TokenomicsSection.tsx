@@ -63,6 +63,7 @@ export function TokenomicsSection({ token }: TokenomicsSectionProps) {
         title="Tokenomics"
         subtitle="Supply figures and how allocation is split across categories."
         as="h3"
+        compact
       />
 
       {supplyStats.length > 0 ? <HubMetadataStatGrid stats={supplyStats} /> : null}

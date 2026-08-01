@@ -73,7 +73,8 @@ export function TokenCreatorAuthorTab({ token }: { token: Token }) {
         kicker="Creator"
         title="vBlog Author"
         subtitle="Articles from the verified token creator / deployer."
-        as="h2"
+        as="h3"
+        compact
       />
 
       <div className={`${KX_SURFACE_INSET} flex flex-col gap-3 p-3 sm:flex-row sm:items-center sm:justify-between`}>

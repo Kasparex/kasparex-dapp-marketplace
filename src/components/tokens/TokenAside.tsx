@@ -186,7 +186,7 @@ export function TokenAside({ token }: { token: Token }) {
 
         {sections.map((sec) => (
           <div key={sec.title} className={PANEL_CLASS}>
-            <DAppSectionHeader title={sec.title} hint={sec.hint} className="mb-3" />
+            <DAppSectionHeader title={sec.title} hint={sec.hint} />
             {sec.body}
           </div>
         ))}

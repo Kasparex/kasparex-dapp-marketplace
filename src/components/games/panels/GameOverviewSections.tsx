@@ -100,6 +100,9 @@ export const GAME_OVERVIEW_H2 =
 export const GAME_OVERVIEW_H3 =
   'text-xl font-bold tracking-tight leading-snug text-zinc-900 dark:text-zinc-100';
 
+const SECTION_HEADER_RULE =
+  'border-b border-zinc-200 pb-3 dark:border-zinc-800';
+
 export function GameOverviewTitleBlock(props: {
   kicker?: string;
   title: string;
@@ -107,24 +110,23 @@ export function GameOverviewTitleBlock(props: {
   /** Use h2 for page hero title, h3 for in-article sections. */
   as?: 'h2' | 'h3';
   className?: string;
-  /** Compact title for light boxed panels (no large top margin / border). */
+  /**
+   * Margin only: skip the large top gap when the parent already spaces sections.
+   * Does not change tilt, title size, or divider (those stay locked).
+   */
   compact?: boolean;
 }) {
   const Tag = props.as ?? 'h2';
-  const titleCls = props.compact
-    ? 'text-lg font-semibold leading-snug text-zinc-900 dark:text-zinc-100'
-    : Tag === 'h2'
-      ? GAME_OVERVIEW_H2
-      : `${GAME_OVERVIEW_H3} border-b border-zinc-200 pb-3 dark:border-zinc-800`;
+  const isSection = Tag === 'h3';
+  const titleCls = Tag === 'h2' ? GAME_OVERVIEW_H2 : GAME_OVERVIEW_H3;
   const wrapCls =
     props.className ??
-    (props.compact ? 'mb-1' : Tag === 'h2' ? 'mb-6' : 'mt-12 mb-4 first:mt-0');
-  const kickerRowCls = props.compact ? 'mb-2 flex items-center gap-2.5' : 'kx-page-kicker';
+    (props.compact ? 'mb-4' : Tag === 'h2' ? 'mb-6' : 'mt-12 mb-4 first:mt-0');
 
   return (
-    <header className={wrapCls}>
+    <header className={`${wrapCls} ${isSection ? SECTION_HEADER_RULE : ''}`.trim()}>
       {props.kicker?.trim() ? (
-        <div className={kickerRowCls}>
+        <div className="kx-page-kicker">
           <span
             className="hub-tilt-bar-sm h-4 w-1 shrink-0 -skew-y-12 rounded-full"
             aria-hidden="true"
@@ -134,9 +136,7 @@ export function GameOverviewTitleBlock(props: {
       ) : null}
       <Tag className={titleCls}>{props.title}</Tag>
       {props.subtitle?.trim() ? (
-        <p className={props.compact ? 'mt-1 text-sm text-zinc-500 dark:text-zinc-400' : GAME_OVERVIEW_SUBTITLE}>
-          {props.subtitle.trim()}
-        </p>
+        <p className={GAME_OVERVIEW_SUBTITLE}>{props.subtitle.trim()}</p>
       ) : null}
     </header>
   );

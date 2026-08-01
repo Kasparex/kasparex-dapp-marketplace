@@ -86,10 +86,10 @@ export const KX_METADATA_STAT_HINT = 'mt-1 text-xs font-medium text-zinc-500 dar
 
 /**
  * Card chrome: equal-height cells, top-left content (never centered).
- * Discrete nest border; accent border on hover (global).
+ * Discrete nest border; accent border on hover via `.kx-metadata-stat-card` (globals.css).
  */
 export const KX_METADATA_STAT_CARD =
-  `${KX_SURFACE_NESTED} flex h-full min-h-0 flex-col items-stretch justify-start text-left p-4 sm:p-5 font-sans transition-colors hover:border-[color:var(--hub-accent)]`;
+  `kx-metadata-stat-card ${KX_SURFACE_NESTED} flex h-full min-h-0 flex-col items-stretch justify-start text-left p-4 sm:p-5 font-sans`;
 
 /**
  * Pick columns from item count so panels do not leave an empty third slot.

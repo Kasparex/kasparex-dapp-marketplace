@@ -78,7 +78,8 @@ export function TokenCreatorShopTab({ token }: { token: Token }) {
         kicker="Creator"
         title="Shop"
         subtitle="Active Store listings from the verified token creator."
-        as="h2"
+        as="h3"
+        compact
       />
 
       <div className={`${KX_SURFACE_INSET} flex flex-col gap-3 p-3 sm:flex-row sm:items-center sm:justify-between`}>

@@ -57,7 +57,8 @@ export function TokenInfoSection({ token }: TokenInfoSectionProps) {
         kicker="Overview"
         title="About"
         subtitle={`Learn what ${token.symbol} is and how it fits the Kasparex Hub.`}
-        as="h2"
+        as="h3"
+        compact
       />
 
       <div className={`${KX_PROSE} px-1`}>

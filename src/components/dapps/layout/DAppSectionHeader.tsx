@@ -13,7 +13,7 @@ export function DAppSectionHeader(props: {
     <div className={`flex items-center justify-between gap-3 ${KX_SECTION_HEADER_MARGIN} ${props.className ?? ''}`}>
       <div className="flex items-center gap-3">
         <div
-          className="hub-tilt-bar-sm h-5 w-1 shrink-0 -skew-y-12 rounded-full"
+          className="hub-tilt-bar-sm h-4 w-1 shrink-0 -skew-y-12 rounded-full"
           aria-hidden="true"
         />
         <h2 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 leading-tight inline-flex items-center gap-2">

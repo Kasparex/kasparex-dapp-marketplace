@@ -98,7 +98,7 @@ function ExchangeCard(props: {
     </>
   );
 
-  const className = `${KX_SURFACE_NESTED} flex !flex-row items-center justify-between gap-3 p-3 text-left font-sans transition-colors hover:border-[color:var(--hub-accent)]`;
+  const className = `kx-metadata-stat-card ${KX_SURFACE_NESTED} flex !flex-row items-center justify-between gap-3 p-3 text-left font-sans`;
 
   if (props.internal) {
     return (
@@ -125,7 +125,8 @@ export function TokenTradingSection({ token }: TokenTradingSectionProps) {
         kicker="Trade"
         title="Swap"
         subtitle={`Trade ${token.symbol} on supported venues.`}
-        as="h2"
+        as="h3"
+        compact
       />
 
       {(token.network === 'L2' || hasL1AndL2) && (
@@ -169,7 +170,7 @@ export function TokenTradingSection({ token }: TokenTradingSectionProps) {
       )}
 
       {hasL1AndL2 ? (
-        <div className={`${KX_SURFACE_NESTED} p-4 text-left`}>
+        <div className={`kx-metadata-stat-card ${KX_SURFACE_NESTED} p-4 text-left`}>
           <p className="text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
             Bridge
           </p>

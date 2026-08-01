@@ -520,6 +520,15 @@
   box-shadow: 0 0 8px var(--hub-accent-shadow);
 }
 
+/** Locked Hub metadata / nest box: accent border on hover (beats zinc border utilities). */
+.kx-metadata-stat-card {
+  transition: border-color 150ms ease;
+}
+.kx-metadata-stat-card:hover,
+.kx-metadata-stat-card:focus-within {
+  border-color: var(--hub-accent) !important;
+}
+
 .hub-accent-text {
   color: var(--hub-accent);
 }
