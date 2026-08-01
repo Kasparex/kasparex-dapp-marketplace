@@ -356,17 +356,10 @@ export function GameItemCard(props: {
   function qtyStepper(opts?: { showMax?: boolean }) {
     const stepDisabled = !qtyCfg || !qtyCtlInteractive;
     const showMax = opts?.showMax ?? Boolean(props.showQuantityMaxButton && qtyCfg);
+    const stepBtn =
+      'flex h-1/2 w-full items-center justify-center text-[11px] font-bold leading-none text-zinc-700 transition hover:bg-zinc-100 disabled:opacity-40 dark:text-zinc-200 dark:hover:bg-zinc-900';
     return (
-      <div className="flex h-10 w-full min-w-0 items-stretch overflow-hidden rounded-xl border border-zinc-200 dark:border-zinc-800">
-        <button
-          type="button"
-          className="inline-flex w-8 shrink-0 items-center justify-center border-r border-zinc-200 text-sm font-bold text-zinc-700 transition hover:bg-zinc-100 disabled:opacity-40 dark:border-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-900"
-          onClick={() => setQty(qtyCommitted - 1)}
-          disabled={stepDisabled || qtyCommitted <= qtyMin}
-          aria-label="Decrease quantity"
-        >
-          −
-        </button>
+      <div className="flex h-10 w-full min-w-0 items-stretch gap-1.5">
         <input
           id={qtyInputId}
           type="text"
@@ -375,7 +368,7 @@ export function GameItemCard(props: {
           aria-label={`${qtyAriaLabel} (type custom amount)`}
           title="Type amount or use +/−"
           disabled={stepDisabled}
-          className={`h-full min-w-0 flex-1 border-0 px-1 text-center text-sm font-black tabular-nums text-zinc-900 outline-none disabled:opacity-50 dark:text-zinc-100 ${QTY_INPUT_FILL}`}
+          className={`box-border h-10 min-w-0 flex-1 rounded-xl border border-zinc-200 px-2 text-center text-sm font-black tabular-nums text-zinc-900 outline-none transition focus:border-[color:var(--hub-accent,#10b981)] focus:ring-1 focus:ring-[color:var(--hub-accent,#10b981)] disabled:opacity-50 dark:border-zinc-800 dark:text-zinc-100 ${QTY_INPUT_FILL}`}
           value={qtyEditDraft !== null ? qtyEditDraft : String(qtyCommitted)}
           onFocus={() => {
             if (!qtyCfg) return;
@@ -391,19 +384,30 @@ export function GameItemCard(props: {
             if (e.key === 'Enter') commitDraftAndBlur();
           }}
         />
-        <button
-          type="button"
-          className="inline-flex w-8 shrink-0 items-center justify-center border-l border-zinc-200 text-sm font-bold text-zinc-700 transition hover:bg-zinc-100 disabled:opacity-40 dark:border-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-900"
-          onClick={() => setQty(qtyCommitted + 1)}
-          disabled={stepDisabled || qtyCommitted >= qtyMax}
-          aria-label="Increase quantity"
-        >
-          +
-        </button>
+        <div className="flex h-10 w-7 shrink-0 flex-col overflow-hidden rounded-xl border border-zinc-200 dark:border-zinc-800">
+          <button
+            type="button"
+            className={`${stepBtn} border-b border-zinc-200 dark:border-zinc-800`}
+            onClick={() => setQty(qtyCommitted + 1)}
+            disabled={stepDisabled || qtyCommitted >= qtyMax}
+            aria-label="Increase quantity"
+          >
+            +
+          </button>
+          <button
+            type="button"
+            className={stepBtn}
+            onClick={() => setQty(qtyCommitted - 1)}
+            disabled={stepDisabled || qtyCommitted <= qtyMin}
+            aria-label="Decrease quantity"
+          >
+            −
+          </button>
+        </div>
         {showMax ? (
           <button
             type="button"
-            className="inline-flex shrink-0 items-center border-l border-zinc-200 px-2 text-[10px] font-bold uppercase tracking-wide text-zinc-600 transition hover:bg-zinc-100 disabled:opacity-40 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-900"
+            className={`inline-flex h-10 shrink-0 items-center rounded-xl border border-zinc-200 px-2 text-[10px] font-bold uppercase tracking-wide text-zinc-600 transition hover:bg-zinc-100 disabled:opacity-40 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-900 ${QTY_INPUT_FILL}`}
             disabled={stepDisabled || qtyMax <= qtyMin}
             onClick={() => setQty(qtyMax)}
           >
@@ -520,11 +524,13 @@ export function GameItemCard(props: {
         >
           <div className="flex flex-col gap-2">
             {lockedQtyProp == null && qtyCfg ? (
-              <div className={`relative z-20 flex w-full items-center gap-2 ${qtyCtlInteractive ? '' : 'opacity-60'}`}>
-                <div className="w-[30%] min-w-0 shrink-0 [&>div]:w-full">
+              <div
+                className={`relative z-20 flex w-full items-center gap-2 overflow-visible ${qtyCtlInteractive ? '' : 'opacity-60'}`}
+              >
+                <div className="w-[40%] min-w-0 shrink-0 overflow-visible [&>div]:w-full">
                   {qtyStepper({ showMax: Boolean(props.showQuantityMaxButton) })}
                 </div>
-                <div className="relative z-20 w-[70%] min-w-0">{currencyPicker}</div>
+                <div className="relative z-20 w-[60%] min-w-0">{currencyPicker}</div>
               </div>
             ) : (
               <div className="relative z-20 w-full">{currencyPicker}</div>
