@@ -32,12 +32,11 @@ export const KX_CALCULATION_ASIDE =
   'flex flex-col rounded-2xl border border-zinc-200 bg-gradient-to-b from-white to-zinc-50 p-5 space-y-4 shadow-[0_10px_30px_-18px_var(--hub-accent-shadow,rgba(2,171,184,0.35))] dark:border-zinc-800 dark:from-zinc-900 dark:to-zinc-900/95';
 
 /**
- * Nested surface: slightly off the parent panel so boxes do not merge.
- * Keep the shift subtle. Borders stay discrete (not high-contrast).
- * Light: white panel → zinc-50. Dark: zinc-900 panel → soft lift, not zinc-800 brick.
+ * Nested surface: slightly off the parent / page so boxes do not merge.
+ * Light: zinc-100 (reads on both page zinc-50 and white panels). Dark: soft lift, not zinc-800 brick.
  */
 export const KX_SURFACE_NESTED =
-  'rounded-2xl border border-zinc-200/80 bg-zinc-50 dark:border-zinc-800 dark:bg-white/[0.04]';
+  'rounded-2xl border border-zinc-200 bg-zinc-100 dark:border-zinc-800 dark:bg-white/[0.06]';
 
 /** Nested inset group inside a form panel (fees blocks, grouped fields). */
 export const KX_FORM_NESTED_GROUP = `space-y-4 ${KX_SURFACE_NESTED} p-5`;
@@ -45,10 +44,10 @@ export const KX_FORM_NESTED_GROUP = `space-y-4 ${KX_SURFACE_NESTED} p-5`;
 export const KX_PANEL_PADDING = 'p-4 sm:p-5';
 
 export const KX_SURFACE_INSET =
-  'rounded-xl border border-zinc-200/80 bg-zinc-50 dark:border-zinc-800 dark:bg-white/[0.04]';
+  'rounded-xl border border-zinc-200 bg-zinc-100 dark:border-zinc-800 dark:bg-white/[0.06]';
 
 export const KX_SURFACE_ROW =
-  'rounded-lg border border-zinc-200/80 bg-zinc-50 p-3 dark:border-zinc-800 dark:bg-white/[0.04]';
+  'rounded-lg border border-zinc-200 bg-zinc-100 p-3 dark:border-zinc-800 dark:bg-white/[0.06]';
 
 export const KX_INPUT = 'k-input w-full';
 
@@ -86,10 +85,11 @@ export const KX_METADATA_STAT_LABEL =
 export const KX_METADATA_STAT_HINT = 'mt-1 text-xs font-medium text-zinc-500 dark:text-zinc-400';
 
 /**
- * Card chrome: equal-height cells. Discrete nest border; accent border on hover (global).
+ * Card chrome: equal-height cells, top-left content (never centered).
+ * Discrete nest border; accent border on hover (global).
  */
 export const KX_METADATA_STAT_CARD =
-  `${KX_SURFACE_NESTED} flex h-full min-h-0 flex-col p-4 sm:p-5 font-sans transition-colors hover:border-[color:var(--hub-accent)]`;
+  `${KX_SURFACE_NESTED} flex h-full min-h-0 flex-col items-stretch justify-start text-left p-4 sm:p-5 font-sans transition-colors hover:border-[color:var(--hub-accent)]`;
 
 /**
  * Pick columns from item count so panels do not leave an empty third slot.

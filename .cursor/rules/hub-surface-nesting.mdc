@@ -12,7 +12,7 @@ When placing a box, card, or container **inside** another panel, give it a **sli
 | Layer | Token | Intent |
 |-------|--------|--------|
 | Panel | `KX_PANEL`, `KX_FORM_PANEL`, aside chrome | `white` / `zinc-900` |
-| Nested box | `KX_SURFACE_NESTED`, `KX_METADATA_STAT_CARD`, `KX_SURFACE_INSET`, `KX_SURFACE_ROW` | Subtle lift: `zinc-50` + soft border / dark `white/[0.04]` + `zinc-800` border |
+| Nested box | `KX_SURFACE_NESTED`, `KX_METADATA_STAT_CARD`, `KX_SURFACE_INSET`, `KX_SURFACE_ROW` | Subtle lift: light `zinc-100` + `zinc-200` border / dark `white/[0.06]` + `zinc-800` border |
 
 ## Metadata / stat boxes
 

@@ -42,6 +42,15 @@ function shortenDisplay(value: string): string {
   return v;
 }
 
+function looksLikeLongId(value: string): boolean {
+  const v = value.trim();
+  if (v.length >= 28) return true;
+  if (v.startsWith('0x') && v.length >= 20) return true;
+  if (v.startsWith('kaspa:') || v.startsWith('kaspatest:')) return true;
+  if (/^[a-f0-9]{40,}$/i.test(v)) return true;
+  return false;
+}
+
 function resolveValueClass(args: {
   dense?: boolean;
   accent?: boolean;
@@ -74,7 +83,8 @@ export function HubMetadataStatCard({
 }: HubMetadataStat) {
   if (!value?.trim() && !valueNode) return null;
   const canCopy = copyable ?? Boolean(value?.trim());
-  const valueClass = resolveValueClass({ dense, accent, muted });
+  const useDense = dense || looksLikeLongId(value || '');
+  const valueClass = resolveValueClass({ dense: useDense, accent, muted });
 
   const card = (
     <div className={`${KX_METADATA_STAT_CARD} ${className}`.trim()}>
@@ -93,8 +103,8 @@ export function HubMetadataStatCard({
 
   if (tooltipTitle && tooltipDescription) {
     return (
-      <Tooltip content={gameTooltipRich(tooltipTitle, tooltipDescription)} className="block h-full">
-        {card}
+      <Tooltip content={gameTooltipRich(tooltipTitle, tooltipDescription)} className="max-w-xs">
+        <div className="block h-full min-w-0 text-left">{card}</div>
       </Tooltip>
     );
   }

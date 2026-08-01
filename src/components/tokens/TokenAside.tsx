@@ -31,13 +31,18 @@ export function TokenAside({ token }: { token: Token }) {
 
   const onChainStats: HubMetadataStat[] = [];
   if (token.id) {
-    onChainStats.push({ label: 'Token ID', value: token.id, copyable: true });
+    onChainStats.push({ label: 'Token ID', value: token.id, copyable: true, dense: true });
   }
   if (token.slug) {
-    onChainStats.push({ label: 'Slug', value: token.slug, copyable: true });
+    onChainStats.push({ label: 'Slug', value: token.slug, copyable: true, dense: true });
   }
   if (token.symbol) {
-    onChainStats.push({ label: 'Ticker', value: token.symbol, copyable: true, accent: true });
+    onChainStats.push({
+      label: 'Ticker',
+      value: token.symbol,
+      copyable: true,
+      accent: true,
+    });
   }
   if (token.listingNetwork) {
     onChainStats.push({
@@ -87,6 +92,8 @@ export function TokenAside({ token }: { token: Token }) {
       label: 'Decimals',
       value: String(token.decimals),
       copyable: false,
+      tooltipTitle: 'Decimals',
+      tooltipDescription: 'Number of decimal places used by this token standard on its primary network.',
     });
   }
 

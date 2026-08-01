@@ -8,7 +8,7 @@
 import Link from 'next/link';
 import type { Token } from '@/lib/tokens/types';
 import { GameOverviewTitleBlock } from '@/components/games/panels/GameOverviewSections';
-import { KX_METADATA_STAT_CARD, KX_PANEL, metadataStatGridClassForCount } from '@/lib/hub/shellTokens';
+import { KX_PANEL, KX_SURFACE_NESTED, metadataStatGridClassForCount } from '@/lib/hub/shellTokens';
 
 interface TokenTradingSectionProps {
   token: Token;
@@ -98,7 +98,7 @@ function ExchangeCard(props: {
     </>
   );
 
-  const className = `${KX_METADATA_STAT_CARD} flex-row items-center gap-3 !p-3`;
+  const className = `${KX_SURFACE_NESTED} flex !flex-row items-center justify-between gap-3 p-3 text-left font-sans transition-colors hover:border-[color:var(--hub-accent)]`;
 
   if (props.internal) {
     return (
@@ -169,7 +169,7 @@ export function TokenTradingSection({ token }: TokenTradingSectionProps) {
       )}
 
       {hasL1AndL2 ? (
-        <div className={KX_METADATA_STAT_CARD}>
+        <div className={`${KX_SURFACE_NESTED} p-4 text-left`}>
           <p className="text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
             Bridge
           </p>

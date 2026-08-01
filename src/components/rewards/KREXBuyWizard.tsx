@@ -2,9 +2,9 @@
 
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
-import { CopyableAddress } from '@/components/donations/CopyableAddress';
+import { TokenCopyableAddress } from '@/components/tokens/TokenCopyableAddress';
+import { KX_SURFACE_NESTED } from '@/lib/hub/shellTokens';
 import { BRIDGE_URLS, getAddressExplorerUrl } from '@/lib/walletUi';
-import { KX_METADATA_STAT_CARD, KX_SURFACE_NESTED } from '@/lib/hub/shellTokens';
 
 interface KREXBuyWizardProps {
   isOpen: boolean;
@@ -274,9 +274,9 @@ export function KREXBuyWizard({ isOpen, onClose }: KREXBuyWizardProps) {
                   <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-4">
                     Choose a network and DEX to get KREX directly on L2:
                   </p>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <div className={`${KX_SURFACE_NESTED} p-3`}>
-                      <div className="mb-2 text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+                  <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                    <div className="space-y-2">
+                      <div className="text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
                         Kasplex
                       </div>
                       <div className="space-y-2">
@@ -286,38 +286,39 @@ export function KREXBuyWizard({ isOpen, onClose }: KREXBuyWizardProps) {
                             href={dex.url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className={`${KX_METADATA_STAT_CARD} flex-row items-center justify-between !p-3`}
+                            className={`${KX_SURFACE_NESTED} flex !flex-row items-center justify-between gap-3 p-3 text-left transition-colors hover:border-[color:var(--hub-accent)]`}
                           >
-                            <div>
+                            <div className="min-w-0">
                               <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">{dex.name}</div>
                               <div className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">{dex.description}</div>
                             </div>
-                            <svg className="h-4 w-4 text-[color:var(--hub-accent)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <svg className="h-4 w-4 shrink-0 text-[color:var(--hub-accent)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                             </svg>
                           </a>
                         ))}
                       </div>
-                      <div className="mt-3 rounded-xl border border-[color:var(--hub-accent-border)] bg-[color:var(--hub-accent-muted)] p-3">
-                        <p className="mb-2 text-xs font-medium text-[color:var(--hub-accent)]">KREX contract (Kasplex)</p>
-                        <CopyableAddress
+                      <div className={`${KX_SURFACE_NESTED} space-y-2 p-3 text-left`}>
+                        <p className="text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+                          KREX contract (Kasplex)
+                        </p>
+                        <TokenCopyableAddress
                           value={KASPLEX_KREX_TOKEN_CA}
+                          copyLabel="Copy Kasplex KREX contract"
                           explorerUrl={
                             getAddressExplorerUrl({
                               kind: 'evm',
                               address: KASPLEX_KREX_TOKEN_CA,
                               chainExplorerBaseUrl: KASPLEX_EXPLORER_BASE,
-                            }) || '#'
+                            }) || undefined
                           }
-                          explorerLabel="Open in Kasplex explorer"
-                          className={`${KX_METADATA_STAT_CARD} !p-3`}
-                          truncate={false}
+                          truncate
                         />
                       </div>
                     </div>
 
-                    <div className={`${KX_SURFACE_NESTED} p-3`}>
-                      <div className="mb-2 text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+                    <div className="space-y-2">
+                      <div className="text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
                         IGRA
                       </div>
                       <div className="space-y-2">
@@ -327,32 +328,33 @@ export function KREXBuyWizard({ isOpen, onClose }: KREXBuyWizardProps) {
                             href={dex.url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className={`${KX_METADATA_STAT_CARD} flex-row items-center justify-between !p-3`}
+                            className={`${KX_SURFACE_NESTED} flex !flex-row items-center justify-between gap-3 p-3 text-left transition-colors hover:border-[color:var(--hub-accent)]`}
                           >
-                            <div>
+                            <div className="min-w-0">
                               <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">{dex.name}</div>
                               <div className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">{dex.description}</div>
                             </div>
-                            <svg className="h-4 w-4 text-[color:var(--hub-accent)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <svg className="h-4 w-4 shrink-0 text-[color:var(--hub-accent)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                             </svg>
                           </a>
                         ))}
                       </div>
-                      <div className="mt-3 rounded-xl border border-[color:var(--hub-accent-border)] bg-[color:var(--hub-accent-muted)] p-3">
-                        <p className="mb-2 text-xs font-medium text-[color:var(--hub-accent)]">KREX contract (IGRA)</p>
-                        <CopyableAddress
+                      <div className={`${KX_SURFACE_NESTED} space-y-2 p-3 text-left`}>
+                        <p className="text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+                          KREX contract (IGRA)
+                        </p>
+                        <TokenCopyableAddress
                           value={IGRA_KREX_TOKEN_CA}
+                          copyLabel="Copy IGRA KREX contract"
                           explorerUrl={
                             getAddressExplorerUrl({
                               kind: 'evm',
                               address: IGRA_KREX_TOKEN_CA,
                               chainExplorerBaseUrl: IGRA_EXPLORER_BASE,
-                            }) || '#'
+                            }) || undefined
                           }
-                          explorerLabel="Open in IGRA explorer"
-                          className={`${KX_METADATA_STAT_CARD} !p-3`}
-                          truncate={false}
+                          truncate
                         />
                       </div>
                     </div>
@@ -370,7 +372,7 @@ export function KREXBuyWizard({ isOpen, onClose }: KREXBuyWizardProps) {
                         href={exchange.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className={`${KX_METADATA_STAT_CARD} flex-row items-center justify-between !p-3`}
+                        className={`${KX_SURFACE_NESTED} flex !flex-row items-center justify-between gap-3 p-3 text-left transition-colors hover:border-[color:var(--hub-accent)]`}
                       >
                         <div>
                           <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">

@@ -23,7 +23,7 @@ Reference: **vBlog aside “On-chain metadata”** and **dApps Metadata** tab bo
 | Value | `KX_METADATA_STAT_VALUE` / `_ACCENT` / `_MUTED` / `_LINK` |
 | Grid | `metadataStatGridClassForCount(n)`: 1→1, 2/4→2 cols, 3→3, 5+→up to 3. **Never leave an empty third column for 2 items; never full-width leftover for 4.** |
 | Stack | `KX_METADATA_STAT_GRID_STACK` (aside On-chain metadata) |
-| Tooltips | On the **whole card** via `tooltipTitle` + `tooltipDescription`. **No** inline `?` icons. |
+| Tooltips | On the **whole card** via `tooltipTitle` + `tooltipDescription`. **No** inline `?` icons. Never pass height classes (`h-full`) into `Tooltip` `className` (that styles the portal surface). |
 
 ## Section titles
 
