@@ -3,6 +3,8 @@
  * Shop treasury address, NFT diamond/rarest IDs, KREX fee discounts, revenue pool.
  */
 
+import { MINECORE_KREX_PER_KAS } from '@/lib/game/minecore/config';
+
 /**
  * L1 recipient for Diamond Veins payments (Shop / boosts).
  * Override via `NEXT_PUBLIC_DIAMOND_VEINS_TREASURY_ADDRESS`.
@@ -119,31 +121,31 @@ export const DIAMOND_VEINS_SLOT_BASE_SESSION_LABEL = {
   foreman: '3h base',
 } as const;
 
-/** Shop consumables that restore worker energy (% of energyMax). */
+/** Shop consumables that restore worker energy (% of energyMax). Min 2 KAS to avoid L1 storage-mass failures on tiny outs. */
 export const DIAMOND_VEINS_CONSUMABLES = [
   {
     id: 'field-ration' as const,
     name: 'Field Ration',
     desc: 'Restore 25% worker energy',
     restorePct: 0.25,
-    priceKrex: 50,
-    priceKAS: 0.25,
+    priceKAS: 2,
+    priceKrex: 2 * MINECORE_KREX_PER_KAS,
   },
   {
     id: 'energy-drink' as const,
     name: 'Energy Drink',
     desc: 'Restore 50% worker energy',
     restorePct: 0.5,
-    priceKrex: 120,
-    priceKAS: 0.5,
+    priceKAS: 4,
+    priceKrex: 4 * MINECORE_KREX_PER_KAS,
   },
   {
     id: 'repair-kit' as const,
     name: 'Repair Kit',
     desc: 'Fully restore worker energy',
     restorePct: 1,
-    priceKrex: 250,
-    priceKAS: 1,
+    priceKAS: 8,
+    priceKrex: 8 * MINECORE_KREX_PER_KAS,
   },
 ] as const;
 

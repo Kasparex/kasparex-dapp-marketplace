@@ -12,7 +12,7 @@ import type { HubPaymentCurrencyOption } from '@/lib/payments/hubPaymentTypes';
 import { prefetchImageUrls } from '@/lib/hub/aggressiveCache';
 
 type NetworkFilter = 'all' | 'kcc20_l1' | 'krc20_l1' | 'kasplex_l2' | 'igra_l2';
-type DexFilter = 'all' | 'kron' | 'kcom' | 'zelous';
+type DexFilter = 'all' | 'kron' | 'kcom' | 'zealous';
 
 const BUY_KAS_URL = 'https://kaspa.org/hodl#buy';
 const INTEGRATE_TOKEN_TOOLTIP =
@@ -163,7 +163,7 @@ export function HubPaymentCurrencyCatalogModal({
               <FilterChip label="ALL" active={dexFilter === 'all'} onClick={() => setDexFilter('all')} />
               <FilterChip label="KRON" active={dexFilter === 'kron'} onClick={() => setDexFilter('kron')} />
               <FilterChip label="KCOM" active={dexFilter === 'kcom'} onClick={() => setDexFilter('kcom')} />
-              <FilterChip label="ZELOUS" active={dexFilter === 'zelous'} onClick={() => setDexFilter('zelous')} />
+              <FilterChip label="ZEALOUS" active={dexFilter === 'zealous'} onClick={() => setDexFilter('zealous')} />
             </div>
           </div>
         </div>

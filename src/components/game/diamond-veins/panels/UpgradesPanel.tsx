@@ -13,7 +13,7 @@ import type { DiamondVeinsConsumableId } from '@/lib/game/engine';
 import * as Icons from 'lucide-react';
 
 const SHOP_BOOSTS = [
-  { id: 'nitrogen-overclock', name: "Vector's Overclock", price: 100, priceKAS: 0.5, desc: '+25% Yield (1h)', icon: <IconBoosters />, type: 'yield' as const, mult: 0.25 },
+  { id: 'nitrogen-overclock', name: "Vector's Overclock", price: 400, priceKAS: 2, desc: '+25% Yield (1h)', icon: <IconBoosters />, type: 'yield' as const, mult: 0.25 },
   { id: 'crystal-resonance', name: 'Crystal Resonance', price: 500, priceKAS: 2, desc: '+50% Rare Drops', icon: <IconSignal />, type: 'luck' as const, mult: 0.5 },
   { id: 'ai-auto-refiner', name: 'ARIA Auto-Refiner', price: 2500, priceKAS: 10, desc: 'Auto-claim every 4h', icon: <IconBot />, type: 'efficiency' as const, mult: 0.1 },
 ];

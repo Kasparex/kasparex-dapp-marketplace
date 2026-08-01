@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { getProductById } from '@/lib/store/products';
 import { getExplorerTxUrl } from '@/lib/store/utils';
-import { getBestGatewayUrl } from '@/lib/ipfs/gateway';
+import { resolveStoreProductImageUrl } from '@/lib/store/productMedia';
 import type { Product, Purchase } from '@/lib/store/types';
 import { KxListingCard, KxListingCardBody, KxListingCardMedia } from '@/components/kx/KxListingCard';
 import { KX_LISTING_PLACEHOLDER_GRADIENT } from '@/lib/ui/kxListingPlaceholder';
@@ -41,7 +41,7 @@ export function StorePurchasedGrid({ purchases }: StorePurchasedGridProps) {
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-stretch">
       {purchases.map((purchase) => {
         const product = products[purchase.productId];
-        const thumbnailUrl = product?.thumbnailCid ? getBestGatewayUrl(product.thumbnailCid) : null;
+        const thumbnailUrl = resolveStoreProductImageUrl(product) ?? null;
         const href = product ? `/store/${product.slug}` : undefined;
 
         return (

@@ -2,6 +2,7 @@
 
 import { useMemo } from 'react';
 import { getBestGatewayUrl } from '@/lib/ipfs/gateway';
+import { resolveStoreProductImageUrl } from '@/lib/store/productMedia';
 import type { Product } from '@/lib/store/types';
 import type { StoreProductContentTab } from '@/lib/store/productPageSections';
 import { DAppTabs, type DAppTab } from '@/components/dapps/layout/DAppTabs';
@@ -71,7 +72,7 @@ export function StoreProductDetail({
   const [rightOpen, setRightOpen] = useStoreRightPanelOpen(true);
   const { comments } = useStoreComments(product.id);
   const commentCount = comments.length;
-  const thumbnailUrl = product.thumbnailCid ? getBestGatewayUrl(product.thumbnailCid) : null;
+  const thumbnailUrl = resolveStoreProductImageUrl(product) ?? null;
   const productTags = normalizeStoreProductTags(product.tags);
 
   const productTabs: readonly DAppTab<StoreProductContentTab>[] = useMemo(

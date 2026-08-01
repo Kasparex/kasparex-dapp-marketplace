@@ -3,7 +3,7 @@
 import { useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import type { Product } from '@/lib/store/types';
-import { getBestGatewayUrl } from '@/lib/ipfs/gateway';
+import { resolveStoreProductImageUrl } from '@/lib/store/productMedia';
 import { storeProductGateConfig } from '@/lib/hub/gateConfigs';
 import { useHubListingGate } from '@/hooks/useHubListingGate';
 import { HubWalletGateModal } from '@/components/hub/HubWalletGateModal';
@@ -34,7 +34,7 @@ export function ProductCard({ product }: ProductCardProps) {
   const { purchase, isProcessing, error, success, clearError } = useStoreProductPurchase(product);
   const { tokens: sellerIntegratedTokens } = useIntegratedTokens(product.sellerAddress, 'store');
 
-  const thumbnailUrl = product.thumbnailCid ? getBestGatewayUrl(product.thumbnailCid) : undefined;
+  const thumbnailUrl = resolveStoreProductImageUrl(product);
   const listedCurrency = getProductPaymentCurrency(product);
   const integratedTicks = sellerIntegratedTokens.map((t) => t.tick).join(',');
   const pricingTickers = useMemo(

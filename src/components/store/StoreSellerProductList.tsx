@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import type { Product } from '@/lib/store/types';
 import { getProductPaymentCurrency } from '@/lib/store/currencies';
-import { getBestGatewayUrl } from '@/lib/ipfs/gateway';
+import { resolveStoreProductImageUrl } from '@/lib/store/productMedia';
 import { htmlToPlainText } from '@/lib/richText/html';
 import { KxListingCard, KxListingCardBody, KxListingCardMedia } from '@/components/kx/KxListingCard';
 import { KxListingCategoryChip } from '@/components/ui/KxListingCategoryChip';
@@ -47,7 +47,7 @@ export function StoreSellerProductList({
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-stretch">
       {products.map((product) => {
         const currency = getProductPaymentCurrency(product);
-        const thumbnailUrl = product.thumbnailCid ? getBestGatewayUrl(product.thumbnailCid) : null;
+        const thumbnailUrl = resolveStoreProductImageUrl(product) ?? null;
         const excerpt = htmlToPlainText(product.description);
 
         return (

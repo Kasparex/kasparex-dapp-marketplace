@@ -77,11 +77,19 @@ export function StoreProductForm({ product }: StoreProductFormProps) {
   const [description, setDescription] = useState(() => contentForRichEditor(product?.description ?? ''));
   const [content, setContent] = useState(() => contentForRichEditor(product?.content ?? ''));
   const [tags, setTags] = useState<string[]>(() => normalizeHubTags(product?.tags ?? []));
-  const [thumbnailSource, setThumbnailSource] = useState<'url' | 'file'>('file');
-  const [thumbnailUrl, setThumbnailUrl] = useState(
-    product?.thumbnailCid ? getBestGatewayUrl(product.thumbnailCid) : '',
+  const [thumbnailSource, setThumbnailSource] = useState<'url' | 'file'>(
+    product?.thumbnailUrl && !product?.thumbnailCid ? 'url' : 'file',
   );
-  const [thumbnailCid, setThumbnailCid] = useState<string | null>(product?.thumbnailCid ?? null);
+  const [thumbnailUrl, setThumbnailUrl] = useState(
+    product?.thumbnailUrl
+      ? product.thumbnailUrl
+      : product?.thumbnailCid
+        ? getBestGatewayUrl(product.thumbnailCid)
+        : '',
+  );
+  const [thumbnailCid, setThumbnailCid] = useState<string | null>(
+    product?.thumbnailCid?.trim() ? product.thumbnailCid : null,
+  );
   const [thumbnailName, setThumbnailName] = useState<string | null>(null);
   const [assetCids, setAssetCids] = useState<string[]>(product?.assetCids ?? []);
   const [assetFileNames, setAssetFileNames] = useState<string[]>(product?.assetFileNames ?? []);
@@ -133,6 +141,11 @@ export function StoreProductForm({ product }: StoreProductFormProps) {
 
   const descriptionPlain = useMemo(() => htmlToPlainText(description).trim(), [description]);
   const priceOk = Boolean(formData.priceKAS && parseFloat(formData.priceKAS) > 0);
+  const hasHttpsThumbnail = /^https?:\/\//i.test(thumbnailUrl.trim());
+  const hasThumbnail =
+    thumbnailSource === 'url'
+      ? Boolean(resolvedThumbnailCid || hasHttpsThumbnail)
+      : Boolean(resolvedThumbnailCid);
 
   const publishBlockers = useMemo(() => {
     const missing: string[] = [];
@@ -140,11 +153,9 @@ export function StoreProductForm({ product }: StoreProductFormProps) {
     if (!formData.title.trim()) missing.push('Title');
     if (!descriptionPlain) missing.push('Description (not Protected content)');
     if (!priceOk) missing.push('Price greater than 0');
-    if (!resolvedThumbnailCid) {
-      missing.push('Thumbnail via IPFS upload (or an IPFS gateway URL with a CID)');
-    }
+    if (!hasThumbnail) missing.push('Thumbnail (HTTPS image URL or IPFS upload)');
     return missing;
-  }, [state.isConnected, formData.title, descriptionPlain, priceOk, resolvedThumbnailCid]);
+  }, [state.isConnected, formData.title, descriptionPlain, priceOk, hasThumbnail]);
 
   const canSubmit = publishBlockers.length === 0;
 
@@ -206,7 +217,7 @@ export function StoreProductForm({ product }: StoreProductFormProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!canSubmit || !state.address || !state.provider || !resolvedThumbnailCid) return;
+    if (!canSubmit || !state.address || !state.provider || !hasThumbnail) return;
 
     if (enabledModules.buyer_support && !buyerSupportUrl.trim()) {
       setError('Buyer support URL is required when the Buyer Support module is enabled.');
@@ -222,6 +233,12 @@ export function StoreProductForm({ product }: StoreProductFormProps) {
       const descriptionPayload = description.trim();
       const contentPayload = content.trim() || undefined;
       const tagsPayload = normalizeStoreProductTags(tags);
+      const httpsThumb =
+        thumbnailSource === 'url' && hasHttpsThumbnail && !resolvedThumbnailCid
+          ? thumbnailUrl.trim()
+          : undefined;
+      const nextThumbnailCid = resolvedThumbnailCid ?? '';
+      const nextThumbnailUrl = httpsThumb;
 
       if (isEdit && product) {
         const result = await updateProduct(product.id, state.address, {
@@ -234,7 +251,8 @@ export function StoreProductForm({ product }: StoreProductFormProps) {
           category: formData.category,
           assetCids,
           assetFileNames,
-          thumbnailCid: resolvedThumbnailCid,
+          thumbnailCid: nextThumbnailCid || (nextThumbnailUrl ? '' : product.thumbnailCid),
+          thumbnailUrl: nextThumbnailUrl ?? (nextThumbnailCid ? undefined : product.thumbnailUrl),
           tags: tagsPayload,
         });
         if (!result) throw new Error('Failed to update product');
@@ -254,7 +272,8 @@ export function StoreProductForm({ product }: StoreProductFormProps) {
             category: formData.category,
             assetCids,
             assetFileNames,
-            thumbnailCid: resolvedThumbnailCid,
+            thumbnailCid: nextThumbnailCid,
+            thumbnailUrl: nextThumbnailUrl,
             tags: tagsPayload,
             status: 'active',
           },
@@ -467,8 +486,8 @@ export function StoreProductForm({ product }: StoreProductFormProps) {
                 setThumbnailCid(null);
                 setThumbnailName(null);
               }}
-              urlPlaceholder="ipfs://… or hub IPFS gateway URL"
-              urlHint="Upload below, or paste an IPFS / hub gateway URL that includes a CID. Plain HTTPS image links do not unlock Publish."
+              urlPlaceholder="https://..."
+              urlHint="Direct HTTPS image URL, or upload to IPFS below. Same as dApps / vBlog featured images."
               fileName={
                 thumbnailName ??
                 (thumbnailCid && !thumbnailName ? 'Uploaded thumbnail' : null)

@@ -30,7 +30,7 @@ export type HubCurrencyCatalogEntry = HubPaymentCurrencyOption & {
   /** Filter chip: settlement network / standard. */
   networkTag?: 'native_l1' | 'kcc20_l1' | 'krc20_l1' | 'kasplex_l2' | 'igra_l2';
   /** Filter chip: venue / DEX affinity. */
-  dexTag?: 'native' | 'kron' | 'kcom' | 'zelous' | 'other';
+  dexTag?: 'native' | 'kron' | 'kcom' | 'zealous' | 'other';
   /** Optional logo URL (Tokens listing / base logos). */
   imageUrl?: string;
 };

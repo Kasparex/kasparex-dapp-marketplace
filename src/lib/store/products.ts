@@ -205,6 +205,7 @@ export async function createProduct(
       slug: product.slug,
       productCid,
       thumbnailCid: product.thumbnailCid,
+      thumbnailUrl: product.thumbnailUrl,
       sellerAddress: product.sellerAddress,
       priceKAS: product.priceKAS,
       paymentCurrency: product.paymentCurrency,
@@ -364,6 +365,7 @@ export type ProductUpdateInput = Partial<
     | 'assetCids'
     | 'assetFileNames'
     | 'thumbnailCid'
+    | 'thumbnailUrl'
     | 'tags'
   >
 >;
@@ -412,6 +414,7 @@ export async function updateProduct(
     entry.slug = updated.slug;
     entry.productCid = productCid;
     entry.thumbnailCid = updated.thumbnailCid;
+    entry.thumbnailUrl = updated.thumbnailUrl;
     entry.priceKAS = updated.priceKAS;
     entry.paymentCurrency = updated.paymentCurrency;
     entry.network = updated.network;

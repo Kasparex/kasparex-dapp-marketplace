@@ -24,7 +24,10 @@ export interface Product {
   category: ProductCategory;
   assetCids: string[]; // IPFS CIDs for product files
   assetFileNames?: string[]; // Original filenames aligned with assetCids
-  thumbnailCid: string; // IPFS CID for thumbnail image
+  /** IPFS CID for thumbnail image (preferred when uploaded). */
+  thumbnailCid: string;
+  /** Direct HTTPS thumbnail URL (same pattern as dApps / vBlog featured images). */
+  thumbnailUrl?: string;
   tags?: string[]; // Optional tags for categorization
   status: ProductStatus;
   listingFeePaid: boolean;
@@ -37,6 +40,8 @@ export interface ProductRegistryEntry {
   slug: string;
   productCid: string; // CID of full product data JSON
   thumbnailCid: string;
+  /** Optional HTTPS thumbnail when not using IPFS. */
+  thumbnailUrl?: string;
   sellerAddress: string;
   priceKAS: number;
   paymentCurrency?: StorePaymentCurrency;

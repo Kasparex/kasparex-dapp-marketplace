@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { ProductCard } from './ProductCard';
 import type { Product } from '@/lib/store/types';
 import type { ProductViewMode } from '@/app/store/page';
+import { resolveStoreProductImageUrl } from '@/lib/store/productMedia';
 
 interface ProductGridProps {
   products: Product[];
@@ -66,16 +67,18 @@ export function ProductGrid({ products, viewMode }: ProductGridProps) {
   if (viewMode === 'table') {
     return (
       <div className="space-y-2">
-        {products.map((product) => (
+        {products.map((product) => {
+          const thumb = resolveStoreProductImageUrl(product);
+          return (
           <div
             key={product.id}
             className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl p-4 hover:border-cyan-500/30 transition-colors"
           >
             <div className="flex items-center gap-4">
               <div className="flex-shrink-0 w-16 h-16 bg-zinc-100 dark:bg-zinc-800 rounded flex items-center justify-center overflow-hidden">
-                {product.thumbnailCid ? (
+                {thumb ? (
                   <img
-                    src={`https://gateway.pinata.cloud/ipfs/${product.thumbnailCid}`}
+                    src={thumb}
                     alt={product.title}
                     className="w-full h-full object-cover"
                     loading="lazy"
@@ -107,7 +110,8 @@ export function ProductGrid({ products, viewMode }: ProductGridProps) {
               </div>
             </div>
           </div>
-        ))}
+          );
+        })}
       </div>
     );
   }

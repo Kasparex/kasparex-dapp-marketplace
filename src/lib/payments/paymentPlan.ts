@@ -262,7 +262,10 @@ export function buildListingVotePlan(args: {
   };
 }
 
-/** Author / creator share + optional platform fee (vBlog-style). */
+/** Author / creator share + optional platform fee (vBlog-style / Store checkout).
+ * Uses exact KAS amounts. Do not floor legs to HUB_PAYMENT_MIN_LEG_KAS: that
+ * inflates the buyer total (e.g. 0.096 platform fee becoming 1 KAS).
+ */
 export function buildCreatorPlatformPlan(args: {
   creatorAddress: string;
   creatorKas: number;
@@ -273,24 +276,28 @@ export function buildCreatorPlatformPlan(args: {
   payloadHex?: string;
   extraLegs?: PaymentLeg[];
 }): PaymentPlan {
-  const minLeg = HUB_PAYMENT_MIN_LEG_KAS;
+  const creatorKas = roundKas(args.creatorKas);
+  if (!(creatorKas > 0)) {
+    throw new Error('Creator payment amount must be positive');
+  }
+
   const legs: PaymentLeg[] = [
     {
       role: 'creator',
       address: normAddress(args.creatorAddress),
-      amount: Math.max(minLeg, roundKas(args.creatorKas)),
+      amount: creatorKas,
       label: args.creatorLabel ?? 'Creator',
       required: true,
     },
   ];
 
-  const platformKas = args.platformKas ?? 0;
+  const platformKas = roundKas(args.platformKas ?? 0);
   const platformAddress = (args.platformAddress ?? getHubTreasuryAddress()).trim();
   if (platformKas > 1e-9 && platformAddress) {
     legs.push({
       role: 'platform',
       address: normAddress(platformAddress),
-      amount: Math.max(minLeg, roundKas(platformKas)),
+      amount: platformKas,
       label: 'Platform fee',
       required: true,
     });
