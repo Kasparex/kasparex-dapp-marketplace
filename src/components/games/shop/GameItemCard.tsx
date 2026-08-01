@@ -4,7 +4,6 @@ import type { ReactNode } from 'react';
 import { useMemo, useState, useId } from 'react';
 import { KxListingCard, KxListingCardBody, KxListingCardMedia } from '@/components/kx/KxListingCard';
 import type { KxListingAccent } from '@/lib/ui/kxListingAccent';
-import { GameCurrencyMenu } from '@/components/games/shop/GameCurrencyMenu';
 import { HubPaymentCurrencyCatalogTrigger } from '@/components/payments/HubPaymentCurrencyCatalogModal';
 import { useHubPayWithCatalog } from '@/hooks/useHubPayWithCatalog';
 import { Tooltip } from '@/components/ui/Tooltip';
@@ -184,18 +183,13 @@ export function GameItemCard(props: {
 
   const listingAccent = props.kxListingAccent ?? 'games';
   const hubChrome = listingAccent === 'hub' || listingAccent === 'store';
-  const currencyMenuAccent = hubChrome ? 'store' : 'default';
-  /** Same border chrome as before; fill matches qty input only. */
-  const currencyMenuButtonClass =
-    `flex !h-10 w-full min-w-0 items-center justify-between gap-2 rounded-xl border border-zinc-200 ${QTY_INPUT_FILL} px-4 py-0 text-sm font-medium transition-colors hover:bg-zinc-100 dark:border-zinc-800 dark:hover:bg-zinc-900`;
-  /** Keep k-control-btn border; override fill only. */
-  const hubCurrencyTriggerClass = '!bg-zinc-50 hover:!bg-zinc-100 dark:!bg-zinc-950/50 dark:hover:!bg-zinc-900';
+  /** Pay With fill only; keep k-control-btn border chrome. */
+  const hubCurrencyTriggerClass =
+    '!bg-zinc-50 hover:!bg-zinc-100 dark:!bg-zinc-950/50 dark:hover:!bg-zinc-900';
   const { catalogEntries: publicCatalog } = useHubPayWithCatalog({
     amountKas: amountKasForCatalog > 0 ? amountKasForCatalog : undefined,
   });
   const hubPayCatalog = useMemo(() => {
-    // In-game cards use GameCurrencyMenu; hub/store keep the catalog modal.
-    if (!hubChrome) return [] as HubCurrencyCatalogEntry[];
     const optionIds = new Set(options.map((o) => String(o.currency).toUpperCase()));
     const shopLabel = (currency: string): string | undefined => {
       const opt = options.find((o) => String(o.currency).toUpperCase() === currency.toUpperCase());
@@ -230,7 +224,7 @@ export function GameItemCard(props: {
             : undefined,
       }));
     return [...fromPublic, ...extras];
-  }, [hubChrome, options, publicCatalog, quantity]);
+  }, [options, publicCatalog, quantity]);
 
   const handleHubCurrencySelect = (option: HubPaymentCurrencyOption) => {
     const id = option.tick ?? option.id;
@@ -363,10 +357,10 @@ export function GameItemCard(props: {
     const stepDisabled = !qtyCfg || !qtyCtlInteractive;
     const showMax = opts?.showMax ?? Boolean(props.showQuantityMaxButton && qtyCfg);
     return (
-      <div className="flex h-10 shrink-0 items-stretch overflow-hidden rounded-xl border border-zinc-200 dark:border-zinc-800">
+      <div className="flex h-10 w-full min-w-0 items-stretch overflow-hidden rounded-xl border border-zinc-200 dark:border-zinc-800">
         <button
           type="button"
-          className="inline-flex w-9 shrink-0 items-center justify-center border-r border-zinc-200 text-sm font-bold text-zinc-700 transition hover:bg-zinc-100 disabled:opacity-40 dark:border-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-900"
+          className="inline-flex w-8 shrink-0 items-center justify-center border-r border-zinc-200 text-sm font-bold text-zinc-700 transition hover:bg-zinc-100 disabled:opacity-40 dark:border-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-900"
           onClick={() => setQty(qtyCommitted - 1)}
           disabled={stepDisabled || qtyCommitted <= qtyMin}
           aria-label="Decrease quantity"
@@ -381,7 +375,7 @@ export function GameItemCard(props: {
           aria-label={`${qtyAriaLabel} (type custom amount)`}
           title="Type amount or use +/−"
           disabled={stepDisabled}
-          className={`h-full w-12 shrink-0 border-0 px-1 text-center text-sm font-black tabular-nums text-zinc-900 outline-none disabled:opacity-50 dark:text-zinc-100 ${QTY_INPUT_FILL}`}
+          className={`h-full min-w-0 flex-1 border-0 px-1 text-center text-sm font-black tabular-nums text-zinc-900 outline-none disabled:opacity-50 dark:text-zinc-100 ${QTY_INPUT_FILL}`}
           value={qtyEditDraft !== null ? qtyEditDraft : String(qtyCommitted)}
           onFocus={() => {
             if (!qtyCfg) return;
@@ -399,7 +393,7 @@ export function GameItemCard(props: {
         />
         <button
           type="button"
-          className="inline-flex w-9 shrink-0 items-center justify-center border-l border-zinc-200 text-sm font-bold text-zinc-700 transition hover:bg-zinc-100 disabled:opacity-40 dark:border-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-900"
+          className="inline-flex w-8 shrink-0 items-center justify-center border-l border-zinc-200 text-sm font-bold text-zinc-700 transition hover:bg-zinc-100 disabled:opacity-40 dark:border-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-900"
           onClick={() => setQty(qtyCommitted + 1)}
           disabled={stepDisabled || qtyCommitted >= qtyMax}
           aria-label="Increase quantity"
@@ -420,34 +414,18 @@ export function GameItemCard(props: {
     );
   }
 
-  const currencyPicker =
-    options.length > 1 ? (
-      hubPayCatalog.length > 0 ? (
-        <div className="min-w-0 w-full">
-          <HubPaymentCurrencyCatalogTrigger
-            entries={hubPayCatalog}
-            selectedId={String(currency)}
-            onSelect={handleHubCurrencySelect}
-            accent={hubChrome ? 'store' : 'default'}
-            className={hubCurrencyTriggerClass}
-          />
-        </div>
-      ) : (
-        <GameCurrencyMenu
-          ariaLabel="Payment currency"
-          value={String(currency)}
-          onChange={(v) => setCurrency(v as GameItemCurrency)}
-          options={options.map((o) => {
-            const t = (o.unitPrice ?? 0) * quantity;
-            const txt = `${formatGameItemPriceAmount(o.currency, t)} ${formatCurrencyTicker(o.currency)}`;
-            return { value: o.currency, label: txt, disabled: o.disabled };
-          })}
-          className="min-w-0 w-full"
-          accent={currencyMenuAccent}
-          buttonClassName={currencyMenuButtonClass}
-        />
-      )
-    ) : null;
+  const currencyPicker = (
+    <div className="relative z-20 min-w-0 w-full">
+      <HubPaymentCurrencyCatalogTrigger
+        entries={hubPayCatalog}
+        selectedId={String(currency)}
+        onSelect={handleHubCurrencySelect}
+        accent={hubChrome ? 'store' : 'default'}
+        alwaysShow
+        className={hubCurrencyTriggerClass}
+      />
+    </div>
+  );
 
   return (
     <KxListingCard accent={listingAccent} className="relative flex min-h-0 flex-col" onClick={props.onCardNavigate}>
@@ -542,14 +520,14 @@ export function GameItemCard(props: {
         >
           <div className="flex flex-col gap-2">
             {lockedQtyProp == null && qtyCfg ? (
-              <div className={`flex w-full items-center gap-2 ${qtyCtlInteractive ? '' : 'opacity-60'}`}>
-                {qtyStepper({ showMax: Boolean(props.showQuantityMaxButton) })}
-                <div className="min-w-0 flex-1">
-                  {currencyPicker ?? <div className={calculationBoxClass}>{calculationBoxBody}</div>}
+              <div className={`relative z-20 flex w-full items-center gap-2 ${qtyCtlInteractive ? '' : 'opacity-60'}`}>
+                <div className="w-[30%] min-w-0 shrink-0 [&>div]:w-full">
+                  {qtyStepper({ showMax: Boolean(props.showQuantityMaxButton) })}
                 </div>
+                <div className="relative z-20 w-[70%] min-w-0">{currencyPicker}</div>
               </div>
             ) : (
-              currencyPicker ?? <div className={calculationBoxClass}>{calculationBoxBody}</div>
+              <div className="relative z-20 w-full">{currencyPicker}</div>
             )}
 
             <button
