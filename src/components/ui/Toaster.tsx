@@ -233,9 +233,10 @@ export function ToasterProvider({ children }: { children: React.ReactNode }) {
   }, [toast, update, dismiss, dismissAll]);
 
   useEffect(() => {
+    const timers = timersRef.current;
     return () => {
-      timersRef.current.forEach((t) => clearTimeout(t));
-      timersRef.current.clear();
+      timers.forEach((t) => clearTimeout(t));
+      timers.clear();
     };
   }, []);
 
