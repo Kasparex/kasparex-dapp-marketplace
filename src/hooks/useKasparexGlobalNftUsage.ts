@@ -7,7 +7,7 @@ import { hydrateMinecoreState } from '@/lib/game/minecore/hydrate';
 import { MINECORE_STORAGE_PREFIX } from '@/lib/game/minecore/config';
 import {
   buildGlobalNftRefsForMinecoreWorkers,
-  readPrecisionOperativeFromStorage,
+  readPrecisionOperativesFromStorage,
   type PrecisionOperativeUsageSlot,
 } from '@/lib/nft/kasparexMergedGlobalNftRefs';
 
@@ -43,7 +43,7 @@ export function useKasparexGlobalNftUsage(opts: {
   payerKaspa: string | undefined;
   minecoreNftSlots?: MiningSlot[];
   tyconSlots?: MiningSlot[];
-  precisionOperative?: PrecisionOperativeUsageSlot;
+  precisionOperative?: PrecisionOperativeUsageSlot | PrecisionOperativeUsageSlot[];
 }) {
   const [tick, setTick] = useState(0);
   useEffect(() => {
@@ -63,7 +63,7 @@ export function useKasparexGlobalNftUsage(opts: {
     const pc =
       opts.precisionOperative !== undefined
         ? opts.precisionOperative
-        : readPrecisionOperativeFromStorage(opts.payerKaspa);
+        : readPrecisionOperativesFromStorage(opts.payerKaspa);
     return buildGlobalNftRefsForMinecoreWorkers({
       payerKaspa: opts.payerKaspa,
       minecoreNftSlots: mc,

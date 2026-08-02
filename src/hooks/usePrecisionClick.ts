@@ -18,6 +18,7 @@ import {
   PRECISION_ENTRY_ADDONS,
   PRECISION_LEVELS,
   PRECISION_OPERATIVE_PERKS,
+  PRECISION_OPERATIVE_SLOT_UNLOCK_KAS,
   bankFragmentsForClear,
   getPrecisionLevel,
   getPrecisionShopItem,
@@ -27,10 +28,12 @@ import {
 } from '@/lib/game/precision-click/config';
 import {
   createEmptyPrecisionState,
+  normalizeOperativeSlots,
   type PrecisionClickPersistedState,
   type PrecisionOperativeSlot,
 } from '@/lib/game/precision-click/types';
 import { extractKaspaTransactionId } from '@/lib/kaspa/transactionId';
+import type { MiningSlotType } from '@/lib/game/engine/types';
 
 const DEFAULT_TREASURY = process.env.NEXT_PUBLIC_GAME_TREASURY_ADDRESS || '';
 const KREX_PRIORITY_FEE_KAS = 0.001;
@@ -51,7 +54,29 @@ function mapRarityToOperativeTier(collection: string, tokenId: number): Precisio
   return 'partner';
 }
 
-function normalizeLoaded(address: string, parsed: Partial<PrecisionClickPersistedState>): PrecisionClickPersistedState {
+function filledOperatives(slots: Array<PrecisionOperativeSlot | null>): PrecisionOperativeSlot[] {
+  return slots.filter((s): s is PrecisionOperativeSlot => Boolean(s?.nftRef));
+}
+
+function stackOperativePerks(slots: Array<PrecisionOperativeSlot | null>) {
+  const filled = filledOperatives(slots);
+  if (filled.length === 0) return null;
+  let extendMs = 0;
+  let fragmentMult = 1;
+  let missForgiveness = 0;
+  for (const s of filled) {
+    const p = PRECISION_OPERATIVE_PERKS[s.tier];
+    extendMs += p.extendMs;
+    fragmentMult = Math.max(fragmentMult, p.fragmentMult);
+    missForgiveness += p.missForgiveness;
+  }
+  return { extendMs, fragmentMult, missForgiveness, count: filled.length };
+}
+
+function normalizeLoaded(
+  address: string,
+  parsed: Partial<PrecisionClickPersistedState> & { operative?: PrecisionOperativeSlot | null },
+): PrecisionClickPersistedState {
   const base = createEmptyPrecisionState(address);
   const cleared = Array.isArray(parsed.clearedLevels)
     ? parsed.clearedLevels.map((n) => Math.floor(Number(n))).filter((n) => n >= 1 && n <= 10)
@@ -75,7 +100,7 @@ function normalizeLoaded(address: string, parsed: Partial<PrecisionClickPersiste
     fragmentsEarnedLifetime: Math.max(0, Math.floor(parsed.fragmentsEarnedLifetime ?? 0)),
     refinementPointsTotal: Math.max(0, Math.floor(parsed.refinementPointsTotal ?? 0)),
     booster: parsed.booster ?? null,
-    operative: parsed.operative ?? null,
+    operativeSlots: normalizeOperativeSlots(parsed),
     runExpiresAt: typeof parsed.runExpiresAt === 'number' ? parsed.runExpiresAt : null,
     entryUnlocked: Boolean(parsed.entryUnlocked),
   };
@@ -172,9 +197,10 @@ export function usePrecisionClick() {
   const booster = useMemo(() => liveBooster(liveState), [liveState]);
   const boosterMult = booster?.mult ?? 1;
 
-  const operativePerks = liveState.operative
-    ? PRECISION_OPERATIVE_PERKS[liveState.operative.tier]
-    : null;
+  const operativePerks = useMemo(
+    () => stackOperativePerks(liveState.operativeSlots),
+    [liveState.operativeSlots],
+  );
 
   const getKasPriceAfterDiscount = useCallback(
     (listKas: number) => applyKrexFeeDiscount(listKas, krexTier),
@@ -313,9 +339,8 @@ export function usePrecisionClick() {
         }
         const now = Date.now();
         persist((prev) => {
-          const operativeBonus = prev.operative
-            ? PRECISION_OPERATIVE_PERKS[prev.operative.tier].extendMs
-            : 0;
+          const operativeBonus = stackOperativePerks(prev.operativeSlots)?.extendMs ?? 0;
+          const slots = prev.operativeSlots.map((s) => (s ? { ...s, appliedAt: now } : null));
           return {
             ...prev,
             walletAddress: walletAddr,
@@ -325,9 +350,7 @@ export function usePrecisionClick() {
             clearedLevels: [],
             highestClearedLevel: 0,
             runExpiresAt: now + PRECISION_CLICK_RUN_MS + operativeBonus,
-            operative: prev.operative
-              ? { ...prev.operative, appliedAt: now }
-              : null,
+            operativeSlots: slots.length ? slots : [null],
           };
         });
         setLastSuccess('Lock opened for 24h. Cleared levels reset. Finish the cascade before the timer ends.');
@@ -471,28 +494,36 @@ export function usePrecisionClick() {
   );
 
   const setOperative = useCallback(
-    (slot: Omit<PrecisionOperativeSlot, 'appliedAt' | 'tier'> & { tier?: PrecisionOperativeTier }) => {
+    (
+      slotIndex: number,
+      slot: Omit<PrecisionOperativeSlot, 'appliedAt' | 'tier'> & { tier?: PrecisionOperativeTier },
+    ) => {
       const tier = slot.tier ?? mapRarityToOperativeTier(slot.collection, slot.tokenId);
       const perks = PRECISION_OPERATIVE_PERKS[tier];
       persist((prev) => {
         const live = expireRunIfNeeded(prev);
+        const slots = [...(live.operativeSlots.length ? live.operativeSlots : [null])];
+        while (slots.length <= slotIndex) slots.push(null);
         const now = Date.now();
-        const already = live.operative?.nftRef === slot.nftRef;
+        const prevAt = slots[slotIndex];
+        const already = prevAt?.nftRef === slot.nftRef;
         let runExpiresAt = live.runExpiresAt;
         if (live.entryUnlocked && runExpiresAt && !already) {
-          runExpiresAt = runExpiresAt + perks.extendMs;
+          const prevExtend = prevAt ? PRECISION_OPERATIVE_PERKS[prevAt.tier].extendMs : 0;
+          runExpiresAt = runExpiresAt - prevExtend + perks.extendMs;
         }
+        slots[slotIndex] = {
+          nftRef: slot.nftRef,
+          collection: slot.collection,
+          tokenId: slot.tokenId,
+          tier,
+          imageUrl: slot.imageUrl ?? null,
+          appliedAt: now,
+        };
         return {
           ...live,
           runExpiresAt,
-          operative: {
-            nftRef: slot.nftRef,
-            collection: slot.collection,
-            tokenId: slot.tokenId,
-            tier,
-            imageUrl: slot.imageUrl ?? null,
-            appliedAt: now,
-          },
+          operativeSlots: slots,
         };
       });
       if (typeof window !== 'undefined') {
@@ -505,12 +536,56 @@ export function usePrecisionClick() {
     [persist, expireRunIfNeeded],
   );
 
-  const clearOperative = useCallback(() => {
-    persist((prev) => ({ ...prev, operative: null }));
-    if (typeof window !== 'undefined') {
-      window.dispatchEvent(new CustomEvent('kasparex-nft-usage'));
-    }
-  }, [persist]);
+  const clearOperative = useCallback(
+    (slotIndex: number) => {
+      persist((prev) => {
+        const slots = [...(prev.operativeSlots.length ? prev.operativeSlots : [null])];
+        if (slotIndex < 0 || slotIndex >= slots.length) return prev;
+        slots[slotIndex] = null;
+        return { ...prev, operativeSlots: slots };
+      });
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('kasparex-nft-usage'));
+      }
+    },
+    [persist],
+  );
+
+  const purchaseOperativeSlots = useCallback(
+    async (slotTypes: MiningSlotType[]) => {
+      setLastError(null);
+      setLastSuccess(null);
+      const count = Math.max(1, slotTypes.length);
+      const listKas = PRECISION_OPERATIVE_SLOT_UNLOCK_KAS * count;
+      const payKasAmount = getKasPriceAfterDiscount(listKas);
+      setPaying(true);
+      try {
+        const paid = await payKas({
+          amountKas: payKasAmount,
+          skuId: `precision-click:operative-slot:add:${count}`,
+          purchaseType: 'other',
+        });
+        if (!paid.ok) {
+          setLastError(paid.error);
+          return false;
+        }
+        persist((prev) => {
+          const slots = [...(prev.operativeSlots.length ? prev.operativeSlots : [null])];
+          for (let i = 0; i < count; i++) slots.push(null);
+          return { ...prev, operativeSlots: slots };
+        });
+        setLastSuccess(
+          count === 1
+            ? 'Extra Sync Operative slot unlocked.'
+            : `${count} Sync Operative slots unlocked.`,
+        );
+        return true;
+      } finally {
+        setPaying(false);
+      }
+    },
+    [getKasPriceAfterDiscount, payKas, persist],
+  );
 
   const refineFragments = useCallback(
     async (amountArg: number): Promise<{ points: number; amount: number } | null> => {
@@ -614,6 +689,8 @@ export function usePrecisionClick() {
     clearLevel,
     setOperative,
     clearOperative,
+    purchaseOperativeSlots,
+    operativeSlotUnlockKas: PRECISION_OPERATIVE_SLOT_UNLOCK_KAS,
     refineFragments,
     refineMin: PRECISION_CLICK_REFINE_MIN,
   };

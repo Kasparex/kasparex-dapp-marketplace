@@ -441,6 +441,9 @@ export const PRECISION_OPERATIVE_PERKS = {
 
 export type PrecisionOperativeTier = keyof typeof PRECISION_OPERATIVE_PERKS;
 
+/** List KAS to unlock one extra Sync Operative slot (first slot is free). */
+export const PRECISION_OPERATIVE_SLOT_UNLOCK_KAS = 10;
+
 export function bankFragmentsForClear(args: {
   bankReward: number;
   levelMult: number;

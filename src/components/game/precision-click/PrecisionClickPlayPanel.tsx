@@ -6,15 +6,21 @@ import { GameOverviewTitleBlock } from '@/components/games/panels/GameOverviewSe
 import { HubMetadataStatGrid } from '@/components/hub/HubMetadataStatGrid';
 import { ToggleSwitch } from '@/components/ui/ToggleSwitch';
 import { GameNftCrewSlotCard } from '@/components/game/GameNftCrewSlotCard';
+import { AddNftSlotModal } from '@/components/game/AddNftSlotModal';
 import {
   KasparexNftSlotSelector,
   kasparexNftRefToCollectionAndId,
 } from '@/components/nft/KasparexNftSlotSelector';
 import { KxBadge } from '@/components/ui/KxBadge';
+import { Tooltip } from '@/components/ui/Tooltip';
+import { gameTooltipRich } from '@/components/games/gameTooltipRich';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useKasparexGlobalNftUsage } from '@/hooks/useKasparexGlobalNftUsage';
 import { getMinecoreDeckCollectionAllowlist } from '@/lib/nft/minecore-deck-collections';
+import { fetchNFTMetadata } from '@/lib/nft/metadata';
+import { getBestGatewayUrl } from '@/lib/ipfs/gateway';
 import { KX_SURFACE_NESTED } from '@/lib/hub/shellTokens';
+import type { MiningSlotType } from '@/lib/game/engine/types';
 import {
   ARIA_TARGETS,
   PRECISION_CLICK_RUN_MS,
@@ -49,6 +55,17 @@ function formatDuration(ms: number): string {
   return `${m}m ${s.toString().padStart(2, '0')}s`;
 }
 
+async function resolveNftImageUrl(collection: string, tokenId: number): Promise<string | null> {
+  try {
+    const meta = await fetchNFTMetadata(collection, tokenId);
+    const raw = meta?.image?.trim();
+    if (!raw) return null;
+    return getBestGatewayUrl(raw.replace(/^ipfs:\/\//i, ''));
+  } catch {
+    return null;
+  }
+}
+
 export function PrecisionClickPlayPanel(props: {
   entryUnlocked: boolean;
   runActive: boolean;
@@ -60,24 +77,30 @@ export function PrecisionClickPlayPanel(props: {
   tierNftMult: number;
   addonBundle: { extraTimeMs: number; fragmentBonusMult: number; missForgiveness: number };
   inventory: { shard_lens: number; null_filter: number };
-  operative: PrecisionOperativeSlot | null;
+  operativeSlots: Array<PrecisionOperativeSlot | null>;
+  slotUnlockKas: number;
+  getKasPriceAfterDiscount: (listKas: number) => number;
   onConsumeItems: (opts: { useShardLens: boolean; useNullFilter: boolean }) => void;
   onClearLevel: (levelId: number, payoutMult: number) => { ok: boolean; banked: number };
-  onSetOperative: (slot: {
-    nftRef: string;
-    collection: string;
-    tokenId: number;
-    tier?: PrecisionOperativeTier;
-    imageUrl?: string | null;
-  }) => void;
-  onClearOperative: () => void;
+  onSetOperative: (
+    slotIndex: number,
+    slot: {
+      nftRef: string;
+      collection: string;
+      tokenId: number;
+      tier?: PrecisionOperativeTier;
+      imageUrl?: string | null;
+    },
+  ) => void;
+  onClearOperative: (slotIndex: number) => void;
+  onPurchaseOperativeSlots: (slotTypes: MiningSlotType[]) => Promise<boolean>;
   onRunningChange?: (running: boolean) => void;
 }) {
   const { state: wallet } = useKaspaWallet();
   const payerKaspa = wallet.address?.trim();
   const { usageByRef, inUseRefs } = useKasparexGlobalNftUsage({
     payerKaspa,
-    precisionOperative: props.operative,
+    precisionOperative: props.operativeSlots,
   });
 
   const [selectedLevel, setSelectedLevel] = useState(1);
@@ -92,7 +115,8 @@ export function PrecisionClickPlayPanel(props: {
   const [runLens, setRunLens] = useState(false);
   const [runFilter, setRunFilter] = useState(false);
   const [endReason, setEndReason] = useState<string | null>(null);
-  const [nftPickerOpen, setNftPickerOpen] = useState(false);
+  const [nftPickerIndex, setNftPickerIndex] = useState<number | null>(null);
+  const [buySlotOpen, setBuySlotOpen] = useState(false);
   const arenaRef = useRef<HTMLDivElement | null>(null);
   const sessionRef = useRef(0);
   const missesRef = useRef(0);
@@ -101,8 +125,7 @@ export function PrecisionClickPlayPanel(props: {
 
   const level = getPrecisionLevel(selectedLevel) ?? PRECISION_LEVELS[0]!;
   const cleared = props.clearedLevels.includes(selectedLevel);
-  const unlocked =
-    props.runActive && selectedLevel <= props.maxUnlockedLevel && !cleared;
+  const unlocked = props.runActive && selectedLevel <= props.maxUnlockedLevel && !cleared;
   const totalMult = props.boosterMult * props.tierNftMult * props.addonBundle.fragmentBonusMult;
   const maxMisses = level.maxMisses + props.addonBundle.missForgiveness;
   const durationMs = level.durationMs + props.addonBundle.extraTimeMs;
@@ -110,6 +133,7 @@ export function PrecisionClickPlayPanel(props: {
 
   const onRunningChange = props.onRunningChange;
   const onClearLevel = props.onClearLevel;
+  const onSetOperative = props.onSetOperative;
 
   useEffect(() => {
     runningRef.current = running;
@@ -125,6 +149,29 @@ export function PrecisionClickPlayPanel(props: {
       setSelectedLevel(Math.max(1, props.maxUnlockedLevel));
     }
   }, [props.maxUnlockedLevel, props.runActive, selectedLevel]);
+
+  // Backfill missing NFT artwork for slotted operatives.
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      for (let i = 0; i < props.operativeSlots.length; i++) {
+        const slot = props.operativeSlots[i];
+        if (!slot?.nftRef || slot.imageUrl) continue;
+        const url = await resolveNftImageUrl(slot.collection, slot.tokenId);
+        if (cancelled || !url) continue;
+        onSetOperative(i, {
+          nftRef: slot.nftRef,
+          collection: slot.collection,
+          tokenId: slot.tokenId,
+          tier: slot.tier,
+          imageUrl: url,
+        });
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [props.operativeSlots, onSetOperative]);
 
   const finishLevel = useCallback(
     (reason: 'time' | 'misses' | 'cleared') => {
@@ -248,68 +295,96 @@ export function PrecisionClickPlayPanel(props: {
     return lines[(selectedLevel - 1) % lines.length]!;
   }, [selectedLevel]);
 
-  const operativeLabel = props.operative
-    ? PRECISION_OPERATIVE_PERKS[props.operative.tier].label
-    : null;
+  const pickerSlot = nftPickerIndex != null ? props.operativeSlots[nftPickerIndex] ?? null : null;
+  const slotPriceByType = useMemo(
+    () =>
+      ({
+        worker: props.getKasPriceAfterDiscount(props.slotUnlockKas),
+        operator: props.getKasPriceAfterDiscount(props.slotUnlockKas),
+        foreman: props.getKasPriceAfterDiscount(props.slotUnlockKas),
+      }) as Record<MiningSlotType, number>,
+    [props.getKasPriceAfterDiscount, props.slotUnlockKas],
+  );
 
   return (
     <div className="space-y-6">
-      <GamePanelCard title="Lock window" hint="Finish the cascade before expiry.">
-        <div className="space-y-3">
-          <div className="flex flex-wrap items-end justify-between gap-2">
-            <div>
-              <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Time remaining</p>
-              <p className="text-xl font-black tabular-nums text-zinc-900 dark:text-zinc-100">
-                {props.runActive ? formatDuration(props.runMsLeft) : 'Locked'}
-              </p>
-            </div>
-            <p className="text-xs text-zinc-500 dark:text-zinc-400">
-              Base 24h · extend via Chrono Seals or a Sync Operative NFT
-            </p>
-          </div>
-          <div className="h-2.5 overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800">
-            <div
-              className="h-full rounded-full bg-[color:var(--hub-accent)] transition-[width] duration-500"
-              style={{ width: `${props.runActive ? lockPct : 0}%` }}
-            />
-          </div>
-        </div>
-      </GamePanelCard>
-
-      <GamePanelCard title="Level select" hint="Cleared levels stay locked until this lock expires or you pay entry again.">
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
-          {PRECISION_LEVELS.map((lv) => {
-            const isCleared = props.clearedLevels.includes(lv.id);
-            const isUnlocked = props.runActive && lv.id <= props.maxUnlockedLevel && !isCleared;
-            const active = lv.id === selectedLevel;
-            return (
-              <button
-                key={lv.id}
-                type="button"
-                disabled={(!isUnlocked && !isCleared) || running}
-                onClick={() => setSelectedLevel(lv.id)}
-                className={`rounded-xl border px-3 py-2.5 text-left transition-colors ${
-                  active
-                    ? 'border-[color:var(--hub-accent)] bg-[color:var(--hub-accent)]/10'
-                    : 'border-zinc-200 bg-white hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:border-zinc-700'
-                } disabled:cursor-not-allowed disabled:opacity-40`}
-              >
-                <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">
-                  Lv {lv.id}
-                  {isCleared ? ' · Cleared' : !isUnlocked ? ' · Locked' : ''}
+      <Tooltip
+        content={gameTooltipRich(
+          'Lock window',
+          'Your paid ARIA Lock timer. Chrono Seals and Sync Operative NFTs extend it without resetting cleared levels.',
+        )}
+      >
+        <div>
+          <GamePanelCard title="Lock window" hint="Finish the cascade before expiry.">
+            <div className="space-y-3">
+              <div className="flex flex-wrap items-end justify-between gap-2">
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Time remaining</p>
+                  <p className="text-xl font-black tabular-nums text-zinc-900 dark:text-zinc-100">
+                    {props.runActive ? formatDuration(props.runMsLeft) : 'Locked'}
+                  </p>
+                </div>
+                <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                  Base 24h · extend via Chrono Seals or Sync Operative NFTs
                 </p>
-                <p className="mt-0.5 text-xs font-semibold text-zinc-900 dark:text-zinc-100">{lv.name}</p>
-              </button>
-            );
-          })}
+              </div>
+              <div className="h-2.5 overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800">
+                <div
+                  className="h-full rounded-full bg-[color:var(--hub-accent)] transition-[width] duration-500"
+                  style={{ width: `${props.runActive ? lockPct : 0}%` }}
+                />
+              </div>
+            </div>
+          </GamePanelCard>
         </div>
-      </GamePanelCard>
+      </Tooltip>
+
+      <Tooltip
+        content={gameTooltipRich(
+          'Level select',
+          'Cleared levels stay locked until this lock expires or you pay entry again for a fresh run.',
+        )}
+      >
+        <div>
+          <GamePanelCard
+            title="Level select"
+            hint="Cleared levels stay locked until this lock expires or you pay entry again."
+          >
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
+              {PRECISION_LEVELS.map((lv) => {
+                const isCleared = props.clearedLevels.includes(lv.id);
+                const isUnlocked = props.runActive && lv.id <= props.maxUnlockedLevel && !isCleared;
+                const active = lv.id === selectedLevel;
+                return (
+                  <button
+                    key={lv.id}
+                    type="button"
+                    disabled={(!isUnlocked && !isCleared) || running}
+                    onClick={() => setSelectedLevel(lv.id)}
+                    className={`rounded-xl border px-3 py-2.5 text-left transition-colors ${
+                      active
+                        ? 'border-[color:var(--hub-accent)] bg-[color:var(--hub-accent)]/10'
+                        : 'border-zinc-200 bg-white hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:border-zinc-700'
+                    } disabled:cursor-not-allowed disabled:opacity-40`}
+                  >
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">
+                      Lv {lv.id}
+                      {isCleared ? ' · Cleared' : !isUnlocked ? ' · Locked' : ''}
+                    </p>
+                    <p className="mt-0.5 text-xs font-semibold text-zinc-900 dark:text-zinc-100">{lv.name}</p>
+                  </button>
+                );
+              })}
+            </div>
+          </GamePanelCard>
+        </div>
+      </Tooltip>
 
       {!props.runActive ? (
         <GamePanelCard title="Entry required" hint="Pay from the Calculation breakdown.">
           <p className="text-sm text-zinc-600 dark:text-zinc-400">
             Open a 24h ARIA Lock from the sidebar Calculation breakdown. When the timer ends, cleared levels reset and you
-            must pay entry again. Chrono Seals and a Sync Operative NFT extend the window without resetting progress.
+            must pay entry again. Chrono Seals and Sync Operative NFTs extend the window without resetting progress.
           </p>
         </GamePanelCard>
       ) : (
@@ -329,34 +404,73 @@ export function PrecisionClickPlayPanel(props: {
                 value: sessionFragments.toLocaleString(),
                 copyable: false,
                 accent: true,
+                tooltipTitle: 'Progress',
+                tooltipDescription: 'Session clear meter for this level. Fragments bank only when you hit the clear goal.',
                 valueNode: (
                   <span className="text-xl font-black tabular-nums text-[color:var(--hub-accent)] sm:text-2xl">
                     {sessionFragments.toLocaleString()}
                   </span>
                 ),
               },
-              { label: 'Clear goal', value: level.clearGoal.toLocaleString(), copyable: false },
-              { label: 'Multiplier', value: `×${totalMult.toFixed(2)}`, copyable: false },
-              { label: 'Time', value: `${(timeLeftMs / 1000).toFixed(1)}s`, copyable: false },
-              { label: 'Hits', value: String(hits), copyable: false },
-              { label: 'Misses', value: `${misses} / ${maxMisses}`, copyable: false },
+              {
+                label: 'Clear goal',
+                value: level.clearGoal.toLocaleString(),
+                copyable: false,
+                tooltipTitle: 'Clear goal',
+                tooltipDescription: 'Progress needed to bank this level’s Aria fragment reward.',
+              },
+              {
+                label: 'Multiplier',
+                value: `×${totalMult.toFixed(2)}`,
+                copyable: false,
+                tooltipTitle: 'Multiplier',
+                tooltipDescription: 'Live clear payout multiplier from boosters, add-ons, and Sync Operative perks.',
+              },
+              {
+                label: 'Time',
+                value: `${(timeLeftMs / 1000).toFixed(1)}s`,
+                copyable: false,
+                tooltipTitle: 'Level time',
+                tooltipDescription: 'Seconds left on this arena run (not the 24h lock).',
+              },
+              {
+                label: 'Hits',
+                value: String(hits),
+                copyable: false,
+                tooltipTitle: 'Hits',
+                tooltipDescription: 'Successful target clicks this level.',
+              },
+              {
+                label: 'Misses',
+                value: `${misses} / ${maxMisses}`,
+                copyable: false,
+                tooltipTitle: 'Misses',
+                tooltipDescription: 'Expired or hazard misses. Too many ends the level with no bank.',
+              },
             ]}
           />
 
-          <div className={`${KX_SURFACE_NESTED} flex flex-wrap items-center gap-3 rounded-xl p-3`}>
-            <p className="w-full text-[10px] font-bold uppercase tracking-widest text-zinc-500">Target values</p>
-            {ARIA_TARGETS.filter((t) => !t.hazard).map((t) => (
-              <span
-                key={t.id}
-                className="inline-flex items-center gap-2 rounded-lg border border-zinc-200 bg-white px-2.5 py-1.5 text-sm font-bold tabular-nums text-zinc-800 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={t.imageSrc} alt="" width={20} height={20} className="rounded-md" />
-                +{t.fragmentMult}×
-              </span>
-            ))}
-            <span className="text-sm font-semibold text-rose-600 dark:text-rose-400">Hazards drain progress</span>
-          </div>
+          <Tooltip
+            content={gameTooltipRich(
+              'Target values',
+              'Positive targets add progress. Hazards drain it. Shard Lens enlarges positive targets.',
+            )}
+          >
+            <div className={`${KX_SURFACE_NESTED} flex flex-wrap items-center gap-3 rounded-xl p-3`}>
+              <p className="w-full text-[10px] font-bold uppercase tracking-widest text-zinc-500">Target values</p>
+              {ARIA_TARGETS.filter((t) => !t.hazard).map((t) => (
+                <span
+                  key={t.id}
+                  className="inline-flex items-center gap-2 rounded-lg border border-zinc-200 bg-white px-2.5 py-1.5 text-sm font-bold tabular-nums text-zinc-800 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={t.imageSrc} alt="" width={20} height={20} className="rounded-md" />
+                  +{t.fragmentMult}×
+                </span>
+              ))}
+              <span className="text-sm font-semibold text-rose-600 dark:text-rose-400">Hazards drain progress</span>
+            </div>
+          </Tooltip>
 
           {endReason ? (
             <p className="rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm text-zinc-700 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-300">
@@ -423,132 +537,195 @@ export function PrecisionClickPlayPanel(props: {
           </div>
 
           <div className="grid gap-3 sm:grid-cols-2">
-            <div
-              className={`${KX_SURFACE_NESTED} rounded-xl border border-transparent p-4 transition-colors hover:border-[color:var(--hub-accent)]`}
+            <Tooltip
+              content={gameTooltipRich(
+                'Shard Lens',
+                'Spend one charge to enlarge positive targets on the next level start.',
+              )}
             >
-              <ToggleSwitch
-                checked={useShardLens}
-                onChange={setUseShardLens}
-                disabled={running || props.inventory.shard_lens <= 0}
-                label={`Shard Lens (${props.inventory.shard_lens})`}
-                description="Larger positive targets for the next level."
-              />
-            </div>
-            <div
-              className={`${KX_SURFACE_NESTED} rounded-xl border border-transparent p-4 transition-colors hover:border-[color:var(--hub-accent)]`}
+              <div
+                className={`${KX_SURFACE_NESTED} rounded-xl border border-transparent p-4 transition-colors hover:border-[color:var(--hub-accent)]`}
+              >
+                <ToggleSwitch
+                  checked={useShardLens}
+                  onChange={setUseShardLens}
+                  disabled={running || props.inventory.shard_lens <= 0}
+                  label={`Shard Lens (${props.inventory.shard_lens})`}
+                  description="Larger positive targets for the next level."
+                />
+              </div>
+            </Tooltip>
+            <Tooltip
+              content={gameTooltipRich(
+                'Null Filter',
+                'Spend one charge to halve hazard drain on the next level start.',
+              )}
             >
-              <ToggleSwitch
-                checked={useNullFilter}
-                onChange={setUseNullFilter}
-                disabled={running || props.inventory.null_filter <= 0}
-                label={`Null Filter (${props.inventory.null_filter})`}
-                description="Halves hazard drain on the next level."
-              />
-            </div>
+              <div
+                className={`${KX_SURFACE_NESTED} rounded-xl border border-transparent p-4 transition-colors hover:border-[color:var(--hub-accent)]`}
+              >
+                <ToggleSwitch
+                  checked={useNullFilter}
+                  onChange={setUseNullFilter}
+                  disabled={running || props.inventory.null_filter <= 0}
+                  label={`Null Filter (${props.inventory.null_filter})`}
+                  description="Halves hazard drain on the next level."
+                />
+              </div>
+            </Tooltip>
           </div>
 
-          <GamePanelCard title="Sync Operative" hint="Same NFT crew slot chrome as Diamond Veins / Minecore.">
+          <GamePanelCard
+            title="Sync Operative"
+            hint="First slot free. Buy Slot unlocks extras."
+            right={
+              <button
+                type="button"
+                className="k-control-btn h-9 px-3 text-xs font-bold uppercase tracking-wide"
+                onClick={() => setBuySlotOpen(true)}
+              >
+                Buy Slot
+              </button>
+            }
+          >
             <p className="mb-4 text-sm text-zinc-600 dark:text-zinc-400">
               Slot a Krex deck NFT as your Sync Operative. Standard adds +6h, Partner +8h with mild perks, Premium
-              (Diamond) +12h with stronger fragment and miss bonuses. NFTs already assigned in Diamond Veins or Minecore
-              stay locked here.
+              (Diamond) +12h with stronger fragment and miss bonuses. NFTs already assigned elsewhere stay locked here.
             </p>
-            <GameNftCrewSlotCard
-              roleLabel="Sync Operative"
-              roleType="operator"
-              roleSuffix=" · Free"
-              nftId={props.operative?.tokenId ?? null}
-              imageUrl={props.operative?.imageUrl}
-              emptyHint="Deploy NFT"
-              onOpenPicker={() => setNftPickerOpen(true)}
-              onRemove={props.operative ? props.onClearOperative : undefined}
-            >
-              {props.operative ? (
-                <>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <p className="text-lg font-bold tabular-nums text-zinc-900 dark:text-zinc-100">
-                      Lock extend:{' '}
-                      <span className="text-emerald-600 dark:text-emerald-400">
-                        +{(PRECISION_OPERATIVE_PERKS[props.operative.tier].extendMs / 3600000).toFixed(0)}h
-                      </span>
-                    </p>
-                    <span className="rounded-full border border-sky-500/40 bg-sky-500/15 px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wide text-sky-800 dark:text-sky-300">
-                      {operativeLabel}
-                    </span>
-                    {props.operative.tier === 'premium' ? (
-                      <span className="rounded-full bg-amber-500/20 px-2 py-0.5 text-[10px] font-bold uppercase text-amber-700 dark:text-amber-300">
-                        Premium
-                      </span>
-                    ) : null}
-                  </div>
-                  <div className="grid gap-2 text-sm text-zinc-600 dark:text-zinc-400 sm:grid-cols-2">
-                    <p>
-                      <span className="font-semibold text-zinc-800 dark:text-zinc-200">Role:</span> Sync Operative
-                    </p>
-                    <p>
-                      <span className="font-semibold text-zinc-800 dark:text-zinc-200">Collection:</span>{' '}
-                      {props.operative.collection}
-                    </p>
-                    <p>
-                      <span className="font-semibold text-zinc-800 dark:text-zinc-200">Fragment mult:</span>{' '}
-                      ×{PRECISION_OPERATIVE_PERKS[props.operative.tier].fragmentMult}
-                    </p>
-                    <p>
-                      <span className="font-semibold text-zinc-800 dark:text-zinc-200">Miss forgiveness:</span> +
-                      {PRECISION_OPERATIVE_PERKS[props.operative.tier].missForgiveness}
-                    </p>
-                  </div>
-                  <div className="flex flex-wrap items-center gap-1">
-                    <KxBadge variant="sky" className="!px-2 !py-0.5 text-[10px] font-bold">
-                      +{(PRECISION_OPERATIVE_PERKS[props.operative.tier].extendMs / 3600000).toFixed(0)}h lock
-                    </KxBadge>
-                    <KxBadge variant="emerald" className="!px-2 !py-0.5 text-[10px] font-bold">
-                      ×{PRECISION_OPERATIVE_PERKS[props.operative.tier].fragmentMult} clear
-                    </KxBadge>
-                  </div>
-                  <p className="text-xs text-zinc-500 dark:text-zinc-400">{props.operative.nftRef}</p>
-                </>
-              ) : (
-                <div className="flex h-full min-h-[7rem] flex-col justify-center">
-                  <p className="text-lg font-bold text-zinc-900 dark:text-zinc-100">No operative slotted</p>
-                  <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-                    Deploy a deck NFT to extend the lock window and unlock clear perks.
-                  </p>
-                </div>
-              )}
-            </GameNftCrewSlotCard>
+            <div className="space-y-4">
+              {props.operativeSlots.map((operative, idx) => {
+                const operativeLabel = operative
+                  ? PRECISION_OPERATIVE_PERKS[operative.tier].label
+                  : null;
+                return (
+                  <Tooltip
+                    key={`op-${idx}`}
+                    content={gameTooltipRich(
+                      'Sync Operative',
+                      idx === 0
+                        ? 'Free crew slot. Extends your lock and grants clear perks while slotted.'
+                        : 'Extra paid Sync Operative slot. Stacks lock extend; best fragment mult applies.',
+                    )}
+                  >
+                    <div>
+                      <GameNftCrewSlotCard
+                        roleLabel="Sync Operative"
+                        roleType="operator"
+                        nftId={operative?.tokenId ?? null}
+                        imageUrl={operative?.imageUrl}
+                        emptyHint="Deploy NFT"
+                        onOpenPicker={() => setNftPickerIndex(idx)}
+                        onRemove={operative ? () => props.onClearOperative(idx) : undefined}
+                      >
+                        {operative ? (
+                          <>
+                            <div className="flex flex-wrap items-center gap-2">
+                              <p className="text-lg font-bold tabular-nums text-zinc-900 dark:text-zinc-100">
+                                Lock extend:{' '}
+                                <span className="text-emerald-600 dark:text-emerald-400">
+                                  +{(PRECISION_OPERATIVE_PERKS[operative.tier].extendMs / 3600000).toFixed(0)}h
+                                </span>
+                              </p>
+                              <span className="rounded-full border border-sky-500/40 bg-sky-500/15 px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wide text-sky-800 dark:text-sky-300">
+                                {operativeLabel}
+                              </span>
+                              {operative.tier === 'premium' ? (
+                                <span className="rounded-full bg-amber-500/20 px-2 py-0.5 text-[10px] font-bold uppercase text-amber-700 dark:text-amber-300">
+                                  Premium
+                                </span>
+                              ) : null}
+                            </div>
+                            <div className="grid gap-2 text-sm text-zinc-600 dark:text-zinc-400 sm:grid-cols-2">
+                              <p>
+                                <span className="font-semibold text-zinc-800 dark:text-zinc-200">Role:</span> Sync
+                                Operative
+                              </p>
+                              <p>
+                                <span className="font-semibold text-zinc-800 dark:text-zinc-200">Collection:</span>{' '}
+                                {operative.collection}
+                              </p>
+                              <p>
+                                <span className="font-semibold text-zinc-800 dark:text-zinc-200">Fragment mult:</span>{' '}
+                                ×{PRECISION_OPERATIVE_PERKS[operative.tier].fragmentMult}
+                              </p>
+                              <p>
+                                <span className="font-semibold text-zinc-800 dark:text-zinc-200">Miss forgiveness:</span>{' '}
+                                +{PRECISION_OPERATIVE_PERKS[operative.tier].missForgiveness}
+                              </p>
+                            </div>
+                            <div className="flex flex-wrap items-center gap-1">
+                              <KxBadge variant="sky" className="!px-2 !py-0.5 text-[10px] font-bold">
+                                +{(PRECISION_OPERATIVE_PERKS[operative.tier].extendMs / 3600000).toFixed(0)}h lock
+                              </KxBadge>
+                              <KxBadge variant="emerald" className="!px-2 !py-0.5 text-[10px] font-bold">
+                                ×{PRECISION_OPERATIVE_PERKS[operative.tier].fragmentMult} clear
+                              </KxBadge>
+                            </div>
+                            <p className="text-xs text-zinc-500 dark:text-zinc-400">{operative.nftRef}</p>
+                          </>
+                        ) : (
+                          <div className="flex h-full min-h-[7rem] flex-col justify-center">
+                            <p className="text-lg font-bold text-zinc-900 dark:text-zinc-100">No operative slotted</p>
+                            <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+                              Deploy a deck NFT to extend the lock window and unlock clear perks.
+                            </p>
+                          </div>
+                        )}
+                      </GameNftCrewSlotCard>
+                    </div>
+                  </Tooltip>
+                );
+              })}
+            </div>
           </GamePanelCard>
         </div>
       )}
 
+      <AddNftSlotModal
+        open={buySlotOpen}
+        onClose={() => setBuySlotOpen(false)}
+        title="Buy Sync Operative slot"
+        description={`Unlock extra Sync Operative slots (${props.slotUnlockKas} KAS each before KREX discount). First slot is free. Each slotted NFT extends the lock and stacks miss forgiveness; the best fragment mult applies.`}
+        options={[{ value: 'worker', label: 'Sync Operative', badge: `${props.slotUnlockKas} KAS` }]}
+        priceByType={slotPriceByType}
+        initialTypes={['worker']}
+        onPurchase={props.onPurchaseOperativeSlots}
+      />
+
       <KasparexNftSlotSelector
-        isOpen={nftPickerOpen}
+        isOpen={nftPickerIndex != null}
         title="Choose Sync Operative"
-        description="Deploy one NFT to extend your ARIA Lock window and grant operative perks."
-        currentValue={props.operative?.nftRef ?? null}
+        description="Deploy an NFT to extend your ARIA Lock window and grant operative perks."
+        currentValue={pickerSlot?.nftRef ?? null}
         inUseRefs={inUseRefs}
         usageByRef={usageByRef}
         currentContext={{
           entityType: 'precision-click',
           entityId: 'sync-operative',
-          slotIndex: 0,
+          slotIndex: nftPickerIndex ?? 0,
         }}
         collectionAllowlist={getMinecoreDeckCollectionAllowlist()}
-        footerNotice="Assignments save to Precision Click in this browser. NFTs used in Diamond Veins or Minecore show as locked here."
-        onClose={() => setNftPickerOpen(false)}
+        footerNotice="Assignments save to Precision Click in this browser. NFTs already assigned elsewhere show as locked here."
+        onClose={() => setNftPickerIndex(null)}
         onRemove={() => {
-          props.onClearOperative();
-          setNftPickerOpen(false);
+          if (nftPickerIndex != null) props.onClearOperative(nftPickerIndex);
+          setNftPickerIndex(null);
         }}
         onSelect={(nftRef) => {
+          const idx = nftPickerIndex;
+          if (idx == null) return;
           const parsed = kasparexNftRefToCollectionAndId(nftRef);
           if (!parsed) return;
-          props.onSetOperative({
-            nftRef,
-            collection: parsed.collection,
-            tokenId: parsed.tokenId,
-          });
-          setNftPickerOpen(false);
+          void (async () => {
+            const imageUrl = await resolveNftImageUrl(parsed.collection, parsed.tokenId);
+            props.onSetOperative(idx, {
+              nftRef,
+              collection: parsed.collection,
+              tokenId: parsed.tokenId,
+              imageUrl,
+            });
+            setNftPickerIndex(null);
+          })();
         }}
       />
     </div>

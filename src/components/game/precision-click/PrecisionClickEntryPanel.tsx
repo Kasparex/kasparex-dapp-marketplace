@@ -2,7 +2,9 @@
 
 import { useMemo, useState } from 'react';
 import { HubPaymentPanel } from '@/components/payments/HubPaymentPanel';
-import { KxCheckbox } from '@/components/ui/KxCheckbox';
+import { ToggleSwitch } from '@/components/ui/ToggleSwitch';
+import { Tooltip } from '@/components/ui/Tooltip';
+import { gameTooltipRich } from '@/components/games/gameTooltipRich';
 import { useHubPayWithCatalog } from '@/hooks/useHubPayWithCatalog';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { formatHubPaymentAmount, type HubPaymentQuoteLine } from '@/lib/payments/hubPaymentTypes';
@@ -63,8 +65,11 @@ export function PrecisionClickEntryPanel(props: {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedAddons, discountPct, listTotalKas, payKas, payCurrencyId, pricingSnapshot]);
 
-  const toggleAddon = (id: PrecisionAddonId) => {
-    setSelectedAddons((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+  const toggleAddon = (id: PrecisionAddonId, checked: boolean) => {
+    setSelectedAddons((prev) => {
+      if (checked) return prev.includes(id) ? prev : [...prev, id];
+      return prev.filter((x) => x !== id);
+    });
   };
 
   const currency: 'KAS' | 'KREX' = payCurrencyId === 'KREX' ? 'KREX' : 'KAS';
@@ -102,32 +107,47 @@ export function PrecisionClickEntryPanel(props: {
             {PRECISION_ENTRY_ADDONS.map((addon) => {
               const checked = selectedAddons.includes(addon.id);
               return (
-                <KxCheckbox
+                <Tooltip
                   key={addon.id}
-                  checked={checked}
-                  onChange={() => toggleAddon(addon.id)}
-                  label={`${addon.label} · ${fmt(addon.listKas)}`}
-                  description={addon.description}
-                />
+                  content={gameTooltipRich(addon.label, addon.description)}
+                >
+                  <div className="rounded-xl border border-transparent p-2 transition-colors hover:border-[color:var(--hub-accent)]">
+                    <ToggleSwitch
+                      checked={checked}
+                      onChange={(next) => toggleAddon(addon.id, next)}
+                      label={`${addon.label} · ${fmt(addon.listKas)}`}
+                      description={addon.description}
+                    />
+                  </div>
+                </Tooltip>
               );
             })}
           </div>
 
-          {(props.booster || props.inventory.shard_lens > 0 || props.inventory.null_filter > 0 || props.ownedAddons.length > 0) && (
-            <div className={`${KX_SURFACE_NESTED} space-y-1 rounded-xl p-3 text-xs text-zinc-600 dark:text-zinc-400`}>
-              <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Active / owned</p>
-              {props.booster ? (
-                <p>
-                  Shop booster ×{props.booster.mult} until{' '}
-                  {new Date(props.booster.until).toLocaleString()}
-                </p>
-              ) : null}
-              {props.inventory.shard_lens > 0 ? <p>Shard Lens charges: {props.inventory.shard_lens}</p> : null}
-              {props.inventory.null_filter > 0 ? <p>Null Filter charges: {props.inventory.null_filter}</p> : null}
-              {props.ownedAddons.length > 0 ? (
-                <p>Entry add-ons: {props.ownedAddons.join(', ')}</p>
-              ) : null}
-            </div>
+          {(props.booster ||
+            props.inventory.shard_lens > 0 ||
+            props.inventory.null_filter > 0 ||
+            props.ownedAddons.length > 0) && (
+            <Tooltip
+              content={gameTooltipRich(
+                'Active / owned',
+                'Boosters, lenses, filters, and entry add-ons currently attached to your lock.',
+              )}
+            >
+              <div className={`${KX_SURFACE_NESTED} space-y-1 rounded-xl p-3 text-xs text-zinc-600 dark:text-zinc-400`}>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Active / owned</p>
+                {props.booster ? (
+                  <p>
+                    Shop booster ×{props.booster.mult} until {new Date(props.booster.until).toLocaleString()}
+                  </p>
+                ) : null}
+                {props.inventory.shard_lens > 0 ? <p>Shard Lens charges: {props.inventory.shard_lens}</p> : null}
+                {props.inventory.null_filter > 0 ? <p>Null Filter charges: {props.inventory.null_filter}</p> : null}
+                {props.ownedAddons.length > 0 ? (
+                  <p>Entry add-ons: {props.ownedAddons.join(', ')}</p>
+                ) : null}
+              </div>
+            </Tooltip>
           )}
 
           <button

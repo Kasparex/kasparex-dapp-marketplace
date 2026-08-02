@@ -7,8 +7,11 @@ import { TooltipProvider } from '@/components/ui/Tooltip';
 import type { GameDeckResource } from '@/components/games/panels/GameDeckPanel';
 import { gameDeckRefineResource } from '@/components/games/panels/GameDeckRefineControls';
 import { UnifiedGameLayout } from '@/components/games/layout/UnifiedGameLayout';
-import { GameOverviewSections } from '@/components/games/panels/GameOverviewSections';
-import { GamePanelCard } from '@/components/games/layout/GamePanelCard';
+import {
+  GameOverviewTip,
+  GameOverviewTitleBlock,
+  GAME_OVERVIEW_ACCENT_LINK,
+} from '@/components/games/panels/GameOverviewSections';
 import { RewardsPreview } from '@/components/games/modules/RewardsPreview';
 import { MilestonesPanel } from '@/components/games/modules/MilestonesPanel';
 import { GameActivityStatusDot, type GameActivityHealth } from '@/components/games/GameActivityStatusDot';
@@ -29,6 +32,7 @@ import { usePrecisionClick } from '@/hooks/usePrecisionClick';
 import { PrecisionClickEntryPanel } from '@/components/game/precision-click/PrecisionClickEntryPanel';
 import { PrecisionClickPlayPanel } from '@/components/game/precision-click/PrecisionClickPlayPanel';
 import { PrecisionClickShopPanel } from '@/components/game/precision-click/PrecisionClickShopPanel';
+import { KX_PROSE, KX_PROSE_PARAGRAPH } from '@/lib/ui/kxTypography';
 
 const CommentsSection = dynamic(() => import('@/components/vblog/CommentsSection').then((m) => m.CommentsSection), {
   ssr: false,
@@ -165,6 +169,10 @@ export function PrecisionClickDashboard(props: {
 
   const categories = (props.game?.categories ?? []) as string[];
   const tags = (props.game?.tags ?? []) as string[];
+  const gameName = props.gameName ?? props.game?.name ?? 'Precision Click: ARIA Lock';
+  const description =
+    props.gameDescription?.trim() ||
+    'Timed cascade on the Kaspa network. Open a 24h ARIA Lock, clear ten seals once each, bank Aria fragments on clear, and refine them into Hub redeem points.';
 
   return (
     <TooltipProvider>
@@ -176,14 +184,18 @@ export function PrecisionClickDashboard(props: {
         playerLevel={playerLevel}
         game={{
           ...(props.game ?? {}),
-          name: props.gameName ?? props.game?.name ?? 'Precision Click: ARIA Lock',
+          name: gameName,
           description: props.gameDescription ?? props.game?.description ?? '',
           featuredImage: props.featuredImage || props.game?.featuredImage,
           image: props.game?.image,
           categories,
           tags,
         }}
-        deckFooter={<span>Clear levels to bank Aria fragments. Refine to Hub points. Extend the lock in Shop or with a Sync Operative.</span>}
+        deckFooter={
+          <span>
+            Clear levels to bank Aria fragments. Refine to Hub points. Extend the lock in Shop or with a Sync Operative.
+          </span>
+        }
         asideExtras={
           <PrecisionClickEntryPanel
             entryUnlocked={game.runActive}
@@ -199,71 +211,94 @@ export function PrecisionClickDashboard(props: {
         }
       >
         {tab === 'overview' && (
-          <div className="space-y-6">
-            <GamePanelCard title="Story" hint="ARIA Lock.">
-              <p className="text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
-                The Null Gang flooded the old lock grid with static. ARIA still answers, but only in short, precise
-                windows. Krex marks the traces, Vector fights calibration drift, and Tessa opens stealth gaps when the
-                glyphs turn hostile. Your job is not practice. You open a paid lock, clear ten cascading seals before the
-                chrono window dies, and bank real Aria fragments for Hub refine. Fail a level and you keep trying that seal.
-                Clear it, and it stays sealed for this lock so nobody farms the same stage forever.
-              </p>
-            </GamePanelCard>
-
-            <GamePanelCard title="How to play" hint="Fair lock rules.">
-              <ul className="list-disc space-y-1 pl-5 text-sm text-zinc-600 dark:text-zinc-400">
-                <li>Pay 10 KAS to open a 24h lock (optional entry add-ons on the Calculation breakdown).</li>
-                <li>Clicks only fill level progress. Aria fragments bank only when you clear a level.</li>
-                <li>Cleared levels stay locked until the timer ends or you pay entry again for a fresh lock.</li>
-                <li>Extend time with Chrono Seals in Shop or slot a Sync Operative NFT below the arena.</li>
-                <li>Refine at least 1,000 Aria fragments into Hub points from the Game Deck.</li>
-              </ul>
-            </GamePanelCard>
-
-            <GamePanelCard title="References" hint="Worldbuilding links.">
-              <p className="text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
-                Browse{' '}
-                <Link
-                  href="/chronicles/chapters"
-                  className="font-semibold text-emerald-700 hover:underline dark:text-emerald-300"
-                >
-                  Chronicles chapters
-                </Link>{' '}
-                and{' '}
-                <Link
-                  href="/chronicles/characters"
-                  className="font-semibold text-emerald-700 hover:underline dark:text-emerald-300"
-                >
-                  character dossiers
-                </Link>
-                .
-              </p>
-            </GamePanelCard>
-
-            <GameOverviewSections
-              gameName={props.gameName ?? 'Precision Click: ARIA Lock'}
-              kicker="Game guide"
-              subtitle="Timed 10-level cascade. Bank fragments on clear. Refine to Hub points."
-              description={props.gameDescription}
-              loreStory={props.loreStory}
-              tips={[
-                {
-                  title: 'Progress vs payout',
-                  body: 'Clicks push the clear meter. Only a successful clear pays the level bank reward (multiplied by boosters, add-ons, and Sync Operative perks).',
-                },
-                {
-                  title: 'Beat the clock',
-                  body: 'If the 24h lock expires, cleared levels reset and you must pay entry again. Chrono Seals extend without wiping progress.',
-                },
-              ]}
-              flow={[
-                'Pay 10 KAS to open the lock and start the 24h window.',
-                'Clear levels in order. Each clear banks fragments and locks that stage for this run.',
-                'Extend with Chrono Seals or a Sync Operative NFT. Buy lenses and filters in Shop.',
-                'Refine Aria fragments (min 1,000) into Hub points from the Game Deck.',
-              ]}
+          <article className={`${KX_PROSE} px-1 pt-6 sm:px-3 lg:px-4`}>
+            <GameOverviewTitleBlock
+              as="h2"
+              kicker="Rewards"
+              title="How rewards work"
+              subtitle="ARIA Lock clears, Shop tools, and Hub refine points."
             />
-          </div>
+            <p className={KX_PROSE_PARAGRAPH}>{description}</p>
+            <p className={KX_PROSE_PARAGRAPH}>
+              Precision Click is a skill cascade on the Kaspa network. Pay entry to open a 24h lock, clear each of the ten
+              levels once, and bank Aria fragments only when a seal clears. Fail and retry that stage. Clear it, and it
+              stays sealed for this lock so the same stage cannot be farmed forever.
+            </p>
+            <GameOverviewTip title="Session tip">
+              Clicks only fill the clear meter. Fragments bank on a successful clear (boosters, entry add-ons, and Sync
+              Operative perks multiply the bank). Chrono Seals and Sync Operative NFTs extend the lock without wiping
+              progress.
+            </GameOverviewTip>
+
+            <GameOverviewTitleBlock
+              as="h3"
+              kicker="Step 1"
+              title="Open the lock"
+              subtitle="Pay entry, then race the 24h window."
+            />
+            <p className={KX_PROSE_PARAGRAPH}>
+              Use the Calculation breakdown to pay 10 KAS (optional Focus Extension, Fragment Magnet, or Second Chance).
+              Paying again starts a fresh lock and resets cleared levels so you can replay the cascade.
+            </p>
+            <GameOverviewTip title="Entry tip">
+              Shop boosters apply while active. Entry add-ons attach to the lock you are about to open. Select them before
+              you pay.
+            </GameOverviewTip>
+
+            <GameOverviewTitleBlock
+              as="h3"
+              kicker="Step 2"
+              title="Clear &amp; extend"
+              subtitle="Hit targets, avoid hazards, keep the chrono window alive."
+            />
+            <p className={KX_PROSE_PARAGRAPH}>
+              Work levels in order. Shard Lens and Null Filter charges from the Shop help on tough seals. Slot a Sync
+              Operative NFT below the arena (first slot free; Buy Slot unlocks extras). NFTs already assigned elsewhere
+              stay locked here.
+            </p>
+            <GameOverviewTip title="Operative tip">
+              Standard Sync Operatives add +6h. Partner adds +8h with mild perks. Premium (Diamond) adds +12h with stronger
+              fragment and miss bonuses.
+            </GameOverviewTip>
+
+            <GameOverviewTitleBlock
+              as="h3"
+              kicker="Step 3"
+              title="Refine on Hub"
+              subtitle="Turn Aria fragments into redeem points."
+            />
+            <p className={KX_PROSE_PARAGRAPH}>
+              Refine at least 1,000 Aria fragments from the Game Deck into Hub points, then spend them on the Rewards
+              catalog when distribution is open.
+            </p>
+            <GameOverviewTip title="World tip">
+              Browse{' '}
+              <Link href="/chronicles/chapters" className={GAME_OVERVIEW_ACCENT_LINK}>
+                Chronicles chapters
+              </Link>{' '}
+              and{' '}
+              <Link href="/chronicles/characters" className={GAME_OVERVIEW_ACCENT_LINK}>
+                character dossiers
+              </Link>{' '}
+              for ARIA, Krex, Vector, and Tessa lore.
+            </GameOverviewTip>
+
+            {props.loreStory?.trim() ? (
+              <>
+                <GameOverviewTitleBlock as="h3" kicker="Lore" title="From the field" />
+                {props.loreStory
+                  .trim()
+                  .split(/\n\s*\n+/)
+                  .map((para) => para.trim())
+                  .filter(Boolean)
+                  .map((para) => (
+                    <p key={para.slice(0, 48)} className={KX_PROSE_PARAGRAPH}>
+                      {para}
+                    </p>
+                  ))}
+              </>
+            ) : null}
+          </article>
         )}
 
         {tab === 'play' && (
@@ -278,12 +313,15 @@ export function PrecisionClickDashboard(props: {
             tierNftMult={tierNftMult}
             addonBundle={game.addonBundle}
             inventory={game.state.inventory}
-            operative={game.state.operative}
+            operativeSlots={game.state.operativeSlots}
+            slotUnlockKas={game.operativeSlotUnlockKas}
+            getKasPriceAfterDiscount={game.getKasPriceAfterDiscount}
             onRunningChange={setRoundActive}
             onConsumeItems={game.consumeRunItems}
             onClearLevel={game.clearLevel}
             onSetOperative={game.setOperative}
             onClearOperative={game.clearOperative}
+            onPurchaseOperativeSlots={game.purchaseOperativeSlots}
           />
         )}
 

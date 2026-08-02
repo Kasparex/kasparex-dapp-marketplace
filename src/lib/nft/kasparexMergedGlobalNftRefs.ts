@@ -19,16 +19,48 @@ export function nftRefKey(collection: string, tokenId: number): string {
   return `${collection}#${tokenId}`;
 }
 
-export function readPrecisionOperativeFromStorage(payerKaspa: string | undefined): PrecisionOperativeUsageSlot {
-  if (typeof window === 'undefined' || !payerKaspa?.trim()) return null;
+function usageFromSlot(slot: PrecisionOperativeUsageSlot, slotIndex: number): { ref: string; row: GlobalNftUsageRow } | null {
+  if (!slot) return null;
+  let ref = (slot.nftRef ?? '').trim();
+  if (!ref && slot.collection != null && slot.tokenId != null) {
+    ref = nftRefKey(String(slot.collection), Number(slot.tokenId));
+  }
+  if (!ref.includes('#')) return null;
+  return {
+    ref,
+    row: {
+      entityType: 'precision-click',
+      entityId: 'sync-operative',
+      slotIndex,
+      href: '/games/precision-click',
+      label: `Precision Click · Sync Operative #${slotIndex + 1}`,
+    },
+  };
+}
+
+/** Read all Sync Operative slots from Precision Click localStorage. */
+export function readPrecisionOperativesFromStorage(payerKaspa: string | undefined): PrecisionOperativeUsageSlot[] {
+  if (typeof window === 'undefined' || !payerKaspa?.trim()) return [];
   try {
     const raw = localStorage.getItem(`${PRECISION_CLICK_STORAGE_PREFIX}:${payerKaspa.trim().toLowerCase()}`);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw) as { operative?: PrecisionOperativeUsageSlot };
-    return parsed.operative ?? null;
+    if (!raw) return [];
+    const parsed = JSON.parse(raw) as {
+      operativeSlots?: PrecisionOperativeUsageSlot[];
+      operative?: PrecisionOperativeUsageSlot;
+    };
+    if (Array.isArray(parsed.operativeSlots) && parsed.operativeSlots.length > 0) {
+      return parsed.operativeSlots;
+    }
+    if (parsed.operative) return [parsed.operative];
+    return [];
   } catch {
-    return null;
+    return [];
   }
+}
+
+/** @deprecated Prefer readPrecisionOperativesFromStorage. */
+export function readPrecisionOperativeFromStorage(payerKaspa: string | undefined): PrecisionOperativeUsageSlot {
+  return readPrecisionOperativesFromStorage(payerKaspa)[0] ?? null;
 }
 
 /** Minecore + Diamond Veins + Precision Click Sync Operative (cross-game NFT lock). */
@@ -36,7 +68,8 @@ export function buildGlobalNftRefsForMinecoreWorkers(props: {
   payerKaspa: string | undefined;
   minecoreNftSlots: MiningSlot[];
   tyconSlots?: MiningSlot[] | null;
-  precisionOperative?: PrecisionOperativeUsageSlot;
+  /** Single slot (legacy) or full Sync Operative deck. */
+  precisionOperative?: PrecisionOperativeUsageSlot | PrecisionOperativeUsageSlot[];
 }): {
   usageByRef: Record<string, GlobalNftUsageRow[]>;
   inUseRefs: Set<string>;
@@ -74,22 +107,15 @@ export function buildGlobalNftRefsForMinecoreWorkers(props: {
     });
   }
 
-  const op = props.precisionOperative;
-  if (op) {
-    let ref = (op.nftRef ?? '').trim();
-    if (!ref && op.collection != null && op.tokenId != null) {
-      ref = nftRefKey(String(op.collection), Number(op.tokenId));
-    }
-    if (ref.includes('#')) {
-      push(ref, {
-        entityType: 'precision-click',
-        entityId: 'sync-operative',
-        slotIndex: 0,
-        href: '/games/precision-click',
-        label: 'Precision Click · Sync Operative',
-      });
-    }
-  }
+  const ops = Array.isArray(props.precisionOperative)
+    ? props.precisionOperative
+    : props.precisionOperative
+      ? [props.precisionOperative]
+      : [];
+  ops.forEach((op, idx) => {
+    const hit = usageFromSlot(op, idx);
+    if (hit) push(hit.ref, hit.row);
+  });
 
   return { usageByRef, inUseRefs };
 }

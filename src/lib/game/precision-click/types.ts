@@ -45,7 +45,11 @@ export type PrecisionClickPersistedState = {
   refinementPointsTotal: number;
   inventory: PrecisionClickInventory;
   booster: PrecisionClickBoosterState | null;
-  operative: PrecisionOperativeSlot | null;
+  /**
+   * Sync Operative deck slots. Index 0 is free; extras unlocked via Buy Slot.
+   * Length is always >= 1. Empty entries are `null`.
+   */
+  operativeSlots: Array<PrecisionOperativeSlot | null>;
   updatedAt: number;
 };
 
@@ -63,7 +67,20 @@ export function createEmptyPrecisionState(walletAddress: string): PrecisionClick
     refinementPointsTotal: 0,
     inventory: { shard_lens: 0, null_filter: 0 },
     booster: null,
-    operative: null,
+    operativeSlots: [null],
     updatedAt: Date.now(),
   };
+}
+
+/** Migrate legacy single `operative` field into `operativeSlots`. */
+export function normalizeOperativeSlots(
+  parsed: Partial<PrecisionClickPersistedState> & { operative?: PrecisionOperativeSlot | null },
+): Array<PrecisionOperativeSlot | null> {
+  if (Array.isArray(parsed.operativeSlots) && parsed.operativeSlots.length > 0) {
+    return parsed.operativeSlots.map((s) => (s && typeof s === 'object' && s.nftRef ? s : null));
+  }
+  if (parsed.operative && typeof parsed.operative === 'object' && parsed.operative.nftRef) {
+    return [parsed.operative];
+  }
+  return [null];
 }
