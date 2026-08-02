@@ -94,7 +94,7 @@ export function HubFlowProgress({
             <li key={step.id} className="flex min-w-0 flex-1 items-center gap-0.5">
               <Tooltip content={step.tooltip}>
                 <span
-                  className={`inline-flex w-full min-w-0 items-center justify-center rounded-md border px-1 py-1.5 text-center text-[10px] leading-tight transition-colors sm:text-[11px] ${chipClass} ${labelClass}`}
+                  className={`inline-flex w-full min-w-0 items-center justify-center rounded-xl border px-1.5 py-1.5 text-center text-[10px] leading-tight transition-colors sm:text-[11px] ${chipClass} ${labelClass}`}
                   aria-current={isCurrent ? 'step' : undefined}
                 >
                   <span className="truncate">{step.label}</span>

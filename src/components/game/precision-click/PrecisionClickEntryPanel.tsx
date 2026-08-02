@@ -97,7 +97,7 @@ export function PrecisionClickEntryPanel(props: {
       flowComplete={Boolean(props.success)}
       footer={
         <div className="space-y-3">
-          <div className={`${KX_SURFACE_NESTED} space-y-2 rounded-xl p-3`}>
+          <div className={`${KX_SURFACE_NESTED} space-y-3 rounded-xl p-3`}>
             <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Optional add-ons</p>
             {PRECISION_ENTRY_ADDONS.map((addon) => {
               const checked = selectedAddons.includes(addon.id);

@@ -5,9 +5,15 @@ import { GamePanelCard } from '@/components/games/layout/GamePanelCard';
 import { GameOverviewTitleBlock } from '@/components/games/panels/GameOverviewSections';
 import { HubMetadataStatGrid } from '@/components/hub/HubMetadataStatGrid';
 import { ToggleSwitch } from '@/components/ui/ToggleSwitch';
-import { EmptyVeinSlotFrame, EmptyVeinSlotPlusIcon } from '@/components/game/EmptyVeinSlotFrame';
-import { KasparexNftSlotSelector } from '@/components/nft/KasparexNftSlotSelector';
-import { LazyImg } from '@/components/ui/LazyImg';
+import { GameNftCrewSlotCard } from '@/components/game/GameNftCrewSlotCard';
+import {
+  KasparexNftSlotSelector,
+  kasparexNftRefToCollectionAndId,
+} from '@/components/nft/KasparexNftSlotSelector';
+import { KxBadge } from '@/components/ui/KxBadge';
+import { useKaspaWallet } from '@/lib/kaspa/context';
+import { useKasparexGlobalNftUsage } from '@/hooks/useKasparexGlobalNftUsage';
+import { getMinecoreDeckCollectionAllowlist } from '@/lib/nft/minecore-deck-collections';
 import { KX_SURFACE_NESTED } from '@/lib/hub/shellTokens';
 import {
   ARIA_TARGETS,
@@ -67,6 +73,13 @@ export function PrecisionClickPlayPanel(props: {
   onClearOperative: () => void;
   onRunningChange?: (running: boolean) => void;
 }) {
+  const { state: wallet } = useKaspaWallet();
+  const payerKaspa = wallet.address?.trim();
+  const { usageByRef, inUseRefs } = useKasparexGlobalNftUsage({
+    payerKaspa,
+    precisionOperative: props.operative,
+  });
+
   const [selectedLevel, setSelectedLevel] = useState(1);
   const [running, setRunning] = useState(false);
   const [targets, setTargets] = useState<LiveTarget[]>([]);
@@ -311,7 +324,17 @@ export function PrecisionClickPlayPanel(props: {
 
           <HubMetadataStatGrid
             stats={[
-              { label: 'Progress', value: sessionFragments.toLocaleString(), copyable: false, accent: true },
+              {
+                label: 'Progress',
+                value: sessionFragments.toLocaleString(),
+                copyable: false,
+                accent: true,
+                valueNode: (
+                  <span className="text-xl font-black tabular-nums text-[color:var(--hub-accent)] sm:text-2xl">
+                    {sessionFragments.toLocaleString()}
+                  </span>
+                ),
+              },
               { label: 'Clear goal', value: level.clearGoal.toLocaleString(), copyable: false },
               { label: 'Multiplier', value: `×${totalMult.toFixed(2)}`, copyable: false },
               { label: 'Time', value: `${(timeLeftMs / 1000).toFixed(1)}s`, copyable: false },
@@ -400,7 +423,9 @@ export function PrecisionClickPlayPanel(props: {
           </div>
 
           <div className="grid gap-3 sm:grid-cols-2">
-            <div className={`${KX_SURFACE_NESTED} rounded-xl p-4`}>
+            <div
+              className={`${KX_SURFACE_NESTED} rounded-xl border border-transparent p-4 transition-colors hover:border-[color:var(--hub-accent)]`}
+            >
               <ToggleSwitch
                 checked={useShardLens}
                 onChange={setUseShardLens}
@@ -409,7 +434,9 @@ export function PrecisionClickPlayPanel(props: {
                 description="Larger positive targets for the next level."
               />
             </div>
-            <div className={`${KX_SURFACE_NESTED} rounded-xl p-4`}>
+            <div
+              className={`${KX_SURFACE_NESTED} rounded-xl border border-transparent p-4 transition-colors hover:border-[color:var(--hub-accent)]`}
+            >
               <ToggleSwitch
                 checked={useNullFilter}
                 onChange={setUseNullFilter}
@@ -420,52 +447,76 @@ export function PrecisionClickPlayPanel(props: {
             </div>
           </div>
 
-          <GamePanelCard title="Sync Operative" hint="NFT slot extends the lock window.">
+          <GamePanelCard title="Sync Operative" hint="Same NFT crew slot chrome as Diamond Veins / Minecore.">
             <p className="mb-4 text-sm text-zinc-600 dark:text-zinc-400">
               Slot a Krex deck NFT as your Sync Operative. Standard adds +6h, Partner +8h with mild perks, Premium
-              (Diamond) +12h with stronger fragment and miss bonuses.
+              (Diamond) +12h with stronger fragment and miss bonuses. NFTs already assigned in Diamond Veins or Minecore
+              stay locked here.
             </p>
-            <div className="mx-auto w-full max-w-xs">
+            <GameNftCrewSlotCard
+              roleLabel="Sync Operative"
+              roleType="operator"
+              roleSuffix=" · Free"
+              nftId={props.operative?.tokenId ?? null}
+              imageUrl={props.operative?.imageUrl}
+              emptyHint="Deploy NFT"
+              onOpenPicker={() => setNftPickerOpen(true)}
+              onRemove={props.operative ? props.onClearOperative : undefined}
+            >
               {props.operative ? (
-                <div className="relative overflow-hidden rounded-2xl border border-zinc-200 bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-900">
-                  {props.operative.imageUrl ? (
-                    <LazyImg
-                      src={props.operative.imageUrl}
-                      alt={props.operative.nftRef}
-                      className="aspect-square w-full object-cover"
-                    />
-                  ) : (
-                    <div className="flex aspect-square items-center justify-center text-sm text-zinc-500">
-                      {props.operative.nftRef}
-                    </div>
-                  )}
-                  <div className="space-y-1 p-3">
-                    <p className="text-xs font-bold text-zinc-900 dark:text-zinc-100">
-                      {props.operative.nftRef}
+                <>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <p className="text-lg font-bold tabular-nums text-zinc-900 dark:text-zinc-100">
+                      Lock extend:{' '}
+                      <span className="text-emerald-600 dark:text-emerald-400">
+                        +{(PRECISION_OPERATIVE_PERKS[props.operative.tier].extendMs / 3600000).toFixed(0)}h
+                      </span>
                     </p>
-                    <p className="text-[11px] text-zinc-500">
-                      {operativeLabel} · +
-                      {(PRECISION_OPERATIVE_PERKS[props.operative.tier].extendMs / 3600000).toFixed(0)}h · ×
-                      {PRECISION_OPERATIVE_PERKS[props.operative.tier].fragmentMult}
-                    </p>
-                    <div className="flex gap-2 pt-1">
-                      <button type="button" className="k-control-btn h-9 flex-1 text-xs" onClick={() => setNftPickerOpen(true)}>
-                        Swap
-                      </button>
-                      <button type="button" className="k-control-btn h-9 flex-1 text-xs" onClick={props.onClearOperative}>
-                        Remove
-                      </button>
-                    </div>
+                    <span className="rounded-full border border-sky-500/40 bg-sky-500/15 px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wide text-sky-800 dark:text-sky-300">
+                      {operativeLabel}
+                    </span>
+                    {props.operative.tier === 'premium' ? (
+                      <span className="rounded-full bg-amber-500/20 px-2 py-0.5 text-[10px] font-bold uppercase text-amber-700 dark:text-amber-300">
+                        Premium
+                      </span>
+                    ) : null}
                   </div>
-                </div>
+                  <div className="grid gap-2 text-sm text-zinc-600 dark:text-zinc-400 sm:grid-cols-2">
+                    <p>
+                      <span className="font-semibold text-zinc-800 dark:text-zinc-200">Role:</span> Sync Operative
+                    </p>
+                    <p>
+                      <span className="font-semibold text-zinc-800 dark:text-zinc-200">Collection:</span>{' '}
+                      {props.operative.collection}
+                    </p>
+                    <p>
+                      <span className="font-semibold text-zinc-800 dark:text-zinc-200">Fragment mult:</span>{' '}
+                      ×{PRECISION_OPERATIVE_PERKS[props.operative.tier].fragmentMult}
+                    </p>
+                    <p>
+                      <span className="font-semibold text-zinc-800 dark:text-zinc-200">Miss forgiveness:</span> +
+                      {PRECISION_OPERATIVE_PERKS[props.operative.tier].missForgiveness}
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-1">
+                    <KxBadge variant="sky" className="!px-2 !py-0.5 text-[10px] font-bold">
+                      +{(PRECISION_OPERATIVE_PERKS[props.operative.tier].extendMs / 3600000).toFixed(0)}h lock
+                    </KxBadge>
+                    <KxBadge variant="emerald" className="!px-2 !py-0.5 text-[10px] font-bold">
+                      ×{PRECISION_OPERATIVE_PERKS[props.operative.tier].fragmentMult} clear
+                    </KxBadge>
+                  </div>
+                  <p className="text-xs text-zinc-500 dark:text-zinc-400">{props.operative.nftRef}</p>
+                </>
               ) : (
-                <EmptyVeinSlotFrame onClick={() => setNftPickerOpen(true)} frameClassName="aspect-square min-h-[220px]">
-                  <EmptyVeinSlotPlusIcon />
-                  <p className="mt-3 text-sm font-semibold text-zinc-700 dark:text-zinc-200">Add Sync Operative</p>
-                  <p className="mt-1 text-xs text-zinc-500">Extend lock · unlock perks</p>
-                </EmptyVeinSlotFrame>
+                <div className="flex h-full min-h-[7rem] flex-col justify-center">
+                  <p className="text-lg font-bold text-zinc-900 dark:text-zinc-100">No operative slotted</p>
+                  <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+                    Deploy a deck NFT to extend the lock window and unlock clear perks.
+                  </p>
+                </div>
               )}
-            </div>
+            </GameNftCrewSlotCard>
           </GamePanelCard>
         </div>
       )}
@@ -475,20 +526,27 @@ export function PrecisionClickPlayPanel(props: {
         title="Choose Sync Operative"
         description="Deploy one NFT to extend your ARIA Lock window and grant operative perks."
         currentValue={props.operative?.nftRef ?? null}
-        inUseRefs={new Set(props.operative?.nftRef ? [props.operative.nftRef] : [])}
+        inUseRefs={inUseRefs}
+        usageByRef={usageByRef}
+        currentContext={{
+          entityType: 'precision-click',
+          entityId: 'sync-operative',
+          slotIndex: 0,
+        }}
+        collectionAllowlist={getMinecoreDeckCollectionAllowlist()}
+        footerNotice="Assignments save to Precision Click in this browser. NFTs used in Diamond Veins or Minecore show as locked here."
         onClose={() => setNftPickerOpen(false)}
         onRemove={() => {
           props.onClearOperative();
           setNftPickerOpen(false);
         }}
         onSelect={(nftRef) => {
-          const [collection, tokenStr] = nftRef.split('#');
-          const tokenId = Number(tokenStr);
-          if (!collection || !Number.isFinite(tokenId)) return;
+          const parsed = kasparexNftRefToCollectionAndId(nftRef);
+          if (!parsed) return;
           props.onSetOperative({
             nftRef,
-            collection,
-            tokenId,
+            collection: parsed.collection,
+            tokenId: parsed.tokenId,
           });
           setNftPickerOpen(false);
         }}

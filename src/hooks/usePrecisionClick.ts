@@ -495,6 +495,9 @@ export function usePrecisionClick() {
           },
         };
       });
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('kasparex-nft-usage'));
+      }
       setLastSuccess(
         `Sync Operative slotted (${PRECISION_OPERATIVE_PERKS[tier].label}). Lock extended while active.`,
       );
@@ -504,6 +507,9 @@ export function usePrecisionClick() {
 
   const clearOperative = useCallback(() => {
     persist((prev) => ({ ...prev, operative: null }));
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('kasparex-nft-usage'));
+    }
   }, [persist]);
 
   const refineFragments = useCallback(

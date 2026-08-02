@@ -26,11 +26,11 @@ export function KxCheckbox({
 }: KxCheckboxProps) {
   return (
     <label
-      className={`flex cursor-pointer items-start gap-2.5 text-xs text-zinc-700 dark:text-zinc-300 ${
+      className={`flex cursor-pointer items-center gap-3 text-xs text-zinc-700 dark:text-zinc-300 ${
         disabled ? 'cursor-not-allowed opacity-50' : ''
       } ${className}`.trim()}
     >
-      <span className="relative mt-0.5 inline-flex h-4 w-4 shrink-0 items-center justify-center">
+      <span className="relative inline-flex h-4 w-4 shrink-0 items-center justify-center self-center">
         <input
           {...rest}
           id={id}
@@ -56,10 +56,12 @@ export function KxCheckbox({
         </span>
       </span>
       {(label || description) && (
-        <span className="min-w-0 flex-1">
-          {label ? <span className="font-semibold text-zinc-900 dark:text-zinc-100">{label}</span> : null}
+        <span className="min-w-0 flex-1 py-0.5">
+          {label ? (
+            <span className="block font-semibold leading-snug text-zinc-900 dark:text-zinc-100">{label}</span>
+          ) : null}
           {description ? (
-            <span className="mt-0.5 block text-[11px] font-normal text-zinc-500 dark:text-zinc-400">
+            <span className="mt-1 block text-[11px] font-normal leading-snug text-zinc-500 dark:text-zinc-400">
               {description}
             </span>
           ) : null}
@@ -93,11 +95,11 @@ export function KxRadio({
 }: KxRadioProps) {
   return (
     <label
-      className={`flex cursor-pointer items-start gap-2.5 text-xs text-zinc-700 dark:text-zinc-300 ${
+      className={`flex cursor-pointer items-center gap-3 text-xs text-zinc-700 dark:text-zinc-300 ${
         disabled ? 'cursor-not-allowed opacity-50' : ''
       } ${className}`.trim()}
     >
-      <span className="relative mt-0.5 inline-flex h-4 w-4 shrink-0 items-center justify-center">
+      <span className="relative inline-flex h-4 w-4 shrink-0 items-center justify-center self-center">
         <input
           {...rest}
           id={id}
@@ -117,16 +119,16 @@ export function KxRadio({
               : 'border-zinc-300 bg-white dark:border-zinc-600 dark:bg-zinc-900'
           }`}
         >
-          {checked ? (
-            <span className="h-2 w-2 rounded-full bg-[color:var(--hub-accent)]" />
-          ) : null}
+          {checked ? <span className="h-2 w-2 rounded-full bg-[color:var(--hub-accent)]" /> : null}
         </span>
       </span>
       {(label || description) && (
-        <span className="min-w-0 flex-1">
-          {label ? <span className="font-semibold text-zinc-900 dark:text-zinc-100">{label}</span> : null}
+        <span className="min-w-0 flex-1 py-0.5">
+          {label ? (
+            <span className="block font-semibold leading-snug text-zinc-900 dark:text-zinc-100">{label}</span>
+          ) : null}
           {description ? (
-            <span className="mt-0.5 block text-[11px] font-normal text-zinc-500 dark:text-zinc-400">
+            <span className="mt-1 block text-[11px] font-normal leading-snug text-zinc-500 dark:text-zinc-400">
               {description}
             </span>
           ) : null}
