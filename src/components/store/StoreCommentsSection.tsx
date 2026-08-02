@@ -12,6 +12,7 @@ import { CommentCreditInfo } from '@/components/vblog/CommentCreditInfo';
 import { CommentCreditsModal } from '@/components/vblog/CommentCreditsModal';
 import { CommentsInfoModal } from '@/components/vblog/CommentsInfoModal';
 import { Alert } from '@/components/Alert';
+import { hubNotify } from '@/lib/hub/notify';
 import { Avatar } from '@/components/Avatar';
 import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 
@@ -76,16 +77,17 @@ export function StoreCommentsSection({ productId, showSectionHeader = false }: S
         e.preventDefault();
 
         if (!isWalletConnected || !walletAddress) {
-            setError('Please connect your wallet (Kaspa or EVM) to comment');
+            hubNotify.error('Wallet required', 'Please connect your wallet (Kaspa or EVM) to comment');
             return;
         }
 
         if (!newComment.trim()) {
-            setError('Please enter a comment');
+            hubNotify.warning('Empty comment', 'Please enter a comment');
             return;
         }
 
         if (!hasCredits()) {
+            hubNotify.info('Credits needed', 'Purchase comment credits to post.');
             setShowModal(true);
             return;
         }
@@ -98,7 +100,7 @@ export function StoreCommentsSection({ productId, showSectionHeader = false }: S
             // Use credit first
             const creditUsed = deductCredit();
             if (!creditUsed) {
-                setError('Failed to use credit. Please try again.');
+                hubNotify.error('Credit failed', 'Failed to use credit. Please try again.');
                 setIsSubmitting(false);
                 return;
             }
@@ -108,13 +110,16 @@ export function StoreCommentsSection({ productId, showSectionHeader = false }: S
 
             setNewComment('');
             setSuccess(true);
+            hubNotify.success('Comment posted', 'Your comment was added.');
             setTimeout(() => setSuccess(false), 3000);
 
             // Refresh credits display
             refreshCredits();
         } catch (err) {
             console.error('Error adding comment:', err);
-            setError(err instanceof Error ? err.message : 'Failed to add comment. Please try again.');
+            const message = err instanceof Error ? err.message : 'Failed to add comment. Please try again.';
+            setError(message);
+            hubNotify.error('Comment failed', message);
         } finally {
             setIsSubmitting(false);
         }
@@ -129,9 +134,12 @@ export function StoreCommentsSection({ productId, showSectionHeader = false }: S
         try {
             await deleteComment(commentId);
             setShowDeleteConfirm(null);
+            hubNotify.success('Comment deleted', 'The comment was removed.');
         } catch (err) {
             console.error('Error deleting comment:', err);
-            setError(err instanceof Error ? err.message : 'Failed to delete comment');
+            const message = err instanceof Error ? err.message : 'Failed to delete comment';
+            setError(message);
+            hubNotify.error('Delete failed', message);
         } finally {
             setIsDeleting(false);
         }

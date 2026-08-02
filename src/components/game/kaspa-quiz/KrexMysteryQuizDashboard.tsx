@@ -294,6 +294,7 @@ export function KrexMysteryQuizDashboard(props: { featuredImage?: string; loreSt
         <>
         {tab === 'overview' && (
           <div className="space-y-6">
+            <GameMetadataPanel categories={categories} tags={tags} />
             <GamePanelCard title="Case file" hint="Verify, don’t guess.">
               <p className="text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
                 You’re not here to guess - you’re here to <strong>verify</strong>. Ten chapters. Five questions per chapter. Each correct answer tightens the signal and pushes you deeper into Krex’s Chronicle.
@@ -489,7 +490,6 @@ export function KrexMysteryQuizDashboard(props: { featuredImage?: string; loreSt
             )}
           </div>
         </GamePurchasesPanel>
-        <GameMetadataPanel categories={categories} tags={tags} />
         <GamesSecurityPanel />
 
         <GamePanelCard title="Entry" hint="Pay once to begin the case run.">

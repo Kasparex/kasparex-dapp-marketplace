@@ -14,6 +14,7 @@ import {
   payHubKasPlan,
   payHubTokenListingFee,
 } from '@/lib/payments/hubPayRail';
+import { hubNotify } from '@/lib/hub/notify';
 
 const TREASURY = process.env.NEXT_PUBLIC_STORE_TREASURY_ADDRESS || '';
 
@@ -35,17 +36,21 @@ export function useDAppListingPayment() {
   const payFee = useCallback(
     async (currency: StorePaymentCurrency, feeKas: number, note?: string): Promise<string> => {
       if (!state.isConnected || !state.address || !state.provider) {
+        hubNotify.error('Wallet required', 'Connect your Kaspa wallet to pay the listing fee');
         throw new Error('Connect your Kaspa wallet to pay the listing fee');
       }
       if (!TREASURY) {
+        hubNotify.error('Treasury missing', 'Listing treasury address is not configured');
         throw new Error('Listing treasury address is not configured');
       }
 
       setIsProcessing(true);
       setError(null);
+      const loadingId = hubNotify.loading('Paying listing fee…', 'Confirm in your wallet');
 
       try {
         const currencyId = String(currency || 'KAS').trim();
+        let txHash: string;
 
         if (currencyId.startsWith('kcc20:')) {
           throw new Error(
@@ -73,22 +78,34 @@ export function useDAppListingPayment() {
             decimals: match?.decimals ?? 8,
             note,
           });
-          return paid.kasCommitTxHash ?? paid.tokenTxHash;
+          txHash = paid.kasCommitTxHash ?? paid.tokenTxHash;
+        } else {
+          const plan = buildHubKasListingPlan({
+            feeKas,
+            treasuryAddress: TREASURY,
+            note,
+          });
+          txHash = await payHubKasPlan({
+            provider: state.provider,
+            senderAddress: state.address,
+            plan,
+          });
         }
 
-        const plan = buildHubKasListingPlan({
-          feeKas,
-          treasuryAddress: TREASURY,
-          note,
+        hubNotify.txSuccess({
+          id: loadingId,
+          title: 'Listing fee paid',
+          txHash,
         });
-        return await payHubKasPlan({
-          provider: state.provider,
-          senderAddress: state.address,
-          plan,
-        });
+        return txHash;
       } catch (err) {
         const message = err instanceof Error ? err.message : 'Listing fee payment failed';
         setError(message);
+        hubNotify.update(loadingId, {
+          title: 'Payment failed',
+          description: message,
+          variant: 'error',
+        });
         throw err;
       } finally {
         setIsProcessing(false);

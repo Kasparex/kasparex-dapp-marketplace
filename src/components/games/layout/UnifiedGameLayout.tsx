@@ -71,7 +71,6 @@ export function UnifiedGameLayout({
     <GamesAsideRail>
       <HubBenefitsPanel variant="panel" scope="games" className="w-full" />
       {asideExtras}
-      <GameMetadataPanel categories={game.categories || []} tags={game.tags || []} />
       <GamesSecurityPanel />
     </GamesAsideRail>
   );
@@ -84,7 +83,16 @@ export function UnifiedGameLayout({
       haloHeader={
         <GamesHaloHeader game={haloGame} resources={resources} deckFooter={deckFooter} playerLevel={playerLevel} />
       }
-      main={children}
+      main={
+        <>
+          {currentTab === 'overview' ? (
+            <div className="mb-8 px-1 pt-2 sm:px-3 lg:px-4">
+              <GameMetadataPanel categories={game.categories || []} tags={game.tags || []} />
+            </div>
+          ) : null}
+          {children}
+        </>
+      }
       sidebar={sidebar}
     />
   );

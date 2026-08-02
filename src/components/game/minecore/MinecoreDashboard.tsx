@@ -31,7 +31,6 @@ import { CALC_INGREDIENT_KAS, CALC_INGREDIENT_GRID } from '@/lib/game/minecore/c
 import type { MinecoreIngredient } from '@/lib/game/minecore';
 import { krexTierDiscountPercent } from '@/lib/chronicles/vault/pricing';
 import { GamePurchasesPanel } from '@/components/games/panels/GamePurchasesPanel';
-import { GameMetadataPanel } from '@/components/games/panels/GameMetadataPanel';
 import { IconOverview, IconShop, IconWorkers, IconRewards, IconBoosters, IconPower, IconComments } from '@/components/games/icons/TabIcons';
 import { useGameCommentsTabs, gameCommentsArticleId } from '@/components/games/comments/gameComments';
 import { WorkersPanel } from '@/components/game/minecore/WorkersPanel';

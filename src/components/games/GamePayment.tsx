@@ -9,6 +9,7 @@ import { getEntrySku, type UnifiedGame } from '@/lib/games/registry';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { applyKrexFeeDiscount } from '@/lib/hub/applyKrexFeeDiscount';
 import { krexTierDiscountPercent } from '@/lib/chronicles/vault/pricing';
+import { hubNotify } from '@/lib/hub/notify';
 
 interface GamePaymentProps {
   game: Game;
@@ -38,6 +39,7 @@ export function GamePayment({ game }: GamePaymentProps) {
 
   const handlePlay = async () => {
     if (!state.isConnected || !state.provider) {
+      hubNotify.error('Wallet required', 'Please connect your Kaspa wallet first');
       setError('Please connect your Kaspa wallet first');
       // Try to connect automatically
       try {
@@ -53,16 +55,20 @@ export function GamePayment({ game }: GamePaymentProps) {
     }
 
     if (!state.address) {
+      hubNotify.error('Wallet required', 'Wallet address not available');
       setError('Wallet address not available');
       return;
     }
 
     if (entryCurrency !== 'KAS') {
-      setError(`This game entry requires ${entryCurrency}. This payment method is not wired yet.`);
+      const msg = `This game entry requires ${entryCurrency}. This payment method is not wired yet.`;
+      hubNotify.warning('Payment unavailable', msg);
+      setError(msg);
       return;
     }
 
     if (!kasTreasuryAddress || !isValidKaspaAddress(kasTreasuryAddress)) {
+      hubNotify.error('Treasury missing', 'Game treasury address not configured');
       setError('Game treasury address not configured');
       return;
     }
@@ -72,6 +78,7 @@ export function GamePayment({ game }: GamePaymentProps) {
     setSuccess(false);
     setTxHash(null);
     setDiamondsMinted(null);
+    const loadingId = hubNotify.loading('Paying game entry…', 'Confirm in your wallet');
 
     try {
       const pay = await payKaspaL1({
@@ -87,6 +94,12 @@ export function GamePayment({ game }: GamePaymentProps) {
 
       setTxHash(pay.txHash);
       setSuccess(true);
+      hubNotify.txSuccess({
+        id: loadingId,
+        title: 'Entry paid',
+        description: `${entryAmount} KAS for ${game.name}`,
+        txHash: pay.txHash,
+      });
 
       // Record reward transaction
       try {
@@ -131,6 +144,11 @@ export function GamePayment({ game }: GamePaymentProps) {
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to process payment';
       setError(errorMessage);
+      hubNotify.update(loadingId, {
+        title: 'Entry payment failed',
+        description: errorMessage,
+        variant: 'error',
+      });
       console.error('Game payment error:', err);
     } finally {
       setIsProcessing(false);

@@ -12,6 +12,7 @@ import { useDAppCommentsCount } from '@/hooks/useDAppCommentsCount';
 import { tokenCommentsArticleId } from '@/lib/tokens/comments';
 import { TokenPageHeader } from './TokenPageHeader';
 import { TokenAside } from './TokenAside';
+import { TokenOnChainMetadataPanel } from './TokenOnChainMetadataPanel';
 import { TokenInfoSection } from './TokenInfoSection';
 import { TokenProtocolAvailability } from './TokenProtocolAvailability';
 import { ProgrammableAssetPanel } from './ProgrammableAssetPanel';
@@ -200,6 +201,7 @@ export function TokenDetail({
                 {contentTab === 'overview' ? (
                   <div id="token-overview" className={`${TOKEN_TAB_SECTION_CLASS} space-y-8 animate-in fade-in duration-300`}>
                     <TokenInfoSection token={token} />
+                    <TokenOnChainMetadataPanel token={token} />
                     <TokenProtocolAvailability token={token} />
                     <ProgrammableAssetPanel token={token} />
                     {orderedOverviewSubsections.map((type) => renderOverviewSubsection(type))}

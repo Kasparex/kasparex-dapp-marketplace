@@ -203,6 +203,7 @@ export function TokenStrategyDashboard(props: { featuredImage?: string; loreStor
         <>
         {tab === 'overview' && (
           <div className="space-y-6">
+            <GameMetadataPanel categories={categories} tags={tags} />
             <GamePanelCard title="Briefing" hint="Decide what moves first.">
               <p className="text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
                 Null Gang doesn’t kick the door in - it taps the edges until something blinks. Your job is to decide what moves first:{' '}
@@ -346,7 +347,6 @@ export function TokenStrategyDashboard(props: { featuredImage?: string; loreStor
             )}
           </div>
         </GamePurchasesPanel>
-        <GameMetadataPanel categories={categories} tags={tags} />
         <GamesSecurityPanel />
 
         <GamePanelCard title="Entry" hint="Pay once to start the mission chain.">

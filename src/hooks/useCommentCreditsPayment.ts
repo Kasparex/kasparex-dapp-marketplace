@@ -12,6 +12,7 @@ import {
   payHubKasPlan,
   payHubTokenListingFee,
 } from '@/lib/payments/hubPayRail';
+import { hubNotify } from '@/lib/hub/notify';
 
 const COMMENT_CREDITS_TREASURY =
   'kaspa:qqd36zqt94yr23cmjj73d34e2lc05ltd9duw582s303m30ux567ps9ljnhp6y';
@@ -30,18 +31,22 @@ export function useCommentCreditsPayment() {
       pricingSnapshot?: PricingSnapshot | null,
     ): Promise<string> => {
       if (!state.isConnected || !state.address || !state.provider) {
+        hubNotify.error('Wallet required', 'Connect your Kaspa wallet to purchase credits');
         throw new Error('Connect your Kaspa wallet to purchase credits');
       }
       if (state.provider !== 'kasware' && state.provider !== 'kastle') {
+        hubNotify.warning('Wallet unsupported', 'Comment credits require KasWare or Kastle on L1');
         throw new Error('Comment credits purchase requires KasWare or Kastle on L1');
       }
 
       setIsProcessing(true);
       setError(null);
+      const loadingId = hubNotify.loading('Buying credits…', 'Confirm in your wallet');
 
       try {
         const currencyId = String(currency || 'KAS').trim();
         const note = `Comment Credits Purchase: ${credits} credits`;
+        let txHash: string;
 
         if (currencyId.startsWith('kcc20:')) {
           throw new Error(
@@ -69,22 +74,35 @@ export function useCommentCreditsPayment() {
             decimals: match?.decimals ?? 8,
             note,
           });
-          return paid.kasCommitTxHash ?? paid.tokenTxHash;
+          txHash = paid.kasCommitTxHash ?? paid.tokenTxHash;
+        } else {
+          const plan = buildHubKasListingPlan({
+            feeKas,
+            treasuryAddress: COMMENT_CREDITS_TREASURY,
+            note,
+          });
+          txHash = await payHubKasPlan({
+            provider: state.provider,
+            senderAddress: state.address,
+            plan,
+          });
         }
 
-        const plan = buildHubKasListingPlan({
-          feeKas,
-          treasuryAddress: COMMENT_CREDITS_TREASURY,
-          note,
+        hubNotify.txSuccess({
+          id: loadingId,
+          title: 'Credits purchased',
+          description: `${credits} comment credits added`,
+          txHash,
         });
-        return await payHubKasPlan({
-          provider: state.provider,
-          senderAddress: state.address,
-          plan,
-        });
+        return txHash;
       } catch (err) {
         const message = err instanceof Error ? err.message : 'Payment failed';
         setError(message);
+        hubNotify.update(loadingId, {
+          title: 'Purchase failed',
+          description: message,
+          variant: 'error',
+        });
         throw err;
       } finally {
         setIsProcessing(false);

@@ -16,7 +16,8 @@ import { VBlogAuthorCard } from '@/components/vblog/ArticleSidebar';
 import { CommentsSection } from '@/components/vblog/CommentsSection';
 import { AuthorArticlesTab } from '@/components/vblog/AuthorArticlesTab';
 import { DAppTabs, type DAppTab } from '@/components/dapps/layout/DAppTabs';
-import { IconArticle, IconAuthor, IconComments, IconModules } from '@/components/dapps/icons/DAppTabIcons';
+import { IconArticle, IconAuthor, IconComments, IconModules, IconMetadata } from '@/components/dapps/icons/DAppTabIcons';
+import { ArticleMetadata } from '@/components/vblog/ArticleMetadata';
 import { HubPageRightPanelGrid, HubPageRightPanelToggle } from '@/components/hub/HubPageRightPanel';
 import { DirectoryGalleryLightbox } from '@/components/dapps/DirectoryGalleryLightbox';
 import { SidePanelCollapsedContentWrap } from '@/components/layout/SidePanelCollapsedContentWrap';
@@ -68,8 +69,9 @@ import { transferKrc20 } from '@/lib/payments/krc20Payment';
 import { useIntegratedTokens } from '@/hooks/useIntegratedToken';
 import { buildIntegratedPaymentCurrencyIds } from '@/lib/payments/hubPaymentTypes';
 import { KxListingCategoryChip } from '@/components/ui/KxListingCategoryChip';
+import { hubNotify } from '@/lib/hub/notify';
 
-export type ArticleContentTab = 'article' | 'author' | 'author-posts' | 'modules' | 'comments';
+export type ArticleContentTab = 'article' | 'author' | 'author-posts' | 'modules' | 'metadata' | 'comments';
 
 interface ArticleDetailProps {
   article: VBlogArticle;
@@ -216,6 +218,7 @@ export function ArticleDetail({
     { id: 'author', label: 'Author', icon: <IconAuthor /> },
     { id: 'author-posts', label: 'More from Author', icon: <AuthorPostsIcon /> },
     { id: 'modules', label: 'Modules', icon: <IconModules /> },
+    { id: 'metadata', label: 'Metadata', icon: <IconMetadata /> },
     {
       id: 'comments',
       label: 'Comments',
@@ -441,6 +444,7 @@ export function ArticleDetail({
   };
 
   const handlePremiumUnlock = async () => {
+    const loadingId = hubNotify.loading('Unlocking premium…', 'Confirm payment in your wallet');
     try {
       setActionError(null);
       setFlowComplete(false);
@@ -466,6 +470,11 @@ export function ArticleDetail({
       );
       setFlowComplete(true);
       setRefreshTick((x) => x + 1);
+      hubNotify.txSuccess({
+        id: loadingId,
+        title: 'Premium unlocked',
+        txHash: txs.authorTxHashes[0] || txs.platformTxHash,
+      });
     } catch (e) {
       const msg = formatKaspaWalletError(e) || 'Unlock failed';
       const lower = msg.toLowerCase();
@@ -476,6 +485,11 @@ export function ArticleDetail({
       } else {
         setActionError(msg);
       }
+      hubNotify.update(loadingId, {
+        title: 'Unlock failed',
+        description: msg,
+        variant: 'error',
+      });
       setRefreshTick((x) => x + 1);
     } finally {
       setIsProcessingAction(false);
@@ -483,6 +497,7 @@ export function ArticleDetail({
   };
 
   const handleTip = async (amount: number, currency: string = 'KAS') => {
+    const loadingId = hubNotify.loading('Sending tip…', 'Confirm in your wallet');
     try {
       setActionError(null);
       setFlowComplete(false);
@@ -514,8 +529,20 @@ export function ArticleDetail({
       setFlowComplete(true);
       reportHubFlowStep('complete', 'hubPay');
       setRefreshTick((x) => x + 1);
+      hubNotify.txSuccess({
+        id: loadingId,
+        title: 'Tip sent',
+        description: `${amountKas} KAS to the author`,
+        txHash: txs.authorTxHashes[0] || txs.platformTxHash,
+      });
     } catch (e) {
-      setActionError(formatKaspaWalletError(e) || 'Tip failed');
+      const msg = formatKaspaWalletError(e) || 'Tip failed';
+      setActionError(msg);
+      hubNotify.update(loadingId, {
+        title: 'Tip failed',
+        description: msg,
+        variant: 'error',
+      });
     } finally {
       setIsProcessingAction(false);
     }
@@ -534,6 +561,7 @@ export function ArticleDetail({
 
   const handleReadingReceipt = async () => {
     if (!kaspaState.address || !kaspaState.provider || !kaspaState.isConnected) return;
+    const loadingId = hubNotify.loading('Sending reading receipt…', 'Confirm 1 KAS in your wallet');
     try {
       setActionError(null);
       setFlowComplete(false);
@@ -560,8 +588,19 @@ export function ArticleDetail({
       setFlowComplete(true);
       reportHubFlowStep('complete', 'hubPay');
       setRefreshTick((x) => x + 1);
+      hubNotify.txSuccess({
+        id: loadingId,
+        title: 'Reading receipt sent',
+        txHash,
+      });
     } catch (e) {
-      setActionError(formatKaspaWalletError(e) || 'Receipt failed');
+      const msg = formatKaspaWalletError(e) || 'Receipt failed';
+      setActionError(msg);
+      hubNotify.update(loadingId, {
+        title: 'Receipt failed',
+        description: msg,
+        variant: 'error',
+      });
     } finally {
       setIsProcessingAction(false);
     }
@@ -829,6 +868,16 @@ export function ArticleDetail({
                     !article.modules?.readingReceiptsEnabled ? (
                       <p className="kx-body text-zinc-500">No modules are enabled for this article.</p>
                     ) : null}
+                  </div>
+                ) : null}
+
+                {contentTab === 'metadata' ? (
+                  <div id="article-metadata" className="space-y-6">
+                    <ArticleMetadata
+                      article={article}
+                      payloadBytes={article.pricingSnapshot?.payloadBytes}
+                      chunkCount={article.pricingSnapshot?.chunkCount ?? article.chunkTxHashes?.length}
+                    />
                   </div>
                 ) : null}
 

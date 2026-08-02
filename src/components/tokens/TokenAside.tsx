@@ -7,15 +7,12 @@ import { HubAsideRail } from '@/components/hub/HubAsideRail';
 import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 import { TokensBenefitsPanel } from '@/components/tokens/TokensBenefitsPanel';
 import { TokenCopyableAddress } from '@/components/tokens/TokenCopyableAddress';
-import { HubMetadataStatGrid, type HubMetadataStat } from '@/components/hub/HubMetadataStatGrid';
 import { formatLargeNumber } from '@/lib/rewards/calculator';
 import {
   getNetworkChipLabel,
   getNetworkExplorerUrl,
   getTokenNetworkEntries,
 } from '@/lib/tokens/networks';
-import { resolveTokenCreatorWallet } from '@/lib/tokens/creatorWallet';
-import { isProgrammableToken, resolveProgrammableCovenantId } from '@/lib/programmable/eligibility';
 
 const PANEL_CLASS =
   'rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900';
@@ -25,86 +22,8 @@ export function TokenAside({ token }: { token: Token }) {
   const marketCap = token.price?.marketCap;
   const otherLinks = (token.links ?? []).filter((l) => l.type === 'explorer' || l.type === 'other');
   const networkEntries = getTokenNetworkEntries(token).filter((e) => e.contractAddress);
-  const creatorWallet = resolveTokenCreatorWallet(token);
-  const covenantId = resolveProgrammableCovenantId(token);
-
-  const onChainStats: HubMetadataStat[] = [];
-  if (token.id) {
-    onChainStats.push({ label: 'Token ID', value: token.id, copyable: true, dense: true });
-  }
-  if (token.slug) {
-    onChainStats.push({ label: 'Slug', value: token.slug, copyable: true, dense: true });
-  }
-  if (token.symbol) {
-    onChainStats.push({
-      label: 'Ticker',
-      value: token.symbol,
-      copyable: true,
-      accent: true,
-    });
-  }
-  if (token.listingNetwork) {
-    onChainStats.push({
-      label: 'Listing network',
-      value: getNetworkChipLabel(token.listingNetwork),
-      copyable: false,
-    });
-  }
-  if (creatorWallet) {
-    onChainStats.push({
-      label: 'Creator / deployer',
-      value: creatorWallet,
-      dense: true,
-      accent: true,
-      copyable: true,
-    });
-  }
-  if (token.metadataCid) {
-    onChainStats.push({
-      label: 'Metadata CID',
-      value: token.metadataCid,
-      dense: true,
-      accent: true,
-      copyable: true,
-    });
-  }
-  if (isProgrammableToken(token) && covenantId) {
-    onChainStats.push({
-      label: 'Covenant ID',
-      value: covenantId,
-      dense: true,
-      accent: true,
-      copyable: true,
-    });
-  }
-  if (token.onChainSnapshot?.genesisTxid) {
-    onChainStats.push({
-      label: 'Genesis tx',
-      value: token.onChainSnapshot.genesisTxid,
-      dense: true,
-      accent: true,
-      copyable: true,
-    });
-  }
-  if (token.decimals !== undefined) {
-    onChainStats.push({
-      label: 'Decimals',
-      value: String(token.decimals),
-      copyable: false,
-      tooltipTitle: 'Decimals',
-      tooltipDescription: 'Number of decimal places used by this token standard on its primary network.',
-    });
-  }
 
   const sections: { title: string; hint?: string; body: ReactNode; rawBody?: boolean }[] = [];
-
-  if (onChainStats.length > 0) {
-    sections.push({
-      title: 'On-chain metadata',
-      rawBody: true,
-      body: <HubMetadataStatGrid smartPack stats={onChainStats} />,
-    });
-  }
 
   if (price !== undefined) {
     sections.push({

@@ -29,6 +29,7 @@ import { KxImageSourceField } from '@/components/ui/KxImageSourceField';
 import { KxFilterDropdown } from '@/components/ui/KxFilterDropdown';
 import { KxSegmentToggle } from '@/components/ui/KxSegmentToggle';
 import { KxAlertRegion } from '@/components/ui/KxAlertRegion';
+import { hubNotify } from '@/lib/hub/notify';
 import { StorePaymentCurrencyDropdown } from '@/components/payments/StorePaymentCurrencyDropdown';
 import {
   buildSellerListingCurrencyOptions,
@@ -161,14 +162,29 @@ export function StoreProductForm({ product }: StoreProductFormProps) {
 
   const payActionFee = async () => {
     if (!state.provider || !state.address) throw new Error('Wallet not connected');
-    const plan = buildHubPlatformFeePlan({
-      totalKas: listingQuote.totalKas,
-      treasuryAddress: TREASURY,
-      note: 'store-listing',
-    });
-    const result = await payKasPaymentPlan(state.provider, plan, state.address);
-    if (!result.txHash) throw new Error('Payment failed');
-    return result.txHash;
+    const loadingId = hubNotify.loading('Paying listing fee…', 'Confirm in your wallet');
+    try {
+      const plan = buildHubPlatformFeePlan({
+        totalKas: listingQuote.totalKas,
+        treasuryAddress: TREASURY,
+        note: 'store-listing',
+      });
+      const result = await payKasPaymentPlan(state.provider, plan, state.address);
+      if (!result.txHash) throw new Error('Payment failed');
+      hubNotify.txSuccess({
+        id: loadingId,
+        title: 'Listing fee paid',
+        txHash: result.txHash,
+      });
+      return result.txHash;
+    } catch (err) {
+      hubNotify.update(loadingId, {
+        title: 'Payment failed',
+        description: err instanceof Error ? err.message : 'Payment failed',
+        variant: 'error',
+      });
+      throw err;
+    }
   };
 
   const handleThumbnailUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -176,7 +192,7 @@ export function StoreProductForm({ product }: StoreProductFormProps) {
     if (!file) return;
     const maxSize = IPFS_MAX_UPLOAD_MB * 1024 * 1024;
     if (file.size > maxSize) {
-      setError(`Thumbnail must be under ${IPFS_MAX_UPLOAD_MB}MB`);
+      hubNotify.warning('Image too large', `Thumbnail must be under ${IPFS_MAX_UPLOAD_MB}MB`);
       e.target.value = '';
       return;
     }
@@ -187,7 +203,9 @@ export function StoreProductForm({ product }: StoreProductFormProps) {
       setThumbnailUrl(normalizeIpfsUrlForForm(null, cid));
       setThumbnailSource('url');
       setError(null);
+      hubNotify.success('Thumbnail uploaded', 'Image is ready for the listing.');
     } else {
+      hubNotify.error('Upload failed', 'Failed to upload thumbnail');
       setError('Failed to upload thumbnail');
     }
     e.target.value = '';
@@ -220,7 +238,10 @@ export function StoreProductForm({ product }: StoreProductFormProps) {
     if (!canSubmit || !state.address || !state.provider || !hasThumbnail) return;
 
     if (enabledModules.buyer_support && !buyerSupportUrl.trim()) {
-      setError('Buyer support URL is required when the Buyer Support module is enabled.');
+      hubNotify.warning(
+        'Missing support URL',
+        'Buyer support URL is required when the Buyer Support module is enabled.',
+      );
       return;
     }
 
@@ -299,9 +320,15 @@ export function StoreProductForm({ product }: StoreProductFormProps) {
       }
 
       setStep('complete');
+      hubNotify.success(
+        isEdit ? 'Product updated' : 'Product published',
+        isEdit ? 'Your Store listing was updated.' : 'Your Store listing is live.',
+      );
       setTimeout(() => router.push('/store/dashboard?tab=products'), 2000);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to submit product');
+      const message = err instanceof Error ? err.message : 'Failed to submit product';
+      setError(message);
+      hubNotify.error(isEdit ? 'Update failed' : 'Publish failed', message);
       setStep('form');
     } finally {
       setIsProcessing(false);

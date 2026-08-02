@@ -14,6 +14,7 @@ import { payHubTokenListingFee } from '@/lib/payments/hubPayRail';
 import { resolveTokenAmountFromKas } from '@/lib/pricing/registry';
 import type { PricingSnapshot } from '@/lib/pricing/types';
 import type { HubPaymentCurrencyOption } from '@/lib/payments/hubPaymentTypes';
+import { hubNotify } from '@/lib/hub/notify';
 
 export type HubPayParams = {
   /** Preferred: full multi-leg plan (KAS rail). */
@@ -36,13 +37,16 @@ export function useHubPayment() {
   const pay = useCallback(
     async (currency: HubPaymentCurrencyOption, params: HubPayParams): Promise<string> => {
       if (!state.isConnected || !state.address || !state.provider) {
+        hubNotify.error('Wallet required', 'Connect your Kaspa wallet to pay');
         throw new Error('Connect your Kaspa wallet to pay');
       }
 
       setIsProcessing(true);
       setError(null);
+      const loadingId = hubNotify.loading('Processing payment…', 'Confirm in your wallet');
 
       try {
+        let txHash: string;
         if (currency.kind === 'kcc20') {
           const to =
             params.to?.trim() ||
@@ -65,10 +69,8 @@ export function useHubPayment() {
             const suffix = result.tradeUrl ? ` ${result.tradeUrl}` : '';
             throw new Error(`${result.error}${suffix}`);
           }
-          return result.txHash;
-        }
-
-        if (currency.kind === 'krc20') {
+          txHash = result.txHash;
+        } else if (currency.kind === 'krc20') {
           const treasury = (params.to ?? '').replace(/^kaspa:/i, '');
           if (!treasury) throw new Error('Recipient address is not configured');
           let amount = params.amountDirect;
@@ -99,10 +101,8 @@ export function useHubPayment() {
             note: params.note,
             payloadHex: params.payloadHex,
           });
-          return paid.kasCommitTxHash ?? paid.tokenTxHash;
-        }
-
-        if (currency.kind === 'krex') {
+          txHash = paid.kasCommitTxHash ?? paid.tokenTxHash;
+        } else if (currency.kind === 'krex') {
           const feeKas =
             params.amountKas ??
             (params.plan ? params.plan.legs.reduce((s, l) => s + l.amount, 0) : undefined);
@@ -128,35 +128,47 @@ export function useHubPayment() {
             note: params.note,
             payloadHex: params.payloadHex,
           });
-          return paid.kasCommitTxHash ?? paid.tokenTxHash;
+          txHash = paid.kasCommitTxHash ?? paid.tokenTxHash;
+        } else {
+          // KAS rail: prefer explicit plan, else build platform fee plan from amount + to.
+          let plan = params.plan;
+          if (!plan) {
+            const feeKas = params.amountKas;
+            const to = params.to;
+            if (feeKas == null || feeKas <= 0) throw new Error('Invalid payment amount');
+            if (!to) throw new Error('Recipient address is not configured');
+            plan = buildHubPlatformFeePlan({
+              totalKas: feeKas,
+              treasuryAddress: to,
+              note: params.note,
+              payloadHex: params.payloadHex,
+            });
+          } else if (params.note || params.payloadHex) {
+            plan = {
+              ...plan,
+              note: plan.note ?? params.note,
+              payloadHex: plan.payloadHex ?? params.payloadHex,
+            };
+          }
+
+          const result = await payKasPaymentPlan(state.provider, plan, state.address);
+          txHash = result.txHash;
         }
 
-        // KAS rail: prefer explicit plan, else build platform fee plan from amount + to.
-        let plan = params.plan;
-        if (!plan) {
-          const feeKas = params.amountKas;
-          const to = params.to;
-          if (feeKas == null || feeKas <= 0) throw new Error('Invalid payment amount');
-          if (!to) throw new Error('Recipient address is not configured');
-          plan = buildHubPlatformFeePlan({
-            totalKas: feeKas,
-            treasuryAddress: to,
-            note: params.note,
-            payloadHex: params.payloadHex,
-          });
-        } else if (params.note || params.payloadHex) {
-          plan = {
-            ...plan,
-            note: plan.note ?? params.note,
-            payloadHex: plan.payloadHex ?? params.payloadHex,
-          };
-        }
-
-        const result = await payKasPaymentPlan(state.provider, plan, state.address);
-        return result.txHash;
+        hubNotify.txSuccess({
+          id: loadingId,
+          title: 'Payment sent',
+          txHash,
+        });
+        return txHash;
       } catch (err) {
         const message = err instanceof Error ? err.message : 'Payment failed';
         setError(message);
+        hubNotify.update(loadingId, {
+          title: 'Payment failed',
+          description: message,
+          variant: 'error',
+        });
         throw err;
       } finally {
         setIsProcessing(false);

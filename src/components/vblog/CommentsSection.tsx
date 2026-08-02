@@ -18,6 +18,7 @@ import { NetworkInfoMessage } from '@/components/NetworkInfoMessage';
 import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 import { KxRichTextEditor } from '@/components/ui/KxRichTextEditor';
 import { KxRichTextContent } from '@/components/ui/KxRichTextContent';
+import { hubNotify } from '@/lib/hub/notify';
 
 interface CommentsSectionProps {
   articleId: string;
@@ -86,16 +87,17 @@ export function CommentsSection({ articleId, dappSectionHeader = false }: Commen
     e.preventDefault();
 
     if (!isWalletConnected || !walletAddress) {
-      setError('Please connect your wallet (Kaspa or EVM) to comment');
+      hubNotify.error('Wallet required', 'Please connect your wallet (Kaspa or EVM) to comment');
       return;
     }
 
     if (!newComment.trim()) {
-      setError('Please enter a comment');
+      hubNotify.warning('Empty comment', 'Please enter a comment');
       return;
     }
 
     if (!hasCredits()) {
+      hubNotify.info('Credits needed', 'Purchase comment credits to post.');
       setShowModal(true);
       return;
     }
@@ -107,7 +109,7 @@ export function CommentsSection({ articleId, dappSectionHeader = false }: Commen
     try {
       // Check if user has credits before submitting
       if (!hasCredits()) {
-        setError('No credits remaining. Please purchase more credits.');
+        hubNotify.warning('No credits', 'No credits remaining. Please purchase more credits.');
         setShowModal(true);
         setIsSubmitting(false);
         return;
@@ -116,7 +118,7 @@ export function CommentsSection({ articleId, dappSectionHeader = false }: Commen
       // Use credit first (decrement before submission)
       const creditUsed = deductCredit();
       if (!creditUsed) {
-        setError('Failed to use credit. Please try again.');
+        hubNotify.error('Credit failed', 'Failed to use credit. Please try again.');
         setIsSubmitting(false);
         return;
       }
@@ -136,13 +138,16 @@ export function CommentsSection({ articleId, dappSectionHeader = false }: Commen
       setDisplayedComments(updatedComments.slice(0, displayedComments.length + 1));
       setNewComment('');
       setSuccess(true);
+      hubNotify.success('Comment posted', 'Your comment was added.');
       setTimeout(() => setSuccess(false), 3000);
 
       // Refresh credits display to ensure UI is in sync
       refreshCredits();
     } catch (err) {
       console.error('Error adding comment:', err);
-      setError(err instanceof Error ? err.message : 'Failed to add comment. Please try again.');
+      const message = err instanceof Error ? err.message : 'Failed to add comment. Please try again.';
+      setError(message);
+      hubNotify.error('Comment failed', message);
     } finally {
       setIsSubmitting(false);
     }
@@ -163,9 +168,12 @@ export function CommentsSection({ articleId, dappSectionHeader = false }: Commen
       setAllComments(updatedComments);
       setDisplayedComments(updatedComments.slice(0, displayedComments.length));
       setShowDeleteConfirm(null);
+      hubNotify.success('Comment deleted', 'The comment was removed.');
     } catch (err) {
       console.error('Error deleting comment:', err);
-      setError(err instanceof Error ? err.message : 'Failed to delete comment');
+      const message = err instanceof Error ? err.message : 'Failed to delete comment';
+      setError(message);
+      hubNotify.error('Delete failed', message);
     } finally {
       setIsDeleting(false);
     }

@@ -26,11 +26,9 @@ import {
   formatTokenAmount,
   resolveTokenAmountFromKas,
 } from '@/lib/pricing/registry';
-import { HubMetadataStatGrid } from '@/components/hub/HubMetadataStatGrid';
 import { HubPaymentCurrencyCatalogTrigger } from '@/components/payments/HubPaymentCurrencyCatalogModal';
 import { useHubPayWithCatalog, hubCatalogSelectionToStoreCurrency } from '@/hooks/useHubPayWithCatalog';
 import { markCatalogByAcceptedCurrencies } from '@/lib/payments/markCatalogByAccepted';
-import { KX_METADATA_STAT_VALUE_LINK } from '@/lib/hub/shellTokens';
 
 function getArticleLinkEntries(article: VBlogArticle): Array<{ href: string; label: string }> {
   const entries: Array<{ href: string; label: string }> = [];
@@ -145,11 +143,6 @@ export function ArticleSidebar({
   const authorDisplay = formatAddress(article.author);
   const authorProfileUrl = `/u/${encodeURIComponent(article.author)}?tab=creator-content&type=articles`;
   const linkEntries = getArticleLinkEntries(article);
-  const payloadBytes = article.pricingSnapshot?.payloadBytes;
-  const chunkCount = article.pricingSnapshot?.chunkCount ?? article.chunkTxHashes?.length;
-  const txExplorerUrl = article.txHash
-    ? `https://explorer.kaspa.org/transactions/${article.txHash.replace(/^0x/, '')}`
-    : undefined;
   const hasPremium = articleHasPremiumContent(article);
 
   const formatTipLabel = (kasAmount: number) => {
@@ -282,72 +275,6 @@ export function ArticleSidebar({
           <VBlogArticleMetaBadges article={article} />
           {hasPremium ? <VBlogPremiumBadge /> : null}
         </div>
-      ),
-    },
-    {
-      title: 'On-chain metadata',
-      rawBody: true as const,
-      body: (
-        <HubMetadataStatGrid
-          smartPack
-          stats={[
-            {
-              label: 'Article CID (IPFS)',
-              value: article.cid || 'Not yet published',
-              copyable: Boolean(article.cid),
-              accent: Boolean(article.cid),
-              dense: Boolean(article.cid),
-            },
-            ...(article.txHash
-              ? [
-                  {
-                    label: 'Creation transaction',
-                    value: article.txHash,
-                    accent: true,
-                    dense: true,
-                    copyable: true,
-                    valueNode: (
-                      <a
-                        href={txExplorerUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className={KX_METADATA_STAT_VALUE_LINK.replace(/^mt-1\s+/, '')}
-                      >
-                        {`${article.txHash.slice(0, 14)}…${article.txHash.slice(-10)}`}
-                      </a>
-                    ),
-                  },
-                ]
-              : []),
-            ...(article.articleId
-              ? [{ label: 'Article ID', value: article.articleId, dense: true, copyable: true }]
-              : []),
-            ...(payloadBytes != null
-              ? [
-                  {
-                    label: 'Payload',
-                    value: `${payloadBytes.toLocaleString()} B`,
-                    copyable: false,
-                    accent: true,
-                  },
-                ]
-              : []),
-            ...(chunkCount != null && chunkCount > 0
-              ? [{ label: 'Chunks', value: String(chunkCount), copyable: false, accent: true }]
-              : []),
-            {
-              label: 'Source',
-              value: source === 'kasparex' ? 'Kasparex' : 'Community',
-              copyable: false,
-            },
-            { label: 'Network', value: 'Kaspa Mainnet', copyable: false },
-            {
-              label: 'Status',
-              value: article.status.replace(/_/g, ' '),
-              copyable: false,
-            },
-          ]}
-        />
       ),
     },
   ];

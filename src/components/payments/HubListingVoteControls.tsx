@@ -14,6 +14,7 @@ import {
   paymentPlanTotal,
 } from '@/lib/payments/paymentPlan';
 import { formatKaspaWalletError } from '@/lib/kaspa/formatWalletError';
+import { hubNotify } from '@/lib/hub/notify';
 
 export type HubListingVote = 'up' | 'down';
 
@@ -211,6 +212,10 @@ export function HubListingVoteControls({
 
     setBusy(true);
     setError(null);
+    const loadingId = hubNotify.loading(
+      vote === 'up' ? 'Casting upvote…' : 'Casting downvote…',
+      authorIsL2 ? 'Saving vote' : 'Confirm KAS payment in your wallet',
+    );
     try {
       if (authorIsL2) {
         saveVote(
@@ -226,6 +231,11 @@ export function HubListingVoteControls({
           onVoteSaved,
         );
         setTick((n) => n + 1);
+        hubNotify.update(loadingId, {
+          title: vote === 'up' ? 'Upvote recorded' : 'Downvote recorded',
+          description: 'Your vote was saved.',
+          variant: 'success',
+        });
         return;
       }
 
@@ -267,10 +277,21 @@ export function HubListingVoteControls({
         onVoteSaved,
       );
       setTick((n) => n + 1);
+      hubNotify.txSuccess({
+        id: loadingId,
+        title: vote === 'up' ? 'Upvote paid' : 'Downvote paid',
+        description: `${voteFeeKas} KAS vote submitted`,
+        txHash: result.txHash,
+      });
     } catch (err) {
       const message = formatKaspaWalletError(err);
       console.error('[HubListingVoteControls] vote failed', err);
       setError(message);
+      hubNotify.update(loadingId, {
+        title: 'Vote failed',
+        description: message,
+        variant: 'error',
+      });
     } finally {
       setBusy(false);
     }

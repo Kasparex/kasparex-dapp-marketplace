@@ -52,6 +52,7 @@ import {
 } from '@/lib/tokens/listingNetwork';
 import type { TokenListingNetwork } from '@/lib/tokens/listingNetwork';
 import { TOKEN_CONTENT_LIMITS, getTokenCharacterCount } from '@/lib/tokens/limits';
+import { hubNotify } from '@/lib/hub/notify';
 import { KxMultiSelectDropdown } from '@/components/ui/KxMultiSelectDropdown';
 import { ToggleSwitch } from '@/components/ui/ToggleSwitch';
 import type { TokenListingDraft } from '@/lib/tokens/publish';
@@ -778,22 +779,27 @@ export function CreateTokenForm({
     );
   };
 
+  const failPublish = (message: string) => {
+    setError(message);
+    hubNotify.error(listing ? 'Cannot update' : 'Cannot publish', message);
+  };
+
   const handlePublish = async () => {
     setError(null);
     if (!symbol.trim() || !name.trim() || !shortDescription.trim()) {
-      setError('Ticker, name, and short description are required.');
+      failPublish('Ticker, name, and short description are required.');
       return;
     }
     if (getTokenCharacterCount(description) < TOKEN_CONTENT_LIMITS.description.min) {
-      setError(`Main content must be at least ${TOKEN_CONTENT_LIMITS.description.min} characters.`);
+      failPublish(`Main content must be at least ${TOKEN_CONTENT_LIMITS.description.min} characters.`);
       return;
     }
     if (!walletAddress) {
-      setError('Connect your wallet to continue.');
+      failPublish('Connect your wallet to continue.');
       return;
     }
     if (!canPublish) {
-      setError(
+      failPublish(
         !kaspaState.isConnected || !kaspaState.address
           ? 'Publishing requires a connected Kaspa L1 wallet for the listing payment.'
           : 'Verify ownership of the primary network first to unlock publish.',
@@ -807,7 +813,7 @@ export function CreateTokenForm({
       marketsSectionEnabled: Boolean(sectionToggles.markets),
     });
     if (modulesErr) {
-      setError(modulesErr);
+      failPublish(modulesErr);
       return;
     }
 
@@ -819,19 +825,23 @@ export function CreateTokenForm({
     };
 
     if (isRealToken && isKrc20Network && !onChainSnapshot) {
-      setError('Select a KRC-20 token from the lookup results before publishing.');
+      failPublish('Select a KRC-20 token from the lookup results before publishing.');
       return;
     }
     if (isRealToken && isKcc20Network && !onChainSnapshot) {
-      setError('Connect a KCC-20 covenant before publishing.');
+      failPublish('Connect a KCC-20 covenant before publishing.');
       return;
     }
     if (isRealToken && isL2Network && !onChainSnapshot) {
-      setError('Load on-chain data for the L2 contract before publishing.');
+      failPublish('Load on-chain data for the L2 contract before publishing.');
       return;
     }
 
     setIsSubmitting(true);
+    const loadingId = hubNotify.loading(
+      listing ? 'Updating token listing…' : 'Publishing token listing…',
+      'Confirm payment in your wallet if prompted',
+    );
     try {
       const input = {
         symbol: symbol.trim(),
@@ -865,9 +875,20 @@ export function CreateTokenForm({
         ? await updateExistingListing(listing.id, input, kaspaState.address!)
         : await publishNewListing(input, kaspaState.address!);
       if (!result) throw new Error('Failed to save listing');
+      hubNotify.update(loadingId, {
+        title: listing ? 'Token listing updated' : 'Token listing published',
+        description: listing ? 'Your changes were saved.' : 'Your token page is live on the Hub.',
+        variant: 'success',
+      });
       onSuccess?.(result);
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Publish failed. Try again.');
+      const message = e instanceof Error ? e.message : 'Publish failed. Try again.';
+      setError(message);
+      hubNotify.update(loadingId, {
+        title: listing ? 'Update failed' : 'Publish failed',
+        description: message,
+        variant: 'error',
+      });
     } finally {
       setIsSubmitting(false);
     }
