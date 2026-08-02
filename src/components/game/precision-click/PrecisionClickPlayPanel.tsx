@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { GamePanelCard } from '@/components/games/layout/GamePanelCard';
 import { GameOverviewTitleBlock } from '@/components/games/panels/GameOverviewSections';
+import { GameLockWindowPanel } from '@/components/games/panels/GameLockWindowPanel';
 import { HubMetadataStatGrid } from '@/components/hub/HubMetadataStatGrid';
 import { ToggleSwitch } from '@/components/ui/ToggleSwitch';
 import { GameNftCrewSlotCard } from '@/components/game/GameNftCrewSlotCard';
@@ -568,36 +569,15 @@ export function PrecisionClickPlayPanel(props: {
         </div>
       )}
 
-      <Tooltip
-        content={gameTooltipRich(
-          'Lock window',
-          'Your paid ARIA Lock timer. Chrono Seals and Sync Operative NFTs extend it. Removing an operative removes its time bonus.',
-        )}
-      >
-        <div>
-          <GamePanelCard title="Lock window">
-            <div className="space-y-3">
-              <div className="flex flex-wrap items-end justify-between gap-2">
-                <div>
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Time remaining</p>
-                  <p className="text-xl font-black tabular-nums text-zinc-900 dark:text-zinc-100">
-                    {props.runActive ? formatDuration(props.runMsLeft) : 'Locked'}
-                  </p>
-                </div>
-                <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                  Base 24h · extend via Chrono Seals or Sync Operative NFTs
-                </p>
-              </div>
-              <div className="h-2.5 overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800">
-                <div
-                  className="h-full rounded-full bg-[color:var(--hub-accent)] transition-[width] duration-500"
-                  style={{ width: `${props.runActive ? lockPct : 0}%` }}
-                />
-              </div>
-            </div>
-          </GamePanelCard>
-        </div>
-      </Tooltip>
+      <GameLockWindowPanel
+        title="Lock window"
+        msLeft={props.runMsLeft}
+        active={props.runActive}
+        pct={lockPct}
+        baseNote="Base 24h · extend via Chrono Seals or Sync Operative NFTs"
+        tooltipTitle="Lock window"
+        tooltipDescription="Your paid ARIA Lock timer. Chrono Seals and Sync Operative NFTs extend it. Removing an operative removes its time bonus."
+      />
 
       <GamePanelCard
         title="Sync Operative"

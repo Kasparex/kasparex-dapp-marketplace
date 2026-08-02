@@ -13,7 +13,7 @@ export const KASPA_REWARDS_ADDRESS =
   process.env.NEXT_PUBLIC_REWARDS_ADDRESS?.trim()
   || 'kaspa:qzsjrd50vw36g4aj7ufj2d9a4fhewehaegxm7xmlt7jntlx6dpv2q77jl6fkn';
 
-export const CIPHER_REFINE_MIN = 500;
+export const CIPHER_REFINE_MIN = 1000;
 export const CIPHER_WARDEN_SLOT_UNLOCK_KAS = 10;
 /** Paid covenant window (extendable via Chrono / Wardens). */
 export const CIPHER_COVENANT_WINDOW_MS = 4 * 60 * 60 * 1000;
@@ -116,7 +116,7 @@ export const CIPHER_LEVELS: readonly CipherLevelDef[] = [
     subtitle: '3×3 warm-up. Learn the swaps.',
     size: 3,
     moveLimit: 16,
-    timeLimitMs: 8 * 60 * 1000,
+    timeLimitMs: 5 * 60 * 1000,
     bankReward: 80,
     scrambleDepth: 0,
     fogCount: 0,
@@ -127,7 +127,7 @@ export const CIPHER_LEVELS: readonly CipherLevelDef[] = [
     subtitle: 'Classic 4×4 vault key.',
     size: 4,
     moveLimit: 24,
-    timeLimitMs: 10 * 60 * 1000,
+    timeLimitMs: 6 * 60 * 1000,
     bankReward: 140,
     scrambleDepth: 0,
     fogCount: 0,
@@ -138,7 +138,7 @@ export const CIPHER_LEVELS: readonly CipherLevelDef[] = [
     subtitle: '4×4 with a veiled seal.',
     size: 4,
     moveLimit: 22,
-    timeLimitMs: 9 * 60 * 1000,
+    timeLimitMs: 5 * 60 * 1000,
     bankReward: 200,
     scrambleDepth: 1,
     fogCount: 4,
@@ -149,7 +149,7 @@ export const CIPHER_LEVELS: readonly CipherLevelDef[] = [
     subtitle: '5×5 lattice. More cells, tighter budget.',
     size: 5,
     moveLimit: 32,
-    timeLimitMs: 10 * 60 * 1000,
+    timeLimitMs: 6 * 60 * 1000,
     bankReward: 320,
     scrambleDepth: 1,
     fogCount: 0,
@@ -160,7 +160,7 @@ export const CIPHER_LEVELS: readonly CipherLevelDef[] = [
     subtitle: '5×5 with heavy fog on the seal.',
     size: 5,
     moveLimit: 30,
-    timeLimitMs: 9 * 60 * 1000,
+    timeLimitMs: 5 * 60 * 1000,
     bankReward: 450,
     scrambleDepth: 2,
     fogCount: 8,
@@ -171,7 +171,7 @@ export const CIPHER_LEVELS: readonly CipherLevelDef[] = [
     subtitle: '5×5 memory weave. Sparse seal reveal.',
     size: 5,
     moveLimit: 28,
-    timeLimitMs: 8 * 60 * 1000,
+    timeLimitMs: 4 * 60 * 1000 + 30_000,
     bankReward: 600,
     scrambleDepth: 2,
     fogCount: 12,
@@ -182,7 +182,7 @@ export const CIPHER_LEVELS: readonly CipherLevelDef[] = [
     subtitle: '6×6 deep chamber.',
     size: 6,
     moveLimit: 42,
-    timeLimitMs: 11 * 60 * 1000,
+    timeLimitMs: 7 * 60 * 1000,
     bankReward: 850,
     scrambleDepth: 3,
     fogCount: 6,
@@ -193,7 +193,7 @@ export const CIPHER_LEVELS: readonly CipherLevelDef[] = [
     subtitle: '6×6 master fog. Elite clears only.',
     size: 6,
     moveLimit: 38,
-    timeLimitMs: 9 * 60 * 1000,
+    timeLimitMs: 5 * 60 * 1000,
     bankReward: 1200,
     scrambleDepth: 4,
     fogCount: 14,
@@ -383,11 +383,41 @@ export function getCipherShopItem(id: CipherShopItemId): CipherShopItemDef | und
 // ---------------------------------------------------------------------------
 
 export const CIPHER_WARDEN_PERKS = {
-  standard: { extraMoves: 1, extraTimeMs: 60_000, fragmentMult: 1, covenantExtendMs: 30 * 60 * 1000, label: 'Standard' },
-  partner: { extraMoves: 2, extraTimeMs: 90_000, fragmentMult: 1.05, covenantExtendMs: 60 * 60 * 1000, label: 'Partner' },
-  premium: { extraMoves: 3, extraTimeMs: 120_000, fragmentMult: 1.1, covenantExtendMs: 2 * 60 * 60 * 1000, label: 'Premium' },
-  diamond: { extraMoves: 3, extraTimeMs: 150_000, fragmentMult: 1.12, covenantExtendMs: 3 * 60 * 60 * 1000, label: 'Diamond' },
-  rarest: { extraMoves: 4, extraTimeMs: 180_000, fragmentMult: 1.15, covenantExtendMs: 4 * 60 * 60 * 1000, label: 'Rarest' },
+  standard: {
+    extraMoves: 5,
+    extraTimeMs: 1 * 60 * 1000,
+    fragmentMult: 1,
+    covenantExtendMs: 30 * 60 * 1000,
+    label: 'Standard',
+  },
+  partner: {
+    extraMoves: 15,
+    extraTimeMs: 3 * 60 * 1000,
+    fragmentMult: 1.05,
+    covenantExtendMs: 60 * 60 * 1000,
+    label: 'Partner',
+  },
+  premium: {
+    extraMoves: 25,
+    extraTimeMs: 5 * 60 * 1000,
+    fragmentMult: 1.1,
+    covenantExtendMs: 2 * 60 * 60 * 1000,
+    label: 'Premium',
+  },
+  diamond: {
+    extraMoves: 30,
+    extraTimeMs: 6 * 60 * 1000,
+    fragmentMult: 1.12,
+    covenantExtendMs: 3 * 60 * 60 * 1000,
+    label: 'Diamond',
+  },
+  rarest: {
+    extraMoves: 35,
+    extraTimeMs: 7 * 60 * 1000,
+    fragmentMult: 1.15,
+    covenantExtendMs: 4 * 60 * 60 * 1000,
+    label: 'Rarest',
+  },
 } as const;
 
 export type CipherWardenTier = keyof typeof CIPHER_WARDEN_PERKS;

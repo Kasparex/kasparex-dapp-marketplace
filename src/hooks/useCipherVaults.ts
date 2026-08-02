@@ -835,10 +835,21 @@ export function useCipherVaults() {
           imageUrl: slot.imageUrl ?? null,
           appliedAt: now,
         };
+        let activeLevel = live.activeLevel;
+        if (activeLevel && !already) {
+          const prevMoves = prevAt ? CIPHER_WARDEN_PERKS[prevAt.tier].extraMoves : 0;
+          const prevTime = prevAt ? CIPHER_WARDEN_PERKS[prevAt.tier].extraTimeMs : 0;
+          activeLevel = {
+            ...activeLevel,
+            moveLimit: Math.max(8, activeLevel.moveLimit - prevMoves + perks.extraMoves),
+            solveExpiresAt: activeLevel.solveExpiresAt - prevTime + perks.extraTimeMs,
+          };
+        }
         return {
           ...live,
           wardenSlots: slots,
           covenantExpiresAt: covenantExpiresAt ?? live.covenantExpiresAt,
+          activeLevel,
         };
       });
       if (typeof window !== 'undefined') {
@@ -861,7 +872,16 @@ export function useCipherVaults() {
         if (removed && live.entryUnlocked && typeof covenantExpiresAt === 'number') {
           covenantExpiresAt = covenantExpiresAt - CIPHER_WARDEN_PERKS[removed.tier].covenantExtendMs;
         }
-        return expireCovenantIfNeeded({ ...live, wardenSlots: slots, covenantExpiresAt });
+        let activeLevel = live.activeLevel;
+        if (removed && activeLevel) {
+          const perks = CIPHER_WARDEN_PERKS[removed.tier];
+          activeLevel = {
+            ...activeLevel,
+            moveLimit: Math.max(8, activeLevel.moveLimit - perks.extraMoves),
+            solveExpiresAt: activeLevel.solveExpiresAt - perks.extraTimeMs,
+          };
+        }
+        return expireCovenantIfNeeded({ ...live, wardenSlots: slots, covenantExpiresAt, activeLevel });
       });
       if (typeof window !== 'undefined') {
         window.dispatchEvent(new CustomEvent('kasparex-nft-usage'));

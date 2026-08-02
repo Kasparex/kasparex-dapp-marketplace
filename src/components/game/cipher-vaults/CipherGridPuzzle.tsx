@@ -4,8 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import type { CipherMove } from '@/lib/game/cipher-grid';
 import { applyCipherMove, countCorrect, isSolved } from '@/lib/game/cipher-grid';
 import { cipherRuneAccentClass, CIPHER_SEAL_POINTS_PER_CORRECT } from '@/lib/game/cipher-vaults-config';
-import { Tooltip } from '@/components/ui/Tooltip';
-import { gameTooltipRich } from '@/components/games/gameTooltipRich';
+import { HubMetadataStatGrid } from '@/components/hub/HubMetadataStatGrid';
 
 function runeFor(n: number) {
   const runes = ['ᚠ', 'ᚢ', 'ᚦ', 'ᚨ', 'ᚱ', 'ᚲ', 'ᚷ', 'ᚹ', 'ᚺ', 'ᚾ', 'ᛁ', 'ᛃ', 'ᛇ', 'ᛈ', 'ᛉ', 'ᛋ'];
@@ -27,10 +26,13 @@ export function CipherGridPuzzle({
   solveMsLeft,
   fogHidden = [],
   hintIndex,
+  retriesLeft = 0,
   onHintConsumed,
   onSealPointsDelta,
   onSolved,
   onFailed,
+  onAbandon,
+  onRetry,
 }: {
   size: number;
   initial: number[];
@@ -39,10 +41,13 @@ export function CipherGridPuzzle({
   solveMsLeft?: number;
   fogHidden?: number[];
   hintIndex?: number | null;
+  retriesLeft?: number;
   onHintConsumed?: () => void;
   onSealPointsDelta?: (delta: number) => void;
   onSolved: (moves: CipherMove[]) => void | Promise<void>;
   onFailed: () => void;
+  onAbandon?: () => void;
+  onRetry?: () => void;
 }) {
   const [grid, setGrid] = useState<number[]>(() => [...initial]);
   const [moves, setMoves] = useState<CipherMove[]>([]);
@@ -102,33 +107,37 @@ export function CipherGridPuzzle({
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="text-sm text-zinc-600 dark:text-zinc-400">
-          Swap two runes to match the Vault Seal. Move limit{' '}
-          <span className="font-mono font-semibold text-zinc-800 dark:text-zinc-200">{moveLimit}</span>.
-          Correct placements earn seal points; clears bank Cipher Fragments.
-        </p>
-        <Tooltip
-          content={gameTooltipRich(
-            'Level status',
-            'Moves used vs remaining. Level timer is independent of the broader covenant window.',
-          )}
-        >
-          <div className="rounded-xl border border-zinc-200/80 bg-zinc-100/80 px-3 py-2 text-xs font-semibold text-zinc-700 dark:border-zinc-800 dark:bg-white/[0.06] dark:text-zinc-200">
-            Moves: <span className="font-mono tabular-nums">{moves.length}</span> · Left:{' '}
-            <span className="font-mono tabular-nums">{remaining}</span>
-            {typeof solveMsLeft === 'number' ? (
-              <>
-                {' '}
-                ·{' '}
-                <span className="font-mono tabular-nums text-[color:var(--hub-accent)]">
-                  {formatMs(solveMsLeft)}
-                </span>
-              </>
-            ) : null}
-          </div>
-        </Tooltip>
-      </div>
+      <p className="text-sm text-zinc-600 dark:text-zinc-400">
+        Swap two runes to match the Vault Seal. Correct placements earn seal points; clears bank Cipher Fragments.
+      </p>
+
+      <HubMetadataStatGrid
+        stats={[
+          {
+            label: 'Moves',
+            value: String(moves.length),
+            copyable: false,
+            tooltipTitle: 'Moves used',
+            tooltipDescription: 'Swaps spent on this level attempt.',
+          },
+          {
+            label: 'Left moves',
+            value: String(remaining),
+            copyable: false,
+            accent: remaining <= 3,
+            tooltipTitle: 'Moves remaining',
+            tooltipDescription: 'Swaps left before the seal collapses. Wardens and Extra Swaps raise this budget.',
+          },
+          {
+            label: 'Time left',
+            value: typeof solveMsLeft === 'number' ? formatMs(solveMsLeft) : '—',
+            copyable: false,
+            accent: true,
+            tooltipTitle: 'Level timer',
+            tooltipDescription: 'Solve countdown for this level. Shop Chrono Buffer and Cipher Wardens extend it.',
+          },
+        ]}
+      />
 
       <div className="grid gap-3 md:grid-cols-2">
         <div>
@@ -202,21 +211,31 @@ export function CipherGridPuzzle({
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="flex flex-wrap items-center gap-2">
         {lockedOut ? (
           <button type="button" onClick={onFailed} className="k-control-btn">
-            {timedOut ? 'Timer expired · Retry or pick another level' : 'Out of moves · Retry or pick another level'}
+            {timedOut ? 'Timer expired · Retry or abandon' : 'Out of moves · Retry or abandon'}
           </button>
         ) : (
           <button type="button" onClick={() => setSelected(null)} className="k-control-btn">
             Clear selection
           </button>
         )}
+        {onAbandon ? (
+          <button type="button" onClick={onAbandon} className="k-control-btn">
+            Abandon level
+          </button>
+        ) : null}
+        {retriesLeft > 0 && onRetry ? (
+          <button type="button" onClick={onRetry} className="k-control-btn">
+            Second Seal ({retriesLeft})
+          </button>
+        ) : null}
         <button
           type="button"
           disabled={!solved}
           onClick={() => void onSolved(moves)}
-          className="k-cta-games disabled:opacity-50 disabled:grayscale"
+          className="k-cta-games ml-auto h-11 min-h-[2.75rem] px-5 text-sm leading-none disabled:opacity-50 disabled:grayscale"
         >
           {solved ? 'Submit clear' : 'Solve to submit'}
         </button>
