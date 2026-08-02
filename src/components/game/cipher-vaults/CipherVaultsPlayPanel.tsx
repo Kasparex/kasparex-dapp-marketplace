@@ -21,14 +21,18 @@ import { fetchNFTMetadata } from '@/lib/nft/metadata';
 import { getBestGatewayUrl } from '@/lib/ipfs/gateway';
 import type { MiningSlotType } from '@/lib/game/engine/types';
 import {
+  CIPHER_COVENANT_WINDOW_MS,
+  CIPHER_LEVELS,
   CIPHER_WARDEN_PERKS,
+  getCipherLevel,
   getCipherVaultTier,
   type CipherWardenTier,
 } from '@/lib/game/cipher-vaults-config';
-import type { CipherRun, CipherWardenSlot } from '@/lib/game/cipher-vaults-types';
+import type { CipherActiveLevel, CipherWardenSlot } from '@/lib/game/cipher-vaults-types';
 import type { CipherMove } from '@/lib/game/cipher-grid';
 import { CipherGridPuzzle } from './CipherGridPuzzle';
 import { CipherGridLockedPreview } from './CipherGridLockedPreview';
+import { KX_SURFACE_NESTED } from '@/lib/hub/shellTokens';
 
 function formatDuration(ms: number): string {
   const totalSec = Math.max(0, Math.floor(ms / 1000));
@@ -51,23 +55,28 @@ async function resolveNftImageUrl(collection: string, tokenId: number): Promise<
 }
 
 export function CipherVaultsPlayPanel(props: {
-  run: CipherRun | null;
-  runActive: boolean;
-  puzzle: { size: number; initial: number[]; target: number[]; moveLimit: number } | null;
-  solveMsLeft: number;
+  covenantActive: boolean;
   covenantMsLeft: number;
+  activeLevel: CipherActiveLevel | null;
+  activeLevelSolveMsLeft: number;
+  clearedLevels: number[];
+  maxUnlockedLevel: number;
+  vaultTierId: string | null;
+  sealPoints: number;
   boosterMult: number;
+  retriesLeft: number;
   inventory: { rune_hint: number; vault_pass: number };
   wardenSlots: Array<CipherWardenSlot | null>;
   slotUnlockKas: number;
   submitting: boolean;
   getKasPriceAfterDiscount: (listKas: number) => number;
+  bankForLevel: (levelId: number) => number;
+  onStartLevel: (levelId: number) => boolean | Promise<boolean>;
   onSubmit: (moves: CipherMove[]) => Promise<void>;
-  onFailed: () => void;
-  onCancel: () => void;
-  onRetry: () => Promise<boolean>;
-  onResume: () => void;
+  onAbandon: () => void;
+  onRetry: () => Promise<boolean> | boolean;
   onConsumeHint: () => boolean;
+  onSealPointsDelta?: (delta: number) => void;
   onSetWarden: (
     slotIndex: number,
     slot: {
@@ -88,12 +97,25 @@ export function CipherVaultsPlayPanel(props: {
     precisionOperative: props.wardenSlots as any,
   });
 
+  const [selectedLevel, setSelectedLevel] = useState(1);
   const [nftPickerIndex, setNftPickerIndex] = useState<number | null>(null);
   const [buySlotOpen, setBuySlotOpen] = useState(false);
   const [hintIndex, setHintIndex] = useState<number | null>(null);
 
-  const tier = props.run ? getCipherVaultTier(props.run.tierId) : null;
+  const vault = props.vaultTierId ? getCipherVaultTier(props.vaultTierId as any) : null;
   const onSetWarden = props.onSetWarden;
+  const lockPct = Math.max(0, Math.min(100, (props.covenantMsLeft / CIPHER_COVENANT_WINDOW_MS) * 100));
+  const activeDef = props.activeLevel ? getCipherLevel(props.activeLevel.levelId) : null;
+
+  useEffect(() => {
+    if (!props.covenantActive) {
+      setSelectedLevel(1);
+      return;
+    }
+    if (selectedLevel > props.maxUnlockedLevel) {
+      setSelectedLevel(Math.max(1, props.maxUnlockedLevel));
+    }
+  }, [props.covenantActive, props.maxUnlockedLevel, selectedLevel]);
 
   useEffect(() => {
     let cancelled = false;
@@ -127,24 +149,43 @@ export function CipherVaultsPlayPanel(props: {
     [props.getKasPriceAfterDiscount, props.slotUnlockKas],
   );
 
+  const availableLevels = CIPHER_LEVELS.filter((l) => !vault || l.id <= vault.maxLevel);
+
   const stats = [
     {
-      label: 'Solve timer',
-      value: props.runActive ? formatDuration(props.solveMsLeft) : '—',
-      tooltipTitle: 'Solve countdown',
-      tooltipDescription: 'Time left to submit a solved Cipher Grid for this covenant attempt.',
+      label: 'Level timer',
+      value: props.activeLevel ? formatDuration(props.activeLevelSolveMsLeft) : '—',
+      tooltipTitle: 'Level solve timer',
+      tooltipDescription: 'Countdown for the level you are currently solving. Independent of the covenant window.',
     },
     {
       label: 'Covenant window',
-      value: props.covenantMsLeft > 0 ? formatDuration(props.covenantMsLeft) : 'Closed',
+      value: props.covenantActive ? formatDuration(props.covenantMsLeft) : 'Closed',
       tooltipTitle: 'Covenant window',
-      tooltipDescription: 'Broader vault window. Chrono Seals and Cipher Wardens can extend it.',
+      tooltipDescription:
+        'Pay once to open this window. Clear any unlocked levels without paying again. Chrono Seals and Wardens extend it.',
     },
     {
-      label: 'Vault',
-      value: tier?.label ?? 'None',
-      tooltipTitle: 'Active vault class',
-      tooltipDescription: 'The covenant chamber you paid to open.',
+      label: 'Track',
+      value: vault?.label ?? 'None',
+      tooltipTitle: 'Vault track',
+      tooltipDescription: 'Entry class that sets which levels you can play and the fragment multiplier.',
+    },
+    {
+      label: 'Seal points',
+      value: props.sealPoints.toLocaleString(),
+      tooltipTitle: 'Seal points',
+      tooltipDescription: 'Earned when a swap places runes correctly. Session score only. Cipher Fragments bank on clear.',
+    },
+    {
+      label: 'Level reward',
+      value: activeDef
+        ? `${props.bankForLevel(activeDef.id).toLocaleString()} fr`
+        : selectedLevel
+          ? `${props.bankForLevel(selectedLevel).toLocaleString()} fr`
+          : '—',
+      tooltipTitle: 'Cipher Fragments on clear',
+      tooltipDescription: 'Fragments banked if you submit a verified clear for this level (after multipliers).',
     },
     {
       label: 'Booster',
@@ -160,38 +201,116 @@ export function CipherVaultsPlayPanel(props: {
         as="h2"
         kicker="Play"
         title="Cipher Vault chamber"
-        subtitle="Solve the rune grid before the seal collapses."
+        subtitle="One payment opens the covenant. Clear levels before the window ends."
       />
 
       <HubMetadataStatGrid stats={stats} />
 
-      {props.run && !props.puzzle ? (
-        <GamePanelCard title="Active covenant" hint="Resume your puzzle from the server.">
-          <p className="text-sm text-zinc-600 dark:text-zinc-400">
-            You have an open vault on the server. Resume to load the Cipher Grid, or end the run (no refund) to start
-            another.
-          </p>
-          <div className="mt-3 flex flex-wrap gap-2">
-            <button type="button" className="k-control-btn" onClick={props.onResume}>
-              Resume run
-            </button>
-            <button type="button" className="k-control-btn" onClick={props.onCancel}>
-              End run (no refund)
-            </button>
-            {(props.run.retriesLeft ?? 0) > 0 ? (
-              <button type="button" className="k-cta-games h-11 px-4 text-sm" onClick={() => void props.onRetry()}>
-                Use Second Seal ({props.run.retriesLeft})
-              </button>
-            ) : null}
+      <Tooltip
+        content={gameTooltipRich(
+          'Covenant timer',
+          'Green fill shows remaining covenant time. Clearing a level does not close this window.',
+        )}
+      >
+        <GamePanelCard title="Covenant timer" hint="Pay once. Play many levels.">
+          <div className={`${KX_SURFACE_NESTED} space-y-3 rounded-xl p-4`}>
+            <div className="flex flex-wrap items-end justify-between gap-2">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Time remaining</p>
+                <p className="text-xl font-black tabular-nums text-zinc-900 dark:text-zinc-100">
+                  {props.covenantActive ? formatDuration(props.covenantMsLeft) : 'Locked'}
+                </p>
+              </div>
+              <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                Base 4h · extend via Chrono Seals or Cipher Wardens
+              </p>
+            </div>
+            <div className="h-2.5 overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800">
+              <div
+                className="h-full rounded-full bg-[color:var(--hub-accent)] transition-[width] duration-500"
+                style={{ width: `${props.covenantActive ? lockPct : 0}%` }}
+              />
+            </div>
           </div>
         </GamePanelCard>
-      ) : null}
+      </Tooltip>
+
+      <GamePanelCard title="Vault levels" hint="Pick an unlocked level. Cleared levels stay sealed this covenant.">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {availableLevels.map((level) => {
+            const cleared = props.clearedLevels.includes(level.id);
+            const unlocked =
+              props.covenantActive && level.id <= props.maxUnlockedLevel && !cleared;
+            const selected = selectedLevel === level.id;
+            const reward = props.bankForLevel(level.id);
+            return (
+              <Tooltip
+                key={level.id}
+                content={gameTooltipRich(
+                  level.name,
+                  `${level.subtitle} Grid ${level.size}×${level.size}. ${level.fogCount > 0 ? `${level.fogCount} fogged seal cells. ` : ''}Reward ~${reward.toLocaleString()} Cipher Fragments on clear.`,
+                )}
+              >
+                <button
+                  type="button"
+                  disabled={!props.covenantActive}
+                  onClick={() => setSelectedLevel(level.id)}
+                  className={`rounded-2xl border p-3 text-left transition-colors ${
+                    selected
+                      ? 'border-[color:var(--hub-accent)] bg-[color:var(--hub-accent-muted,rgba(16,185,129,0.12))]'
+                      : cleared
+                        ? 'border-zinc-200/80 bg-zinc-100/50 opacity-70 dark:border-zinc-800 dark:bg-white/[0.03]'
+                        : 'border-zinc-200/80 bg-zinc-100/80 hover:border-[color:var(--hub-accent)] dark:border-zinc-800 dark:bg-white/[0.05]'
+                  }`}
+                >
+                  <p className="text-xs font-bold text-zinc-900 dark:text-zinc-100">
+                    Lv {level.id} · {level.name}
+                  </p>
+                  <p className="mt-1 text-[11px] text-zinc-500">
+                    {level.size}×{level.size}
+                    {level.fogCount > 0 ? ' · fog' : ''}
+                  </p>
+                  <p className="mt-2 text-sm font-semibold tabular-nums text-[color:var(--hub-accent)]">
+                    {reward.toLocaleString()} fr
+                  </p>
+                  <p className="mt-1 text-[10px] font-bold uppercase tracking-wide text-zinc-500">
+                    {cleared ? 'Cleared' : unlocked ? 'Ready' : props.covenantActive ? 'Locked' : 'Pay entry'}
+                  </p>
+                </button>
+              </Tooltip>
+            );
+          })}
+        </div>
+        {props.covenantActive && !props.activeLevel ? (
+          <div className="mt-4 flex flex-wrap gap-2">
+            <button
+              type="button"
+              className="k-cta-games h-11 px-5 text-sm"
+              disabled={
+                props.clearedLevels.includes(selectedLevel) || selectedLevel > props.maxUnlockedLevel
+              }
+              onClick={() => void props.onStartLevel(selectedLevel)}
+            >
+              Start level {selectedLevel}
+            </button>
+          </div>
+        ) : null}
+        {!props.covenantActive ? (
+          <p className="mt-3 text-sm text-zinc-600 dark:text-zinc-400">
+            Open a vault track from the Calculation breakdown to unlock levels for this covenant window.
+          </p>
+        ) : null}
+      </GamePanelCard>
 
       <GamePanelCard
-        title="Cipher Grid"
-        hint={props.runActive ? 'Swap runes to match the Vault Seal.' : 'Pay entry to reveal the grid.'}
+        title={activeDef ? activeDef.name : 'Cipher Grid'}
+        hint={
+          props.activeLevel
+            ? `${activeDef?.subtitle ?? 'Solve before the level timer ends.'}`
+            : 'Start a level to reveal the arena.'
+        }
       >
-        {props.puzzle && props.run ? (
+        {props.activeLevel ? (
           <>
             <div className="mb-4 flex flex-wrap items-center gap-2">
               <button
@@ -199,44 +318,50 @@ export function CipherVaultsPlayPanel(props: {
                 disabled={props.inventory.rune_hint <= 0}
                 className="k-control-btn disabled:opacity-50"
                 onClick={() => {
-                  if (!props.onConsumeHint() || !props.puzzle) return;
+                  if (!props.onConsumeHint() || !props.activeLevel) return;
                   const wrong: number[] = [];
-                  for (let i = 0; i < props.puzzle.initial.length; i++) {
-                    if (props.puzzle.initial[i] !== props.puzzle.target[i]) wrong.push(i);
+                  for (let i = 0; i < props.activeLevel.initial.length; i++) {
+                    // Hint against current board: use initial as proxy; puzzle owns live grid
+                    if (props.activeLevel.initial[i] !== props.activeLevel.target[i]) wrong.push(i);
                   }
                   if (wrong.length) setHintIndex(wrong[Math.floor(Math.random() * wrong.length)]!);
                 }}
               >
                 Use Rune Hint ({props.inventory.rune_hint})
               </button>
-              <button type="button" className="k-control-btn" onClick={props.onCancel}>
-                End run (no refund)
+              <button type="button" className="k-control-btn" onClick={props.onAbandon}>
+                Abandon level
               </button>
-              {(props.run?.retriesLeft ?? 0) > 0 ? (
+              {props.retriesLeft > 0 ? (
                 <button type="button" className="k-control-btn" onClick={() => void props.onRetry()}>
-                  Second Seal ({props.run?.retriesLeft})
+                  Second Seal ({props.retriesLeft})
                 </button>
               ) : null}
             </div>
             <CipherGridPuzzle
-              size={props.puzzle.size}
-              initial={props.puzzle.initial}
-              target={props.puzzle.target}
-              moveLimit={props.puzzle.moveLimit}
-              solveMsLeft={props.solveMsLeft}
+              size={props.activeLevel.size}
+              initial={props.activeLevel.initial}
+              target={props.activeLevel.target}
+              moveLimit={props.activeLevel.moveLimit}
+              solveMsLeft={props.activeLevelSolveMsLeft}
+              fogHidden={props.activeLevel.fogHidden}
               hintIndex={hintIndex}
               onHintConsumed={() => setHintIndex(null)}
+              onSealPointsDelta={props.onSealPointsDelta}
               onSolved={async (moves) => {
                 await props.onSubmit(moves);
               }}
-              onFailed={props.onFailed}
+              onFailed={() => {
+                if (props.retriesLeft > 0) void props.onRetry();
+                else props.onAbandon();
+              }}
             />
             {props.submitting ? (
-              <p className="mt-3 text-xs text-zinc-500 dark:text-zinc-500">Verifying solution…</p>
+              <p className="mt-3 text-xs text-zinc-500">Verifying clear…</p>
             ) : null}
           </>
         ) : (
-          <CipherGridLockedPreview />
+          <CipherGridLockedPreview size={getCipherLevel(selectedLevel)?.size ?? 4} />
         )}
       </GamePanelCard>
 
@@ -249,8 +374,8 @@ export function CipherVaultsPlayPanel(props: {
         }
       >
         <p className="mb-4 text-sm text-zinc-600 dark:text-zinc-400">
-          Slot a Krex deck NFT as a Cipher Warden. Standard adds +1 swap and +1m. Partner / Premium / Diamond / Rarest
-          scale moves, solve time, fragment mult, and covenant window. NFTs already assigned elsewhere stay locked here.
+          Slot a Krex deck NFT as a Cipher Warden. Perks add swaps, level time, fragment mult, and covenant window.
+          NFTs already assigned elsewhere stay locked here.
         </p>
         <div className="space-y-4">
           {props.wardenSlots.map((warden, idx) => {
@@ -285,6 +410,33 @@ export function CipherVaultsPlayPanel(props: {
                           <span className="rounded-full border border-sky-500/40 bg-sky-500/15 px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wide text-sky-800 dark:text-sky-300">
                             {label}
                           </span>
+                          {warden.tier === 'diamond' || warden.tier === 'rarest' || warden.tier === 'premium' ? (
+                            <span className="rounded-full bg-amber-500/20 px-2 py-0.5 text-[10px] font-bold uppercase text-amber-700 dark:text-amber-300">
+                              {warden.tier === 'rarest'
+                                ? 'Rarest'
+                                : warden.tier === 'diamond'
+                                  ? 'Diamond'
+                                  : 'Premium'}
+                            </span>
+                          ) : null}
+                        </div>
+                        <div className="mt-2 grid gap-2 text-sm text-zinc-600 dark:text-zinc-400 sm:grid-cols-2">
+                          <p>
+                            <span className="font-semibold text-zinc-800 dark:text-zinc-200">Role:</span> Cipher
+                            Warden
+                          </p>
+                          <p>
+                            <span className="font-semibold text-zinc-800 dark:text-zinc-200">Collection:</span>{' '}
+                            {warden.collection}
+                          </p>
+                          <p>
+                            <span className="font-semibold text-zinc-800 dark:text-zinc-200">Fragment mult:</span> ×
+                            {perks.fragmentMult}
+                          </p>
+                          <p>
+                            <span className="font-semibold text-zinc-800 dark:text-zinc-200">Window:</span> +
+                            {Math.round(perks.covenantExtendMs / 3600000)}h
+                          </p>
                         </div>
                         <div className="mt-2 flex flex-wrap items-center gap-1">
                           <KxBadge variant="emerald" className="!px-2 !py-0.5 text-[10px] font-bold">

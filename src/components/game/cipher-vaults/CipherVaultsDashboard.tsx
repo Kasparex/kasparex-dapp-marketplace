@@ -12,7 +12,6 @@ import {
   GameOverviewTitleBlock,
   GAME_OVERVIEW_ACCENT_LINK,
 } from '@/components/games/panels/GameOverviewSections';
-import { RewardsPreview } from '@/components/games/modules/RewardsPreview';
 import { MilestonesPanel } from '@/components/games/modules/MilestonesPanel';
 import { GameActivityStatusDot, type GameActivityHealth } from '@/components/games/GameActivityStatusDot';
 import type { GameTab } from '@/components/games/layout/GameTabs';
@@ -30,11 +29,16 @@ import { useCipherVaults } from '@/hooks/useCipherVaults';
 import { CipherVaultsEntryPanel } from '@/components/game/cipher-vaults/CipherVaultsEntryPanel';
 import { CipherVaultsPlayPanel } from '@/components/game/cipher-vaults/CipherVaultsPlayPanel';
 import { CipherVaultsShopPanel } from '@/components/game/cipher-vaults/CipherVaultsShopPanel';
-import { CIPHER_REFINE_MIN, type CipherVaultTierId } from '@/lib/game/cipher-vaults-config';
+import {
+  CIPHER_REFINE_MIN,
+  bankFragmentsForClear,
+  getCipherLevel,
+  getCipherVaultTier,
+  type CipherVaultTierId,
+} from '@/lib/game/cipher-vaults-config';
 import { KX_PROSE, KX_PROSE_PARAGRAPH } from '@/lib/ui/kxTypography';
 import { CardsFilterBar } from '@/components/games/CardsFilterBar';
 import { GamePanelCard } from '@/components/games/layout/GamePanelCard';
-import { getCipherVaultTier } from '@/lib/game/cipher-vaults-config';
 
 const CommentsSection = dynamic(() => import('@/components/vblog/CommentsSection').then((m) => m.CommentsSection), {
   ssr: false,
@@ -72,11 +76,11 @@ export function CipherVaultsDashboard(props: {
   const [category, setCategory] = useState('all');
   const [sortBy, setSortBy] = useState('recommended');
 
-  const playHealth: GameActivityHealth = game.runActive
+  const playHealth: GameActivityHealth = game.state.activeLevel
     ? 'active'
-    : game.state.activeRun
-      ? 'exhausted'
-      : 'inactive';
+    : game.covenantActive
+      ? 'inactive'
+      : 'exhausted';
 
   const tabsBase = useGameCommentsTabs(TABS as unknown as GameTab<TabId>[], 'cipher-vaults');
   const tabs = useMemo(
@@ -90,10 +94,10 @@ export function CipherVaultsDashboard(props: {
                   health={playHealth}
                   title={
                     playHealth === 'active'
-                      ? 'Vault covenant active'
-                      : playHealth === 'exhausted'
-                        ? 'Run loading / expired'
-                        : 'No active vault'
+                      ? 'Level in progress'
+                      : playHealth === 'inactive'
+                        ? 'Covenant open'
+                        : 'Covenant closed'
                   }
                 />
               ),
@@ -106,12 +110,16 @@ export function CipherVaultsDashboard(props: {
   const milestoneProgress = useMemo(
     () => ({
       cipher_clears: (game.state.ledger ?? []).length,
-      collections_complete:
-        new Set((game.state.ledger ?? []).map((e) => e.tierId)).size >= 5 ? 1 : 0,
+      collections_complete: game.state.highestClearedLevel >= 8 ? 1 : 0,
       refinement_points: game.state.refinementPointsTotal,
       cipher_fragments: game.state.fragmentsEarnedLifetime,
     }),
-    [game.state.ledger, game.state.refinementPointsTotal, game.state.fragmentsEarnedLifetime],
+    [
+      game.state.ledger,
+      game.state.highestClearedLevel,
+      game.state.refinementPointsTotal,
+      game.state.fragmentsEarnedLifetime,
+    ],
   );
   const { level: playerLevel } = useGameMilestones('cipher-vaults', milestoneProgress);
 
@@ -128,18 +136,18 @@ export function CipherVaultsDashboard(props: {
               health={playHealth}
               title={
                 playHealth === 'active'
-                  ? 'Vault covenant active'
-                  : playHealth === 'exhausted'
-                    ? 'Run loading / expired'
-                    : 'No active vault'
+                  ? 'Level in progress'
+                  : playHealth === 'inactive'
+                    ? 'Covenant open'
+                    : 'Covenant closed'
               }
             />
           </span>
         ),
-        subValue: game.runActive ? 'Covenant open' : 'Pay entry to open a vault',
+        subValue: game.covenantActive ? 'Covenant open · clear levels' : 'Pay entry to open covenant',
         description: 'In-game currency',
         tooltip:
-          'Cipher Fragments bank when you clear a vault. Refine them below into Hub redeem points on /rewards.',
+          'Cipher Fragments bank when you clear a level. Seal points track correct placements. Refine fragments below into Hub points.',
         accent: 'games' as const,
         onClick: () => setTab('play'),
       },
@@ -161,7 +169,7 @@ export function CipherVaultsDashboard(props: {
     ],
     [
       game.state.cipherFragments,
-      game.runActive,
+      game.covenantActive,
       game.refineMin,
       game.refining,
       refineFragments,
@@ -175,9 +183,24 @@ export function CipherVaultsDashboard(props: {
   const gameName = props.gameName ?? props.game?.name ?? "Krex’s Cipher Vaults";
   const description =
     props.gameDescription?.trim() ||
-    'Open timed Cipher Vault covenants on the Kaspa network. Solve rune grids, bank Cipher Fragments, and refine them into Hub redeem points.';
+    'Pay once to open a Cipher Vault covenant. Clear growing grid levels, bank Cipher Fragments, and refine them into Hub points.';
 
   const bankPreview = game.bankPreview(selectedTierId, []);
+  const bankForLevel = (levelId: number) => {
+    const level = getCipherLevel(levelId);
+    if (!level) return 0;
+    const vaultMult =
+      game.state.fragmentMult ||
+      (game.state.vaultTierId ? getCipherVaultTier(game.state.vaultTierId)?.fragmentMult : 1) ||
+      1;
+    return bankFragmentsForClear({
+      bankReward: level.bankReward,
+      vaultMult,
+      addonFragmentMult: 1,
+      boosterMult: game.boosterMult,
+      wardenMult: game.wardenStack.fragmentMult,
+    });
+  };
 
   return (
     <TooltipProvider>
@@ -196,12 +219,12 @@ export function CipherVaultsDashboard(props: {
           categories,
           tags,
         }}
-        deckFooter={<span>Clear vaults. Bank fragments. Refine to Hub.</span>}
+        deckFooter={<span>Clear levels. Bank fragments. Refine to Hub.</span>}
         asideExtras={
           <CipherVaultsEntryPanel
             selectedTierId={selectedTierId}
             onSelectTier={setSelectedTierId}
-            runActive={Boolean(game.state.activeRun)}
+            runActive={game.covenantActive}
             ownedAddons={game.state.ownedAddons}
             booster={game.state.booster}
             inventory={game.state.inventory}
@@ -250,119 +273,94 @@ export function CipherVaultsDashboard(props: {
                   for ARIA, Krex, Vector, and Tessa lore.
                 </GameOverviewTip>
               </>
-            ) : (
-              <GameOverviewTitleBlock
-                as="h2"
-                kicker="Lore"
-                title={gameName}
-                subtitle="Cipher Vault story and world context."
-              />
-            )}
+            ) : null}
 
             <GameOverviewTitleBlock
               as="h3"
-              kicker="Rewards"
-              title="How rewards work"
-              subtitle="Vault clears, Shop tools, and Hub refine points."
+              kicker="How it works"
+              title="One payment. Many levels."
+              subtitle="Covenant window, growing grids, fog seals."
             />
             <p className={KX_PROSE_PARAGRAPH}>{description}</p>
             <p className={KX_PROSE_PARAGRAPH}>
-              Cipher Vaults are covenant-style chambers. You pay to open a timed seal, reconstruct the scrambled rune
-              grid before the countdown ends, and bank Cipher Fragments on a verified clear. Fragments refine 1:1 into
-              Hub redeem points when you have at least {CIPHER_REFINE_MIN.toLocaleString()}.
+              Pay entry once to open a timed covenant. Inside that window you climb levels: 3×3 up through 6×6, with
+              fog hiding seal cells on harder stages. Correct swaps earn seal points. Only a verified clear banks Cipher
+              Fragments. Paying again resets cleared levels so you can replay the ladder.
             </p>
             <GameOverviewTip title="Covenant tip">
-              Entry starts at 10 KAS for Seal Fragment. Higher vault classes cost more, scramble deeper, and pay more
-              fragments. Chrono Seals and Cipher Warden NFTs extend the broader covenant window without wiping your
-              puzzle.
+              Seal Fragment unlocks levels 1–3. Master Covenant unlocks the full 1–8 ladder. Chrono Seals and Cipher
+              Wardens extend the window without wiping progress.
             </GameOverviewTip>
 
             <GameOverviewTitleBlock
               as="h3"
               kicker="Step 1"
-              title="Open a vault"
-              subtitle="Pay entry from the Calculation breakdown."
+              title="Open a track"
+              subtitle="Calculation breakdown: vault class + add-ons."
             />
             <p className={KX_PROSE_PARAGRAPH}>
-              Choose a vault class (Seal Fragment through Master Covenant), optional add-ons (Extra Swaps, Chrono
-              Buffer, Fragment Amplifier, Second Seal), then pay with KAS or KREX. Vault Passes from the Shop can open
-              Seal Fragment without a cash entry.
+              Choose a vault track, optional Extra Swaps / Chrono Buffer / Fragment Amplifier / Second Seal, then pay
+              with KAS or KREX. Vault Pass opens Seal Fragment without a cash entry.
             </p>
-            <GameOverviewTip title="Entry tip">
-              Shop boosters apply while active. Entry add-ons attach to the covenant you are about to open. Select them
-              before you pay.
-            </GameOverviewTip>
 
             <GameOverviewTitleBlock
               as="h3"
               kicker="Step 2"
-              title="Solve the Cipher Grid"
-              subtitle="Swap runes, race the timer, submit when sealed."
+              title="Clear levels"
+              subtitle="Growing grids. Fog. Level timers."
             />
             <p className={KX_PROSE_PARAGRAPH}>
-              Match your grid to the Vault Seal target with swaps only. Correct tiles highlight with the Hub accent.
-              Use Rune Hints from the Shop if you get stuck. Slot Cipher Warden NFTs below the grid for extra swaps,
-              time, and fragment multipliers.
+              Start any unlocked uncleared level. Match your grid to the Vault Seal. Higher levels enlarge the board
+              and veil seal cells. Submit when sealed to bank fragments, then climb the next level without paying again.
             </p>
             <GameOverviewTip title="Warden tip">
-              Standard Wardens add +1 swap and +1 minute. Partner, Premium, Diamond, and Rarest scale further, and also
-              extend the covenant window while slotted.
+              Cipher Warden NFTs add swaps, level time, fragment mult, and covenant window while slotted. First slot is
+              free.
             </GameOverviewTip>
 
             <GameOverviewTitleBlock
               as="h3"
               kicker="Step 3"
               title="Refine on Hub"
-              subtitle="Turn Cipher Fragments into redeem points."
+              subtitle="Cipher Fragments → redeem points."
             />
             <p className={KX_PROSE_PARAGRAPH}>
-              Refine at least {CIPHER_REFINE_MIN.toLocaleString()} Cipher Fragments from the Game Deck into Hub points,
-              then spend them on the Rewards catalog when distribution is open.
+              Refine at least {CIPHER_REFINE_MIN.toLocaleString()} Cipher Fragments from the Game Deck into Hub points.
             </p>
           </article>
         )}
 
         {tab === 'play' && (
           <CipherVaultsPlayPanel
-            run={game.state.activeRun}
-            runActive={game.runActive}
-            puzzle={game.puzzle}
-            solveMsLeft={game.solveMsLeft}
+            covenantActive={game.covenantActive}
             covenantMsLeft={game.covenantMsLeft}
+            activeLevel={game.state.activeLevel}
+            activeLevelSolveMsLeft={game.activeLevelSolveMsLeft}
+            clearedLevels={game.state.clearedLevels}
+            maxUnlockedLevel={game.maxUnlockedLevel}
+            vaultTierId={game.state.vaultTierId}
+            sealPoints={game.state.sealPoints}
             boosterMult={game.boosterMult}
+            retriesLeft={game.state.retriesLeft}
             inventory={game.state.inventory}
             wardenSlots={game.state.wardenSlots}
             slotUnlockKas={game.wardenSlotUnlockKas}
             submitting={submitting}
             getKasPriceAfterDiscount={game.getKasPriceAfterDiscount}
+            bankForLevel={bankForLevel}
+            onStartLevel={(id) => game.startLevel(id)}
             onSubmit={async (moves) => {
-              const rid = game.state.activeRun?.runId;
-              if (!rid) return;
               setSubmitting(true);
               try {
-                const res = await game.submitRun(rid, moves);
-                if (res?.solved) setTab('rewards');
+                await game.submitLevel(moves);
               } finally {
                 setSubmitting(false);
               }
             }}
-            onFailed={() => {
-              void (async () => {
-                if ((game.state.activeRun?.retriesLeft ?? 0) > 0) {
-                  await game.retryRun();
-                  return;
-                }
-                await game.cancelRun(game.state.activeRun?.runId);
-              })();
-            }}
-            onCancel={() => {
-              void game.cancelRun(game.state.activeRun?.runId);
-            }}
-            onRetry={() => game.retryRun()}
-            onResume={() => {
-              void game.loadActiveRun();
-            }}
+            onAbandon={() => game.abandonLevel()}
+            onRetry={() => game.retryLevel()}
             onConsumeHint={game.consumeRuneHint}
+            onSealPointsDelta={game.addSealPoints}
             onSetWarden={game.setWarden}
             onClearWarden={game.clearWarden}
             onPurchaseWardenSlots={game.purchaseWardenSlots}
@@ -381,18 +379,17 @@ export function CipherVaultsDashboard(props: {
 
         {tab === 'rewards' && (
           <div className="space-y-6">
-            <RewardsPreview showLink={true} />
-            <GamePanelCard title="Vault checkpoints" hint="Verified clears for this wallet.">
+            <GamePanelCard title="Vault checkpoints" hint="Verified level clears for this wallet.">
               <p className="mb-4 text-sm text-zinc-600 dark:text-zinc-400">
-                Cleared covenants record moves, fragments banked, and entry receipts. Use these as your audit trail for
-                Hub Rewards.
+                Cleared levels record moves, fragments banked, and seal points. Use this as your audit trail for Hub
+                Rewards.
               </p>
               <CardsFilterBar
                 searchQuery={searchQuery}
                 onSearchChange={setSearchQuery}
                 category={category}
                 onCategoryChange={setCategory}
-                categories={['seal', 'rune', 'null', 'aria', 'master']}
+                categories={['1', '2', '3', '4', '5', '6', '7', '8']}
                 sortBy={sortBy}
                 onSortChange={setSortBy}
               />
@@ -401,10 +398,10 @@ export function CipherVaultsDashboard(props: {
                   <thead className="border-b border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900/80">
                     <tr>
                       <th className="p-3 font-semibold text-zinc-700 dark:text-zinc-300">When</th>
-                      <th className="p-3 font-semibold text-zinc-700 dark:text-zinc-300">Vault</th>
+                      <th className="p-3 font-semibold text-zinc-700 dark:text-zinc-300">Level</th>
                       <th className="p-3 font-semibold text-zinc-700 dark:text-zinc-300">Moves</th>
                       <th className="p-3 font-semibold text-zinc-700 dark:text-zinc-300">Fragments</th>
-                      <th className="p-3 font-semibold text-zinc-700 dark:text-zinc-300">Entry</th>
+                      <th className="p-3 font-semibold text-zinc-700 dark:text-zinc-300">Track</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -414,11 +411,14 @@ export function CipherVaultsDashboard(props: {
                         const q = searchQuery.toLowerCase();
                         list = list.filter(
                           (e) =>
+                            String(e.levelId).includes(q) ||
                             e.tierId.toLowerCase().includes(q) ||
                             e.entryTxHash?.toLowerCase().includes(q),
                         );
                       }
-                      if (category !== 'all') list = list.filter((e) => e.tierId === category);
+                      if (category !== 'all') {
+                        list = list.filter((e) => String(e.levelId) === category);
+                      }
                       if (sortBy === 'price_asc') list.sort((a, b) => a.moves - b.moves);
                       else if (sortBy === 'price_desc') list.sort((a, b) => b.moves - a.moves);
                       else list.sort((a, b) => b.solvedAt - a.solvedAt);
@@ -438,7 +438,7 @@ export function CipherVaultsDashboard(props: {
                             {new Date(e.solvedAt).toLocaleString()}
                           </td>
                           <td className="p-3 text-zinc-800 dark:text-zinc-200">
-                            {getCipherVaultTier(e.tierId as CipherVaultTierId)?.label ?? e.tierId}
+                            Lv {e.levelId} · {getCipherLevel(e.levelId)?.name ?? 'Level'}
                           </td>
                           <td className="p-3 tabular-nums text-zinc-600 dark:text-zinc-400">
                             {e.moves}/{e.moveLimit}
@@ -446,8 +446,8 @@ export function CipherVaultsDashboard(props: {
                           <td className="p-3 tabular-nums text-zinc-600 dark:text-zinc-400">
                             {(e.fragmentsBanked ?? 0).toLocaleString()}
                           </td>
-                          <td className="p-3 font-mono text-xs text-zinc-500 dark:text-zinc-500">
-                            {e.entryTxHash ? `${e.entryTxHash.slice(0, 10)}…` : 'pass'}
+                          <td className="p-3 text-zinc-600 dark:text-zinc-400">
+                            {getCipherVaultTier(e.tierId)?.label ?? e.tierId}
                           </td>
                         </tr>
                       ));
@@ -465,7 +465,7 @@ export function CipherVaultsDashboard(props: {
             progress={milestoneProgress}
             kicker="Progress"
             title="Milestones"
-            subtitle="Vault clears and lifetime fragments raise your Player level."
+            subtitle="Level clears and lifetime fragments raise your Player level."
           />
         )}
 

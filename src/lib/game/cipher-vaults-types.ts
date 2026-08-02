@@ -28,60 +28,65 @@ export type CipherWardenSlot = {
   imageUrl?: string | null;
 };
 
-export interface CipherRun {
-  runId: string;
-  tierId: CipherVaultTierId;
+/** Active in-progress level attempt inside an open covenant. */
+export type CipherActiveLevel = {
+  levelId: number;
   seed: string;
   startedAt: number;
-  /** Absolute expiry for the solve countdown. */
   solveExpiresAt: number;
-  /** Absolute expiry for the broader covenant window (Chrono / Warden extend). */
-  covenantExpiresAt: number;
-  paidBy: CipherPaymentType;
-  entryTxHash?: string;
-  addonIds: CipherAddonId[];
   moveLimit: number;
-  fragmentMult: number;
-  retriesLeft: number;
-}
+  size: number;
+  initial: number[];
+  target: number[];
+  /** Target cell indices hidden by fog. */
+  fogHidden: number[];
+};
 
 export interface CipherLedgerEntry {
   id: string;
-  runId: string;
+  levelId: number;
   tierId: CipherVaultTierId;
   solvedAt: number;
   moves: number;
   moveLimit: number;
   fragmentsBanked: number;
+  sealPointsEarned: number;
   entryTxHash?: string;
 }
 
 export interface CipherVaultsState {
-  version: number;
+  version: 3;
   walletAddress: string;
   lastConnectedAt: number | null;
-  /** Legacy DV ticket bridge fields (no longer used in UI). */
   redeemedRefinementPointsTotal: number;
   ticketsSpent: number;
-  activeRun: CipherRun | null;
+  /** @deprecated Prefer entryUnlocked + activeLevel. Kept for migration. */
+  activeRun: null;
   ledger: CipherLedgerEntry[];
-  /** In-game currency refined into Hub points. */
   cipherFragments: number;
   fragmentsEarnedLifetime: number;
   refinementPointsTotal: number;
+  /** Session seal points (correct placements). Not refined. */
+  sealPoints: number;
   inventory: CipherInventory;
   booster: CipherBoosterState | null;
   ownedAddons: CipherAddonId[];
-  /** Cipher Warden deck slots. Index 0 free; extras via Buy Slot. */
   wardenSlots: Array<CipherWardenSlot | null>;
-  /** Covenant window open without an active puzzle (after Chrono extend edge cases). */
+  entryUnlocked: boolean;
+  entryTxHash?: string;
+  vaultTierId: CipherVaultTierId | null;
   covenantExpiresAt: number | null;
+  clearedLevels: number[];
+  highestClearedLevel: number;
+  retriesLeft: number;
+  fragmentMult: number;
+  activeLevel: CipherActiveLevel | null;
   updatedAt: number;
 }
 
 export function createInitialCipherVaultsState(walletAddress = ''): CipherVaultsState {
   return {
-    version: 2,
+    version: 3,
     walletAddress,
     lastConnectedAt: null,
     redeemedRefinementPointsTotal: 0,
@@ -91,11 +96,19 @@ export function createInitialCipherVaultsState(walletAddress = ''): CipherVaults
     cipherFragments: 0,
     fragmentsEarnedLifetime: 0,
     refinementPointsTotal: 0,
+    sealPoints: 0,
     inventory: { rune_hint: 0, vault_pass: 0 },
     booster: null,
     ownedAddons: [],
     wardenSlots: [null],
+    entryUnlocked: false,
+    vaultTierId: null,
     covenantExpiresAt: null,
+    clearedLevels: [],
+    highestClearedLevel: 0,
+    retriesLeft: 0,
+    fragmentMult: 1,
+    activeLevel: null,
     updatedAt: Date.now(),
   };
 }

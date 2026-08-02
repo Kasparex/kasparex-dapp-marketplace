@@ -1,7 +1,7 @@
-/** Krex's Cipher Vaults: covenant chambers, entry, shop, wardens, refine. */
+/** Krex's Cipher Vaults: covenant chambers, levels, shop, wardens, refine. */
 
 export const CIPHER_VAULTS_GAME_ID = 'cipher-vaults';
-export const CIPHER_VAULTS_STORAGE_PREFIX = 'kasparex:cipher-vaults:v2';
+export const CIPHER_VAULTS_STORAGE_PREFIX = 'kasparex:cipher-vaults:v3';
 
 /** L1 KAS recipient for Cipher Vault fees. Override via `NEXT_PUBLIC_CIPHER_VAULTS_TREASURY_ADDRESS`. */
 export const CIPHER_VAULTS_TREASURY_ADDRESS =
@@ -9,22 +9,20 @@ export const CIPHER_VAULTS_TREASURY_ADDRESS =
   || process.env.NEXT_PUBLIC_GAME_TREASURY_ADDRESS?.trim()
   || 'kaspa:qr54v0692g4csc45z6phshyh2twy5dv73mylx5uqjtpphynvg70vksky9xffw';
 
-/** Rewards wallet (future on-chain distributions). Override via `NEXT_PUBLIC_REWARDS_ADDRESS`. */
 export const KASPA_REWARDS_ADDRESS =
   process.env.NEXT_PUBLIC_REWARDS_ADDRESS?.trim()
   || 'kaspa:qzsjrd50vw36g4aj7ufj2d9a4fhewehaegxm7xmlt7jntlx6dpv2q77jl6fkn';
 
-/** Minimum Cipher Fragments to refine into Hub points (1:1). */
 export const CIPHER_REFINE_MIN = 500;
-
-/** List KAS to unlock one extra Cipher Warden slot (first slot is free). */
 export const CIPHER_WARDEN_SLOT_UNLOCK_KAS = 10;
-
-/** How long a paid covenant window stays open after entry (extendable via Chrono / Wardens). */
+/** Paid covenant window (extendable via Chrono / Wardens). */
 export const CIPHER_COVENANT_WINDOW_MS = 4 * 60 * 60 * 1000;
 
+/** Seal points awarded per newly correct cell after a swap (session only). */
+export const CIPHER_SEAL_POINTS_PER_CORRECT = 2;
+
 // ---------------------------------------------------------------------------
-// Vault covenant tiers (min entry 10 KAS)
+// Vault entry classes (pay once → play levels until covenant expires)
 // ---------------------------------------------------------------------------
 
 export type CipherVaultTierId = 'seal' | 'rune' | 'null' | 'aria' | 'master';
@@ -33,75 +31,53 @@ export type CipherVaultTierDef = {
   id: CipherVaultTierId;
   label: string;
   subtitle: string;
-  /** List entry price in KAS. */
   entryKAS: number;
-  /** Max swaps before the seal collapses. */
-  moveLimit: number;
-  /** Solve countdown for this vault attempt. */
-  timeLimitMs: number;
-  /** Cipher Fragments banked on a verified clear (before multipliers). */
-  bankReward: number;
-  /** Extra Fisher-Yates passes to deepen scramble (0 = single shuffle). */
-  scrambleDepth: number;
-  /** Preview GRID weight for catalog / lore (not minted here). */
-  gridPreview: number;
+  /** Highest level id unlocked on this track (inclusive). */
+  maxLevel: number;
+  /** Multiplies Cipher Fragments banked on level clear. */
+  fragmentMult: number;
 };
 
 export const CIPHER_VAULT_TIERS: readonly CipherVaultTierDef[] = [
   {
     id: 'seal',
     label: 'Seal Fragment',
-    subtitle: 'Entry covenant. Soft scramble, generous clock.',
+    subtitle: 'Levels 1–3. Soft opener covenant.',
     entryKAS: 10,
-    moveLimit: 24,
-    timeLimitMs: 12 * 60 * 1000,
-    bankReward: 150,
-    scrambleDepth: 0,
-    gridPreview: 1,
+    maxLevel: 3,
+    fragmentMult: 1,
   },
   {
     id: 'rune',
     label: 'Rune Chamber',
-    subtitle: 'Standard vault. Tighter move budget.',
+    subtitle: 'Levels 1–4. Deeper scramble track.',
     entryKAS: 18,
-    moveLimit: 20,
-    timeLimitMs: 10 * 60 * 1000,
-    bankReward: 280,
-    scrambleDepth: 1,
-    gridPreview: 2,
+    maxLevel: 4,
+    fragmentMult: 1.1,
   },
   {
     id: 'null',
     label: 'Null Lockbox',
-    subtitle: 'Null Gang interference. Stay precise.',
+    subtitle: 'Levels 1–5. Fog seals begin.',
     entryKAS: 28,
-    moveLimit: 18,
-    timeLimitMs: 8 * 60 * 1000,
-    bankReward: 450,
-    scrambleDepth: 2,
-    gridPreview: 3,
+    maxLevel: 5,
+    fragmentMult: 1.2,
   },
   {
     id: 'aria',
     label: 'ARIA Reliquary',
-    subtitle: 'High-value memory seal. Fast collapse.',
+    subtitle: 'Levels 1–6. High fragment payout.',
     entryKAS: 45,
-    moveLimit: 16,
-    timeLimitMs: 6 * 60 * 1000,
-    bankReward: 750,
-    scrambleDepth: 3,
-    gridPreview: 5,
+    maxLevel: 6,
+    fragmentMult: 1.35,
   },
   {
     id: 'master',
     label: 'Master Covenant',
-    subtitle: 'Krex’s master vault. Elite clears only.',
+    subtitle: 'Full ladder levels 1–8.',
     entryKAS: 80,
-    moveLimit: 14,
-    timeLimitMs: 5 * 60 * 1000,
-    bankReward: 1400,
-    scrambleDepth: 4,
-    gridPreview: 8,
+    maxLevel: 8,
+    fragmentMult: 1.5,
   },
 ] as const;
 
@@ -113,11 +89,123 @@ export function isCipherVaultTierId(x: string): x is CipherVaultTierId {
   return CIPHER_VAULT_TIERS.some((t) => t.id === x);
 }
 
-/** Lowest-tier vault that a Vault Pass can open without KAS. */
 export const CIPHER_VAULT_PASS_TIER: CipherVaultTierId = 'seal';
 
 // ---------------------------------------------------------------------------
-// Entry add-ons (Calculation breakdown)
+// Levels (growing grids + fog)
+// ---------------------------------------------------------------------------
+
+export type CipherLevelDef = {
+  id: number;
+  name: string;
+  subtitle: string;
+  size: number;
+  moveLimit: number;
+  timeLimitMs: number;
+  /** Cipher Fragments banked on clear (before multipliers). */
+  bankReward: number;
+  scrambleDepth: number;
+  /** How many Vault Seal cells are hidden (fog). */
+  fogCount: number;
+};
+
+export const CIPHER_LEVELS: readonly CipherLevelDef[] = [
+  {
+    id: 1,
+    name: 'Glyph Gate',
+    subtitle: '3×3 warm-up. Learn the swaps.',
+    size: 3,
+    moveLimit: 16,
+    timeLimitMs: 8 * 60 * 1000,
+    bankReward: 80,
+    scrambleDepth: 0,
+    fogCount: 0,
+  },
+  {
+    id: 2,
+    name: 'Seal Corridor',
+    subtitle: 'Classic 4×4 vault key.',
+    size: 4,
+    moveLimit: 24,
+    timeLimitMs: 10 * 60 * 1000,
+    bankReward: 140,
+    scrambleDepth: 0,
+    fogCount: 0,
+  },
+  {
+    id: 3,
+    name: 'Fog Rune',
+    subtitle: '4×4 with a veiled seal.',
+    size: 4,
+    moveLimit: 22,
+    timeLimitMs: 9 * 60 * 1000,
+    bankReward: 200,
+    scrambleDepth: 1,
+    fogCount: 4,
+  },
+  {
+    id: 4,
+    name: 'Null Lattice',
+    subtitle: '5×5 lattice. More cells, tighter budget.',
+    size: 5,
+    moveLimit: 32,
+    timeLimitMs: 10 * 60 * 1000,
+    bankReward: 320,
+    scrambleDepth: 1,
+    fogCount: 0,
+  },
+  {
+    id: 5,
+    name: 'Blind Chamber',
+    subtitle: '5×5 with heavy fog on the seal.',
+    size: 5,
+    moveLimit: 30,
+    timeLimitMs: 9 * 60 * 1000,
+    bankReward: 450,
+    scrambleDepth: 2,
+    fogCount: 8,
+  },
+  {
+    id: 6,
+    name: 'ARIA Weave',
+    subtitle: '5×5 memory weave. Sparse seal reveal.',
+    size: 5,
+    moveLimit: 28,
+    timeLimitMs: 8 * 60 * 1000,
+    bankReward: 600,
+    scrambleDepth: 2,
+    fogCount: 12,
+  },
+  {
+    id: 7,
+    name: 'Deep Covenant',
+    subtitle: '6×6 deep chamber.',
+    size: 6,
+    moveLimit: 42,
+    timeLimitMs: 11 * 60 * 1000,
+    bankReward: 850,
+    scrambleDepth: 3,
+    fogCount: 6,
+  },
+  {
+    id: 8,
+    name: 'Master Seal',
+    subtitle: '6×6 master fog. Elite clears only.',
+    size: 6,
+    moveLimit: 38,
+    timeLimitMs: 9 * 60 * 1000,
+    bankReward: 1200,
+    scrambleDepth: 4,
+    fogCount: 14,
+  },
+];
+
+export function getCipherLevel(id: number): CipherLevelDef | undefined {
+  return CIPHER_LEVELS.find((l) => l.id === id);
+}
+
+// ---------------------------------------------------------------------------
+// Entry add-ons
 // ---------------------------------------------------------------------------
 
 export type CipherAddonId = 'extra_moves' | 'chrono_buffer' | 'fragment_amp' | 'second_seal';
@@ -130,7 +218,6 @@ export type CipherAddonDef = {
   extraMoves?: number;
   extraTimeMs?: number;
   fragmentBonusMult?: number;
-  /** One free restart of the same vault seed if you fail (moves / timer). */
   retryCharge?: number;
 };
 
@@ -138,28 +225,28 @@ export const CIPHER_ENTRY_ADDONS: CipherAddonDef[] = [
   {
     id: 'extra_moves',
     label: 'Extra Swaps',
-    description: '+4 swaps on this vault attempt.',
+    description: '+4 swaps on every level this covenant.',
     listKas: 3,
     extraMoves: 4,
   },
   {
     id: 'chrono_buffer',
     label: 'Chrono Buffer',
-    description: '+4 minutes on the solve countdown.',
+    description: '+3 minutes on every level timer this covenant.',
     listKas: 4,
-    extraTimeMs: 4 * 60 * 1000,
+    extraTimeMs: 3 * 60 * 1000,
   },
   {
     id: 'fragment_amp',
     label: 'Fragment Amplifier',
-    description: '+20% Cipher Fragments banked on a clear.',
+    description: '+20% Cipher Fragments banked on each clear.',
     listKas: 5,
     fragmentBonusMult: 1.2,
   },
   {
     id: 'second_seal',
     label: 'Second Seal',
-    description: 'One free retry if you burn out of moves or time (same vault).',
+    description: 'One free level retry if you burn moves or time.',
     listKas: 6,
     retryCharge: 1,
   },
@@ -261,7 +348,7 @@ export const CIPHER_SHOP_ITEMS: CipherShopItemDef[] = [
     id: 'item_vault_pass',
     title: 'Vault Pass',
     category: 'Item',
-    description: 'Open one Seal Fragment vault without paying entry KAS.',
+    description: 'Open one Seal Fragment covenant without paying entry KAS.',
     listKas: 8,
     imageSrc: '/games/precision-click/shop/item-null-filter.svg',
     charges: 1,
@@ -271,7 +358,7 @@ export const CIPHER_SHOP_ITEMS: CipherShopItemDef[] = [
     id: 'chrono_seal_2h',
     title: 'Chrono Seal +2h',
     category: 'Chrono',
-    description: 'Extend your open covenant window by 2 hours. Does not reset the active puzzle.',
+    description: 'Extend your open covenant window by 2 hours. Cleared levels stay locked.',
     listKas: 4,
     imageSrc: '/games/precision-click/shop/boost-overclock.svg',
     extendCovenantMs: 2 * 60 * 60 * 1000,
@@ -280,7 +367,7 @@ export const CIPHER_SHOP_ITEMS: CipherShopItemDef[] = [
     id: 'chrono_seal_6h',
     title: 'Chrono Seal +6h',
     category: 'Chrono',
-    description: 'Extend your open covenant window by 6 hours. Does not reset the active puzzle.',
+    description: 'Extend your open covenant window by 6 hours. Cleared levels stay locked.',
     listKas: 9,
     imageSrc: '/games/precision-click/shop/boost-deep-scan.svg',
     extendCovenantMs: 6 * 60 * 60 * 1000,
@@ -322,15 +409,29 @@ export function resolveCipherWardenTier(
 
 export function bankFragmentsForClear(args: {
   bankReward: number;
+  vaultMult: number;
   addonFragmentMult: number;
   boosterMult: number;
   wardenMult: number;
 }): number {
   return Math.max(
     1,
-    Math.round(args.bankReward * args.addonFragmentMult * args.boosterMult * args.wardenMult),
+    Math.round(
+      args.bankReward * args.vaultMult * args.addonFragmentMult * args.boosterMult * args.wardenMult,
+    ),
   );
 }
 
-/** @deprecated Tickets bridge removed; kept for legacy state migration only. */
+/** @deprecated Legacy DV bridge. */
 export const CIPHER_TICKET_REDEEM_RATE_POINTS = 100;
+
+/** Rune palette accents for special glyphs (not white borders). */
+export function cipherRuneAccentClass(n: number): string {
+  const i = n % 6;
+  if (i === 0) return 'text-emerald-600 dark:text-emerald-400';
+  if (i === 1) return 'text-sky-600 dark:text-sky-400';
+  if (i === 2) return 'text-amber-600 dark:text-amber-400';
+  if (i === 3) return 'text-violet-600 dark:text-violet-400';
+  if (i === 4) return 'text-rose-600 dark:text-rose-400';
+  return 'text-teal-600 dark:text-teal-400';
+}

@@ -10,9 +10,7 @@ import { GamePlayWalletGate } from '@/components/games/GamePlayWalletGate';
 
 const LORE_STORY = `Krex sealed Cipher Vaults across Kaspaland: covenant chambers that hold scrambled fragments of ARIA’s early memory.
 
-Each vault is a timed seal. Pay the entry, open the covenant, and reconstruct the rune grid before the countdown collapses the chamber. The Null Gang tried to weaponize these fragments; their interference only made the ciphers harder and the seals hungrier.
-
-Clear a vault and you bank Cipher Fragments. Refine them into Hub redeem points. Higher covenants cost more, scramble deeper, and pay more when you prove the key.`;
+Pay once to open a timed seal. Inside the covenant you climb growing rune grids (3×3 through 6×6). Harder levels fog the Vault Seal so you must deduce the pattern. Correct swaps earn seal points. Only a verified clear banks Cipher Fragments you can refine into Hub redeem points.`;
 
 function CipherVaultsContent() {
   const game = getGameBySlugFromRegistry('cipher-vaults');

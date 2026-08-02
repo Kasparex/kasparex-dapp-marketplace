@@ -16,7 +16,9 @@ import type { MiningSlotType } from '@/lib/game/engine/types';
 import {
   CIPHER_COVENANT_WINDOW_MS,
   CIPHER_ENTRY_ADDONS,
+  CIPHER_LEVELS,
   CIPHER_REFINE_MIN,
+  CIPHER_SEAL_POINTS_PER_CORRECT,
   CIPHER_VAULTS_GAME_ID,
   CIPHER_VAULTS_STORAGE_PREFIX,
   CIPHER_VAULTS_TREASURY_ADDRESS,
@@ -26,6 +28,7 @@ import {
   addonListKas,
   bankFragmentsForClear,
   bundleAddons,
+  getCipherLevel,
   getCipherShopItem,
   getCipherVaultTier,
   resolveCipherWardenTier,
@@ -37,16 +40,30 @@ import {
 import {
   createInitialCipherVaultsState,
   normalizeWardenSlots,
-  type CipherRun,
   type CipherVaultsState,
   type CipherWardenSlot,
+  type CipherActiveLevel,
 } from '@/lib/game/cipher-vaults-types';
+import {
+  makeCipherLevelSpec,
+  applyCipherMoves,
+  isSolved,
+  countCorrect,
+  type CipherMove,
+} from '@/lib/game/cipher-grid';
 
 const DEFAULT_TREASURY = CIPHER_VAULTS_TREASURY_ADDRESS;
 const KREX_PRIORITY_FEE_KAS = 0.001;
 
 function storageKey(address: string) {
   return `${CIPHER_VAULTS_STORAGE_PREFIX}:${address.trim().toLowerCase()}`;
+}
+
+function makeSeed(): string {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+  return `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
 }
 
 function mapRarityToWardenTier(collection: string, tokenId: number): CipherWardenTier {
@@ -80,13 +97,25 @@ function stackWardenPerks(slots: Array<CipherWardenSlot | null>) {
   return { extraMoves, extraTimeMs, fragmentMult, covenantExtendMs, count: filled.length };
 }
 
+function isCovenantActive(state: CipherVaultsState, now = Date.now()): boolean {
+  return Boolean(state.entryUnlocked && state.covenantExpiresAt && state.covenantExpiresAt > now);
+}
+
 function normalizeLoaded(address: string, parsed: Partial<CipherVaultsState>): CipherVaultsState {
   const base = createInitialCipherVaultsState(address);
+  const cleared = Array.isArray(parsed.clearedLevels)
+    ? parsed.clearedLevels.map((n) => Math.floor(Number(n))).filter((n) => n >= 1 && n <= 8)
+    : [];
+  const highest = Math.max(
+    0,
+    Math.floor(parsed.highestClearedLevel ?? (cleared.length ? Math.max(...cleared) : 0)),
+  );
   return {
     ...base,
     ...parsed,
-    version: 2,
+    version: 3,
     walletAddress: address,
+    activeRun: null,
     inventory: {
       rune_hint: Math.max(0, Math.floor(parsed.inventory?.rune_hint ?? 0)),
       vault_pass: Math.max(0, Math.floor(parsed.inventory?.vault_pass ?? 0)),
@@ -95,11 +124,19 @@ function normalizeLoaded(address: string, parsed: Partial<CipherVaultsState>): C
     cipherFragments: Math.max(0, Math.floor(parsed.cipherFragments ?? 0)),
     fragmentsEarnedLifetime: Math.max(0, Math.floor(parsed.fragmentsEarnedLifetime ?? 0)),
     refinementPointsTotal: Math.max(0, Math.floor(parsed.refinementPointsTotal ?? 0)),
+    sealPoints: Math.max(0, Math.floor(parsed.sealPoints ?? 0)),
     booster: parsed.booster ?? null,
     wardenSlots: refreshWardenTiers(normalizeWardenSlots(parsed)),
-    activeRun: parsed.activeRun ?? null,
     ledger: Array.isArray(parsed.ledger) ? parsed.ledger : [],
+    entryUnlocked: Boolean(parsed.entryUnlocked),
+    entryTxHash: parsed.entryTxHash,
+    vaultTierId: parsed.vaultTierId ?? null,
     covenantExpiresAt: typeof parsed.covenantExpiresAt === 'number' ? parsed.covenantExpiresAt : null,
+    clearedLevels: [...new Set(cleared)].sort((a, b) => a - b),
+    highestClearedLevel: highest,
+    retriesLeft: Math.max(0, Math.floor(parsed.retriesLeft ?? 0)),
+    fragmentMult: Math.max(0.01, Number(parsed.fragmentMult ?? 1) || 1),
+    activeLevel: parsed.activeLevel ?? null,
     redeemedRefinementPointsTotal: Math.max(0, Math.floor(parsed.redeemedRefinementPointsTotal ?? 0)),
     ticketsSpent: Math.max(0, Math.floor(parsed.ticketsSpent ?? 0)),
   };
@@ -116,10 +153,10 @@ function loadState(address: string): CipherVaultsState {
   }
 }
 
-function saveState(address: string, state: CipherVaultsState) {
+function saveState(state: CipherVaultsState) {
   if (typeof window === 'undefined') return;
   try {
-    localStorage.setItem(storageKey(address), JSON.stringify({ ...state, updatedAt: Date.now() }));
+    localStorage.setItem(storageKey(state.walletAddress), JSON.stringify({ ...state, updatedAt: Date.now() }));
   } catch {
     // ignore
   }
@@ -128,6 +165,36 @@ function saveState(address: string, state: CipherVaultsState) {
 function boosterMultNow(booster: CipherVaultsState['booster']): number {
   if (!booster || booster.until <= Date.now()) return 1;
   return booster.mult;
+}
+
+function buildActiveLevel(args: {
+  levelId: number;
+  seed: string;
+  extraMoves: number;
+  extraTimeMs: number;
+  wardenMoves: number;
+  wardenTimeMs: number;
+}): CipherActiveLevel | null {
+  const level = getCipherLevel(args.levelId);
+  if (!level) return null;
+  const now = Date.now();
+  const spec = makeCipherLevelSpec({
+    seed: args.seed,
+    size: level.size,
+    scrambleDepth: level.scrambleDepth,
+    fogCount: level.fogCount,
+  });
+  return {
+    levelId: level.id,
+    seed: args.seed,
+    startedAt: now,
+    solveExpiresAt: now + level.timeLimitMs + args.extraTimeMs + args.wardenTimeMs,
+    moveLimit: level.moveLimit + args.extraMoves + args.wardenMoves,
+    size: spec.size,
+    initial: spec.initial,
+    target: spec.target,
+    fogHidden: spec.fogHidden,
+  };
 }
 
 export function useCipherVaults() {
@@ -144,61 +211,79 @@ export function useCipherVaults() {
   const [refining, setRefining] = useState(false);
   const [lastError, setLastError] = useState<string | null>(null);
   const [lastSuccess, setLastSuccess] = useState<string | null>(null);
-  const [puzzle, setPuzzle] = useState<{
-    size: number;
-    initial: number[];
-    target: number[];
-    moveLimit: number;
-  } | null>(null);
   const [nowTick, setNowTick] = useState(() => Date.now());
 
   useEffect(() => {
     if (!walletAddr) {
       setState(createInitialCipherVaultsState());
-      setPuzzle(null);
       return;
     }
     setState(loadState(walletAddr));
   }, [walletAddr]);
 
-  useEffect(() => {
-    if (!walletAddr) return;
-    saveState(walletAddr, state);
-  }, [state, walletAddr]);
-
-  useEffect(() => {
-    const t = setInterval(() => setNowTick(Date.now()), 1000);
-    return () => clearInterval(t);
-  }, []);
-
   const persist = useCallback((updater: (prev: CipherVaultsState) => CipherVaultsState) => {
     setState((prev) => {
       const next = updater(prev);
-      return { ...next, updatedAt: Date.now() };
+      if (next.walletAddress) saveState(next);
+      return next;
     });
   }, []);
+
+  /** Expire covenant: keep bag/inventory, reset ladder so a new entry is required. */
+  const expireCovenantIfNeeded = useCallback(
+    (prev: CipherVaultsState, now = Date.now()): CipherVaultsState => {
+      if (!prev.entryUnlocked) return prev;
+      if (prev.covenantExpiresAt != null && prev.covenantExpiresAt > now) return prev;
+      return {
+        ...prev,
+        entryUnlocked: false,
+        covenantExpiresAt: null,
+        vaultTierId: null,
+        ownedAddons: [],
+        clearedLevels: [],
+        highestClearedLevel: 0,
+        retriesLeft: 0,
+        fragmentMult: 1,
+        activeLevel: null,
+        entryTxHash: undefined,
+      };
+    },
+    [],
+  );
+
+  useEffect(() => {
+    const id = setInterval(() => {
+      setNowTick(Date.now());
+      persist((prev) => expireCovenantIfNeeded(prev));
+    }, 1000);
+    return () => clearInterval(id);
+  }, [persist, expireCovenantIfNeeded]);
+
+  const liveState = useMemo(() => expireCovenantIfNeeded(state, nowTick), [state, nowTick, expireCovenantIfNeeded]);
 
   const getKasPriceAfterDiscount = useCallback(
     (listKas: number) => applyKrexFeeDiscount(listKas, tier),
     [tier],
   );
 
-  const liveBoosterMult = boosterMultNow(state.booster);
-  const wardenStack = useMemo(() => stackWardenPerks(state.wardenSlots), [state.wardenSlots]);
+  const liveBoosterMult = boosterMultNow(liveState.booster);
+  const wardenStack = useMemo(() => stackWardenPerks(liveState.wardenSlots), [liveState.wardenSlots]);
+  const addonBundle = useMemo(() => bundleAddons(liveState.ownedAddons), [liveState.ownedAddons]);
 
-  const runActive = Boolean(
-    state.activeRun &&
-      state.activeRun.solveExpiresAt > nowTick &&
-      state.activeRun.covenantExpiresAt > nowTick,
-  );
-  const solveMsLeft = state.activeRun
-    ? Math.max(0, state.activeRun.solveExpiresAt - nowTick)
-    : 0;
-  const covenantMsLeft = state.activeRun
-    ? Math.max(0, state.activeRun.covenantExpiresAt - nowTick)
-    : state.covenantExpiresAt
-      ? Math.max(0, state.covenantExpiresAt - nowTick)
+  const covenantActive = isCovenantActive(liveState, nowTick);
+  const runActive = covenantActive;
+  const covenantMsLeft =
+    covenantActive && liveState.covenantExpiresAt
+      ? Math.max(0, liveState.covenantExpiresAt - nowTick)
       : 0;
+  const activeLevelSolveMsLeft = liveState.activeLevel
+    ? Math.max(0, liveState.activeLevel.solveExpiresAt - nowTick)
+    : 0;
+
+  const vaultDef = liveState.vaultTierId ? getCipherVaultTier(liveState.vaultTierId) : undefined;
+  const maxUnlockedLevel = !covenantActive
+    ? 0
+    : Math.min(vaultDef?.maxLevel ?? 1, Math.max(1, liveState.highestClearedLevel + 1));
 
   const payKas = useCallback(
     async (args: { amountKas: number; skuId: string; purchaseType: 'entry' | 'boost' | 'other' }) => {
@@ -291,44 +376,6 @@ export function useCipherVaults() {
     [wallet.isConnected, wallet.provider, walletAddr, krexL1Balance],
   );
 
-  const syncActiveRunFromServer = useCallback(async () => {
-    if (!walletAddr) return null;
-    try {
-      const r = await fetch(`/api/games/cipher-vaults/run/current?address=${encodeURIComponent(walletAddr)}`);
-      const j = (await r.json()) as {
-        ok?: boolean;
-        run?: CipherRun;
-        puzzle?: { size: number; initial: number[]; target: number[]; moveLimit: number };
-        state?: CipherVaultsState;
-      };
-      if (!j?.ok || !j.run) {
-        setPuzzle(null);
-        persist((prev) => ({ ...prev, activeRun: null }));
-        return null;
-      }
-      persist((prev) => ({
-        ...prev,
-        activeRun: j.run!,
-        ...(j.state
-          ? {
-              ledger: j.state.ledger ?? prev.ledger,
-              cipherFragments: j.state.cipherFragments ?? prev.cipherFragments,
-              fragmentsEarnedLifetime: j.state.fragmentsEarnedLifetime ?? prev.fragmentsEarnedLifetime,
-            }
-          : {}),
-      }));
-      if (j.puzzle) setPuzzle(j.puzzle);
-      return j;
-    } catch {
-      return null;
-    }
-  }, [walletAddr, persist]);
-
-  useEffect(() => {
-    if (!walletAddr) return;
-    void syncActiveRunFromServer();
-  }, [walletAddr, syncActiveRunFromServer]);
-
   const startVault = useCallback(
     async (args: {
       tierId: CipherVaultTierId;
@@ -346,17 +393,11 @@ export function useCipherVaults() {
         setLastError('Unknown vault.');
         return false;
       }
-      if (state.activeRun && state.activeRun.solveExpiresAt > Date.now()) {
-        setLastError('You already have an active vault. Finish or end it before paying again.');
-        return false;
-      }
 
       const addons = bundleAddons(args.addonIds);
       const listTotal = tierDef.entryKAS + addonListKas(args.addonIds);
       const payKasAmount = getKasPriceAfterDiscount(listTotal);
-      const moveLimit = tierDef.moveLimit + addons.extraMoves + wardenStack.extraMoves;
-      const solveMs = tierDef.timeLimitMs + addons.extraTimeMs + wardenStack.extraTimeMs;
-      const fragmentMult = addons.fragmentBonusMult * wardenStack.fragmentMult;
+      const fragmentMult = tierDef.fragmentMult * addons.fragmentBonusMult;
       const now = Date.now();
       const covenantExpiresAt = now + CIPHER_COVENANT_WINDOW_MS + wardenStack.covenantExtendMs;
 
@@ -374,7 +415,7 @@ export function useCipherVaults() {
             setLastError('Vault Pass cannot include paid add-ons. Pay with KAS/KREX for add-ons.');
             return false;
           }
-          if (state.inventory.vault_pass <= 0) {
+          if (liveState.inventory.vault_pass <= 0) {
             setLastError('No Vault Pass in inventory. Buy one in the Shop.');
             return false;
           }
@@ -406,61 +447,30 @@ export function useCipherVaults() {
           txHash = paid.txHash;
         }
 
-        const r = await fetch('/api/games/cipher-vaults/run/start', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            address: walletAddr,
-            tierId: args.tierId,
-            paidBy,
-            entryTxHash: txHash || undefined,
-            addonIds: args.addonIds,
-            moveLimit,
-            solveExpiresAt: now + solveMs,
+        persist((prev) => {
+          const slots = prev.wardenSlots.map((s) => (s ? { ...s, appliedAt: now } : null));
+          return {
+            ...prev,
+            walletAddress: walletAddr,
+            entryUnlocked: true,
+            entryTxHash: txHash || prev.entryTxHash,
+            vaultTierId: args.tierId,
             covenantExpiresAt,
-            fragmentMult,
+            clearedLevels: [],
+            highestClearedLevel: 0,
+            activeLevel: null,
+            ownedAddons: [...args.addonIds],
             retriesLeft: addons.retryCharge,
-            clientState: {
-              cipherFragments: state.cipherFragments,
-              fragmentsEarnedLifetime: state.fragmentsEarnedLifetime,
-              inventory: state.inventory,
-              booster: state.booster,
-              wardenSlots: state.wardenSlots,
-              ledger: state.ledger,
-            },
-          }),
+            fragmentMult,
+            wardenSlots: slots.length ? slots : [null],
+            inventory:
+              paidBy === 'VAULT_PASS'
+                ? { ...prev.inventory, vault_pass: Math.max(0, prev.inventory.vault_pass - 1) }
+                : prev.inventory,
+          };
         });
-        const j = (await r.json()) as {
-          ok?: boolean;
-          error?: string;
-          run?: CipherRun;
-          puzzle?: { size: number; initial: number[]; target: number[]; moveLimit: number };
-          state?: CipherVaultsState;
-        };
-        if (!j?.ok || !j.run || !j.puzzle) {
-          setLastError(j?.error || 'Failed to open vault covenant.');
-          return false;
-        }
-
-        persist((prev) => ({
-          ...prev,
-          walletAddress: walletAddr,
-          activeRun: j.run!,
-          ownedAddons: [...args.addonIds],
-          covenantExpiresAt,
-          inventory:
-            paidBy === 'VAULT_PASS'
-              ? { ...prev.inventory, vault_pass: Math.max(0, prev.inventory.vault_pass - 1) }
-              : prev.inventory,
-          ...(j.state
-            ? {
-                ledger: j.state.ledger ?? prev.ledger,
-              }
-            : {}),
-        }));
-        setPuzzle(j.puzzle);
         setLastSuccess(
-          `${tierDef.label} covenant opened. Solve before the timer ends (${Math.round(solveMs / 60000)} min).`,
+          `${tierDef.label} covenant opened for ${Math.round(CIPHER_COVENANT_WINDOW_MS / 3_600_000)}h. Clear levels before the window ends.`,
         );
         return true;
       } finally {
@@ -469,16 +479,9 @@ export function useCipherVaults() {
     },
     [
       walletAddr,
-      state.activeRun,
-      state.inventory.vault_pass,
-      state.cipherFragments,
-      state.fragmentsEarnedLifetime,
-      state.inventory,
-      state.booster,
-      state.wardenSlots,
-      state.ledger,
+      liveState.inventory.vault_pass,
       getKasPriceAfterDiscount,
-      wardenStack,
+      wardenStack.covenantExtendMs,
       payKrex,
       payKas,
       pricingSnapshot,
@@ -486,93 +489,212 @@ export function useCipherVaults() {
     ],
   );
 
-  const submitRun = useCallback(
-    async (runId: string, moves: unknown[]) => {
-      if (!walletAddr) throw new Error('Wallet not connected');
-      const r = await fetch('/api/games/cipher-vaults/run/submit', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          address: walletAddr,
-          runId,
-          moves,
-          boosterMult: liveBoosterMult,
-        }),
+  const startLevel = useCallback(
+    (levelId: number): boolean => {
+      setLastError(null);
+      setLastSuccess(null);
+      const live = expireCovenantIfNeeded(liveState);
+      if (!isCovenantActive(live)) {
+        setLastError('Open a vault covenant first.');
+        return false;
+      }
+      if (live.activeLevel) {
+        setLastError('Finish or abandon the current level first.');
+        return false;
+      }
+      const vault = live.vaultTierId ? getCipherVaultTier(live.vaultTierId) : undefined;
+      if (!vault) {
+        setLastError('No vault class on this covenant.');
+        return false;
+      }
+      const level = getCipherLevel(levelId);
+      if (!level) {
+        setLastError('Unknown level.');
+        return false;
+      }
+      if (levelId > vault.maxLevel) {
+        setLastError(`${vault.label} only unlocks levels 1–${vault.maxLevel}.`);
+        return false;
+      }
+      if (live.clearedLevels.includes(levelId)) {
+        setLastError('That level is already cleared this covenant.');
+        return false;
+      }
+      const unlocked = levelId === 1 || live.clearedLevels.includes(levelId - 1);
+      if (!unlocked) {
+        setLastError('Clear the previous level first.');
+        return false;
+      }
+
+      const addons = bundleAddons(live.ownedAddons);
+      const wardens = stackWardenPerks(live.wardenSlots);
+      const active = buildActiveLevel({
+        levelId,
+        seed: makeSeed(),
+        extraMoves: addons.extraMoves,
+        extraTimeMs: addons.extraTimeMs,
+        wardenMoves: wardens.extraMoves,
+        wardenTimeMs: wardens.extraTimeMs,
       });
-      const j = (await r.json()) as {
-        ok?: boolean;
-        solved?: boolean;
-        error?: string;
-        entry?: { fragmentsBanked?: number };
-        state?: CipherVaultsState;
-      };
-      if (j?.state) {
-        persist((prev) => ({
-          ...prev,
-          activeRun: j.state!.activeRun,
-          ledger: j.state!.ledger ?? prev.ledger,
-          cipherFragments: j.state!.cipherFragments ?? prev.cipherFragments,
-          fragmentsEarnedLifetime: j.state!.fragmentsEarnedLifetime ?? prev.fragmentsEarnedLifetime,
-        }));
+      if (!active) {
+        setLastError('Failed to generate level.');
+        return false;
       }
-      if (j?.solved) {
-        setPuzzle(null);
-        const banked = j.entry?.fragmentsBanked ?? 0;
-        setLastSuccess(
-          banked > 0
-            ? `Vault cleared. +${banked.toLocaleString()} Cipher Fragments banked.`
-            : 'Vault cleared. Checkpoint recorded.',
-        );
-      }
-      return j;
+      persist((prev) => ({ ...expireCovenantIfNeeded(prev), activeLevel: active }));
+      setLastSuccess(`${level.name} started. Solve before the timer ends.`);
+      return true;
     },
-    [walletAddr, liveBoosterMult, persist],
+    [liveState, expireCovenantIfNeeded, persist],
   );
 
-  const cancelRun = useCallback(
-    async (runId?: string) => {
-      if (!walletAddr) throw new Error('Wallet not connected');
-      const r = await fetch('/api/games/cipher-vaults/run/cancel', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ address: walletAddr, runId }),
-      });
-      const j = (await r.json()) as { state?: CipherVaultsState; error?: string };
-      if (j?.state) {
-        persist((prev) => ({ ...prev, activeRun: j.state!.activeRun ?? null }));
+  const submitLevel = useCallback(
+    (moves: CipherMove[]): { ok: boolean; banked: number } => {
+      setLastError(null);
+      setLastSuccess(null);
+      const live = expireCovenantIfNeeded(liveState);
+      if (!isCovenantActive(live) || !live.activeLevel) {
+        setLastError('No active level to submit.');
+        return { ok: false, banked: 0 };
       }
-      setPuzzle(null);
-      return j;
+      const active = live.activeLevel;
+      const level = getCipherLevel(active.levelId);
+      const vault = live.vaultTierId ? getCipherVaultTier(live.vaultTierId) : undefined;
+      if (!level || !vault) {
+        setLastError('Level or vault missing.');
+        return { ok: false, banked: 0 };
+      }
+      if (live.clearedLevels.includes(active.levelId)) {
+        setLastError('Level already cleared.');
+        return { ok: false, banked: 0 };
+      }
+      if (Date.now() > active.solveExpiresAt) {
+        setLastError('Solve timer expired.');
+        return { ok: false, banked: 0 };
+      }
+      if (moves.length > active.moveLimit) {
+        setLastError(`Move limit exceeded (${active.moveLimit}).`);
+        return { ok: false, banked: 0 };
+      }
+
+      const finalGrid = applyCipherMoves(active.initial, active.size, moves);
+      if (!isSolved(finalGrid, active.target)) {
+        setLastError('Grid is not sealed yet.');
+        return { ok: false, banked: 0 };
+      }
+
+      const correctCount = countCorrect(finalGrid, active.target);
+      void correctCount;
+      const banked = bankFragmentsForClear({
+        bankReward: level.bankReward,
+        vaultMult: live.fragmentMult,
+        addonFragmentMult: 1,
+        boosterMult: liveBoosterMult,
+        wardenMult: wardenStack.fragmentMult,
+      });
+
+      const entryId =
+        typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+          ? crypto.randomUUID()
+          : `cv-${Date.now()}-${active.levelId}`;
+
+      persist((prev) => {
+        const cur = expireCovenantIfNeeded(prev);
+        if (!cur.activeLevel || cur.clearedLevels.includes(active.levelId)) return cur;
+        const clearedLevels = [...cur.clearedLevels, active.levelId].sort((a, b) => a - b);
+        return {
+          ...cur,
+          activeLevel: null,
+          clearedLevels,
+          highestClearedLevel: Math.max(cur.highestClearedLevel, active.levelId),
+          cipherFragments: cur.cipherFragments + banked,
+          fragmentsEarnedLifetime: cur.fragmentsEarnedLifetime + banked,
+          ledger: [
+            {
+              id: entryId,
+              levelId: active.levelId,
+              tierId: vault.id,
+              solvedAt: Date.now(),
+              moves: moves.length,
+              moveLimit: active.moveLimit,
+              fragmentsBanked: banked,
+              sealPointsEarned: correctCount * CIPHER_SEAL_POINTS_PER_CORRECT,
+              entryTxHash: cur.entryTxHash,
+            },
+            ...cur.ledger,
+          ].slice(0, 100),
+        };
+      });
+      setLastSuccess(
+        banked > 0
+          ? `Level ${active.levelId} cleared. +${banked.toLocaleString()} Cipher Fragments banked.`
+          : `Level ${active.levelId} cleared.`,
+      );
+      return { ok: true, banked };
     },
-    [walletAddr, persist],
+    [liveState, expireCovenantIfNeeded, liveBoosterMult, wardenStack.fragmentMult, persist],
   );
 
-  const retryRun = useCallback(async () => {
-    if (!walletAddr || !state.activeRun) return false;
-    if ((state.activeRun.retriesLeft ?? 0) <= 0) {
+  const abandonLevel = useCallback(() => {
+    persist((prev) => {
+      const live = expireCovenantIfNeeded(prev);
+      if (!live.activeLevel) return live;
+      return { ...live, activeLevel: null };
+    });
+    setLastSuccess('Level abandoned. Covenant stays open.');
+  }, [persist, expireCovenantIfNeeded]);
+
+  const addSealPoints = useCallback(
+    (delta: number) => {
+      const n = Math.floor(delta);
+      if (n <= 0) return;
+      persist((prev) => ({ ...prev, sealPoints: prev.sealPoints + n }));
+    },
+    [persist],
+  );
+
+  const retryLevel = useCallback((): boolean => {
+    setLastError(null);
+    setLastSuccess(null);
+    const live = expireCovenantIfNeeded(liveState);
+    if (!isCovenantActive(live)) {
+      setLastError('Covenant is closed.');
+      return false;
+    }
+    const levelId = live.activeLevel?.levelId;
+    if (levelId == null) {
+      setLastError('No active level to retry.');
+      return false;
+    }
+    if (live.retriesLeft <= 0) {
       setLastError('No Second Seal retries left.');
       return false;
     }
-    const r = await fetch('/api/games/cipher-vaults/run/retry', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ address: walletAddr, runId: state.activeRun.runId }),
+    const addons = bundleAddons(live.ownedAddons);
+    const wardens = stackWardenPerks(live.wardenSlots);
+    const active = buildActiveLevel({
+      levelId,
+      seed: makeSeed(),
+      extraMoves: addons.extraMoves,
+      extraTimeMs: addons.extraTimeMs,
+      wardenMoves: wardens.extraMoves,
+      wardenTimeMs: wardens.extraTimeMs,
     });
-    const j = (await r.json()) as {
-      ok?: boolean;
-      error?: string;
-      run?: CipherRun;
-      puzzle?: { size: number; initial: number[]; target: number[]; moveLimit: number };
-    };
-    if (!j?.ok || !j.run || !j.puzzle) {
-      setLastError(j?.error || 'Retry failed.');
+    if (!active) {
+      setLastError('Failed to regenerate level.');
       return false;
     }
-    persist((prev) => ({ ...prev, activeRun: j.run! }));
-    setPuzzle(j.puzzle);
-    setLastSuccess('Second Seal used. Fresh attempt on the same vault.');
+    persist((prev) => {
+      const cur = expireCovenantIfNeeded(prev);
+      if (cur.retriesLeft <= 0) return cur;
+      return {
+        ...cur,
+        retriesLeft: cur.retriesLeft - 1,
+        activeLevel: active,
+      };
+    });
+    setLastSuccess('Second Seal used. Fresh attempt on the same level.');
     return true;
-  }, [walletAddr, state.activeRun, persist]);
+  }, [liveState, expireCovenantIfNeeded, persist]);
 
   const buyShopItem = useCallback(
     async (args: { itemId: CipherShopItemId; currency: 'KAS' | 'KREX'; quantity?: number }) => {
@@ -583,7 +705,7 @@ export function useCipherVaults() {
         setLastError('Unknown shop item.');
         return false;
       }
-      if (def.extendCovenantMs && !state.activeRun && !state.covenantExpiresAt) {
+      if (def.extendCovenantMs && !isCovenantActive(liveState)) {
         setLastError('Open a vault covenant first before buying Chrono Seals.');
         return false;
       }
@@ -624,7 +746,10 @@ export function useCipherVaults() {
         }
 
         persist((prev) => {
-          const next = { ...prev, walletAddress: walletAddr || prev.walletAddress };
+          const next = expireCovenantIfNeeded({
+            ...prev,
+            walletAddress: walletAddr || prev.walletAddress,
+          });
           if (def.boosterMult && def.durationMs) {
             next.booster = {
               mult: def.boosterMult,
@@ -633,16 +758,10 @@ export function useCipherVaults() {
               txHash,
             };
           }
-          if (def.extendCovenantMs) {
-            const base =
-              next.activeRun?.covenantExpiresAt ??
-              next.covenantExpiresAt ??
-              Date.now();
-            const extended = Math.max(base, Date.now()) + def.extendCovenantMs * qty;
-            next.covenantExpiresAt = extended;
-            if (next.activeRun) {
-              next.activeRun = { ...next.activeRun, covenantExpiresAt: extended };
-            }
+          if (def.extendCovenantMs && next.covenantExpiresAt) {
+            next.covenantExpiresAt =
+              Math.max(next.covenantExpiresAt, Date.now()) + def.extendCovenantMs * qty;
+            next.entryUnlocked = true;
           }
           if (def.effect === 'rune_hint') {
             next.inventory = {
@@ -665,14 +784,14 @@ export function useCipherVaults() {
       }
     },
     [
-      state.activeRun,
-      state.covenantExpiresAt,
+      liveState,
       getKasPriceAfterDiscount,
       payKrex,
       payKas,
       pricingSnapshot,
       persist,
       walletAddr,
+      expireCovenantIfNeeded,
     ],
   );
 
@@ -697,13 +816,14 @@ export function useCipherVaults() {
       const wTier = slot.tier ?? mapRarityToWardenTier(slot.collection, slot.tokenId);
       const perks = CIPHER_WARDEN_PERKS[wTier];
       persist((prev) => {
-        const slots = [...(prev.wardenSlots.length ? prev.wardenSlots : [null])];
+        const live = expireCovenantIfNeeded(prev);
+        const slots = [...(live.wardenSlots.length ? live.wardenSlots : [null])];
         while (slots.length <= slotIndex) slots.push(null);
         const now = Date.now();
         const prevAt = slots[slotIndex];
         const already = prevAt?.nftRef === slot.nftRef;
-        let covenantExpiresAt = prev.activeRun?.covenantExpiresAt ?? prev.covenantExpiresAt;
-        if (covenantExpiresAt && !already) {
+        let covenantExpiresAt = live.covenantExpiresAt;
+        if (live.entryUnlocked && covenantExpiresAt && !already) {
           const prevExtend = prevAt ? CIPHER_WARDEN_PERKS[prevAt.tier].covenantExtendMs : 0;
           covenantExpiresAt = covenantExpiresAt - prevExtend + perks.covenantExtendMs;
         }
@@ -715,50 +835,39 @@ export function useCipherVaults() {
           imageUrl: slot.imageUrl ?? null,
           appliedAt: now,
         };
-        const next: CipherVaultsState = {
-          ...prev,
+        return {
+          ...live,
           wardenSlots: slots,
-          covenantExpiresAt: covenantExpiresAt ?? prev.covenantExpiresAt,
+          covenantExpiresAt: covenantExpiresAt ?? live.covenantExpiresAt,
         };
-        if (next.activeRun && covenantExpiresAt) {
-          next.activeRun = { ...next.activeRun, covenantExpiresAt };
-        }
-        return next;
       });
       if (typeof window !== 'undefined') {
         window.dispatchEvent(new CustomEvent('kasparex-nft-usage'));
       }
       setLastSuccess(`Cipher Warden slotted (${CIPHER_WARDEN_PERKS[wTier].label}).`);
     },
-    [persist],
+    [persist, expireCovenantIfNeeded],
   );
 
   const clearWarden = useCallback(
     (slotIndex: number) => {
       persist((prev) => {
-        const slots = [...(prev.wardenSlots.length ? prev.wardenSlots : [null])];
-        if (slotIndex < 0 || slotIndex >= slots.length) return prev;
+        const live = expireCovenantIfNeeded(prev);
+        const slots = [...(live.wardenSlots.length ? live.wardenSlots : [null])];
+        if (slotIndex < 0 || slotIndex >= slots.length) return live;
         const removed = slots[slotIndex];
         slots[slotIndex] = null;
-        let covenantExpiresAt = prev.activeRun?.covenantExpiresAt ?? prev.covenantExpiresAt;
-        if (removed && typeof covenantExpiresAt === 'number') {
+        let covenantExpiresAt = live.covenantExpiresAt;
+        if (removed && live.entryUnlocked && typeof covenantExpiresAt === 'number') {
           covenantExpiresAt = covenantExpiresAt - CIPHER_WARDEN_PERKS[removed.tier].covenantExtendMs;
         }
-        const next: CipherVaultsState = {
-          ...prev,
-          wardenSlots: slots,
-          covenantExpiresAt,
-        };
-        if (next.activeRun && typeof covenantExpiresAt === 'number') {
-          next.activeRun = { ...next.activeRun, covenantExpiresAt };
-        }
-        return next;
+        return expireCovenantIfNeeded({ ...live, wardenSlots: slots, covenantExpiresAt });
       });
       if (typeof window !== 'undefined') {
         window.dispatchEvent(new CustomEvent('kasparex-nft-usage'));
       }
     },
-    [persist],
+    [persist, expireCovenantIfNeeded],
   );
 
   const purchaseWardenSlots = useCallback(
@@ -801,7 +910,7 @@ export function useCipherVaults() {
         setLastError('Connect a Kaspa wallet to refine.');
         return null;
       }
-      const bag = Math.floor(state.cipherFragments);
+      const bag = Math.floor(liveState.cipherFragments);
       const amount = Math.max(0, Math.min(bag, Math.floor(amountArg)));
       if (amount < CIPHER_REFINE_MIN) {
         setLastError(`Refine at least ${CIPHER_REFINE_MIN} Cipher Fragments.`);
@@ -812,7 +921,9 @@ export function useCipherVaults() {
         const points = amount;
         const syntheticTx =
           typeof crypto !== 'undefined' && typeof crypto.getRandomValues === 'function'
-            ? Array.from(crypto.getRandomValues(new Uint8Array(32)), (b) => b.toString(16).padStart(2, '0')).join('')
+            ? Array.from(crypto.getRandomValues(new Uint8Array(32)), (b) =>
+                b.toString(16).padStart(2, '0'),
+              ).join('')
             : `${Date.now()}`.padStart(64, '0');
 
         void recordL1Reward({
@@ -829,57 +940,80 @@ export function useCipherVaults() {
           cipherFragments: Math.max(0, prev.cipherFragments - amount),
           refinementPointsTotal: prev.refinementPointsTotal + points,
         }));
-        setLastSuccess(`Refined ${amount.toLocaleString()} fragments → ${points.toLocaleString()} Hub points.`);
+        setLastSuccess(
+          `Refined ${amount.toLocaleString()} fragments → ${points.toLocaleString()} Hub points.`,
+        );
         return { points, amount };
       } finally {
         setRefining(false);
       }
     },
-    [walletAddr, state.cipherFragments, persist],
+    [walletAddr, liveState.cipherFragments, persist],
+  );
+
+  const bankPreview = useCallback(
+    (tierId: CipherVaultTierId, addonIds: CipherAddonId[]) => {
+      const tierDef = getCipherVaultTier(tierId);
+      if (!tierDef) return 0;
+      const addons = bundleAddons(addonIds);
+      let total = 0;
+      for (const level of CIPHER_LEVELS) {
+        if (level.id > tierDef.maxLevel) break;
+        total += bankFragmentsForClear({
+          bankReward: level.bankReward,
+          vaultMult: tierDef.fragmentMult,
+          addonFragmentMult: addons.fragmentBonusMult,
+          boosterMult: liveBoosterMult,
+          wardenMult: wardenStack.fragmentMult,
+        });
+      }
+      return total;
+    },
+    [liveBoosterMult, wardenStack.fragmentMult],
   );
 
   const canPayWithL1 =
     wallet.isConnected && (wallet.provider === 'kasware' || wallet.provider === 'kastle');
 
   return {
-    state,
-    puzzle,
+    state: liveState,
+    walletConnected: Boolean(wallet.isConnected && walletAddr),
+    walletAddr,
     paying,
     buyBusyId,
     refining,
     lastError,
     lastSuccess,
+    clearNotices: () => {
+      setLastError(null);
+      setLastSuccess(null);
+    },
     canPayWithL1,
     runActive,
-    solveMsLeft,
+    covenantActive,
     covenantMsLeft,
+    activeLevelSolveMsLeft,
+    maxUnlockedLevel,
     boosterMult: liveBoosterMult,
     wardenStack,
+    addonBundle,
+    levels: CIPHER_LEVELS,
+    entryAddons: CIPHER_ENTRY_ADDONS,
     refineMin: CIPHER_REFINE_MIN,
     wardenSlotUnlockKas: CIPHER_WARDEN_SLOT_UNLOCK_KAS,
-    entryAddons: CIPHER_ENTRY_ADDONS,
     getKasPriceAfterDiscount,
+    bankPreview,
     startVault,
-    submitRun,
-    cancelRun,
-    retryRun,
-    loadActiveRun: syncActiveRunFromServer,
+    startLevel,
+    submitLevel,
+    abandonLevel,
+    addSealPoints,
+    retryLevel,
     buyShopItem,
     consumeRuneHint,
     setWarden,
     clearWarden,
     purchaseWardenSlots,
     refineFragments,
-    bankPreview: (tierId: CipherVaultTierId, addonIds: CipherAddonId[]) => {
-      const tierDef = getCipherVaultTier(tierId);
-      if (!tierDef) return 0;
-      const addons = bundleAddons(addonIds);
-      return bankFragmentsForClear({
-        bankReward: tierDef.bankReward,
-        addonFragmentMult: addons.fragmentBonusMult,
-        boosterMult: liveBoosterMult,
-        wardenMult: wardenStack.fragmentMult,
-      });
-    },
   };
 }

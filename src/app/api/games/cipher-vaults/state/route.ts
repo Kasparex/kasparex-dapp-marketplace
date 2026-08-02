@@ -30,15 +30,14 @@ export async function POST(request: NextRequest) {
     if (!address || !isValidAddress(address)) {
       return NextResponse.json({ error: 'Missing or invalid address' }, { status: 400 });
     }
-    const incoming = body.state && typeof body.state === 'object' ? body.state : createInitialCipherVaultsState(address);
-    const server = getCipherPlayerState(address);
-    // Active runs are created/cleared only via /api/games/cipher-vaults/run/* routes.
+    const incoming =
+      body.state && typeof body.state === 'object' ? body.state : createInitialCipherVaultsState(address);
     const merged: CipherVaultsState = {
       ...createInitialCipherVaultsState(address),
       ...incoming,
+      version: 3,
       walletAddress: address,
-      activeRun: server.activeRun ?? null,
-      version: Math.max(server.version ?? 0, incoming.version ?? 0) + 1,
+      activeRun: null,
       updatedAt: Date.now(),
     };
     const saved = replaceCipherPlayerState(address, merged);

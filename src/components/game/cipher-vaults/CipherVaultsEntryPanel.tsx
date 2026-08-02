@@ -119,8 +119,8 @@ export function CipherVaultsEntryPanel(props: {
       totalDisplay={useVaultPass ? '1 Vault Pass' : fmt(payKas)}
       totalSubtitle={
         props.runActive
-          ? 'A vault covenant is already open. Finish or end it before paying again.'
-          : 'Pay to open a timed Cipher Vault covenant. Clear the grid before the solve timer ends.'
+          ? 'Covenant already open. Clear unlocked levels free until the window ends. Paying again resets cleared levels for a fresh ladder.'
+          : 'Pay once to open a timed covenant. Climb levels (3×3 → 6×6) without paying again until the window ends.'
       }
       catalogEntries={useVaultPass ? [] : catalogEntries}
       selectedCurrencyId={payCurrencyId}
@@ -133,7 +133,7 @@ export function CipherVaultsEntryPanel(props: {
           ? `${tier}: ${discountPct}% off list KAS on entry and add-ons.`
           : undefined
       }
-      infoText="Pick a vault class below, optional add-ons, then pay. Shop boosters and Cipher Wardens multiply clear payouts automatically."
+      infoText="Pay once to open a covenant window. Climb levels without re-paying. Paying again resets cleared levels for a fresh ladder. Shop boosters and Wardens apply automatically."
       infoAccent="emerald"
       hubPointsBaseSpendKas={useVaultPass ? 0 : payKas}
       flowPreset="hubPay"
@@ -162,7 +162,7 @@ export function CipherVaultsEntryPanel(props: {
                   >
                     <p className="text-xs font-bold text-zinc-900 dark:text-zinc-100">{t.label}</p>
                     <p className="text-[11px] text-zinc-500">
-                      {t.entryKAS} KAS · {t.moveLimit} swaps · {Math.round(t.timeLimitMs / 60000)}m
+                      {t.entryKAS} KAS · levels 1–{t.maxLevel} · ×{t.fragmentMult} fr
                     </p>
                   </button>
                 );
@@ -228,7 +228,7 @@ export function CipherVaultsEntryPanel(props: {
 
           <button
             type="button"
-            disabled={props.paying || props.runActive || !canPayCurrency || !passOk}
+            disabled={props.paying || !canPayCurrency || !passOk}
             onClick={() =>
               void props.onPay({
                 tierId: props.selectedTierId,
@@ -240,13 +240,13 @@ export function CipherVaultsEntryPanel(props: {
           >
             {props.paying
               ? 'Processing…'
-              : props.runActive
-                ? 'Vault already open'
-                : useVaultPass
-                  ? 'Open with Vault Pass'
-                  : !canPayCurrency
-                    ? 'Select KAS or KREX'
-                    : `Pay ${fmt(payKas)} to open vault`}
+              : useVaultPass
+                ? 'Open with Vault Pass'
+                : !canPayCurrency
+                  ? 'Select KAS or KREX'
+                  : props.runActive
+                    ? `New covenant · ${fmt(payKas)}`
+                    : `Pay ${fmt(payKas)} to open covenant`}
           </button>
         </div>
       }
