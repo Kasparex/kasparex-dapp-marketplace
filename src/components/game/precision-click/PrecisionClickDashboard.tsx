@@ -191,11 +191,7 @@ export function PrecisionClickDashboard(props: {
           categories,
           tags,
         }}
-        deckFooter={
-          <span>
-            Clear levels to bank Aria fragments. Refine to Hub points. Extend the lock in Shop or with a Sync Operative.
-          </span>
-        }
+        deckFooter={<span>Clear to bank. Refine to Hub. Extend in Shop.</span>}
         asideExtras={
           <PrecisionClickEntryPanel
             entryUnlocked={game.runActive}

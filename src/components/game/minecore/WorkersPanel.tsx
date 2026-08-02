@@ -26,6 +26,7 @@ import {
   MINECORE_NFT_SLOT_ROLE_BADGE,
   MINECORE_NFT_SLOT_UNLOCK_COST_KAS,
 } from '@/lib/game/minecore/config';
+import { GameBuySlotsButton } from '@/components/games/GameBuySlotsButton';
 
 function collectionAllowlistForMinecoreDeckSlot(_slot: MiningSlot | null | undefined): string[] | undefined {
   return getMinecoreDeckCollectionAllowlist();
@@ -177,18 +178,15 @@ export function WorkersPanel(props: {
           </p>
         </div>
         {canBuySlots ? (
-          <button
-            type="button"
+          <GameBuySlotsButton
             disabled={!props.miningAllowed}
             onClick={() => {
               if (!props.miningAllowed) return;
               setBuyOpen(true);
             }}
-            className="inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-emerald-500/40 bg-emerald-500/10 px-3 py-2 text-sm font-bold text-emerald-800 transition-colors hover:border-emerald-500/60 hover:bg-emerald-500/15 disabled:cursor-not-allowed disabled:opacity-50 dark:text-emerald-200"
           >
-            <Icons.Plus className="h-4 w-4" />
             Buy slots · from {buyFromKas.toLocaleString(undefined, { maximumFractionDigits: 4 })} KAS
-          </button>
+          </GameBuySlotsButton>
         ) : null}
       </div>
 

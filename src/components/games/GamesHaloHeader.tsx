@@ -73,19 +73,27 @@ export function GamesHaloHeader({ game, resources = [], deckFooter, playerLevel 
   const authorLabel = formatAddress(authorWallet);
   const canVote = Boolean(game.id?.trim());
 
-  /** Max 3–4 game-related chips. No entry-cost badge. */
-  const badges: { key: string; label: string; variant: KxBadgeVariant }[] = [
-    { key: 'status', label: formatStatus(game.status), variant: statusBadgeVariant(game.status) },
-    { key: 'type', label: typeName, variant: 'zinc' },
-    { key: 'difficulty', label: difficultyName, variant: 'zinc' },
-  ];
+  /** Max 3–4 game-related chips. No entry-cost badge. Dedupe type / category / tag labels. */
+  const badges: { key: string; label: string; variant: KxBadgeVariant }[] = [];
+  const seenLabels = new Set<string>();
+  const pushBadge = (key: string, label: string, variant: KxBadgeVariant) => {
+    const norm = label.trim().toLowerCase().replace(/^#/, '');
+    if (!norm || seenLabels.has(norm) || badges.length >= 5) return;
+    seenLabels.add(norm);
+    badges.push({ key, label, variant });
+  };
+
+  pushBadge('status', formatStatus(game.status), statusBadgeVariant(game.status));
   if (typeof playerLevel === 'number' && playerLevel > 0) {
-    badges.splice(1, 0, { key: 'player-level', label: `Player Lv ${playerLevel}`, variant: 'sky' });
+    pushBadge('player-level', `Player Lv ${playerLevel}`, 'sky');
   }
-  const extra = [...(game.categories ?? []), ...(game.tags ?? []).map((t) => `#${t}`)].filter(Boolean);
-  for (const label of extra) {
-    if (badges.length >= 5) break;
-    badges.push({ key: `extra-${label}`, label, variant: 'zinc' });
+  pushBadge('type', typeName, 'zinc');
+  pushBadge('difficulty', difficultyName, 'zinc');
+  for (const raw of game.categories ?? []) {
+    pushBadge(`cat-${raw}`, raw, 'zinc');
+  }
+  for (const raw of game.tags ?? []) {
+    pushBadge(`tag-${raw}`, `#${raw}`, 'zinc');
   }
 
   return (

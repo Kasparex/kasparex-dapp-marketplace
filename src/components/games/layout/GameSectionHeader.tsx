@@ -16,7 +16,7 @@ export function GameSectionHeader(props: { title: string; hint?: string; right?:
           {props.hint ? <FieldHint text={props.hint} /> : null}
         </h2>
       </div>
-      {props.right ? <div className="text-xs font-bold text-zinc-500 dark:text-zinc-500">{props.right}</div> : null}
+      {props.right ? <div className="shrink-0">{props.right}</div> : null}
     </div>
   );
 }

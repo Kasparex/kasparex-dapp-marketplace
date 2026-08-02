@@ -31,6 +31,7 @@ import { nftCrewRoleBadgeClass } from '@/lib/game/nft-crew-role-styles';
 import { KxBadge } from '@/components/ui/KxBadge';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { gameTooltipRich } from '@/components/games/gameTooltipRich';
+import { GameBuySlotsButton } from '@/components/games/GameBuySlotsButton';
 
 function formatDuration(ms: number): string {
   const totalSec = Math.max(0, Math.floor(ms / 1000));
@@ -240,18 +241,15 @@ export function MiningPanel({
               Minecore.
             </p>
           </div>
-          <button
-            type="button"
+          <GameBuySlotsButton
             disabled={!miningAllowed}
             onClick={() => {
               if (!miningAllowed) return;
               setBuyOpen(true);
             }}
-            className="inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-emerald-500/40 bg-emerald-500/10 px-3 py-2 text-sm font-bold text-emerald-800 transition-colors hover:border-emerald-500/60 hover:bg-emerald-500/15 disabled:cursor-not-allowed disabled:opacity-50 dark:text-emerald-200"
           >
-            <Icons.Plus className="h-4 w-4" />
             Buy slots · from {buyFromKas.toLocaleString(undefined, { maximumFractionDigits: 4 })} KAS
-          </button>
+          </GameBuySlotsButton>
         </div>
 
         <div className="space-y-4">

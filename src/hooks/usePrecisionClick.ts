@@ -546,16 +546,22 @@ export function usePrecisionClick() {
   const clearOperative = useCallback(
     (slotIndex: number) => {
       persist((prev) => {
-        const slots = [...(prev.operativeSlots.length ? prev.operativeSlots : [null])];
-        if (slotIndex < 0 || slotIndex >= slots.length) return prev;
+        const live = expireRunIfNeeded(prev);
+        const slots = [...(live.operativeSlots.length ? live.operativeSlots : [null])];
+        if (slotIndex < 0 || slotIndex >= slots.length) return live;
+        const removed = slots[slotIndex];
         slots[slotIndex] = null;
-        return { ...prev, operativeSlots: slots };
+        let runExpiresAt = live.runExpiresAt;
+        if (removed && live.entryUnlocked && typeof runExpiresAt === 'number') {
+          runExpiresAt = runExpiresAt - PRECISION_OPERATIVE_PERKS[removed.tier].extendMs;
+        }
+        return expireRunIfNeeded({ ...live, operativeSlots: slots, runExpiresAt });
       });
       if (typeof window !== 'undefined') {
         window.dispatchEvent(new CustomEvent('kasparex-nft-usage'));
       }
     },
-    [persist],
+    [persist, expireRunIfNeeded],
   );
 
   const purchaseOperativeSlots = useCallback(
