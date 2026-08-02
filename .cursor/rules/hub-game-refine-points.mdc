@@ -1,0 +1,36 @@
+---
+description: HARD RULE - in-game refine must credit Hub redeemable points
+alwaysApply: true
+---
+
+# Game Deck refine → Hub points (LOCKED)
+
+Every in-game refinement (diamonds, fragments, etc.) that promises Hub points **must** land in the unified redeemable total on `/rewards` and in the halo points display.
+
+## Pattern (Minecore / Diamond Veins / Precision Click / Cipher Vaults)
+
+1. Persist `refinementPointsTotal` on the game save (1 resource → 1 point unless config says otherwise).
+2. Expose `readXRefinementPointsTotal(addr)` + `deductXRefinementPointsPersisted(addr, n)`.
+3. Include the bucket in `useRedeemablePointsBreakdown` lines + `gameplayPts` sum.
+4. Spend order in `recordUnifiedCatalogRedeem`: Minecore → Diamond Veins → Precision Click → Cipher Vaults → ledger.
+5. After refine, broadcast that game's persist event and/or `kasparex-redeemable-breakdown-refresh`.
+
+## Current helpers
+
+| Game | Reader / deduct |
+|------|-----------------|
+| Minecore | `src/lib/game/minecore/read-refinement-points.ts`, `deduct-refinement-hub.ts` |
+| Diamond Veins | `src/lib/game/diamond-veins-hub.ts` |
+| Precision Click | `src/lib/game/precision-click-hub.ts` |
+| Cipher Vaults | `src/lib/game/cipher-vaults-hub.ts` |
+
+## When adding a new game with refine
+
+- Do **not** only bump a local `refinementPointsTotal` and toast "Hub points".
+- Wire reader + deduct + breakdown + unified redeem in the same PR.
+- Do not rely on stub `/api/rewards/l1/record` for Hub balance.
+
+## Do not
+
+- Orphan refine points in game storage that Rewards never reads.
+- Double-count via `appendHubActivityEarn` **and** gameplay bucket for the same refine.

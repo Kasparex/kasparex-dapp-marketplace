@@ -80,6 +80,7 @@ export function CipherVaultsShopPanel(props: {
             <GameItemCard
               key={item.id}
               title={item.title}
+              titleTooltip={item.tooltip}
               category={item.category}
               imageSrc={item.imageSrc}
               description={item.description}

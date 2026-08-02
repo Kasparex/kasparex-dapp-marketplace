@@ -5,10 +5,12 @@ import type { CipherMove } from '@/lib/game/cipher-grid';
 import { applyCipherMove, countCorrect, isSolved } from '@/lib/game/cipher-grid';
 import { cipherRuneAccentClass, CIPHER_SEAL_POINTS_PER_CORRECT } from '@/lib/game/cipher-vaults-config';
 import { HubMetadataStatGrid } from '@/components/hub/HubMetadataStatGrid';
+import { Tooltip } from '@/components/ui/Tooltip';
+import { gameTooltipRich } from '@/components/games/gameTooltipRich';
 
 function runeFor(n: number) {
-  const runes = ['ᚠ', 'ᚢ', 'ᚦ', 'ᚨ', 'ᚱ', 'ᚲ', 'ᚷ', 'ᚹ', 'ᚺ', 'ᚾ', 'ᛁ', 'ᛃ', 'ᛇ', 'ᛈ', 'ᛉ', 'ᛋ'];
-  return runes[n % runes.length] ?? '?';
+  const runes = "\u16a0\u16a2\u16a6\u16a8\u16b1\u16b2\u16b7\u16b9\u16ba\u16be\u16c1\u16c3\u16c7\u16c8\u16c9\u16ca";
+  return runes[n % runes.length] ?? "?";
 }
 
 function formatMs(ms: number): string {
@@ -25,9 +27,9 @@ export function CipherGridPuzzle({
   moveLimit,
   solveMsLeft,
   fogHidden = [],
-  hintIndex,
+  runeHintCharges = 0,
   retriesLeft = 0,
-  onHintConsumed,
+  onConsumeHint,
   onSealPointsDelta,
   onSolved,
   onFailed,
@@ -40,9 +42,10 @@ export function CipherGridPuzzle({
   moveLimit: number;
   solveMsLeft?: number;
   fogHidden?: number[];
-  hintIndex?: number | null;
+  runeHintCharges?: number;
   retriesLeft?: number;
-  onHintConsumed?: () => void;
+  /** Return true only when a charge was spent. */
+  onConsumeHint?: () => boolean;
   onSealPointsDelta?: (delta: number) => void;
   onSolved: (moves: CipherMove[]) => void | Promise<void>;
   onFailed: () => void;
@@ -52,26 +55,57 @@ export function CipherGridPuzzle({
   const [grid, setGrid] = useState<number[]>(() => [...initial]);
   const [moves, setMoves] = useState<CipherMove[]>([]);
   const [selected, setSelected] = useState<number | null>(null);
+  const [hintIndex, setHintIndex] = useState<number | null>(null);
+  const [hintRevealRune, setHintRevealRune] = useState<number | null>(null);
+  const [hintMsg, setHintMsg] = useState<string | null>(null);
   const fog = useMemo(() => new Set(fogHidden), [fogHidden]);
 
   useEffect(() => {
     setGrid([...initial]);
     setMoves([]);
     setSelected(null);
+    setHintIndex(null);
+    setHintRevealRune(null);
+    setHintMsg(null);
   }, [initial]);
 
   useEffect(() => {
     if (hintIndex == null) return;
-    setSelected(hintIndex);
-    const t = setTimeout(() => onHintConsumed?.(), 1600);
+    const t = setTimeout(() => {
+      setHintIndex(null);
+      setHintRevealRune(null);
+    }, 2800);
     return () => clearTimeout(t);
-  }, [hintIndex, onHintConsumed]);
+  }, [hintIndex]);
 
   const solved = useMemo(() => isSolved(grid, target), [grid, target]);
   const remaining = Math.max(0, moveLimit - moves.length);
   const correctCount = useMemo(() => countCorrect(grid, target), [grid, target]);
   const timedOut = typeof solveMsLeft === 'number' && solveMsLeft <= 0;
   const lockedOut = !solved && (moves.length >= moveLimit || timedOut);
+
+  const useRuneHint = () => {
+    if (solved || lockedOut || runeHintCharges <= 0 || !onConsumeHint) return;
+    const wrong: number[] = [];
+    for (let i = 0; i < grid.length; i++) {
+      if (grid[i] !== target[i]) wrong.push(i);
+    }
+    if (wrong.length === 0) {
+      setHintMsg('Every cell already matches the seal. No hint needed.');
+      return;
+    }
+    if (!onConsumeHint()) {
+      setHintMsg('No Rune Hint charges left.');
+      return;
+    }
+    const idx = wrong[Math.floor(Math.random() * wrong.length)]!;
+    setSelected(idx);
+    setHintIndex(idx);
+    setHintRevealRune(target[idx]!);
+    setHintMsg(
+      `Wrong cell highlighted. It should be ${runeFor(target[idx]!)}. Swap that rune into place.`,
+    );
+  };
 
   const clickTile = (idx: number) => {
     if (solved || lockedOut) return;
@@ -97,7 +131,7 @@ export function CipherGridPuzzle({
   const tileClass = (opts: { isSel: boolean; isHint: boolean; isCorrect: boolean; rune: number }) => {
     const accent = cipherRuneAccentClass(opts.rune);
     if (opts.isSel || opts.isHint) {
-      return `border-[color:var(--hub-accent)] bg-[color:var(--hub-accent-muted,rgba(16,185,129,0.12))] ${accent}`;
+      return `border-[color:var(--hub-accent)] bg-[color:var(--hub-accent-muted,rgba(16,185,129,0.12))] ring-2 ring-[color:var(--hub-accent)] ${accent}`;
     }
     if (opts.isCorrect) {
       return `border-transparent bg-[color:var(--hub-accent-muted,rgba(16,185,129,0.08))] ${accent}`;
@@ -134,7 +168,8 @@ export function CipherGridPuzzle({
             copyable: false,
             accent: true,
             tooltipTitle: 'Level timer',
-            tooltipDescription: 'Solve countdown for this level. Shop Chrono Buffer and Cipher Wardens extend it.',
+            tooltipDescription:
+              'Solve countdown for this level. Entry Chrono Buffer and Cipher Wardens extend it. Shop Chrono Seals extend the covenant window instead.',
           },
         ]}
       />
@@ -150,6 +185,7 @@ export function CipherGridPuzzle({
               const isSel = selected === idx;
               const isCorrect = grid[idx] === target[idx];
               const isHint = hintIndex === idx;
+              const showTarget = isHint && hintRevealRune != null;
               return (
                 <button
                   key={idx}
@@ -157,13 +193,19 @@ export function CipherGridPuzzle({
                   disabled={lockedOut}
                   onClick={() => clickTile(idx)}
                   className={[
-                    'aspect-square rounded-xl border text-2xl font-black transition-colors active:scale-[0.98]',
+                    'relative aspect-square rounded-xl border text-2xl font-black transition-colors active:scale-[0.98]',
                     'flex items-center justify-center disabled:cursor-not-allowed disabled:opacity-70',
-                    tileClass({ isSel, isHint, isCorrect, rune: v }),
+                    tileClass({ isSel, isHint, isCorrect, rune: showTarget ? hintRevealRune! : v }),
                   ].join(' ')}
                   aria-pressed={isSel}
+                  title={showTarget ? `Target rune: ${runeFor(hintRevealRune!)}` : undefined}
                 >
-                  {runeFor(v)}
+                  {showTarget ? runeFor(hintRevealRune!) : runeFor(v)}
+                  {showTarget ? (
+                    <span className="absolute bottom-0.5 left-0 right-0 text-[8px] font-bold uppercase tracking-wide text-[color:var(--hub-accent)]">
+                      target
+                    </span>
+                  ) : null}
                 </button>
               );
             })}
@@ -188,28 +230,38 @@ export function CipherGridPuzzle({
           >
             {target.map((v, idx) => {
               const hidden = fog.has(idx);
+              const isHint = hintIndex === idx;
               return (
                 <div
                   key={idx}
                   title={hidden ? 'Fogged seal cell' : undefined}
                   className={[
-                    'flex aspect-square items-center justify-center rounded-xl border border-transparent text-2xl font-black transition-colors',
+                    'flex aspect-square items-center justify-center rounded-xl border text-2xl font-black transition-colors',
                     'bg-zinc-50 hover:border-[color:var(--hub-accent)] dark:bg-zinc-950/40',
+                    isHint
+                      ? 'border-[color:var(--hub-accent)] ring-2 ring-[color:var(--hub-accent)]'
+                      : 'border-transparent',
                     hidden ? 'text-zinc-400 dark:text-zinc-600' : cipherRuneAccentClass(v),
                   ].join(' ')}
                 >
-                  {hidden ? '?' : runeFor(v)}
+                  {hidden && !isHint ? '?' : runeFor(v)}
                 </div>
               );
             })}
           </div>
           <p className="mt-2 text-xs text-zinc-500">
             {fog.size > 0
-              ? `${fog.size} seal cells are fogged. Correct tiles on your grid still highlight.`
+              ? `${fog.size} seal cells are fogged. A Rune Hint can still reveal the target for a wrong cell.`
               : 'Correct tiles on your grid highlight with the Hub accent.'}
           </p>
         </div>
       </div>
+
+      {hintMsg ? (
+        <p className="rounded-xl border border-[color:var(--hub-accent)]/40 bg-[color:var(--hub-accent-muted,rgba(16,185,129,0.1))] px-3 py-2 text-sm text-zinc-800 dark:text-zinc-100">
+          {hintMsg}
+        </p>
+      ) : null}
 
       <div className="flex flex-wrap items-center gap-2">
         {lockedOut ? (
@@ -227,9 +279,33 @@ export function CipherGridPuzzle({
           </button>
         ) : null}
         {retriesLeft > 0 && onRetry ? (
-          <button type="button" onClick={onRetry} className="k-control-btn">
-            Second Seal ({retriesLeft})
-          </button>
+          <Tooltip
+            content={gameTooltipRich(
+              'Second Seal',
+              'Entry add-on charge. Retry this level once after burning moves or time, without abandoning the covenant.',
+            )}
+          >
+            <button type="button" onClick={onRetry} className="k-control-btn">
+              Second Seal ({retriesLeft})
+            </button>
+          </Tooltip>
+        ) : null}
+        {onConsumeHint ? (
+          <Tooltip
+            content={gameTooltipRich(
+              'Rune Hint',
+              'Spends 1 shop charge. Highlights one cell that is still wrong on your live grid and briefly shows the correct target rune for that cell so you know what to swap in.',
+            )}
+          >
+            <button
+              type="button"
+              disabled={solved || lockedOut || runeHintCharges <= 0}
+              onClick={useRuneHint}
+              className="k-control-btn disabled:opacity-50"
+            >
+              Rune Hint ({runeHintCharges})
+            </button>
+          </Tooltip>
         ) : null}
         <button
           type="button"

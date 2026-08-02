@@ -8,6 +8,7 @@ import {
   readTyconSlotsFromMergedStorage,
   readPrecisionOperativesFromStorage,
   readCipherWardensFromStorage,
+  seedKnownSurfacesIntoRegistry,
   type CrewNftUsageSlot,
 } from '@/lib/nft/kasparexMergedGlobalNftRefs';
 
@@ -33,6 +34,9 @@ export function useKasparexGlobalNftUsage(opts: {
   cipherWardenSlots?: CrewNftUsageSlot | CrewNftUsageSlot[];
 }) {
   const [tick, setTick] = useState(0);
+  useEffect(() => {
+    seedKnownSurfacesIntoRegistry(opts.payerKaspa);
+  }, [opts.payerKaspa]);
   useEffect(() => {
     const bump = () => setTick((t) => t + 1);
     window.addEventListener('kasparex-nft-usage', bump);

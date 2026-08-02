@@ -225,28 +225,28 @@ export const CIPHER_ENTRY_ADDONS: CipherAddonDef[] = [
   {
     id: 'extra_moves',
     label: 'Extra Swaps',
-    description: '+4 swaps on every level this covenant.',
+    description: '+4 swaps on every level this covenant (paid with entry).',
     listKas: 3,
     extraMoves: 4,
   },
   {
     id: 'chrono_buffer',
     label: 'Chrono Buffer',
-    description: '+3 minutes on every level timer this covenant.',
+    description: '+3 minutes on every level solve timer this covenant (not the 4h window).',
     listKas: 4,
     extraTimeMs: 3 * 60 * 1000,
   },
   {
     id: 'fragment_amp',
     label: 'Fragment Amplifier',
-    description: '+20% Cipher Fragments banked on each clear.',
+    description: '+20% Cipher Fragments banked on each clear this covenant.',
     listKas: 5,
     fragmentBonusMult: 1.2,
   },
   {
     id: 'second_seal',
     label: 'Second Seal',
-    description: 'One free level retry if you burn moves or time.',
+    description: 'One free retry if a level burns out of moves or time.',
     listKas: 6,
     retryCharge: 1,
   },
@@ -294,6 +294,8 @@ export type CipherShopItemDef = {
   title: string;
   category: 'Booster' | 'Item' | 'Chrono';
   description: string;
+  /** Longer hover help for shop cards. */
+  tooltip: string;
   listKas: number;
   imageSrc: string;
   boosterMult?: number;
@@ -308,7 +310,9 @@ export const CIPHER_SHOP_ITEMS: CipherShopItemDef[] = [
     id: 'boost_overclock',
     title: 'Overclock',
     category: 'Booster',
-    description: '×1.1 clear payout for 60 minutes.',
+    description: '×1.1 Cipher Fragments on every level clear for 60 minutes.',
+    tooltip:
+      'Activates a timed payout booster. While active, each verified level clear banks 10% more Cipher Fragments. Only one booster runs at a time; buying another replaces it.',
     listKas: 2,
     imageSrc: '/games/precision-click/shop/boost-overclock.svg',
     boosterMult: 1.1,
@@ -318,7 +322,9 @@ export const CIPHER_SHOP_ITEMS: CipherShopItemDef[] = [
     id: 'boost_deep_scan',
     title: 'Deep Scan',
     category: 'Booster',
-    description: '×1.2 clear payout for 120 minutes.',
+    description: '×1.2 Cipher Fragments on every level clear for 120 minutes.',
+    tooltip:
+      'Stronger timed payout booster. Clears bank 20% more fragments for 2 hours. Replaces any currently active booster.',
     listKas: 5,
     imageSrc: '/games/precision-click/shop/boost-deep-scan.svg',
     boosterMult: 1.2,
@@ -328,7 +334,9 @@ export const CIPHER_SHOP_ITEMS: CipherShopItemDef[] = [
     id: 'boost_cipher_sync',
     title: 'Cipher Sync',
     category: 'Booster',
-    description: '×1.3 clear payout for 180 minutes.',
+    description: '×1.3 Cipher Fragments on every level clear for 180 minutes.',
+    tooltip:
+      'Top shop payout booster. Clears bank 30% more fragments for 3 hours. Replaces any currently active booster.',
     listKas: 9,
     imageSrc: '/games/precision-click/shop/boost-aria-sync.svg',
     boosterMult: 1.3,
@@ -338,7 +346,9 @@ export const CIPHER_SHOP_ITEMS: CipherShopItemDef[] = [
     id: 'item_rune_hint',
     title: 'Rune Hint',
     category: 'Item',
-    description: 'Reveal one incorrect tile on your grid (3 charges).',
+    description: '3 charges. On Play, marks one wrong cell and briefly shows the correct rune.',
+    tooltip:
+      'Use during an active level. Spends 1 charge to pick a cell that does not match the Vault Seal yet, highlight it, and flash the correct target rune for that cell so you know what to swap in. Does nothing (and spends nothing) if the board is already solved.',
     listKas: 2,
     imageSrc: '/games/precision-click/shop/item-shard-lens.svg',
     charges: 3,
@@ -348,7 +358,9 @@ export const CIPHER_SHOP_ITEMS: CipherShopItemDef[] = [
     id: 'item_vault_pass',
     title: 'Vault Pass',
     category: 'Item',
-    description: 'Open one Seal Fragment covenant without paying entry KAS.',
+    description: 'Skip entry KAS for one Seal Fragment covenant (no paid add-ons).',
+    tooltip:
+      'Stored in inventory. On Calculation breakdown, choose Vault Pass currency to open the Seal Fragment track without paying entry KAS. Cannot combine with paid entry add-ons. Does not extend an already-open covenant.',
     listKas: 8,
     imageSrc: '/games/precision-click/shop/item-null-filter.svg',
     charges: 1,
@@ -358,7 +370,9 @@ export const CIPHER_SHOP_ITEMS: CipherShopItemDef[] = [
     id: 'chrono_seal_2h',
     title: 'Chrono Seal +2h',
     category: 'Chrono',
-    description: 'Extend your open covenant window by 2 hours. Cleared levels stay locked.',
+    description: 'Add 2 hours to your open covenant window (not the level timer).',
+    tooltip:
+      'Requires an open covenant. Extends the 4h covenant clock so you can keep climbing levels without re-paying entry. Cleared levels stay cleared. Different from entry Chrono Buffer, which only adds minutes to each level solve timer.',
     listKas: 4,
     imageSrc: '/games/precision-click/shop/boost-overclock.svg',
     extendCovenantMs: 2 * 60 * 60 * 1000,
@@ -367,7 +381,9 @@ export const CIPHER_SHOP_ITEMS: CipherShopItemDef[] = [
     id: 'chrono_seal_6h',
     title: 'Chrono Seal +6h',
     category: 'Chrono',
-    description: 'Extend your open covenant window by 6 hours. Cleared levels stay locked.',
+    description: 'Add 6 hours to your open covenant window (not the level timer).',
+    tooltip:
+      'Requires an open covenant. Large covenant-window extension. Cleared levels stay cleared. Not the same as entry Chrono Buffer (per-level solve time).',
     listKas: 9,
     imageSrc: '/games/precision-click/shop/boost-deep-scan.svg',
     extendCovenantMs: 6 * 60 * 60 * 1000,

@@ -56,6 +56,9 @@ import {
   globalNftConflictMessage,
   normalizeNftRef,
 } from '@/lib/nft/kasparexMergedGlobalNftRefs';
+import { syncGlobalNftSlotsForEntity } from '@/lib/nft/globalNftSlotRegistry';
+import { broadcastCipherVaultsExternalPersist } from '@/lib/game/cipher-vaults-hub';
+import { REDEEMABLE_BREAKDOWN_REFRESH_EVENT } from '@/lib/game/minecore/deduct-refinement-hub';
 
 const DEFAULT_TREASURY = CIPHER_VAULTS_TREASURY_ADDRESS;
 const KREX_PRIORITY_FEE_KAS = 0.001;
@@ -162,6 +165,14 @@ function saveState(state: CipherVaultsState) {
   if (typeof window === 'undefined') return;
   try {
     localStorage.setItem(storageKey(state.walletAddress), JSON.stringify({ ...state, updatedAt: Date.now() }));
+    syncGlobalNftSlotsForEntity({
+      wallet: state.walletAddress,
+      entityType: 'cipher-vaults',
+      entityId: 'cipher-warden',
+      href: '/games/cipher-vaults',
+      labelFor: (idx) => `Cipher Vaults · Cipher Warden #${idx + 1}`,
+      slots: state.wardenSlots ?? [],
+    });
   } catch {
     // ignore
   }
@@ -978,8 +989,12 @@ export function useCipherVaults() {
           cipherFragments: Math.max(0, prev.cipherFragments - amount),
           refinementPointsTotal: prev.refinementPointsTotal + points,
         }));
+        broadcastCipherVaultsExternalPersist();
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new Event(REDEEMABLE_BREAKDOWN_REFRESH_EVENT));
+        }
         setLastSuccess(
-          `Refined ${amount.toLocaleString()} fragments → ${points.toLocaleString()} Hub points.`,
+          `Refined ${amount.toLocaleString()} fragments → ${points.toLocaleString()} Hub points on /rewards.`,
         );
         return { points, amount };
       } finally {

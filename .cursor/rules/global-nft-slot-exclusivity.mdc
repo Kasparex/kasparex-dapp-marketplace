@@ -1,47 +1,34 @@
 ---
-description: HARD RULE - one NFT may occupy only one Hub game slot globally
+description: HARD RULE - one NFT one Hub slot globally via auto registry
 alwaysApply: true
 ---
 
 # Global NFT slot exclusivity (LOCKED)
 
-**Non-negotiable Hub rule:** an NFT can be assigned to **at most one** crew / operative / warden slot across **all** Kasparex games and surfaces. Never allow the same NFT in Minecore, Diamond Veins, Precision Click, Cipher Vaults, or any future slot at the same time.
+**Non-negotiable:** an NFT can fill **at most one** crew / operative / warden slot across **all** Kasparex games. Once slotted, it is locked everywhere else until removed.
 
-## Source of truth
+## Auto registry (do not hardcode new games into a merge switch)
 
-- Merge + assert: `src/lib/nft/kasparexMergedGlobalNftRefs.ts`
-  - `buildKasparexGlobalNftUsage`
-  - `assertNftRefGloballyFree`
-  - `normalizeNftRef` / `nftRefKey`
-- Live React lock map: `src/hooks/useKasparexGlobalNftUsage.ts`
-- Picker UI: `src/components/nft/KasparexNftSlotSelector.tsx`
+Source of truth: `src/lib/nft/globalNftSlotRegistry.ts`
 
-## Surfaces that must participate
+- `syncGlobalNftSlotsForEntity` / `syncMiningSlotsToGlobalRegistry`
+- Storage: `kasparex:global-nft-slots:v1:${wallet}`
+- Lock map: `buildKasparexGlobalNftUsage` reads the **entire registry** (covers current + future games)
+- Assert: `assertNftRefGloballyFree` before every assign
+- Picker: `KasparexNftSlotSelector`
 
-| Surface | Storage / state | entityType |
-|---------|-----------------|------------|
-| Minecore Workers | `minecore-state:${address}` · `nftSlots` | `minecore` |
-| Diamond Veins | `diamond-veins-state:${address}` · `slots` | `tycon` |
-| Precision Click | `kasparex:precision-click:v3:${address}` · `operativeSlots` | `precision-click` |
-| Cipher Vaults | `kasparex:cipher-vaults:v3:${address}` · `wardenSlots` | `cipher-vaults` |
+### When adding ANY new NFT slot surface
 
-Any **new** NFT slot feature must:
+1. Persist slots in that game as usual.
+2. On load + after every assign/remove/persist, call `syncGlobalNftSlotsForEntity` (or `syncMiningSlotsToGlobalRegistry`).
+3. Use `KasparexNftSlotSelector` with `useKasparexGlobalNftUsage` + correct `currentContext`.
+4. Call `assertNftRefGloballyFree` in the assign path.
+5. Dispatch is handled by the registry sync (`kasparex-nft-usage`).
 
-1. Register in `buildKasparexGlobalNftUsage` (live override + localStorage reader).
-2. Call `assertNftRefGloballyFree` in the assign path before persist.
-3. Pass the correct live slots into `useKasparexGlobalNftUsage` and the matching `currentContext` into `KasparexNftSlotSelector`.
-4. Dispatch `kasparex-nft-usage` after assign/remove so other open panels refresh.
-
-## Do this
-
-- Lock used NFTs in the modal ("In use" + "Already slotted in: …"). Current slot stays selectable/removable.
-- Reject assign even if the UI is bypassed (`assertNftRefGloballyFree`).
-- Normalize refs as `COLLECTION#tokenId` (uppercase collection).
-- Read Diamond Veins via `diamondVeinsStorageKey(address)`, never the bare guest key alone.
+**Do not** edit a per-game switch list for new games. Registry sync is the automatic recognition path.
 
 ## Do not
 
-- Pass Cipher wardens as `precisionOperative` (or any wrong live override that hides another game).
-- Rely on the modal alone without an assign-time assert.
-- Allow "move" by silently double-slotting; user must remove from the first slot first.
-- Invent a second picker that ignores `inUseRefs` / global usage.
+- Allow the same NFT in two slots Hub-wide.
+- Pass the wrong live override (e.g. Cipher as `precisionOperative`).
+- Rely on the modal alone without assign-time assert.

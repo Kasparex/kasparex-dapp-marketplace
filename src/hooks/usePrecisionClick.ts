@@ -42,6 +42,9 @@ import {
   globalNftConflictMessage,
   normalizeNftRef,
 } from '@/lib/nft/kasparexMergedGlobalNftRefs';
+import { syncGlobalNftSlotsForEntity } from '@/lib/nft/globalNftSlotRegistry';
+import { broadcastPrecisionClickExternalPersist } from '@/lib/game/precision-click-hub';
+import { REDEEMABLE_BREAKDOWN_REFRESH_EVENT } from '@/lib/game/minecore/deduct-refinement-hub';
 
 const DEFAULT_TREASURY = process.env.NEXT_PUBLIC_GAME_TREASURY_ADDRESS || '';
 const KREX_PRIORITY_FEE_KAS = 0.001;
@@ -134,6 +137,14 @@ function saveState(state: PrecisionClickPersistedState) {
   if (typeof window === 'undefined') return;
   try {
     localStorage.setItem(storageKey(state.walletAddress), JSON.stringify({ ...state, updatedAt: Date.now() }));
+    syncGlobalNftSlotsForEntity({
+      wallet: state.walletAddress,
+      entityType: 'precision-click',
+      entityId: 'sync-operative',
+      href: '/games/precision-click',
+      labelFor: (idx) => `Precision Click · Sync Operative #${idx + 1}`,
+      slots: state.operativeSlots ?? [],
+    });
   } catch {
     /* ignore */
   }
@@ -660,7 +671,13 @@ export function usePrecisionClick() {
           ariaFragments: Math.max(0, prev.ariaFragments - amount),
           refinementPointsTotal: prev.refinementPointsTotal + points,
         }));
-        setLastSuccess(`Refined ${amount.toLocaleString()} fragments → ${points.toLocaleString()} Hub points.`);
+        broadcastPrecisionClickExternalPersist();
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new Event(REDEEMABLE_BREAKDOWN_REFRESH_EVENT));
+        }
+        setLastSuccess(
+          `Refined ${amount.toLocaleString()} fragments → ${points.toLocaleString()} Hub points on /rewards.`,
+        );
         return { points, amount };
       } finally {
         setRefining(false);

@@ -348,6 +348,8 @@ export type PrecisionShopItemDef = {
   title: string;
   category: 'Booster' | 'Item' | 'Chrono';
   description: string;
+  /** Longer hover help for shop cards. */
+  tooltip: string;
   listKas: number;
   imageSrc: string;
   /** Time-limited score/fragment multiplier while active. */
@@ -367,6 +369,8 @@ export const PRECISION_SHOP_ITEMS: PrecisionShopItemDef[] = [
     title: 'Overclock',
     category: 'Booster',
     description: '×1.1 clear payout for 60 minutes.',
+    tooltip:
+      'Timed fragment booster. While active, level clears bank 10% more Aria Fragments. Only one booster runs at a time; buying another replaces it.',
     listKas: 2,
     imageSrc: '/games/precision-click/shop/boost-overclock.svg',
     boosterMult: 1.1,
@@ -377,6 +381,8 @@ export const PRECISION_SHOP_ITEMS: PrecisionShopItemDef[] = [
     title: 'Deep Scan',
     category: 'Booster',
     description: '×1.2 clear payout for 120 minutes.',
+    tooltip:
+      'Stronger timed fragment booster (+20% clear payout for 2 hours). Replaces any currently active booster.',
     listKas: 5,
     imageSrc: '/games/precision-click/shop/boost-deep-scan.svg',
     boosterMult: 1.2,
@@ -387,6 +393,8 @@ export const PRECISION_SHOP_ITEMS: PrecisionShopItemDef[] = [
     title: 'ARIA Sync',
     category: 'Booster',
     description: '×1.3 clear payout for 180 minutes.',
+    tooltip:
+      'Top shop fragment booster (+30% clear payout for 3 hours). Replaces any currently active booster.',
     listKas: 9,
     imageSrc: '/games/precision-click/shop/boost-aria-sync.svg',
     boosterMult: 1.3,
@@ -397,6 +405,8 @@ export const PRECISION_SHOP_ITEMS: PrecisionShopItemDef[] = [
     title: 'Chrono Seal +12h',
     category: 'Chrono',
     description: 'Extend your active lock window by 12 hours. Does not reset cleared levels.',
+    tooltip:
+      'Requires an open ARIA Lock. Adds 12 hours to the lock window so you can keep playing levels. Cleared levels stay cleared. Not the same as entry Focus Extension (per-level arena time).',
     listKas: 4,
     imageSrc: '/games/precision-click/shop/boost-overclock.svg',
     extendRunMs: 12 * 60 * 60 * 1000,
@@ -406,6 +416,8 @@ export const PRECISION_SHOP_ITEMS: PrecisionShopItemDef[] = [
     title: 'Chrono Seal +24h',
     category: 'Chrono',
     description: 'Extend your active lock window by 24 hours. Does not reset cleared levels.',
+    tooltip:
+      'Requires an open ARIA Lock. Large lock-window extension. Cleared levels stay cleared.',
     listKas: 7,
     imageSrc: '/games/precision-click/shop/boost-deep-scan.svg',
     extendRunMs: 24 * 60 * 60 * 1000,
@@ -415,6 +427,8 @@ export const PRECISION_SHOP_ITEMS: PrecisionShopItemDef[] = [
     title: 'Shard Lens',
     category: 'Item',
     description: 'Next level: +1 radius on positive targets (easier clicks). 3 charges.',
+    tooltip:
+      'Consumable. Toggle on Play before starting a level. Spends 1 charge for that run and makes positive targets easier to hit (+1 click radius).',
     listKas: 1.5,
     imageSrc: '/games/precision-click/shop/item-shard-lens.svg',
     charges: 3,
@@ -425,6 +439,8 @@ export const PRECISION_SHOP_ITEMS: PrecisionShopItemDef[] = [
     title: 'Null Filter',
     category: 'Item',
     description: 'Next level: hazard progress loss halved. 2 charges.',
+    tooltip:
+      'Consumable. Toggle on Play before starting a level. Spends 1 charge for that run and halves progress lost when you hit a hazard.',
     listKas: 2.5,
     imageSrc: '/games/precision-click/shop/item-null-filter.svg',
     charges: 2,

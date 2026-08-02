@@ -100,7 +100,6 @@ export function CipherVaultsPlayPanel(props: {
   const [selectedLevel, setSelectedLevel] = useState(1);
   const [nftPickerIndex, setNftPickerIndex] = useState<number | null>(null);
   const [buySlotOpen, setBuySlotOpen] = useState(false);
-  const [hintIndex, setHintIndex] = useState<number | null>(null);
 
   const getKasPriceAfterDiscount = props.getKasPriceAfterDiscount;
   const slotUnlockKas = props.slotUnlockKas;
@@ -281,25 +280,6 @@ export function CipherVaultsPlayPanel(props: {
             ? `${activeDef?.subtitle ?? 'Solve before the level timer ends.'}`
             : 'Start a level to reveal the arena.'
         }
-        right={
-          props.activeLevel ? (
-            <button
-              type="button"
-              disabled={props.inventory.rune_hint <= 0}
-              className="k-control-btn disabled:opacity-50"
-              onClick={() => {
-                if (!props.onConsumeHint() || !props.activeLevel) return;
-                const wrong: number[] = [];
-                for (let i = 0; i < props.activeLevel.initial.length; i++) {
-                  if (props.activeLevel.initial[i] !== props.activeLevel.target[i]) wrong.push(i);
-                }
-                if (wrong.length) setHintIndex(wrong[Math.floor(Math.random() * wrong.length)]!);
-              }}
-            >
-              Rune Hint ({props.inventory.rune_hint})
-            </button>
-          ) : undefined
-        }
       >
         {props.activeLevel ? (
           <>
@@ -310,9 +290,9 @@ export function CipherVaultsPlayPanel(props: {
               moveLimit={props.activeLevel.moveLimit}
               solveMsLeft={props.activeLevelSolveMsLeft}
               fogHidden={props.activeLevel.fogHidden}
-              hintIndex={hintIndex}
+              runeHintCharges={props.inventory.rune_hint}
               retriesLeft={props.retriesLeft}
-              onHintConsumed={() => setHintIndex(null)}
+              onConsumeHint={props.onConsumeHint}
               onSealPointsDelta={props.onSealPointsDelta}
               onSolved={async (moves) => {
                 await props.onSubmit(moves);

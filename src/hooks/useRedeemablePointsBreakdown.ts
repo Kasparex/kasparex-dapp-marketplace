@@ -9,6 +9,16 @@ import {
   DIAMOND_VEINS_STORAGE_PREFIX,
   readDiamondVeinsRefinementPointsTotal,
 } from '@/lib/game/diamond-veins-hub';
+import {
+  CIPHER_VAULTS_EXTERNAL_PERSIST_EVENT,
+  readCipherVaultsRefinementPointsTotal,
+} from '@/lib/game/cipher-vaults-hub';
+import {
+  PRECISION_CLICK_EXTERNAL_PERSIST_EVENT,
+  readPrecisionClickRefinementPointsTotal,
+} from '@/lib/game/precision-click-hub';
+import { CIPHER_VAULTS_STORAGE_PREFIX } from '@/lib/game/cipher-vaults-config';
+import { PRECISION_CLICK_STORAGE_PREFIX } from '@/lib/game/precision-click/config';
 import { migrateLegacyCatalogRedemptionsOnce, sumLedgerRedeemableNet } from '@/lib/rewards/hub-ledger';
 import { KASAPEX_HUB_LEDGER_LS_PREFIX } from '@/lib/rewards/hub-ledger-storage';
 import { MINECORE_STORAGE_PREFIX } from '@/lib/game/minecore/config';
@@ -46,6 +56,8 @@ export interface UseRedeemablePointsBreakdownResult {
   ledgerNetRedeemable: number;
   minecoreRefinement: number;
   diamondVeinsRefinement: number;
+  precisionClickRefinement: number;
+  cipherVaultsRefinement: number;
   /** Authoritative hub balance from API when fetch succeeded; null if unavailable. */
   serverHubBalance: number | null;
 }
@@ -74,6 +86,8 @@ export function useRedeemablePointsBreakdown(): UseRedeemablePointsBreakdownResu
         ev.key.startsWith(`${KASAPEX_HUB_LEDGER_LS_PREFIX}:`) ||
         ev.key.startsWith(`${MINECORE_STORAGE_PREFIX}:`) ||
         ev.key.startsWith(`${DIAMOND_VEINS_STORAGE_PREFIX}:`) ||
+        ev.key.startsWith(`${PRECISION_CLICK_STORAGE_PREFIX}:`) ||
+        ev.key.startsWith(`${CIPHER_VAULTS_STORAGE_PREFIX}:`) ||
         ev.key === DIAMOND_VEINS_STORAGE_PREFIX
       ) {
         bumpWithServerSync();
@@ -82,6 +96,8 @@ export function useRedeemablePointsBreakdown(): UseRedeemablePointsBreakdownResu
     window.addEventListener('kasparex-hub-ledger', bumpWithServerSync);
     window.addEventListener(MINECORE_EXTERNAL_PERSIST_EVENT, bumpWithServerSync);
     window.addEventListener(DIAMOND_VEINS_EXTERNAL_PERSIST_EVENT, bumpWithServerSync);
+    window.addEventListener(PRECISION_CLICK_EXTERNAL_PERSIST_EVENT, bumpWithServerSync);
+    window.addEventListener(CIPHER_VAULTS_EXTERNAL_PERSIST_EVENT, bumpWithServerSync);
     window.addEventListener(REDEEMABLE_BREAKDOWN_REFRESH_EVENT, bumpLocal);
     window.addEventListener('focus', bumpWithServerSync);
     window.addEventListener('storage', onStorage);
@@ -89,6 +105,8 @@ export function useRedeemablePointsBreakdown(): UseRedeemablePointsBreakdownResu
       window.removeEventListener('kasparex-hub-ledger', bumpWithServerSync);
       window.removeEventListener(MINECORE_EXTERNAL_PERSIST_EVENT, bumpWithServerSync);
       window.removeEventListener(DIAMOND_VEINS_EXTERNAL_PERSIST_EVENT, bumpWithServerSync);
+      window.removeEventListener(PRECISION_CLICK_EXTERNAL_PERSIST_EVENT, bumpWithServerSync);
+      window.removeEventListener(CIPHER_VAULTS_EXTERNAL_PERSIST_EVENT, bumpWithServerSync);
       window.removeEventListener(REDEEMABLE_BREAKDOWN_REFRESH_EVENT, bumpLocal);
       window.removeEventListener('focus', bumpWithServerSync);
       window.removeEventListener('storage', onStorage);
@@ -115,12 +133,17 @@ export function useRedeemablePointsBreakdown(): UseRedeemablePointsBreakdownResu
         ledgerNetRedeemable: 0,
         minecoreRefinement: 0,
         diamondVeinsRefinement: 0,
+        precisionClickRefinement: 0,
+        cipherVaultsRefinement: 0,
         serverHubBalance: null,
       };
     }
     const minecoreRefinement = readMinecoreRefinementPointsTotal(addr);
     const diamondVeinsRefinement = readDiamondVeinsRefinementPointsTotal(addr);
-    const gameplayPts = minecoreRefinement + diamondVeinsRefinement;
+    const precisionClickRefinement = readPrecisionClickRefinementPointsTotal(addr);
+    const cipherVaultsRefinement = readCipherVaultsRefinementPointsTotal(addr);
+    const gameplayPts =
+      minecoreRefinement + diamondVeinsRefinement + precisionClickRefinement + cipherVaultsRefinement;
     const ledgerNet = sumLedgerRedeemableNet(addr.toLowerCase());
     const hubPts =
       serverHubBalance !== null ? Math.max(ledgerNet, serverHubBalance) : ledgerNet;
@@ -137,6 +160,16 @@ export function useRedeemablePointsBreakdown(): UseRedeemablePointsBreakdownResu
         points: diamondVeinsRefinement,
       },
       {
+        id: 'precision-click',
+        label: 'Precision Click fragments',
+        points: precisionClickRefinement,
+      },
+      {
+        id: 'cipher-vaults',
+        label: 'Cipher Vaults fragments',
+        points: cipherVaultsRefinement,
+      },
+      {
         id: 'hub_ledger',
         label: 'Rewards hub (one balance)',
         points: hubPts,
@@ -149,6 +182,8 @@ export function useRedeemablePointsBreakdown(): UseRedeemablePointsBreakdownResu
       ledgerNetRedeemable: ledgerNet,
       minecoreRefinement,
       diamondVeinsRefinement,
+      precisionClickRefinement,
+      cipherVaultsRefinement,
       serverHubBalance,
     };
   }, [addr, tick, serverHubBalance]);

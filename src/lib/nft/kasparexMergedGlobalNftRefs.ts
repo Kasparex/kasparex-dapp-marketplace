@@ -3,11 +3,19 @@ import { CIPHER_VAULTS_STORAGE_PREFIX } from '@/lib/game/cipher-vaults-config';
 import { diamondVeinsStorageKey } from '@/lib/game/diamond-veins-hub';
 import { MINECORE_STORAGE_PREFIX } from '@/lib/game/minecore/config';
 import { PRECISION_CLICK_STORAGE_PREFIX } from '@/lib/game/precision-click/config';
+import {
+  readGlobalNftSlotRegistry,
+  syncGlobalNftSlotsForEntity,
+  syncMiningSlotsToGlobalRegistry,
+} from '@/lib/nft/globalNftSlotRegistry';
 
 /**
  * HARD RULE (Hub-wide, non-negotiable):
  * One NFT may occupy at most one crew / operative / warden slot across all Kasparex games.
  * Once slotted anywhere, it is locked everywhere else until removed from that slot.
+ *
+ * Source of truth: `globalNftSlotRegistry` (auto). Known games seed/sync into it; future games
+ * only need to call `syncGlobalNftSlotsForEntity` on persist. Do not add per-game switch cases.
  */
 
 export type GlobalNftUsageRow = {
@@ -185,9 +193,55 @@ function asCrewList(
   return Array.isArray(value) ? value : value ? [value] : [];
 }
 
+/** One-time migration: seed registry from known game saves. Call from an effect, never during render. */
+export function seedKnownSurfacesIntoRegistry(wallet: string | undefined): void {
+  if (typeof window === 'undefined' || !wallet?.trim()) return;
+  const flag = `kasparex:global-nft-slots-seeded:v1:${wallet.trim().toLowerCase()}`;
+  if (localStorage.getItem(flag) === '1') return;
+
+  syncMiningSlotsToGlobalRegistry({
+    wallet,
+    entityType: 'minecore',
+    entityId: 'workers',
+    href: '/games/minecore?tab=workers',
+    slots: readMinecoreNftSlotsFromMergedStorage(wallet),
+    labelFor: (s, idx) => `Minecore (${s.type}) #${idx + 1}`,
+  });
+  syncMiningSlotsToGlobalRegistry({
+    wallet,
+    entityType: 'tycon',
+    entityId: 'mining',
+    href: '/games/diamond-mining',
+    slots: readTyconSlotsFromMergedStorage(wallet),
+    labelFor: (s, idx) => `Diamond Veins (${s.type}) #${idx + 1}`,
+  });
+  syncGlobalNftSlotsForEntity({
+    wallet,
+    entityType: 'precision-click',
+    entityId: 'sync-operative',
+    href: '/games/precision-click',
+    labelFor: (idx) => `Precision Click · Sync Operative #${idx + 1}`,
+    slots: readPrecisionOperativesFromStorage(wallet),
+  });
+  syncGlobalNftSlotsForEntity({
+    wallet,
+    entityType: 'cipher-vaults',
+    entityId: 'cipher-warden',
+    href: '/games/cipher-vaults',
+    labelFor: (idx) => `Cipher Vaults · Cipher Warden #${idx + 1}`,
+    slots: readCipherWardensFromStorage(wallet),
+  });
+  try {
+    localStorage.setItem(flag, '1');
+  } catch {
+    // ignore
+  }
+}
+
 /**
- * Merge every Hub game NFT crew surface into one usage map.
- * Pass live arrays for the surface being edited; omit to read that game from localStorage.
+ * Merge every Hub NFT slot into one usage map.
+ * Reads the auto registry first (covers all current + future games that sync).
+ * Pass live arrays for the surface being edited to overlay freshest state.
  */
 export function buildKasparexGlobalNftUsage(props: {
   payerKaspa: string | undefined;
@@ -208,63 +262,83 @@ export function buildKasparexGlobalNftUsage(props: {
     inUseRefs.add(key);
   };
 
-  const minecore =
-    props.minecoreNftSlots !== undefined
-      ? props.minecoreNftSlots
-      : readMinecoreNftSlotsFromMergedStorage(props.payerKaspa);
-  minecore.forEach((s, idx) => {
-    if (s.nftId == null || !s.collection) return;
-    push(nftRefKey(s.collection, s.nftId), {
-      entityType: 'minecore',
-      entityId: 'workers',
-      slotIndex: idx,
-      href: '/games/minecore?tab=workers',
-      label: `Minecore (${s.type}) #${idx + 1}`,
-    });
-  });
+  const dropEntity = (entityType: string, entityId: string) => {
+    for (const key of Object.keys(usageByRef)) {
+      const kept = (usageByRef[key] ?? []).filter(
+        (r) => !(r.entityType === entityType && r.entityId === entityId),
+      );
+      if (kept.length) usageByRef[key] = kept;
+      else {
+        delete usageByRef[key];
+        inUseRefs.delete(key);
+      }
+    }
+    for (const key of [...inUseRefs]) {
+      if (!(usageByRef[key]?.length)) inUseRefs.delete(key);
+    }
+  };
 
-  const tycon =
-    props.tyconSlots !== undefined
-      ? props.tyconSlots ?? []
-      : readTyconSlotsFromMergedStorage(props.payerKaspa);
-  tycon.forEach((s, idx) => {
-    if (s.nftId == null || !s.collection) return;
-    push(nftRefKey(s.collection, s.nftId), {
-      entityType: 'tycon',
-      entityId: 'mining',
-      slotIndex: idx,
-      href: '/games/diamond-mining',
-      label: `Diamond Veins (${s.type}) #${idx + 1}`,
+  for (const s of readGlobalNftSlotRegistry(props.payerKaspa)) {
+    push(s.ref, {
+      entityType: s.entityType,
+      entityId: s.entityId,
+      slotIndex: s.slotIndex,
+      href: s.href,
+      label: s.label,
     });
-  });
+  }
 
-  const ops =
-    props.precisionOperative !== undefined
-      ? asCrewList(props.precisionOperative)
-      : readPrecisionOperativesFromStorage(props.payerKaspa);
-  ops.forEach((op, idx) => {
-    const hit = usageFromCrewSlot(op, idx, {
-      entityType: 'precision-click',
-      entityId: 'sync-operative',
-      href: '/games/precision-click',
-      label: `Precision Click · Sync Operative #${idx + 1}`,
+  // Live overlays win for the surface currently being edited.
+  if (props.minecoreNftSlots !== undefined) {
+    dropEntity('minecore', 'workers');
+    props.minecoreNftSlots.forEach((s, idx) => {
+      if (s.nftId == null || !s.collection) return;
+      push(nftRefKey(s.collection, s.nftId), {
+        entityType: 'minecore',
+        entityId: 'workers',
+        slotIndex: idx,
+        href: '/games/minecore?tab=workers',
+        label: `Minecore (${s.type}) #${idx + 1}`,
+      });
     });
-    if (hit) push(hit.ref, hit.row);
-  });
-
-  const wardens =
-    props.cipherWardenSlots !== undefined
-      ? asCrewList(props.cipherWardenSlots)
-      : readCipherWardensFromStorage(props.payerKaspa);
-  wardens.forEach((w, idx) => {
-    const hit = usageFromCrewSlot(w, idx, {
-      entityType: 'cipher-vaults',
-      entityId: 'cipher-warden',
-      href: '/games/cipher-vaults',
-      label: `Cipher Vaults · Cipher Warden #${idx + 1}`,
+  }
+  if (props.tyconSlots !== undefined) {
+    dropEntity('tycon', 'mining');
+    (props.tyconSlots ?? []).forEach((s, idx) => {
+      if (s.nftId == null || !s.collection) return;
+      push(nftRefKey(s.collection, s.nftId), {
+        entityType: 'tycon',
+        entityId: 'mining',
+        slotIndex: idx,
+        href: '/games/diamond-mining',
+        label: `Diamond Veins (${s.type}) #${idx + 1}`,
+      });
     });
-    if (hit) push(hit.ref, hit.row);
-  });
+  }
+  if (props.precisionOperative !== undefined) {
+    dropEntity('precision-click', 'sync-operative');
+    asCrewList(props.precisionOperative).forEach((op, idx) => {
+      const hit = usageFromCrewSlot(op, idx, {
+        entityType: 'precision-click',
+        entityId: 'sync-operative',
+        href: '/games/precision-click',
+        label: `Precision Click · Sync Operative #${idx + 1}`,
+      });
+      if (hit) push(hit.ref, hit.row);
+    });
+  }
+  if (props.cipherWardenSlots !== undefined) {
+    dropEntity('cipher-vaults', 'cipher-warden');
+    asCrewList(props.cipherWardenSlots).forEach((w, idx) => {
+      const hit = usageFromCrewSlot(w, idx, {
+        entityType: 'cipher-vaults',
+        entityId: 'cipher-warden',
+        href: '/games/cipher-vaults',
+        label: `Cipher Vaults · Cipher Warden #${idx + 1}`,
+      });
+      if (hit) push(hit.ref, hit.row);
+    });
+  }
 
   return { usageByRef, inUseRefs };
 }
@@ -296,6 +370,7 @@ export function assertNftRefGloballyFree(opts: {
   precisionOperative?: CrewNftUsageSlot | CrewNftUsageSlot[];
   cipherWardenSlots?: CrewNftUsageSlot | CrewNftUsageSlot[];
 }): { ok: true } | { ok: false; usedIn: GlobalNftUsageRow } {
+  seedKnownSurfacesIntoRegistry(opts.payerKaspa);
   const { usageByRef } = buildKasparexGlobalNftUsage({
     payerKaspa: opts.payerKaspa,
     minecoreNftSlots: opts.minecoreNftSlots,

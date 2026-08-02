@@ -61,6 +61,7 @@ import {
   assertNftRefGloballyFree,
   globalNftConflictMessage,
 } from '@/lib/nft/kasparexMergedGlobalNftRefs';
+import { syncMiningSlotsToGlobalRegistry } from '@/lib/nft/globalNftSlotRegistry';
 
 const DEFAULT_TREASURY = process.env.NEXT_PUBLIC_GAME_TREASURY_ADDRESS || '';
 const KREX_RECHARGE_PRIORITY_FEE_KAS = 0.001;
@@ -81,10 +82,21 @@ function loadPersistedMinecore(key: string): MinecoreState | null {
   }
 }
 
-function savePersistedMinecore(key: string, state: MinecoreState) {
+function savePersistedMinecore(key: string, state: MinecoreState, walletAddr?: string) {
   if (typeof window === 'undefined') return;
   try {
     localStorage.setItem(key, JSON.stringify(state));
+    const addr = (walletAddr ?? key.split(':').slice(1).join(':')).trim();
+    if (addr) {
+      syncMiningSlotsToGlobalRegistry({
+        wallet: addr,
+        entityType: 'minecore',
+        entityId: 'workers',
+        href: '/games/minecore?tab=workers',
+        slots: state.nftSlots ?? [],
+        labelFor: (s, idx) => `Minecore (${s.type}) #${idx + 1}`,
+      });
+    }
   } catch {
     // ignore
   }

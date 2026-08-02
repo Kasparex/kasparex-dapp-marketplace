@@ -70,6 +70,8 @@ export function GameItemCard(props: {
   /** Optional content aligned right in the title row (below media). */
   titleAccessory?: React.ReactNode;
   title: string;
+  /** Hover help on the title (no ? icon). */
+  titleTooltip?: string;
   category: string;
   /** Rendered below the title row (e.g. author credit). */
   titleBelow?: ReactNode;
@@ -484,9 +486,17 @@ export function GameItemCard(props: {
 
       <KxListingCardBody className="relative z-10 flex min-h-0 flex-1 flex-col">
         <div className="mb-2 flex items-start justify-between gap-3">
-          <h3 className="min-w-0 flex-1 truncate text-[15px] font-semibold text-zinc-900 dark:text-zinc-100" title={props.title}>
-            {props.title}
-          </h3>
+          {props.titleTooltip ? (
+            <div className="min-w-0 flex-1">
+              <Tooltip content={gameTooltipRich(props.title, props.titleTooltip)}>
+                <h3 className="truncate text-[15px] font-semibold text-zinc-900 dark:text-zinc-100">{props.title}</h3>
+              </Tooltip>
+            </div>
+          ) : (
+            <h3 className="min-w-0 flex-1 truncate text-[15px] font-semibold text-zinc-900 dark:text-zinc-100" title={props.title}>
+              {props.title}
+            </h3>
+          )}
           <div className="flex shrink-0 flex-col items-end gap-1.5">
             {props.ownedCount != null ? (
               <KxBadge variant={ownedInactive ? 'zinc' : hubChrome ? 'cyan' : 'emerald'}>

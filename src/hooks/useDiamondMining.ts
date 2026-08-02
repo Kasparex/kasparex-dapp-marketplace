@@ -48,6 +48,7 @@ import {
   assertNftRefGloballyFree,
   globalNftConflictMessage,
 } from '@/lib/nft/kasparexMergedGlobalNftRefs';
+import { syncMiningSlotsToGlobalRegistry } from '@/lib/nft/globalNftSlotRegistry';
 
 export type { MiningSlot, ActiveBoost } from '@/lib/game/engine';
 
@@ -87,6 +88,14 @@ function savePersistedTycon(address: string, state: TyconGameState) {
   if (typeof window === 'undefined') return;
   try {
     localStorage.setItem(walletStorageKey(address), JSON.stringify(state));
+    syncMiningSlotsToGlobalRegistry({
+      wallet: address,
+      entityType: 'tycon',
+      entityId: 'mining',
+      href: '/games/diamond-mining',
+      slots: state.slots ?? [],
+      labelFor: (s, idx) => `Diamond Veins (${s.type}) #${idx + 1}`,
+    });
     // Drop legacy guest bucket so it cannot seed other wallets or Hub point reads.
     try {
       localStorage.removeItem(DIAMOND_VEINS_STORAGE_PREFIX);

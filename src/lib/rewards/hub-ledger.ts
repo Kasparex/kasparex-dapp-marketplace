@@ -21,6 +21,14 @@ import {
   deductDiamondVeinsRefinementPointsPersisted,
   readDiamondVeinsRefinementPointsTotal,
 } from '@/lib/game/diamond-veins-hub';
+import {
+  deductPrecisionClickRefinementPointsPersisted,
+  readPrecisionClickRefinementPointsTotal,
+} from '@/lib/game/precision-click-hub';
+import {
+  deductCipherVaultsRefinementPointsPersisted,
+  readCipherVaultsRefinementPointsTotal,
+} from '@/lib/game/cipher-vaults-hub';
 import { currentLedgerSeasonBucket } from './ledger-season';
 
 /** Client-only: dispatch after mutating persisted hub ledger */
@@ -73,8 +81,8 @@ export function appendHubLedgerEarn(args: {
 export { migrateLegacyCatalogRedemptionsOnce };
 
 /**
- * Unified catalog redemption: consumes Minecore then Diamond Veins refinement points, then hub-ledger remainder
- * so gameplay + ledger totals drop by `costPoints` exactly once.
+ * Unified catalog redemption: consumes gameplay refinement buckets (Minecore → Diamond Veins →
+ * Precision Click → Cipher Vaults), then hub-ledger remainder, so totals drop by `costPoints` once.
  */
 export function recordUnifiedCatalogRedeem(args: {
   walletKaspaL1: string;
@@ -86,14 +94,37 @@ export function recordUnifiedCatalogRedeem(args: {
   const walletLedger = (args.walletKaspaL1 ?? '').trim().toLowerCase();
   const walletGameplay = (args.walletKaspaL1 ?? '').trim();
   const cost = Math.max(0, Math.floor(args.costPoints));
+  let remaining = cost;
+
   const minecoreBefore = readMinecoreRefinementPointsTotal(walletGameplay);
-  const minecorePlan = Math.min(cost, minecoreBefore);
-  const minecoreApplied = deductMinecoreRefinementPointsPersisted(walletGameplay, minecorePlan);
-  const afterMinecore = cost - minecoreApplied;
+  const minecoreApplied = deductMinecoreRefinementPointsPersisted(
+    walletGameplay,
+    Math.min(remaining, minecoreBefore),
+  );
+  remaining -= minecoreApplied;
+
   const dvBefore = readDiamondVeinsRefinementPointsTotal(walletGameplay);
-  const dvPlan = Math.min(afterMinecore, dvBefore);
-  const dvApplied = deductDiamondVeinsRefinementPointsPersisted(walletGameplay, dvPlan);
-  const ledgerPortion = afterMinecore - dvApplied;
+  const dvApplied = deductDiamondVeinsRefinementPointsPersisted(
+    walletGameplay,
+    Math.min(remaining, dvBefore),
+  );
+  remaining -= dvApplied;
+
+  const pcBefore = readPrecisionClickRefinementPointsTotal(walletGameplay);
+  const pcApplied = deductPrecisionClickRefinementPointsPersisted(
+    walletGameplay,
+    Math.min(remaining, pcBefore),
+  );
+  remaining -= pcApplied;
+
+  const cvBefore = readCipherVaultsRefinementPointsTotal(walletGameplay);
+  const cvApplied = deductCipherVaultsRefinementPointsPersisted(
+    walletGameplay,
+    Math.min(remaining, cvBefore),
+  );
+  remaining -= cvApplied;
+
+  const ledgerPortion = remaining;
   const seasonId = args.seasonId ?? currentLedgerSeasonBucket();
 
   const id = `redeem:${walletLedger}:${args.catalogItemId}:${args.quantity}:${Date.now()}`;
@@ -112,6 +143,8 @@ export function recordUnifiedCatalogRedeem(args: {
       fullCostPoints: cost,
       minecoreRefinementDeducted: minecoreApplied,
       diamondVeinsRefinementDeducted: dvApplied,
+      precisionClickRefinementDeducted: pcApplied,
+      cipherVaultsRefinementDeducted: cvApplied,
       ledgerRedeemableDeducted: ledgerPortion,
     },
   };
