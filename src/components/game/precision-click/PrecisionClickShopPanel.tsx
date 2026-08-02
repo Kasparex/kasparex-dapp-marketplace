@@ -5,12 +5,10 @@ import { GamePanelCard } from '@/components/games/layout/GamePanelCard';
 import { GameItemCard } from '@/components/games/shop/GameItemCard';
 import { CardsFilterBar } from '@/components/games/CardsFilterBar';
 import { useGamesMainAdaptiveGrid } from '@/components/games/layout/GamesLayoutContext';
+import { useHubPayWithCatalog } from '@/hooks/useHubPayWithCatalog';
+import { fromKasEq } from '@/lib/pricing/registry';
 import { PRECISION_SHOP_ITEMS, type PrecisionShopItemId } from '@/lib/game/precision-click/config';
 import type { PrecisionClickInventory, PrecisionClickBoosterState } from '@/lib/game/precision-click/types';
-
-function krexFromKas(kas: number) {
-  return Math.max(1, Math.round(kas * 100 * 100) / 100);
-}
 
 export function PrecisionClickShopPanel(props: {
   inventory: PrecisionClickInventory;
@@ -23,6 +21,7 @@ export function PrecisionClickShopPanel(props: {
   const [searchQuery, setSearchQuery] = useState('');
   const [category, setCategory] = useState('all');
   const [sortBy, setSortBy] = useState('recommended');
+  const { pricingSnapshot } = useHubPayWithCatalog();
 
   const items = useMemo(() => {
     let list = [...PRECISION_SHOP_ITEMS];
@@ -70,6 +69,7 @@ export function PrecisionClickShopPanel(props: {
       <div className={gridClass}>
         {items.map((item) => {
           const discounted = props.getKasPriceAfterDiscount(item.listKas);
+          const krexUnit = fromKasEq(discounted, 'KREX', pricingSnapshot);
           const owned =
             item.effect === 'shard_lens'
               ? props.inventory.shard_lens
@@ -90,9 +90,14 @@ export function PrecisionClickShopPanel(props: {
                   unitPrice: discounted,
                   originalUnitPrice: item.listKas !== discounted ? item.listKas : undefined,
                 },
-                { currency: 'KREX', unitPrice: krexFromKas(discounted) },
+                {
+                  currency: 'KREX',
+                  unitPrice: krexUnit ?? 0,
+                  disabled: krexUnit == null,
+                },
               ]}
               buyLabel={props.buyBusyId === item.id ? 'Buying…' : 'Buy'}
+              buyDisabled={props.buyBusyId === item.id}
               onBuy={async ({ currency }) => {
                 await props.onBuy({
                   itemId: item.id,

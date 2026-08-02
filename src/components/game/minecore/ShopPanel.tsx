@@ -22,6 +22,8 @@ import { CALC_INGREDIENT_KAS, CALC_INGREDIENT_GRID } from '@/lib/game/minecore/c
 import { CardsFilterBar } from '@/components/games/CardsFilterBar';
 import { useGamesMainAdaptiveGrid } from '@/components/games/layout/GamesLayoutContext';
 import { MinecoreOwnedIngredientsPanel } from '@/components/game/minecore/MinecoreOwnedAssetsPanel';
+import { usePricingSnapshot } from '@/hooks/usePricingSnapshot';
+import type { PricingSnapshot } from '@/lib/pricing/types';
 
 const ENERGY_CELLS_SHOP_IMAGE =
   'https://static.wixstatic.com/media/de4185_932b7c7511f64810be1ee201184df698~mv2.jpg';
@@ -29,12 +31,13 @@ const ENERGY_CELLS_SHOP_IMAGE =
 function shopIngredientPriceOptions(
   ingredient: MinecoreIngredient,
   getKasPriceAfterDiscount: (unitPriceKas: number) => number,
+  pricingSnapshot?: PricingSnapshot | null,
 ) {
   const base = CALC_INGREDIENT_KAS[ingredient];
   const discountedKas = getKasPriceAfterDiscount(base);
   const out: { currency: GameItemCurrency; unitPrice: number; originalUnitPrice?: number; disabled?: boolean }[] = [
     { currency: 'KAS', unitPrice: discountedKas, originalUnitPrice: base },
-    { currency: 'KREX', unitPrice: minecoreKrexFromDiscountedKas(discountedKas) },
+    { currency: 'KREX', unitPrice: minecoreKrexFromDiscountedKas(discountedKas, pricingSnapshot) },
   ];
   const gd = CALC_INGREDIENT_GRID[ingredient];
   if (gd != null) out.push({ currency: 'GRID', unitPrice: gd });
@@ -86,6 +89,7 @@ export function ShopPanel(props: {
   const [category, setCategory] = useState('all');
   const [sortBy, setSortBy] = useState('recommended');
   const [overclockTargetSlot, setOverclockTargetSlot] = useState(0);
+  const { snapshot: pricingSnapshot } = usePricingSnapshot(['KREX']);
 
   useEffect(() => {
     const unlocked = props.plantSlots.map((p, i) => ({ p, i })).filter((x) => x.p.unlocked);
@@ -111,7 +115,7 @@ export function ShopPanel(props: {
           imageSrc="https://static.wixstatic.com/media/de4185_65544be623e24c6790937e5377e40aff~mv2.jpg"
           description="Basic crystal substrate used in fabrication."
           ownedCount={props.ingredients.crystalDust}
-          priceOptions={shopIngredientPriceOptions('crystalDust', props.getKasPriceAfterDiscount)}
+          priceOptions={shopIngredientPriceOptions('crystalDust', props.getKasPriceAfterDiscount, pricingSnapshot)}
           quantitySelector={{ min: 1, max: 999 }}
           buyLabel="Buy"
           onBuy={({ currency, quantity }) => props.onBuyIngredient({ ingredient: 'crystalDust', currency, quantity })}
@@ -133,7 +137,7 @@ export function ShopPanel(props: {
           imageSrc="https://static.wixstatic.com/media/de4185_ec643cd87ced4d668e010b8087b16f88~mv2.jpg"
           description="Structural plates for rigs and modules."
           ownedCount={props.ingredients.alloyPlates}
-          priceOptions={shopIngredientPriceOptions('alloyPlates', props.getKasPriceAfterDiscount)}
+          priceOptions={shopIngredientPriceOptions('alloyPlates', props.getKasPriceAfterDiscount, pricingSnapshot)}
           quantitySelector={{ min: 1, max: 999 }}
           buyLabel="Buy"
           onBuy={({ currency, quantity }) => props.onBuyIngredient({ ingredient: 'alloyPlates', currency, quantity })}
@@ -155,7 +159,7 @@ export function ShopPanel(props: {
           imageSrc="https://static.wixstatic.com/media/de4185_831004ef92594453bc9d67003bcc9bb8~mv2.jpg"
           description="Control mesh for machine interfaces."
           ownedCount={props.ingredients.circuitMesh}
-          priceOptions={shopIngredientPriceOptions('circuitMesh', props.getKasPriceAfterDiscount)}
+          priceOptions={shopIngredientPriceOptions('circuitMesh', props.getKasPriceAfterDiscount, pricingSnapshot)}
           quantitySelector={{ min: 1, max: 999 }}
           buyLabel="Buy"
           onBuy={({ currency, quantity }) => props.onBuyIngredient({ ingredient: 'circuitMesh', currency, quantity })}
@@ -177,7 +181,7 @@ export function ShopPanel(props: {
           imageSrc={ENERGY_CELLS_SHOP_IMAGE}
           description="Compact energy units used in power systems."
           ownedCount={props.ingredients.energyCells}
-          priceOptions={shopIngredientPriceOptions('energyCells', props.getKasPriceAfterDiscount)}
+          priceOptions={shopIngredientPriceOptions('energyCells', props.getKasPriceAfterDiscount, pricingSnapshot)}
           quantitySelector={{ min: 1, max: 999 }}
           buyLabel="Buy"
           onBuy={({ currency, quantity }) => props.onBuyIngredient({ ingredient: 'energyCells', currency, quantity })}
@@ -199,7 +203,7 @@ export function ShopPanel(props: {
           imageSrc="https://static.wixstatic.com/media/de4185_c297065d0cde4aa3ba33752207bc911b~mv2.jpg"
           description="Used in mid-tier machines, Flux Arrays, and Regen Coils."
           ownedCount={props.ingredients.fluxCoils}
-          priceOptions={shopIngredientPriceOptions('fluxCoils', props.getKasPriceAfterDiscount)}
+          priceOptions={shopIngredientPriceOptions('fluxCoils', props.getKasPriceAfterDiscount, pricingSnapshot)}
           quantitySelector={{ min: 1, max: 999 }}
           buyLabel="Buy"
           onBuy={({ currency, quantity }) => props.onBuyIngredient({ ingredient: 'fluxCoils', currency, quantity })}
@@ -221,7 +225,7 @@ export function ShopPanel(props: {
           imageSrc="https://static.wixstatic.com/media/de4185_5ea218db3f294f958c79fa9fe190aab2~mv2.jpg"
           description="Required for Orbit Siphon, Void Core Cell, reactor cores, and Hash Buffer crafts."
           ownedCount={props.ingredients.latticeWire}
-          priceOptions={shopIngredientPriceOptions('latticeWire', props.getKasPriceAfterDiscount)}
+          priceOptions={shopIngredientPriceOptions('latticeWire', props.getKasPriceAfterDiscount, pricingSnapshot)}
           quantitySelector={{ min: 1, max: 999 }}
           buyLabel="Buy"
           onBuy={({ currency, quantity }) => props.onBuyIngredient({ ingredient: 'latticeWire', currency, quantity })}
@@ -243,7 +247,7 @@ export function ShopPanel(props: {
           imageSrc="https://static.wixstatic.com/media/de4185_75405246c3884d7a9c02e8244966621b~mv2.jpg"
           description="Used for Neon-tier reactors, Prismatic assemblies, and the Stellar Forge line."
           ownedCount={props.ingredients.helixStabilizers}
-          priceOptions={shopIngredientPriceOptions('helixStabilizers', props.getKasPriceAfterDiscount)}
+          priceOptions={shopIngredientPriceOptions('helixStabilizers', props.getKasPriceAfterDiscount, pricingSnapshot)}
           quantitySelector={{ min: 1, max: 999 }}
           buyLabel="Buy"
           onBuy={({ currency, quantity }) => props.onBuyIngredient({ ingredient: 'helixStabilizers', currency, quantity })}
@@ -265,7 +269,7 @@ export function ShopPanel(props: {
           imageSrc="https://static.wixstatic.com/media/de4185_3467e302dd0c45b686a27ab66a46ae94~mv2.jpg"
           description="Key feedstock for Arc reactors and high-density containment stacks."
           ownedCount={props.ingredients.plasmaConduits}
-          priceOptions={shopIngredientPriceOptions('plasmaConduits', props.getKasPriceAfterDiscount)}
+          priceOptions={shopIngredientPriceOptions('plasmaConduits', props.getKasPriceAfterDiscount, pricingSnapshot)}
           quantitySelector={{ min: 1, max: 999 }}
           buyLabel="Buy"
           onBuy={({ currency, quantity }) => props.onBuyIngredient({ ingredient: 'plasmaConduits', currency, quantity })}
@@ -287,7 +291,7 @@ export function ShopPanel(props: {
           imageSrc="https://static.wixstatic.com/media/de4185_ff7e325bd34f4a4c989a41f1ada65819~mv2.jpg"
           description="Critical for Nexus reactors, advanced bundles, and anomaly-hardened sinks."
           ownedCount={props.ingredients.quantumAttuners}
-          priceOptions={shopIngredientPriceOptions('quantumAttuners', props.getKasPriceAfterDiscount)}
+          priceOptions={shopIngredientPriceOptions('quantumAttuners', props.getKasPriceAfterDiscount, pricingSnapshot)}
           quantitySelector={{ min: 1, max: 999 }}
           buyLabel="Buy"
           onBuy={({ currency, quantity }) => props.onBuyIngredient({ ingredient: 'quantumAttuners', currency, quantity })}
@@ -309,7 +313,7 @@ export function ShopPanel(props: {
           imageSrc="https://static.wixstatic.com/media/de4185_ff5402a614c348cb9df571d98e4d197a~mv2.jpg"
           description="Feeds Stellar Forge blueprints and other void-touched high-power crafts."
           ownedCount={props.ingredients.voidglassFilaments}
-          priceOptions={shopIngredientPriceOptions('voidglassFilaments', props.getKasPriceAfterDiscount)}
+          priceOptions={shopIngredientPriceOptions('voidglassFilaments', props.getKasPriceAfterDiscount, pricingSnapshot)}
           quantitySelector={{ min: 1, max: 999 }}
           buyLabel="Buy"
           onBuy={({ currency, quantity }) => props.onBuyIngredient({ ingredient: 'voidglassFilaments', currency, quantity })}
@@ -331,7 +335,7 @@ export function ShopPanel(props: {
           imageSrc="https://static.wixstatic.com/media/de4185_797d265c76e0465ba03f08dc3a8307f6~mv2.jpg"
           description="Dense crystalline shards for orbit-class rigs and deep batteries."
           ownedCount={props.ingredients.coreShards}
-          priceOptions={shopIngredientPriceOptions('coreShards', props.getKasPriceAfterDiscount)}
+          priceOptions={shopIngredientPriceOptions('coreShards', props.getKasPriceAfterDiscount, pricingSnapshot)}
           quantitySelector={{ min: 1, max: 999 }}
           buyLabel="Buy"
           onBuy={({ currency, quantity }) => props.onBuyIngredient({ ingredient: 'coreShards', currency, quantity })}
@@ -353,7 +357,7 @@ export function ShopPanel(props: {
           imageSrc="https://static.wixstatic.com/media/de4185_8d65b863efe34a5d8d69d46e3abeb6a4~mv2.jpg"
           description="Thermal transfer gel for Flux Arrays and cooling modules."
           ownedCount={props.ingredients.coolingGel}
-          priceOptions={shopIngredientPriceOptions('coolingGel', props.getKasPriceAfterDiscount)}
+          priceOptions={shopIngredientPriceOptions('coolingGel', props.getKasPriceAfterDiscount, pricingSnapshot)}
           quantitySelector={{ min: 1, max: 999 }}
           buyLabel="Buy"
           onBuy={({ currency, quantity }) => props.onBuyIngredient({ ingredient: 'coolingGel', currency, quantity })}
@@ -375,7 +379,7 @@ export function ShopPanel(props: {
           imageSrc="https://static.wixstatic.com/media/de4185_5b35036fe4a94ba3ba3a36dd2e511f01~mv2.jpg"
           description="Analog resonance chips for ARIA Sensors and fusion crafts."
           ownedCount={props.ingredients.ariaChips}
-          priceOptions={shopIngredientPriceOptions('ariaChips', props.getKasPriceAfterDiscount)}
+          priceOptions={shopIngredientPriceOptions('ariaChips', props.getKasPriceAfterDiscount, pricingSnapshot)}
           quantitySelector={{ min: 1, max: 999 }}
           buyLabel="Buy"
           onBuy={({ currency, quantity }) => props.onBuyIngredient({ ingredient: 'ariaChips', currency, quantity })}
@@ -397,7 +401,7 @@ export function ShopPanel(props: {
           imageSrc="https://static.wixstatic.com/media/de4185_120a35c13a194530b144a0fc36538315~mv2.jpg"
           description="Volatile null-state fragments for hash buffers and void tech."
           ownedCount={props.ingredients.nullFragments}
-          priceOptions={shopIngredientPriceOptions('nullFragments', props.getKasPriceAfterDiscount)}
+          priceOptions={shopIngredientPriceOptions('nullFragments', props.getKasPriceAfterDiscount, pricingSnapshot)}
           quantitySelector={{ min: 1, max: 999 }}
           buyLabel="Buy"
           onBuy={({ currency, quantity }) => props.onBuyIngredient({ ingredient: 'nullFragments', currency, quantity })}
@@ -420,7 +424,7 @@ export function ShopPanel(props: {
           description="Circuit mesh, energy cells, flux coils, helix braces, and plasma conduits - craft reactors in Build."
           priceOptions={[
             { currency: 'KAS', unitPrice: props.getKasPriceAfterDiscount(42), originalUnitPrice: 42 },
-            { currency: 'KREX', unitPrice: minecoreKrexFromDiscountedKas(props.getKasPriceAfterDiscount(42)) },
+            { currency: 'KREX', unitPrice: minecoreKrexFromDiscountedKas(props.getKasPriceAfterDiscount(42), pricingSnapshot) },
           ]}
           quantitySelector={{ min: 1, max: 99 }}
           buyLabel="Buy"
@@ -446,7 +450,7 @@ export function ShopPanel(props: {
           description="Lattice wire, shards, null fragments, flux coils, quantum attuners, and voidglass."
           priceOptions={[
             { currency: 'KAS', unitPrice: props.getKasPriceAfterDiscount(88), originalUnitPrice: 88 },
-            { currency: 'KREX', unitPrice: minecoreKrexFromDiscountedKas(props.getKasPriceAfterDiscount(88)) },
+            { currency: 'KREX', unitPrice: minecoreKrexFromDiscountedKas(props.getKasPriceAfterDiscount(88), pricingSnapshot) },
           ]}
           quantitySelector={{ min: 1, max: 99 }}
           buyLabel="Buy"
@@ -491,6 +495,7 @@ export function ShopPanel(props: {
               currency: 'KREX',
               unitPrice: minecoreKrexFromDiscountedKas(
                 props.getKasPriceAfterDiscount(MINECORE_KAS_OVERCLOCK_SHOP_KAS),
+                pricingSnapshot,
               ),
             },
           ]}
@@ -527,11 +532,13 @@ export function ShopPanel(props: {
             { label: 'Duration', value: '1 hour active', color: 'zinc' },
             { label: 'Slot', value: 'Module · premium/advanced', color: 'zinc' },
           ]}
+          listPriceKas={props.getKasPriceAfterDiscount(MINECORE_KREX_BOOST_SHOP_KAS)}
           priceOptions={[
             {
               currency: 'KREX',
               unitPrice: minecoreKrexFromDiscountedKas(
                 props.getKasPriceAfterDiscount(MINECORE_KREX_BOOST_SHOP_KAS),
+                pricingSnapshot,
               ),
             },
           ]}
@@ -577,7 +584,7 @@ export function ShopPanel(props: {
               },
               {
                 currency: 'KREX',
-                unitPrice: minecoreKrexFromDiscountedKas(props.getKasPriceAfterDiscount(slot0List)),
+                unitPrice: minecoreKrexFromDiscountedKas(props.getKasPriceAfterDiscount(slot0List), pricingSnapshot),
               },
             ]}
             quantitySelector={{ min: 1, max: 10 }}
@@ -612,6 +619,7 @@ export function ShopPanel(props: {
               currency: 'KREX',
               unitPrice: minecoreKrexFromDiscountedKas(
                 props.getKasPriceAfterDiscount(MINECORE_STABILITY_PATCH_LIST_KAS),
+                pricingSnapshot,
               ),
             },
           ]}

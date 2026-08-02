@@ -6,7 +6,9 @@ import { isValidKaspaAddress } from '@/lib/kaspa/sdk';
 import { signKrc20Transfer } from '@/lib/kaspa/l1WalletActions';
 import { payKaspaL1, recordL1Reward, verifyKaspaL1Payment } from '@/lib/games/sdk';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
+import { usePricingSnapshot } from '@/hooks/usePricingSnapshot';
 import { applyKrexFeeDiscount } from '@/lib/hub/applyKrexFeeDiscount';
+import { resolveTokenAmountFromKas } from '@/lib/pricing/registry';
 import { KRC20_TRANSFER_TYPE, KREX_DECIMALS } from '@/lib/game/diamond-veins-config';
 import { classifyNftSlotRarity } from '@/lib/nft/nft-slot-rarity';
 import {
@@ -38,7 +40,6 @@ import type { MiningSlotType } from '@/lib/game/engine/types';
 
 const DEFAULT_TREASURY = process.env.NEXT_PUBLIC_GAME_TREASURY_ADDRESS || '';
 const KREX_PRIORITY_FEE_KAS = 0.001;
-const KREX_PER_KAS = 100;
 
 function storageKey(address: string) {
   return `${PRECISION_CLICK_STORAGE_PREFIX}:${address.trim().toLowerCase()}`;
@@ -146,6 +147,7 @@ function isRunActive(state: PrecisionClickPersistedState, now = Date.now()): boo
 export function usePrecisionClick() {
   const { state: wallet } = useKaspaWallet();
   const { tier: krexTier, l1Balance: krexL1Balance } = useKREXBalance();
+  const { snapshot: pricingSnapshot } = usePricingSnapshot(['KREX']);
   const walletAddr = wallet.address?.trim() || '';
 
   const [state, setState] = useState<PrecisionClickPersistedState>(() => createEmptyPrecisionState(''));
@@ -326,7 +328,8 @@ export function usePrecisionClick() {
       try {
         let txHash = '';
         if (args.currency === 'KREX') {
-          const paid = await payKrex({ amountKrex: payKasAmount * KREX_PER_KAS, skuId: 'precision-click:entry' });
+          const amountKrex = resolveTokenAmountFromKas(payKasAmount, 'KREX', pricingSnapshot);
+          const paid = await payKrex({ amountKrex, skuId: 'precision-click:entry' });
           if (!paid.ok) {
             setLastError(paid.error);
             return false;
@@ -366,7 +369,7 @@ export function usePrecisionClick() {
         setPaying(false);
       }
     },
-    [walletAddr, addonListKas, entryListKas, getKasPriceAfterDiscount, payKrex, payKas, persist],
+    [walletAddr, addonListKas, entryListKas, getKasPriceAfterDiscount, payKrex, payKas, persist, pricingSnapshot],
   );
 
   const buyShopItem = useCallback(
@@ -390,7 +393,7 @@ export function usePrecisionClick() {
         let txHash = '';
         if (args.currency === 'KREX') {
           const paid = await payKrex({
-            amountKrex: payKasAmount * KREX_PER_KAS,
+            amountKrex: resolveTokenAmountFromKas(payKasAmount, 'KREX', pricingSnapshot),
             skuId: `precision-click:shop:${args.itemId}`,
           });
           if (!paid.ok) {
@@ -453,6 +456,7 @@ export function usePrecisionClick() {
       walletAddr,
       liveState,
       expireRunIfNeeded,
+      pricingSnapshot,
     ],
   );
 

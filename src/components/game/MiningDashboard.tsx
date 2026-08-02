@@ -361,7 +361,7 @@ export function MiningDashboard({
               consumables={consumables}
               onBuyKrex={async (item, quantity) => {
                 try {
-                  await buyBoost(item.id, item.name, item.price, item.type, item.mult, quantity);
+                  await buyBoost(item.id, item.name, item.priceKAS, item.type, item.mult, quantity);
                   setPurchaseSuccess(item.name);
                   setTimeout(() => setPurchaseSuccess(null), 5000);
                 } catch {

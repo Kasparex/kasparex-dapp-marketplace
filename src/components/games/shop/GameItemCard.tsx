@@ -11,9 +11,13 @@ import { KxBadge } from '@/components/ui/KxBadge';
 import { gameTooltipRich } from '@/components/games/gameTooltipRich';
 import type { HubCurrencyCatalogEntry } from '@/lib/payments/currencyCatalog';
 import type { HubPaymentCurrencyOption } from '@/lib/payments/hubPaymentTypes';
+import { fromKasEq } from '@/lib/pricing/registry';
 
 /** Qty input fill only (Pay With keeps its own border chrome). */
 const QTY_INPUT_FILL = 'bg-zinc-50 dark:bg-zinc-950/50';
+
+/** Currencies priced in their own units (not Hub KAS FX). */
+const NON_HUB_FX_CURRENCIES = new Set(['GRID', 'TICKET', 'PTS', 'POINTS']);
 
 export type GameItemCurrency = 'KAS' | 'KREX' | 'GRID' | 'TICKET' | string;
 
@@ -122,6 +126,11 @@ export function GameItemCard(props: {
     pointsSpend: number;
     currency: GameItemCurrency;
   }) => ReactNode;
+  /**
+   * KAS list unit used for Hub FX when `priceOptions` has no KAS row (e.g. KREX-only SKUs).
+   * Catalog and Select currency convert from this amount.
+   */
+  listPriceKas?: number;
   /** Disable buy button (eg payment unavailable). */
   buyDisabled?: boolean;
   buyLabel?: string;
@@ -169,32 +178,51 @@ export function GameItemCard(props: {
 
   const quantity = qtyCommitted;
 
-  const unit = selected?.unitPrice ?? 0;
-  const originalUnit = selected?.originalUnitPrice;
-  const total = unit * quantity;
-  const originalTotal = originalUnit != null ? originalUnit * quantity : undefined;
-  const hasDiscount = originalTotal != null && originalTotal > total + 1e-9;
-
   /** Catalog FX must always start from the KAS list price, never the selected token total. */
   const kasUnitPrice =
     options.find((o) => String(o.currency).toUpperCase() === 'KAS')?.unitPrice ??
-    (String(selected?.currency ?? '').toUpperCase() === 'KAS' ? unit : 0);
-  const amountKasForCatalog = Math.max(0, (kasUnitPrice ?? 0) * quantity);
+    (props.listPriceKas != null && props.listPriceKas > 0 ? props.listPriceKas : 0);
+  const amountKasForCatalog = Math.max(0, kasUnitPrice * quantity);
 
-  const listingAccent = props.kxListingAccent ?? 'games';
+  const listingAccent = props.kxListingAccent ?? 'game';
   const hubChrome = listingAccent === 'hub' || listingAccent === 'store';
   /** Pay With fill only; keep k-control-btn border chrome. */
   const hubCurrencyTriggerClass =
     '!bg-zinc-50 hover:!bg-zinc-100 dark:!bg-zinc-950/50 dark:hover:!bg-zinc-900';
-  const { catalogEntries: publicCatalog } = useHubPayWithCatalog({
+  const { catalogEntries: publicCatalog, pricingSnapshot } = useHubPayWithCatalog({
     amountKas: amountKasForCatalog > 0 ? amountKasForCatalog : undefined,
   });
+
+  /** Hub market FX unit price when currency converts from KAS; else null (use option unitPrice). */
+  const hubFxUnitPrice = (currency: GameItemCurrency): number | null => {
+    const cur = String(currency).trim().toUpperCase();
+    if (!cur || cur === 'KAS' || NON_HUB_FX_CURRENCIES.has(cur)) return null;
+    if (!(kasUnitPrice > 0)) return null;
+    return fromKasEq(kasUnitPrice, cur, pricingSnapshot);
+  };
+
+  const unit = (() => {
+    const fx = selected ? hubFxUnitPrice(selected.currency) : null;
+    if (fx != null && Number.isFinite(fx)) return fx;
+    return selected?.unitPrice ?? 0;
+  })();
+  const originalUnit = selected?.originalUnitPrice;
+  const total = unit * quantity;
+  const originalTotal =
+    originalUnit != null && String(selected?.currency ?? '').toUpperCase() === 'KAS'
+      ? originalUnit * quantity
+      : undefined;
+  const hasDiscount = originalTotal != null && originalTotal > total + 1e-9;
+
   const hubPayCatalog = useMemo(() => {
     const optionIds = new Set(options.map((o) => String(o.currency).toUpperCase()));
     const shopLabel = (currency: string): string | undefined => {
       const opt = options.find((o) => String(o.currency).toUpperCase() === currency.toUpperCase());
-      if (opt?.unitPrice == null) return undefined;
-      return `${formatGameItemPriceAmount(opt.currency, opt.unitPrice * quantity)} ${formatCurrencyTicker(opt.currency)}`;
+      if (!opt) return undefined;
+      const fx = hubFxUnitPrice(opt.currency);
+      const per = fx != null && Number.isFinite(fx) ? fx : opt.unitPrice;
+      if (per == null) return undefined;
+      return `${formatGameItemPriceAmount(opt.currency, per * quantity)} ${formatCurrencyTicker(opt.currency)}`;
     };
     const fromPublic = publicCatalog
       .filter((entry) => {
@@ -205,9 +233,11 @@ export function GameItemCard(props: {
         return optionIds.has(entry.id.toUpperCase());
       })
       .map((entry) => {
+        // Prefer live Hub FX from the KAS list (same rail as Hub payments).
         const tick = entry.tick ?? entry.id;
-        const label = shopLabel(tick) ?? shopLabel(entry.id) ?? entry.amountLabel;
-        return label ? { ...entry, amountLabel: label } : entry;
+        const label = shopLabel(tick) ?? shopLabel(entry.id);
+        if (label) return { ...entry, amountLabel: label };
+        return entry;
       });
     const extras: HubCurrencyCatalogEntry[] = options
       .filter((o) => !fromPublic.some((e) => e.id.toUpperCase() === String(o.currency).toUpperCase()))
@@ -218,13 +248,11 @@ export function GameItemCard(props: {
         tick: String(o.currency),
         status: o.disabled ? ('locked' as const) : ('available' as const),
         detail: 'Shop currency',
-        amountLabel:
-          o.unitPrice != null
-            ? `${formatGameItemPriceAmount(o.currency, o.unitPrice * quantity)} ${formatCurrencyTicker(o.currency)}`
-            : undefined,
+        amountLabel: shopLabel(String(o.currency)),
       }));
     return [...fromPublic, ...extras];
-  }, [options, publicCatalog, quantity]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- hubFxUnitPrice closes over kas + snapshot
+  }, [options, publicCatalog, quantity, kasUnitPrice, pricingSnapshot]);
 
   const handleHubCurrencySelect = (option: HubPaymentCurrencyOption) => {
     const id = option.tick ?? option.id;

@@ -3,7 +3,9 @@
 import { useState, useEffect, useLayoutEffect, useMemo, useCallback, useRef } from 'react';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useKaspaBalance } from '@/hooks/useKaspaBalance';
-import { useKREXBalance } from '@/hooks/useKREXBalance';
+import { useKREXBalance } from '@/hooks/useKREXBalance'
+import { usePricingSnapshot } from '@/hooks/usePricingSnapshot'
+import { resolveTokenAmountFromKas } from '@/lib/pricing/registry';
 import type { BonusType } from '@/lib/game/diamond-bonuses';
 import { getNFTTier } from '@/lib/game/diamond-bonuses';
 import {
@@ -149,6 +151,7 @@ export function useDiamondMining() {
   const { state: walletState } = useKaspaWallet();
   const { balanceInKas, refresh: refreshKasBalance, isLoading: kasBalanceHookLoading } = useKaspaBalance();
   const { balance: krexBalance, l1Balance: krexL1Balance, tier: krexTier } = useKREXBalance();
+  const { snapshot: pricingSnapshot } = usePricingSnapshot(['KREX']);
 
   const walletAddr = walletState.address?.trim() ?? '';
 
@@ -586,13 +589,18 @@ export function useDiamondMining() {
     async (
       itemId: string,
       name: string,
-      priceKrex: number,
+      priceKAS: number,
       type: BonusType,
       multiplier: number,
       quantity = 1,
     ) => {
       const qty = Math.max(1, Math.floor(quantity));
-      const totalKrex = priceKrex * qty;
+      const unitKrex = resolveTokenAmountFromKas(
+        getKasPriceAfterDiscount(priceKAS),
+        'KREX',
+        pricingSnapshot,
+      );
+      const totalKrex = unitKrex * qty;
       const canPayL1 = walletState.isConnected && canPayWithL1 && walletState.provider;
       if (!canPayL1) return;
       if (krexL1Balance < totalKrex) return;
@@ -612,7 +620,15 @@ export function useDiamondMining() {
         setBuyingItemId(null);
       }
     },
-    [walletState.isConnected, canPayWithL1, walletState.provider, krexL1Balance, applyGaragePurchase],
+    [
+      walletState.isConnected,
+      canPayWithL1,
+      walletState.provider,
+      krexL1Balance,
+      applyGaragePurchase,
+      getKasPriceAfterDiscount,
+      pricingSnapshot,
+    ],
   );
 
   const buyBoostWithKAS = useCallback(
@@ -673,7 +689,8 @@ export function useDiamondMining() {
           if (!paid.ok) return false;
         } else {
           if (!canPayWithL1 || !walletState.provider) return false;
-          const totalKrex = item.priceKrex * qty;
+          const totalKrex =
+            resolveTokenAmountFromKas(getKasPriceAfterDiscount(item.priceKAS), 'KREX', pricingSnapshot) * qty;
           if (krexL1Balance < totalKrex) return false;
           await transferKrc20(walletState.provider, {
             tick: 'KREX',
@@ -689,7 +706,7 @@ export function useDiamondMining() {
         setBuyingItemId(null);
       }
     },
-    [payKasBestEffort, getKasPriceAfterDiscount, canPayWithL1, walletState.provider, krexL1Balance],
+    [payKasBestEffort, getKasPriceAfterDiscount, canPayWithL1, walletState.provider, krexL1Balance, pricingSnapshot],
   );
 
   const feedWorker = useCallback((slotIndex: number, itemId: DiamondVeinsConsumableId) => {

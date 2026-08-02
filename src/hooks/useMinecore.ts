@@ -39,7 +39,8 @@ import {
   REDEEMABLE_BREAKDOWN_REFRESH_EVENT,
 } from '@/lib/game/minecore/deduct-refinement-hub';
 import { payKaspaL1, recordL1Reward, verifyKaspaL1Payment } from '@/lib/games/sdk';
-import { useKREXBalance } from '@/hooks/useKREXBalance';
+import { useKREXBalance } from '@/hooks/useKREXBalance'
+import { usePricingSnapshot } from '@/hooks/usePricingSnapshot';
 import { KRC20_TRANSFER_TYPE, KREX_DECIMALS } from '@/lib/game/diamond-veins-config';
 import { applyKrexFeeDiscount } from '@/lib/hub/applyKrexFeeDiscount';
 import type { KREXTier } from '@/lib/rewards/types';
@@ -88,6 +89,7 @@ function savePersistedMinecore(key: string, state: MinecoreState) {
 export function useMinecore() {
   const { state: walletState } = useKaspaWallet();
   const { tier: krexTier, balance: krexBalance, l1Balance: krexL1Balance } = useKREXBalance();
+  const { snapshot: pricingSnapshot } = usePricingSnapshot(['KREX']);
 
   const walletAddr = walletState.address?.trim() ?? '';
 
@@ -492,7 +494,7 @@ export function useMinecore() {
       const listKas = mcRef.current.nextSlotCostKas;
       const discounted = getKasPriceAfterDiscount(listKas);
       if (currency === 'KREX') {
-        const paid = await payKrexTreasury(minecoreKrexFromDiscountedKas(discounted), {
+        const paid = await payKrexTreasury(minecoreKrexFromDiscountedKas(discounted, pricingSnapshot), {
           skuId: 'minecore:slot:expand:krex',
           recordActionType: 'expand-slot-krex',
           transactionDetail: { listKas },
@@ -516,7 +518,7 @@ export function useMinecore() {
       dispatch({ type: 'AddSlot', at: Date.now() });
       return true;
     },
-    [dispatch, payKasBestEffort, payKrexTreasury, getKasPriceAfterDiscount],
+    [dispatch, payKasBestEffort, payKrexTreasury, getKasPriceAfterDiscount, pricingSnapshot],
   );
 
   const purchaseNftDeckSlot = useCallback(
@@ -697,7 +699,7 @@ export function useMinecore() {
       const listKas = MINECORE_PLANT_REPAIR_KAS;
       const discounted = getKasPriceAfterDiscount(listKas);
       if (opts.currency === 'KREX') {
-        const paid = await payKrexTreasury(minecoreKrexFromDiscountedKas(discounted), {
+        const paid = await payKrexTreasury(minecoreKrexFromDiscountedKas(discounted, pricingSnapshot), {
           skuId: 'minecore:maintenance:krex',
           recordActionType: 'maintenance-krex',
           transactionDetail: { slotIndex, anytime: true },
@@ -721,7 +723,7 @@ export function useMinecore() {
       });
       return true;
     },
-    [dispatch, payKasBestEffort, payKrexTreasury, getKasPriceAfterDiscount],
+    [dispatch, payKasBestEffort, payKrexTreasury, getKasPriceAfterDiscount, pricingSnapshot],
   );
 
   const purchaseStabilityPatchesWithKAS = useCallback(
@@ -744,7 +746,7 @@ export function useMinecore() {
       const q = Math.max(1, Math.floor(count));
       const listKas = MINECORE_STABILITY_PATCH_LIST_KAS * q;
       const discounted = getKasPriceAfterDiscount(listKas);
-      const paid = await payKrexTreasury(minecoreKrexFromDiscountedKas(discounted), {
+      const paid = await payKrexTreasury(minecoreKrexFromDiscountedKas(discounted, pricingSnapshot), {
         skuId: 'minecore:shop:stability-patch:krex',
         recordActionType: 'stability-patch',
         transactionDetail: { count: q },
@@ -753,7 +755,7 @@ export function useMinecore() {
       dispatch({ type: 'AddStabilityPatches', count: q, at: Date.now() });
       return true;
     },
-    [dispatch, payKrexTreasury, getKasPriceAfterDiscount],
+    [dispatch, payKrexTreasury, getKasPriceAfterDiscount, pricingSnapshot],
   );
 
   const purchaseKasOverclockWithKAS = useCallback(
@@ -776,7 +778,7 @@ export function useMinecore() {
       const q = Math.max(1, Math.floor(count));
       const listKas = MINECORE_KREX_BOOST_SHOP_KAS * q;
       const discounted = getKasPriceAfterDiscount(listKas);
-      const paid = await payKrexTreasury(minecoreKrexFromDiscountedKas(discounted), {
+      const paid = await payKrexTreasury(minecoreKrexFromDiscountedKas(discounted, pricingSnapshot), {
         skuId: 'minecore:shop:krex-boost:krex',
         recordActionType: 'shop-krex-boost',
         transactionDetail: { count: q },
@@ -785,7 +787,7 @@ export function useMinecore() {
       dispatch({ type: 'GrantModuleInventory', moduleId: 'krex-boost', count: q, at: Date.now() });
       return true;
     },
-    [dispatch, payKrexTreasury, getKasPriceAfterDiscount],
+    [dispatch, payKrexTreasury, getKasPriceAfterDiscount, pricingSnapshot],
   );
 
   const purchaseKasOverclockWithKREX = useCallback(
@@ -793,7 +795,7 @@ export function useMinecore() {
       const q = Math.max(1, Math.floor(count));
       const listKas = MINECORE_KAS_OVERCLOCK_SHOP_KAS * q;
       const discounted = getKasPriceAfterDiscount(listKas);
-      const paid = await payKrexTreasury(minecoreKrexFromDiscountedKas(discounted), {
+      const paid = await payKrexTreasury(minecoreKrexFromDiscountedKas(discounted, pricingSnapshot), {
         skuId: 'minecore:shop:kas-overclock:krex',
         recordActionType: 'shop-kas-overclock',
         transactionDetail: { slotIndex, count: q },
@@ -802,7 +804,7 @@ export function useMinecore() {
       dispatch({ type: 'ApplyKasOverclock', slotIndex, count: q, at: Date.now() });
       return true;
     },
-    [dispatch, payKrexTreasury, getKasPriceAfterDiscount],
+    [dispatch, payKrexTreasury, getKasPriceAfterDiscount, pricingSnapshot],
   );
 
   const refine = useCallback(
@@ -850,7 +852,7 @@ export function useMinecore() {
       if (!slot) return false;
       const listKas = sumListKasForBatterySlotRecharge(mcRef.current, slot, indexes, minecoreComputeContext);
       const payKas = getKasPriceAfterDiscount(listKas);
-      const payKrex = payKas * MINECORE_KREX_PER_KAS;
+      const payKrex = minecoreKrexFromDiscountedKas(payKas, pricingSnapshot);
 
       const payload = {
         type: 'RechargePlant' as const,
@@ -880,7 +882,7 @@ export function useMinecore() {
       dispatch(payload);
       return true;
     },
-    [dispatch, payKasBestEffort, payKrexTreasury, getKasPriceAfterDiscount, minecoreComputeContext],
+    [dispatch, payKasBestEffort, payKrexTreasury, getKasPriceAfterDiscount, minecoreComputeContext, pricingSnapshot],
   );
 
   const rechargePlantWithKAS = useCallback(

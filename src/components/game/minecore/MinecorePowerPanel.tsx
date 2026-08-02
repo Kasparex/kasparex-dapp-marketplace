@@ -9,7 +9,7 @@ import type { MinecoreState } from '@/lib/game/minecore';
 import type { MinecoreComputeContext } from '@/lib/game/minecore/compute-context';
 import {
   MINECORE_PLANT_PRESETS,
-  MINECORE_KREX_PER_KAS,
+  minecoreKrexFromDiscountedKas,
   MINECORE_PLANT_RECHARGE_COST_KAS,
 } from '@/lib/game/minecore/config';
 import {
@@ -22,6 +22,7 @@ import { hasInstalledBattery } from '@/lib/game/minecore/battery-utils';
 import { computeFlowRatePerMin, computeLiveBatteryChargeMs, getBatteryCapacityMs, getPowerUnitCap } from '@/lib/game/minecore/compute';
 import { MinecoreVeinBreakdownByMachine } from '@/components/game/minecore/MinecoreMiningSections';
 import { useGamesMainAdaptiveGrid } from '@/components/games/layout/GamesLayoutContext';
+import { usePricingSnapshot } from '@/hooks/usePricingSnapshot';
 
 /** KAS paths use wallet sends; KREX paths use the same SKU pricing via treasury KRC-20 transfer (`payKrexTreasury`). */
 const KAS_RESERVE_PACK = 6;
@@ -41,6 +42,7 @@ export function MinecorePowerPanel(props: {
 }) {
   const { state, now } = props;
   const [targetSlot, setTargetSlot] = useState(0);
+  const { snapshot: pricingSnapshot } = usePricingSnapshot(['KREX']);
 
   const slot = state.plantSlots[targetSlot];
   const batterySyncList =
@@ -50,9 +52,9 @@ export function MinecorePowerPanel(props: {
   const runtimeBundleList =
     slot?.unlocked ? listKasForBatterySlotRecharge(props.state, slot, 0, props.computeCtx) : MINECORE_PLANT_RECHARGE_COST_KAS;
   const runtimeBundlePrice = props.getKasPriceAfterDiscount(runtimeBundleList);
-  const batterySyncPriceKrex = batterySyncPrice * MINECORE_KREX_PER_KAS;
-  const reservePackPriceKrex = reservePackPrice * MINECORE_KREX_PER_KAS;
-  const runtimeBundlePriceKrex = runtimeBundlePrice * MINECORE_KREX_PER_KAS;
+  const batterySyncPriceKrex = minecoreKrexFromDiscountedKas(batterySyncPrice, pricingSnapshot);
+  const reservePackPriceKrex = minecoreKrexFromDiscountedKas(reservePackPrice, pricingSnapshot);
+  const runtimeBundlePriceKrex = minecoreKrexFromDiscountedKas(runtimeBundlePrice, pricingSnapshot);
   const upgradeGridClass = useGamesMainAdaptiveGrid();
 
   const plantsCard = (

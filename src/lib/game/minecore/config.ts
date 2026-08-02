@@ -8,6 +8,8 @@ import type {
   MinecoreWorkerId,
   PlantType,
 } from './types';
+import { resolveTokenAmountFromKas } from '@/lib/pricing/registry';
+import type { PricingSnapshot } from '@/lib/pricing/types';
 
 export const MINECORE_STORAGE_PREFIX = 'minecore-state';
 
@@ -157,13 +159,17 @@ export const MINECORE_BATTERY_REFILL_COST_KAS = 2;
 export const MINECORE_PLANT_RECHARGE_COST_KAS = MINECORE_BATTERY_REFILL_COST_KAS;
 
 /**
- * L1 KREX per 1 KAS for Minecore shop/recharge (treasury transfers peg list KAS via tier discount, then × this rate).
+ * L1 KREX per 1 KAS fallback when Hub pricing snapshot is unavailable.
+ * Prefer `minecoreKrexFromDiscountedKas(kas, snapshot)` with live Hub FX.
  */
 export const MINECORE_KREX_PER_KAS = 7706;
 
-export function minecoreKrexFromDiscountedKas(discountedKas: number): number {
+export function minecoreKrexFromDiscountedKas(
+  discountedKas: number,
+  snapshot?: PricingSnapshot | null,
+): number {
   if (!Number.isFinite(discountedKas) || discountedKas <= 0) return 0;
-  return discountedKas * MINECORE_KREX_PER_KAS;
+  return resolveTokenAmountFromKas(discountedKas, 'KREX', snapshot);
 }
 
 /** KAS repair action - resets maintenance wear clock. */

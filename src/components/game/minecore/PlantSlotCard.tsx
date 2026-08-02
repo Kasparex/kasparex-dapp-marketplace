@@ -74,7 +74,7 @@ import {
   MINECORE_PLANT_PRESETS,
   MINECORE_PLANT_RECHARGE_COST_KAS,
   MINECORE_PLANT_TYPE_ORDER,
-  MINECORE_KREX_PER_KAS,
+  minecoreKrexFromDiscountedKas,
   MINECORE_KW_SCALE,
   MINECORE_MAINTENANCE_EARLY_REPAIR_WEAR,
   MINECORE_PLANT_REPAIR_KAS,
@@ -109,6 +109,7 @@ import {
   nextPlantTier,
 } from '@/lib/game/minecore/plant-upgrade';
 import { useState, useEffect, useMemo, useCallback, Children, type ReactNode } from 'react';
+import { usePricingSnapshot } from '@/hooks/usePricingSnapshot';
 import { createPortal } from 'react-dom';
 import * as Icons from 'lucide-react';
 import { DiamondIcon } from '@/components/games/icons/DiamondIcon';
@@ -1077,6 +1078,7 @@ export function PlantSlotCard(props: {
   const now = props.now;
   const ctx = props.minecoreComputeContext;
   const foremanInPlantCrew = minecorePlantHasForemanInCrew(props.minecoreState, s);
+  const { snapshot: pricingSnapshot } = usePricingSnapshot(['KREX']);
 
   const [activeModal, setActiveModal] = useState<'machine' | 'battery' | 'worker' | 'modules' | 'powerNode' | 'preset' | null>(null);
   const [batterySlotFocus, setBatterySlotFocus] = useState(0);
@@ -2013,7 +2015,7 @@ export function PlantSlotCard(props: {
             const sorted = [...refillSlotIndexes].sort((a, b) => a - b);
             const listKas = sumListKasForBatterySlotRecharge(props.minecoreState, s, sorted, ctx);
             const payKas = (props.getKasPriceAfterDiscount ?? ((x: number) => x))(listKas);
-            const payKrex = payKas * MINECORE_KREX_PER_KAS;
+            const payKrex = minecoreKrexFromDiscountedKas(payKas, pricingSnapshot);
             return (
               <div className="flex flex-col gap-3 sm:flex-row sm:items-stretch">
                 <GameCurrencyMenu
@@ -2061,7 +2063,7 @@ export function PlantSlotCard(props: {
           const kasRepairAllowed =
             patches >= 1 && wearRatio >= MINECORE_MAINTENANCE_EARLY_REPAIR_WEAR - 1e-9;
           const payKas = (props.getKasPriceAfterDiscount ?? ((x: number) => x))(MINECORE_PLANT_REPAIR_KAS);
-          const payKrex = payKas * MINECORE_KREX_PER_KAS;
+          const payKrex = minecoreKrexFromDiscountedKas(payKas, pricingSnapshot);
           const payDisabled = repairPayCurrency === 'KAS' ? !kasRepairAllowed : false;
           return (
             <>

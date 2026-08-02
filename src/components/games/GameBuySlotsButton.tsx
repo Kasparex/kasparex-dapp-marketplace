@@ -3,9 +3,12 @@
 import type { ButtonHTMLAttributes, ReactNode } from 'react';
 import * as Icons from 'lucide-react';
 
-/** Shared Games “Buy slots” CTA (hub-accent outline). Use across Diamond Veins, Minecore, Precision Click, etc. */
+/**
+ * Shared Games “Buy slots” CTA. Matches Diamond Veins / Minecore chrome
+ * (emerald outline + soft fill). Use this everywhere instead of one-off buttons.
+ */
 export const GAME_BUY_SLOTS_BTN_CLASS =
-  'inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-[color:var(--hub-accent)]/45 bg-[color:var(--hub-accent)]/10 px-3 py-2 text-sm font-bold text-[color:var(--hub-accent)] transition-colors hover:border-[color:var(--hub-accent)]/70 hover:bg-[color:var(--hub-accent)]/15 disabled:cursor-not-allowed disabled:opacity-50 dark:text-[color:var(--hub-accent-light,var(--hub-accent))]';
+  'inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-emerald-500/40 bg-emerald-500/10 px-3 py-2 text-sm font-bold text-emerald-800 transition-colors hover:border-emerald-500/60 hover:bg-emerald-500/15 disabled:cursor-not-allowed disabled:opacity-50 dark:text-emerald-200';
 
 export function GameBuySlotsButton(
   props: ButtonHTMLAttributes<HTMLButtonElement> & {
