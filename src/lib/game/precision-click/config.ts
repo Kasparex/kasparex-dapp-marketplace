@@ -434,12 +434,33 @@ export const PRECISION_SHOP_ITEMS: PrecisionShopItemDef[] = [
 
 /** Perks while an NFT Sync Operative is slotted. */
 export const PRECISION_OPERATIVE_PERKS = {
-  standard: { extendMs: 6 * 60 * 60 * 1000, fragmentMult: 1, missForgiveness: 1, label: 'Standard' },
-  partner: { extendMs: 8 * 60 * 60 * 1000, fragmentMult: 1.05, missForgiveness: 2, label: 'Partner' },
-  premium: { extendMs: 12 * 60 * 60 * 1000, fragmentMult: 1.1, missForgiveness: 3, label: 'Premium' },
+  standard: { extendMs: 1 * 60 * 60 * 1000, fragmentMult: 1, missForgiveness: 1, label: 'Standard' },
+  partner: { extendMs: 3 * 60 * 60 * 1000, fragmentMult: 1.05, missForgiveness: 2, label: 'Partner' },
+  /** Base Premium tier (+6h). Prefer diamond / rarest when those rarities apply. */
+  premium: { extendMs: 6 * 60 * 60 * 1000, fragmentMult: 1.1, missForgiveness: 3, label: 'Premium' },
+  /** Diamond: Premium +1h. */
+  diamond: { extendMs: 7 * 60 * 60 * 1000, fragmentMult: 1.12, missForgiveness: 3, label: 'Diamond' },
+  /** Rarest: Premium +2h. */
+  rarest: { extendMs: 8 * 60 * 60 * 1000, fragmentMult: 1.15, missForgiveness: 4, label: 'Rarest' },
 } as const;
 
 export type PrecisionOperativeTier = keyof typeof PRECISION_OPERATIVE_PERKS;
+
+/** Resolve Sync Operative tier from collection + token id. */
+export function resolvePrecisionOperativeTier(
+  collection: string,
+  tokenId: number,
+  classify: (input: { collection: string; tokenId: number }) => 'diamond' | 'rare' | 'standard',
+): PrecisionOperativeTier {
+  const c = collection.trim().toUpperCase();
+  const rarity = classify({ collection: c, tokenId });
+  if (c === 'KREXPRIME' || c === 'PIXELKREX') {
+    if (rarity === 'diamond') return 'diamond';
+    if (rarity === 'rare') return 'rarest';
+    return 'standard';
+  }
+  return 'partner';
+}
 
 /** List KAS to unlock one extra Sync Operative slot (first slot is free). */
 export const PRECISION_OPERATIVE_SLOT_UNLOCK_KAS = 10;

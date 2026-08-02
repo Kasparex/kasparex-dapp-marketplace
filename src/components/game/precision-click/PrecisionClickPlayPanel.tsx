@@ -189,7 +189,7 @@ export function PrecisionClickPlayPanel(props: {
             : `Level ${level.id} was already cleared this lock.`,
         );
       } else if (reason === 'misses') {
-        setEndReason('Too many misses. No fragments banked. Cleared levels stay locked.');
+        setEndReason('Too many missed clicks. No fragments banked. Cleared levels stay locked.');
       } else {
         setEndReason(
           `Level failed. Need ${level.clearGoal} progress (got ${progress}). No fragments banked.`,
@@ -236,19 +236,10 @@ export function PrecisionClickPlayPanel(props: {
 
     const tick = setInterval(() => {
       setTimeLeftMs((ms) => Math.max(0, ms - 100));
+      // Expired targets just despawn. Misses are wasted clicks only (empty arena / hazards).
       setTargets((t) => {
         const now = Date.now();
-        const alive: LiveTarget[] = [];
-        let expired = 0;
-        for (const a of t) {
-          if (now - a.createdAt > a.ttlMs) expired++;
-          else alive.push(a);
-        }
-        if (expired > 0) {
-          missesRef.current += expired;
-          setMisses(missesRef.current);
-        }
-        return alive;
+        return t.filter((a) => now - a.createdAt <= a.ttlMs);
       });
     }, 100);
 
@@ -444,33 +435,12 @@ export function PrecisionClickPlayPanel(props: {
                 label: 'Misses',
                 value: `${misses} / ${maxMisses}`,
                 copyable: false,
-                tooltipTitle: 'Misses',
-                tooltipDescription: 'Expired or hazard misses. Too many ends the level with no bank.',
+                tooltipTitle: 'Missed clicks',
+                tooltipDescription:
+                  'Empty-arena whiffs and hazard clicks. Expired targets do not count. Too many ends the level with no bank.',
               },
             ]}
           />
-
-          <Tooltip
-            content={gameTooltipRich(
-              'Target values',
-              'Positive targets add progress. Hazards drain it. Shard Lens enlarges positive targets.',
-            )}
-          >
-            <div className={`${KX_SURFACE_NESTED} flex flex-wrap items-center gap-3 rounded-xl p-3`}>
-              <p className="w-full text-[10px] font-bold uppercase tracking-widest text-zinc-500">Target values</p>
-              {ARIA_TARGETS.filter((t) => !t.hazard).map((t) => (
-                <span
-                  key={t.id}
-                  className="inline-flex items-center gap-2 rounded-lg border border-zinc-200 bg-white px-2.5 py-1.5 text-sm font-bold tabular-nums text-zinc-800 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
-                >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={t.imageSrc} alt="" width={20} height={20} className="rounded-md" />
-                  +{t.fragmentMult}×
-                </span>
-              ))}
-              <span className="text-sm font-semibold text-rose-600 dark:text-rose-400">Hazards drain progress</span>
-            </div>
-          </Tooltip>
 
           {endReason ? (
             <p className="rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm text-zinc-700 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-300">
@@ -480,11 +450,17 @@ export function PrecisionClickPlayPanel(props: {
 
           <div
             ref={arenaRef}
+            role="presentation"
             className="relative h-[420px] w-full overflow-hidden rounded-2xl border border-zinc-200 dark:border-zinc-800"
+            onClick={() => {
+              if (!running || finishedRef.current) return;
+              missesRef.current += 1;
+              setMisses(missesRef.current);
+            }}
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={level.scenerySrc} alt="" className="absolute inset-0 h-full w-full object-cover" />
-            <div className="absolute inset-0 bg-zinc-950/25" />
+            <img src={level.scenerySrc} alt="" className="pointer-events-none absolute inset-0 h-full w-full object-cover" />
+            <div className="pointer-events-none absolute inset-0 bg-zinc-950/25" />
 
             {!running ? (
               <div className="absolute inset-0 flex items-center justify-center">
@@ -492,7 +468,10 @@ export function PrecisionClickPlayPanel(props: {
                   type="button"
                   className="k-cta-games h-12 px-6 text-sm"
                   disabled={!unlocked}
-                  onClick={startLevel}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    startLevel();
+                  }}
                 >
                   {cleared ? `Level ${level.id} cleared` : `Start level ${level.id}`}
                 </button>
@@ -509,9 +488,15 @@ export function PrecisionClickPlayPanel(props: {
                   title={`${def.label} (${def.hazard ? '' : '+'}${def.fragmentMult}×)`}
                   className="absolute overflow-hidden rounded-full border border-white/30 shadow-lg transition-transform hover:scale-105"
                   style={{ left: t.x - t.r, top: t.y - t.r, width: t.r * 2, height: t.r * 2 }}
-                  onClick={() => {
+                  onClick={(e) => {
+                    e.stopPropagation();
                     setTargets((all) => all.filter((x) => x.id !== t.id));
-                    setHits((h) => h + 1);
+                    if (def.hazard) {
+                      missesRef.current += 1;
+                      setMisses(missesRef.current);
+                    } else {
+                      setHits((h) => h + 1);
+                    }
                     const delta = fragmentsForClick({
                       kind: t.kind,
                       levelMult: level.fragmentMult,
@@ -522,7 +507,7 @@ export function PrecisionClickPlayPanel(props: {
                     setSessionFragments((s) => {
                       const next = Math.max(0, s + delta);
                       sessionRef.current = next;
-                      if (next >= level.clearGoal) {
+                      if (!def.hazard && next >= level.clearGoal) {
                         queueMicrotask(() => finishLevel('cleared'));
                       }
                       return next;
@@ -539,13 +524,61 @@ export function PrecisionClickPlayPanel(props: {
           <div className="grid gap-3 sm:grid-cols-2">
             <Tooltip
               content={gameTooltipRich(
+                'Target values',
+                'Positive targets add progress. Shard Lens enlarges them for the next level.',
+              )}
+            >
+              <div className={`kx-metadata-stat-card ${KX_SURFACE_NESTED} flex flex-wrap items-center gap-3 rounded-xl p-3`}>
+                <p className="w-full text-[10px] font-bold uppercase tracking-widest text-zinc-500">Target values</p>
+                {ARIA_TARGETS.filter((t) => !t.hazard).map((t) => (
+                  <span
+                    key={t.id}
+                    className="inline-flex items-center gap-2 rounded-lg border border-zinc-200 bg-white px-2.5 py-1.5 text-sm font-bold tabular-nums text-zinc-800 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={t.imageSrc} alt="" width={20} height={20} className="rounded-md" />
+                    +{t.fragmentMult}×
+                  </span>
+                ))}
+              </div>
+            </Tooltip>
+            <Tooltip
+              content={gameTooltipRich(
+                'Hazards',
+                'Hazard clicks drain progress and count as missed clicks. Let them expire safely.',
+              )}
+            >
+              <div
+                className={`kx-metadata-stat-card flex flex-wrap items-center gap-3 rounded-xl border border-rose-300/70 bg-rose-50/80 p-3 dark:border-rose-500/40 dark:bg-rose-950/30`}
+              >
+                <p className="w-full text-[10px] font-bold uppercase tracking-widest text-rose-700 dark:text-rose-300">
+                  Hazards
+                </p>
+                {ARIA_TARGETS.filter((t) => t.hazard).map((t) => (
+                  <span
+                    key={t.id}
+                    className="inline-flex items-center gap-2 rounded-lg border border-rose-300/80 bg-white/90 px-2.5 py-1.5 text-sm font-bold tabular-nums text-rose-700 dark:border-rose-500/50 dark:bg-zinc-950 dark:text-rose-300"
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={t.imageSrc} alt="" width={20} height={20} className="rounded-md" />
+                    {t.fragmentMult}×
+                  </span>
+                ))}
+                <span className="text-sm font-semibold text-rose-700 dark:text-rose-300">
+                  Drain progress · count as misses
+                </span>
+              </div>
+            </Tooltip>
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-2">
+            <Tooltip
+              content={gameTooltipRich(
                 'Shard Lens',
                 'Spend one charge to enlarge positive targets on the next level start.',
               )}
             >
-              <div
-                className={`${KX_SURFACE_NESTED} rounded-xl border border-transparent p-4 transition-colors hover:border-[color:var(--hub-accent)]`}
-              >
+              <div className={`kx-metadata-stat-card ${KX_SURFACE_NESTED} rounded-xl p-4`}>
                 <ToggleSwitch
                   checked={useShardLens}
                   onChange={setUseShardLens}
@@ -561,9 +594,7 @@ export function PrecisionClickPlayPanel(props: {
                 'Spend one charge to halve hazard drain on the next level start.',
               )}
             >
-              <div
-                className={`${KX_SURFACE_NESTED} rounded-xl border border-transparent p-4 transition-colors hover:border-[color:var(--hub-accent)]`}
-              >
+              <div className={`kx-metadata-stat-card ${KX_SURFACE_NESTED} rounded-xl p-4`}>
                 <ToggleSwitch
                   checked={useNullFilter}
                   onChange={setUseNullFilter}
@@ -589,8 +620,9 @@ export function PrecisionClickPlayPanel(props: {
             }
           >
             <p className="mb-4 text-sm text-zinc-600 dark:text-zinc-400">
-              Slot a Krex deck NFT as your Sync Operative. Standard adds +6h, Partner +8h with mild perks, Premium
-              (Diamond) +12h with stronger fragment and miss bonuses. NFTs already assigned elsewhere stay locked here.
+              Slot a Krex deck NFT as your Sync Operative. Standard adds +1h, Partner +3h, Premium +6h. Diamond is +7h
+              (6+1), Rarest +8h (6+2), with stronger fragment and miss bonuses. NFTs already assigned elsewhere stay locked
+              here.
             </p>
             <div className="space-y-4">
               {props.operativeSlots.map((operative, idx) => {
@@ -629,9 +661,13 @@ export function PrecisionClickPlayPanel(props: {
                               <span className="rounded-full border border-sky-500/40 bg-sky-500/15 px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wide text-sky-800 dark:text-sky-300">
                                 {operativeLabel}
                               </span>
-                              {operative.tier === 'premium' ? (
+                              {operative.tier === 'diamond' || operative.tier === 'rarest' || operative.tier === 'premium' ? (
                                 <span className="rounded-full bg-amber-500/20 px-2 py-0.5 text-[10px] font-bold uppercase text-amber-700 dark:text-amber-300">
-                                  Premium
+                                  {operative.tier === 'rarest'
+                                    ? 'Rarest'
+                                    : operative.tier === 'diamond'
+                                      ? 'Diamond'
+                                      : 'Premium'}
                                 </span>
                               ) : null}
                             </div>
@@ -661,7 +697,6 @@ export function PrecisionClickPlayPanel(props: {
                                 ×{PRECISION_OPERATIVE_PERKS[operative.tier].fragmentMult} clear
                               </KxBadge>
                             </div>
-                            <p className="text-xs text-zinc-500 dark:text-zinc-400">{operative.nftRef}</p>
                           </>
                         ) : (
                           <div className="flex h-full min-h-[7rem] flex-col justify-center">

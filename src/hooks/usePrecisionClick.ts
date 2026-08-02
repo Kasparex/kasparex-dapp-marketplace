@@ -22,6 +22,7 @@ import {
   bankFragmentsForClear,
   getPrecisionLevel,
   getPrecisionShopItem,
+  resolvePrecisionOperativeTier,
   type PrecisionAddonId,
   type PrecisionOperativeTier,
   type PrecisionShopItemId,
@@ -44,14 +45,20 @@ function storageKey(address: string) {
 }
 
 function mapRarityToOperativeTier(collection: string, tokenId: number): PrecisionOperativeTier {
-  const c = collection.trim().toUpperCase();
-  const rarity = classifyNftSlotRarity({ collection: c, tokenId });
-  if (c === 'KREXPRIME' || c === 'PIXELKREX') {
-    if (rarity === 'diamond') return 'premium';
-    if (rarity === 'rare') return 'partner';
-    return 'standard';
-  }
-  return 'partner';
+  return resolvePrecisionOperativeTier(collection, tokenId, classifyNftSlotRarity);
+}
+
+function refreshOperativeTiers(
+  slots: Array<PrecisionOperativeSlot | null>,
+): Array<PrecisionOperativeSlot | null> {
+  return slots.map((s) =>
+    s
+      ? {
+          ...s,
+          tier: mapRarityToOperativeTier(s.collection, s.tokenId),
+        }
+      : null,
+  );
 }
 
 function filledOperatives(slots: Array<PrecisionOperativeSlot | null>): PrecisionOperativeSlot[] {
@@ -100,7 +107,7 @@ function normalizeLoaded(
     fragmentsEarnedLifetime: Math.max(0, Math.floor(parsed.fragmentsEarnedLifetime ?? 0)),
     refinementPointsTotal: Math.max(0, Math.floor(parsed.refinementPointsTotal ?? 0)),
     booster: parsed.booster ?? null,
-    operativeSlots: normalizeOperativeSlots(parsed),
+    operativeSlots: refreshOperativeTiers(normalizeOperativeSlots(parsed)),
     runExpiresAt: typeof parsed.runExpiresAt === 'number' ? parsed.runExpiresAt : null,
     entryUnlocked: Boolean(parsed.entryUnlocked),
   };

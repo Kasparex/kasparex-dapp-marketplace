@@ -212,8 +212,47 @@ export function PrecisionClickDashboard(props: {
       >
         {tab === 'overview' && (
           <article className={`${KX_PROSE} px-1 pt-6 sm:px-3 lg:px-4`}>
+            {props.loreStory?.trim() ? (
+              <>
+                <GameOverviewTitleBlock
+                  as="h2"
+                  kicker="Lore"
+                  title="From the field"
+                  subtitle="ARIA Lock story and world context."
+                />
+                {props.loreStory
+                  .trim()
+                  .split(/\n\s*\n+/)
+                  .map((para) => para.trim())
+                  .filter(Boolean)
+                  .map((para) => (
+                    <p key={para.slice(0, 48)} className={KX_PROSE_PARAGRAPH}>
+                      {para}
+                    </p>
+                  ))}
+                <GameOverviewTip title="World tip">
+                  Browse{' '}
+                  <Link href="/chronicles/chapters" className={GAME_OVERVIEW_ACCENT_LINK}>
+                    Chronicles chapters
+                  </Link>{' '}
+                  and{' '}
+                  <Link href="/chronicles/characters" className={GAME_OVERVIEW_ACCENT_LINK}>
+                    character dossiers
+                  </Link>{' '}
+                  for ARIA, Krex, Vector, and Tessa lore.
+                </GameOverviewTip>
+              </>
+            ) : (
+              <GameOverviewTitleBlock
+                as="h2"
+                kicker="Lore"
+                title={gameName}
+                subtitle="ARIA Lock story and world context."
+              />
+            )}
+
             <GameOverviewTitleBlock
-              as="h2"
+              as="h3"
               kicker="Rewards"
               title="How rewards work"
               subtitle="ARIA Lock clears, Shop tools, and Hub refine points."
@@ -226,8 +265,8 @@ export function PrecisionClickDashboard(props: {
             </p>
             <GameOverviewTip title="Session tip">
               Clicks only fill the clear meter. Fragments bank on a successful clear (boosters, entry add-ons, and Sync
-              Operative perks multiply the bank). Chrono Seals and Sync Operative NFTs extend the lock without wiping
-              progress.
+              Operative perks multiply the bank). Misses are wasted clicks (empty arena or hazards), not expired targets.
+              Chrono Seals and Sync Operative NFTs extend the lock without wiping progress.
             </GameOverviewTip>
 
             <GameOverviewTitleBlock
@@ -257,8 +296,8 @@ export function PrecisionClickDashboard(props: {
               stay locked here.
             </p>
             <GameOverviewTip title="Operative tip">
-              Standard Sync Operatives add +6h. Partner adds +8h with mild perks. Premium (Diamond) adds +12h with stronger
-              fragment and miss bonuses.
+              Standard Sync Operatives add +1h. Partner adds +3h. Premium adds +6h. Diamond is +7h (6+1). Rarest is +8h
+              (6+2), with stronger fragment and miss bonuses.
             </GameOverviewTip>
 
             <GameOverviewTitleBlock
@@ -271,33 +310,6 @@ export function PrecisionClickDashboard(props: {
               Refine at least 1,000 Aria fragments from the Game Deck into Hub points, then spend them on the Rewards
               catalog when distribution is open.
             </p>
-            <GameOverviewTip title="World tip">
-              Browse{' '}
-              <Link href="/chronicles/chapters" className={GAME_OVERVIEW_ACCENT_LINK}>
-                Chronicles chapters
-              </Link>{' '}
-              and{' '}
-              <Link href="/chronicles/characters" className={GAME_OVERVIEW_ACCENT_LINK}>
-                character dossiers
-              </Link>{' '}
-              for ARIA, Krex, Vector, and Tessa lore.
-            </GameOverviewTip>
-
-            {props.loreStory?.trim() ? (
-              <>
-                <GameOverviewTitleBlock as="h3" kicker="Lore" title="From the field" />
-                {props.loreStory
-                  .trim()
-                  .split(/\n\s*\n+/)
-                  .map((para) => para.trim())
-                  .filter(Boolean)
-                  .map((para) => (
-                    <p key={para.slice(0, 48)} className={KX_PROSE_PARAGRAPH}>
-                      {para}
-                    </p>
-                  ))}
-              </>
-            ) : null}
           </article>
         )}
 
