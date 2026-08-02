@@ -184,7 +184,7 @@ export function GameItemCard(props: {
     (props.listPriceKas != null && props.listPriceKas > 0 ? props.listPriceKas : 0);
   const amountKasForCatalog = Math.max(0, kasUnitPrice * quantity);
 
-  const listingAccent = props.kxListingAccent ?? 'game';
+  const listingAccent = props.kxListingAccent ?? 'games';
   const hubChrome = listingAccent === 'hub' || listingAccent === 'store';
   /** Pay With fill only; keep k-control-btn border chrome. */
   const hubCurrencyTriggerClass =
