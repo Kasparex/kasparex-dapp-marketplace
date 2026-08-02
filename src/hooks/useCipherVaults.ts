@@ -51,6 +51,11 @@ import {
   countCorrect,
   type CipherMove,
 } from '@/lib/game/cipher-grid';
+import {
+  assertNftRefGloballyFree,
+  globalNftConflictMessage,
+  normalizeNftRef,
+} from '@/lib/nft/kasparexMergedGlobalNftRefs';
 
 const DEFAULT_TREASURY = CIPHER_VAULTS_TREASURY_ADDRESS;
 const KREX_PRIORITY_FEE_KAS = 0.001;
@@ -813,6 +818,18 @@ export function useCipherVaults() {
       slotIndex: number,
       slot: Omit<CipherWardenSlot, 'appliedAt' | 'tier'> & { tier?: CipherWardenTier },
     ) => {
+      const nftRef = normalizeNftRef(slot.nftRef || `${slot.collection}#${slot.tokenId}`);
+      const exclusivity = assertNftRefGloballyFree({
+        payerKaspa: walletAddr,
+        collection: slot.collection,
+        tokenId: slot.tokenId,
+        exclude: { entityType: 'cipher-vaults', entityId: 'cipher-warden', slotIndex },
+        cipherWardenSlots: state.wardenSlots,
+      });
+      if (!exclusivity.ok) {
+        setLastError(globalNftConflictMessage(exclusivity.usedIn));
+        return;
+      }
       const wTier = slot.tier ?? mapRarityToWardenTier(slot.collection, slot.tokenId);
       const perks = CIPHER_WARDEN_PERKS[wTier];
       persist((prev) => {
@@ -821,15 +838,15 @@ export function useCipherVaults() {
         while (slots.length <= slotIndex) slots.push(null);
         const now = Date.now();
         const prevAt = slots[slotIndex];
-        const already = prevAt?.nftRef === slot.nftRef;
+        const already = prevAt?.nftRef === nftRef;
         let covenantExpiresAt = live.covenantExpiresAt;
         if (live.entryUnlocked && covenantExpiresAt && !already) {
           const prevExtend = prevAt ? CIPHER_WARDEN_PERKS[prevAt.tier].covenantExtendMs : 0;
           covenantExpiresAt = covenantExpiresAt - prevExtend + perks.covenantExtendMs;
         }
         slots[slotIndex] = {
-          nftRef: slot.nftRef,
-          collection: slot.collection,
+          nftRef,
+          collection: String(slot.collection).trim().toUpperCase(),
           tokenId: slot.tokenId,
           tier: wTier,
           imageUrl: slot.imageUrl ?? null,
@@ -855,9 +872,10 @@ export function useCipherVaults() {
       if (typeof window !== 'undefined') {
         window.dispatchEvent(new CustomEvent('kasparex-nft-usage'));
       }
+      setLastError(null);
       setLastSuccess(`Cipher Warden slotted (${CIPHER_WARDEN_PERKS[wTier].label}).`);
     },
-    [persist, expireCovenantIfNeeded],
+    [persist, expireCovenantIfNeeded, walletAddr, state.wardenSlots],
   );
 
   const clearWarden = useCallback(

@@ -10,6 +10,7 @@ import { fetchNFTMetadata } from '@/lib/nft/metadata';
 import { getCollectionById } from '@/lib/nft/collections';
 import { getBestGatewayUrl, fetchJSON } from '@/lib/ipfs/gateway';
 import { classifyNftSlotRarity, type NftSlotRarity } from '@/lib/nft/nft-slot-rarity';
+import { normalizeNftRef } from '@/lib/nft/kasparexMergedGlobalNftRefs';
 import { ChroniclesFilterDropdown } from '@/components/chronicles/ChroniclesFilterDropdown';
 import { LazyImg } from '@/components/ui/LazyImg';
 import { X } from 'lucide-react';
@@ -379,13 +380,14 @@ export function KasparexNftSlotSelector({
               ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
               {visibleNfts.map((nft) => {
-                const ref = `${nft.collection}#${nft.tokenId}`;
+                const ref = normalizeNftRef(`${nft.collection}#${nft.tokenId}`);
+                const currentNorm = currentValue ? normalizeNftRef(currentValue) : null;
                 const k = `${nft.collection}-${nft.tokenId}`;
                 const meta = visibleMetaMap[k] ?? null;
                 const imageUrl = getNFTImageUrl(meta);
                 const rarity: NftSlotRarity = classifyNftSlotRarity({ collection: nft.collection, tokenId: nft.tokenId, meta });
-                const inUse = inUseRefs.has(ref) && ref !== currentValue;
-                const equippedHere = Boolean(currentValue && ref === currentValue);
+                const inUse = inUseRefs.has(ref) && ref !== currentNorm;
+                const equippedHere = Boolean(currentNorm && ref === currentNorm);
                 const rawUsage = usageByRef[ref] ?? [];
                 const usage = rawUsage.filter((u) => {
                   if (!currentContext) return true;
@@ -422,8 +424,11 @@ export function KasparexNftSlotSelector({
                         </button>
                       ) : null}
                       {inUse ? (
-                        <span className="absolute inset-0 flex items-center justify-center bg-black/50 text-white text-xs font-bold uppercase">
-                          In use
+                        <span className="absolute inset-0 flex flex-col items-center justify-center gap-1 bg-black/55 px-2 text-center text-white">
+                          <span className="text-xs font-bold uppercase tracking-wide">In use</span>
+                          {usage[0]?.label ? (
+                            <span className="text-[10px] font-medium leading-tight opacity-95">{usage[0].label}</span>
+                          ) : null}
                         </span>
                       ) : null}
                     </div>
@@ -437,10 +442,11 @@ export function KasparexNftSlotSelector({
                       </p>
                       {inUse && usage.length > 0 ? (
                         <div className="mt-1 text-[11px] text-zinc-600 dark:text-zinc-300">
-                          <span className="font-semibold">Used in:</span>{' '}
-                          <a href={usage[0].href} target="_blank" rel="noreferrer" className="text-cyan-600 dark:text-cyan-400 hover:underline">
+                          <span className="font-semibold">Already slotted in:</span>{' '}
+                          <a href={usage[0].href} className="text-cyan-600 dark:text-cyan-400 hover:underline">
                             {usage[0].label}
                           </a>
+                          . Remove it there first.
                         </div>
                       ) : null}
                       <button
@@ -453,7 +459,7 @@ export function KasparexNftSlotSelector({
                         disabled={inUse || equippedHere}
                         className="mt-2 w-full py-2 rounded-lg text-sm font-semibold bg-emerald-500 text-white hover:bg-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 dark:focus:ring-offset-zinc-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        {inUse ? 'In use in another slot' : equippedHere ? 'Equipped - tap ✕ above to remove' : 'Insert here'}
+                        {inUse ? 'Locked · used in another slot' : equippedHere ? 'Equipped - tap ✕ above to remove' : 'Insert here'}
                       </button>
                     </div>
                   </div>
@@ -481,7 +487,7 @@ export function KasparexNftSlotSelector({
             <div className="text-xs text-zinc-500 dark:text-zinc-400">{footerNotice}</div>
           ) : (
             <p className="text-xs text-zinc-500 dark:text-zinc-400">
-              Choose an NFT to deploy into this deck slot. You can change it anytime from the Workers panel.
+              One NFT can fill only one Hub slot at a time (all games). Already-used NFTs stay locked until removed.
             </p>
           )}
         </div>
@@ -491,5 +497,5 @@ export function KasparexNftSlotSelector({
 }
 
 export function kasparexNftRefToCollectionAndId(ref: string): { collection: string; tokenId: number } | null {
-  return parseNftRef(ref);
+  return parseNftRef(normalizeNftRef(ref));
 }

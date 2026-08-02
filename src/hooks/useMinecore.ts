@@ -57,6 +57,10 @@ import {
   sumListKasForPlantBatteryRefill,
 } from '@/lib/game/minecore/recharge-pricing';
 import type { MinecoreIngredient, MinecorePowerNodeId } from '@/lib/game/minecore/types';
+import {
+  assertNftRefGloballyFree,
+  globalNftConflictMessage,
+} from '@/lib/nft/kasparexMergedGlobalNftRefs';
 
 const DEFAULT_TREASURY = process.env.NEXT_PUBLIC_GAME_TREASURY_ADDRESS || '';
 const KREX_RECHARGE_PRIORITY_FEE_KAS = 0.001;
@@ -931,11 +935,28 @@ export function useMinecore() {
   }, [dispatch]);
 
   const deployNFT = useCallback((slotIndex: number, nftId: number, collection: string) => {
-    dispatch({ type: 'DeployNFT', at: Date.now(), slotIndex, nftId, collection });
+    const exclusivity = assertNftRefGloballyFree({
+      payerKaspa: walletAddr,
+      collection,
+      tokenId: nftId,
+      exclude: { entityType: 'minecore', entityId: 'workers', slotIndex },
+      minecoreNftSlots: mcRef.current.nftSlots,
+    });
+    if (!exclusivity.ok) {
+      setProfileNotice(globalNftConflictMessage(exclusivity.usedIn));
+      return;
+    }
+    dispatch({
+      type: 'DeployNFT',
+      at: Date.now(),
+      slotIndex,
+      nftId,
+      collection: String(collection).trim().toUpperCase(),
+    });
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent('kasparex-nft-usage'));
     }
-  }, [dispatch]);
+  }, [dispatch, walletAddr]);
 
   const removeNFT = useCallback((slotIndex: number) => {
     dispatch({ type: 'RemoveNFT', at: Date.now(), slotIndex });

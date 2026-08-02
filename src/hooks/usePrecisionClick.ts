@@ -37,6 +37,11 @@ import {
 } from '@/lib/game/precision-click/types';
 import { extractKaspaTransactionId } from '@/lib/kaspa/transactionId';
 import type { MiningSlotType } from '@/lib/game/engine/types';
+import {
+  assertNftRefGloballyFree,
+  globalNftConflictMessage,
+  normalizeNftRef,
+} from '@/lib/nft/kasparexMergedGlobalNftRefs';
 
 const DEFAULT_TREASURY = process.env.NEXT_PUBLIC_GAME_TREASURY_ADDRESS || '';
 const KREX_PRIORITY_FEE_KAS = 0.001;
@@ -509,6 +514,18 @@ export function usePrecisionClick() {
       slotIndex: number,
       slot: Omit<PrecisionOperativeSlot, 'appliedAt' | 'tier'> & { tier?: PrecisionOperativeTier },
     ) => {
+      const nftRef = normalizeNftRef(slot.nftRef || `${slot.collection}#${slot.tokenId}`);
+      const exclusivity = assertNftRefGloballyFree({
+        payerKaspa: walletAddr,
+        collection: slot.collection,
+        tokenId: slot.tokenId,
+        exclude: { entityType: 'precision-click', entityId: 'sync-operative', slotIndex },
+        precisionOperative: state.operativeSlots,
+      });
+      if (!exclusivity.ok) {
+        setLastError(globalNftConflictMessage(exclusivity.usedIn));
+        return;
+      }
       const tier = slot.tier ?? mapRarityToOperativeTier(slot.collection, slot.tokenId);
       const perks = PRECISION_OPERATIVE_PERKS[tier];
       persist((prev) => {
@@ -517,15 +534,15 @@ export function usePrecisionClick() {
         while (slots.length <= slotIndex) slots.push(null);
         const now = Date.now();
         const prevAt = slots[slotIndex];
-        const already = prevAt?.nftRef === slot.nftRef;
+        const already = prevAt?.nftRef === nftRef;
         let runExpiresAt = live.runExpiresAt;
         if (live.entryUnlocked && runExpiresAt && !already) {
           const prevExtend = prevAt ? PRECISION_OPERATIVE_PERKS[prevAt.tier].extendMs : 0;
           runExpiresAt = runExpiresAt - prevExtend + perks.extendMs;
         }
         slots[slotIndex] = {
-          nftRef: slot.nftRef,
-          collection: slot.collection,
+          nftRef,
+          collection: String(slot.collection).trim().toUpperCase(),
           tokenId: slot.tokenId,
           tier,
           imageUrl: slot.imageUrl ?? null,
@@ -540,11 +557,12 @@ export function usePrecisionClick() {
       if (typeof window !== 'undefined') {
         window.dispatchEvent(new CustomEvent('kasparex-nft-usage'));
       }
+      setLastError(null);
       setLastSuccess(
         `Sync Operative slotted (${PRECISION_OPERATIVE_PERKS[tier].label}). Lock extended while active.`,
       );
     },
-    [persist, expireRunIfNeeded],
+    [persist, expireRunIfNeeded, walletAddr, state.operativeSlots],
   );
 
   const clearOperative = useCallback(

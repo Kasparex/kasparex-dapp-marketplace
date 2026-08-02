@@ -44,6 +44,10 @@ import {
 import { verifyKaspaL1Payment, recordL1Reward } from '@/lib/games/sdk';
 import { appendHubActivityEarn } from '@/lib/rewards/appendHubActivityEarn';
 import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
+import {
+  assertNftRefGloballyFree,
+  globalNftConflictMessage,
+} from '@/lib/nft/kasparexMergedGlobalNftRefs';
 
 export type { MiningSlot, ActiveBoost } from '@/lib/game/engine';
 
@@ -328,12 +332,24 @@ export function useDiamondMining() {
 
   const deployNFT = useCallback(
     (slotIndex: number, nftId: number, collection: string) => {
+      const collectionNorm = String(collection).trim().toUpperCase();
+      const exclusivity = assertNftRefGloballyFree({
+        payerKaspa: walletAddr,
+        collection: collectionNorm,
+        tokenId: nftId,
+        exclude: { entityType: 'tycon', entityId: 'mining', slotIndex },
+        tyconSlots: tyconRef.current.slots,
+      });
+      if (!exclusivity.ok) {
+        setProfileNotice(globalNftConflictMessage(exclusivity.usedIn));
+        return;
+      }
       const meta = metaRef.current[nftId] ?? null;
-      const tier = getNFTTier(collection, nftId, meta);
+      const tier = getNFTTier(collectionNorm, nftId, meta);
       const slot = tyconRef.current.slots[slotIndex];
       const role = slot?.type ?? 'worker';
       const energyMax = resolveSlotEnergyMax(role, tier, {
-        collection,
+        collection: collectionNorm,
         activeBoosts: tyconRef.current.activeBoosts,
         nowMs: Date.now(),
       });
@@ -342,7 +358,7 @@ export function useDiamondMining() {
           type: 'DeployNFT',
           slotIndex,
           nftId,
-          collection,
+          collection: collectionNorm,
           energyMax,
         }),
       );
@@ -350,7 +366,7 @@ export function useDiamondMining() {
         window.dispatchEvent(new CustomEvent('kasparex-nft-usage'));
       }
     },
-    [],
+    [walletAddr],
   );
 
   const removeSlot = useCallback(

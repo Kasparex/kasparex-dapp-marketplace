@@ -649,7 +649,7 @@ export function MiningPanel({
             slotIndex: selected,
           }}
           collectionAllowlist={getMinecoreDeckCollectionAllowlist()}
-          footerNotice="Assignments save to Diamond Veins in this browser. NFTs used in Minecore show as locked here."
+          footerNotice="One NFT can fill only one Hub slot at a time (Minecore, Diamond Veins, Precision Click, Cipher Vaults). Already-used NFTs stay locked until removed."
           onClose={() => setSelected(null)}
           onSelect={(ref) => {
             const p = kasparexNftRefToCollectionAndId(ref);

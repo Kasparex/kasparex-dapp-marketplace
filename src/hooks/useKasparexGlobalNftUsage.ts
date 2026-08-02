@@ -2,48 +2,35 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import type { MiningSlot } from '@/lib/game/engine';
-import { hydrateTyconState } from '@/lib/game/engine/apply-event';
-import { hydrateMinecoreState } from '@/lib/game/minecore/hydrate';
-import { MINECORE_STORAGE_PREFIX } from '@/lib/game/minecore/config';
 import {
-  buildGlobalNftRefsForMinecoreWorkers,
+  buildKasparexGlobalNftUsage,
+  readMinecoreNftSlotsFromMergedStorage,
+  readTyconSlotsFromMergedStorage,
   readPrecisionOperativesFromStorage,
-  type PrecisionOperativeUsageSlot,
+  readCipherWardensFromStorage,
+  type CrewNftUsageSlot,
 } from '@/lib/nft/kasparexMergedGlobalNftRefs';
 
-const TYCON_STORAGE_KEY = 'diamond-veins-state';
-
 export function readMinecoreNftSlotsFromStorage(payerKaspa: string | undefined): MiningSlot[] {
-  if (typeof window === 'undefined' || !payerKaspa?.trim()) return [];
-  try {
-    const raw = localStorage.getItem(`${MINECORE_STORAGE_PREFIX}:${payerKaspa.trim()}`);
-    if (!raw) return [];
-    return hydrateMinecoreState(JSON.parse(raw)).nftSlots ?? [];
-  } catch {
-    return [];
-  }
+  return readMinecoreNftSlotsFromMergedStorage(payerKaspa);
 }
 
-export function readTyconSlotsFromStorage(): MiningSlot[] {
-  if (typeof window === 'undefined') return [];
-  try {
-    const raw = localStorage.getItem(TYCON_STORAGE_KEY);
-    if (!raw) return [];
-    return hydrateTyconState(JSON.parse(raw)).slots ?? [];
-  } catch {
-    return [];
-  }
+/** Prefer payer-scoped Diamond Veins key. Address required for cross-game lock. */
+export function readTyconSlotsFromStorage(payerKaspa?: string | undefined): MiningSlot[] {
+  return readTyconSlotsFromMergedStorage(payerKaspa);
 }
 
 /**
- * Cross-game NFT lock: Minecore workers + Diamond Veins + Precision Click Sync Operative.
+ * Cross-game NFT lock: Minecore + Diamond Veins + Precision Click + Cipher Vaults.
+ * HARD RULE: one NFT may occupy only one slot Hub-wide.
  * Omit a live slot list to read that game from localStorage.
  */
 export function useKasparexGlobalNftUsage(opts: {
   payerKaspa: string | undefined;
   minecoreNftSlots?: MiningSlot[];
   tyconSlots?: MiningSlot[];
-  precisionOperative?: PrecisionOperativeUsageSlot | PrecisionOperativeUsageSlot[];
+  precisionOperative?: CrewNftUsageSlot | CrewNftUsageSlot[];
+  cipherWardenSlots?: CrewNftUsageSlot | CrewNftUsageSlot[];
 }) {
   const [tick, setTick] = useState(0);
   useEffect(() => {
@@ -58,17 +45,32 @@ export function useKasparexGlobalNftUsage(opts: {
 
   return useMemo(() => {
     const mc =
-      opts.minecoreNftSlots !== undefined ? opts.minecoreNftSlots : readMinecoreNftSlotsFromStorage(opts.payerKaspa);
-    const ty = opts.tyconSlots !== undefined ? opts.tyconSlots : readTyconSlotsFromStorage();
+      opts.minecoreNftSlots !== undefined
+        ? opts.minecoreNftSlots
+        : readMinecoreNftSlotsFromStorage(opts.payerKaspa);
+    const ty =
+      opts.tyconSlots !== undefined ? opts.tyconSlots : readTyconSlotsFromStorage(opts.payerKaspa);
     const pc =
       opts.precisionOperative !== undefined
         ? opts.precisionOperative
         : readPrecisionOperativesFromStorage(opts.payerKaspa);
-    return buildGlobalNftRefsForMinecoreWorkers({
+    const cv =
+      opts.cipherWardenSlots !== undefined
+        ? opts.cipherWardenSlots
+        : readCipherWardensFromStorage(opts.payerKaspa);
+    return buildKasparexGlobalNftUsage({
       payerKaspa: opts.payerKaspa,
       minecoreNftSlots: mc,
       tyconSlots: ty,
       precisionOperative: pc,
+      cipherWardenSlots: cv,
     });
-  }, [opts.payerKaspa, opts.minecoreNftSlots, opts.tyconSlots, opts.precisionOperative, tick]);
+  }, [
+    opts.payerKaspa,
+    opts.minecoreNftSlots,
+    opts.tyconSlots,
+    opts.precisionOperative,
+    opts.cipherWardenSlots,
+    tick,
+  ]);
 }

@@ -299,7 +299,7 @@ export function WorkersPanel(props: {
           usageByRef={usageByRef}
           currentContext={{ entityType: 'minecore', entityId: 'workers', slotIndex: selected }}
           collectionAllowlist={collectionAllowlistForMinecoreDeckSlot(modalSlot)}
-          footerNotice="Assignments save to your Minecore profile in this browser. NFTs used in Diamond Veins show as locked here."
+          footerNotice="One NFT can fill only one Hub slot at a time (Minecore, Diamond Veins, Precision Click, Cipher Vaults). Already-used NFTs stay locked until removed."
           onClose={() => setSelected(null)}
           onSelect={(ref) => {
             const parsed = kasparexNftRefToCollectionAndId(ref);

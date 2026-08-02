@@ -705,7 +705,7 @@ export function PrecisionClickPlayPanel(props: {
           slotIndex: nftPickerIndex ?? 0,
         }}
         collectionAllowlist={getMinecoreDeckCollectionAllowlist()}
-        footerNotice="Assignments save to Precision Click in this browser. NFTs already assigned elsewhere show as locked here."
+        footerNotice="One NFT can fill only one Hub slot at a time (Minecore, Diamond Veins, Precision Click, Cipher Vaults). Already-used NFTs stay locked until removed."
         onClose={() => setNftPickerIndex(null)}
         onRemove={() => {
           if (nftPickerIndex != null) props.onClearOperative(nftPickerIndex);

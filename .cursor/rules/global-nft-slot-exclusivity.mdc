@@ -1,0 +1,47 @@
+---
+description: HARD RULE - one NFT may occupy only one Hub game slot globally
+alwaysApply: true
+---
+
+# Global NFT slot exclusivity (LOCKED)
+
+**Non-negotiable Hub rule:** an NFT can be assigned to **at most one** crew / operative / warden slot across **all** Kasparex games and surfaces. Never allow the same NFT in Minecore, Diamond Veins, Precision Click, Cipher Vaults, or any future slot at the same time.
+
+## Source of truth
+
+- Merge + assert: `src/lib/nft/kasparexMergedGlobalNftRefs.ts`
+  - `buildKasparexGlobalNftUsage`
+  - `assertNftRefGloballyFree`
+  - `normalizeNftRef` / `nftRefKey`
+- Live React lock map: `src/hooks/useKasparexGlobalNftUsage.ts`
+- Picker UI: `src/components/nft/KasparexNftSlotSelector.tsx`
+
+## Surfaces that must participate
+
+| Surface | Storage / state | entityType |
+|---------|-----------------|------------|
+| Minecore Workers | `minecore-state:${address}` · `nftSlots` | `minecore` |
+| Diamond Veins | `diamond-veins-state:${address}` · `slots` | `tycon` |
+| Precision Click | `kasparex:precision-click:v3:${address}` · `operativeSlots` | `precision-click` |
+| Cipher Vaults | `kasparex:cipher-vaults:v3:${address}` · `wardenSlots` | `cipher-vaults` |
+
+Any **new** NFT slot feature must:
+
+1. Register in `buildKasparexGlobalNftUsage` (live override + localStorage reader).
+2. Call `assertNftRefGloballyFree` in the assign path before persist.
+3. Pass the correct live slots into `useKasparexGlobalNftUsage` and the matching `currentContext` into `KasparexNftSlotSelector`.
+4. Dispatch `kasparex-nft-usage` after assign/remove so other open panels refresh.
+
+## Do this
+
+- Lock used NFTs in the modal ("In use" + "Already slotted in: …"). Current slot stays selectable/removable.
+- Reject assign even if the UI is bypassed (`assertNftRefGloballyFree`).
+- Normalize refs as `COLLECTION#tokenId` (uppercase collection).
+- Read Diamond Veins via `diamondVeinsStorageKey(address)`, never the bare guest key alone.
+
+## Do not
+
+- Pass Cipher wardens as `precisionOperative` (or any wrong live override that hides another game).
+- Rely on the modal alone without an assign-time assert.
+- Allow "move" by silently double-slotting; user must remove from the first slot first.
+- Invent a second picker that ignores `inUseRefs` / global usage.

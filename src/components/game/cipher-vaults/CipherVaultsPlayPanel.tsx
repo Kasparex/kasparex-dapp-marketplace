@@ -94,7 +94,7 @@ export function CipherVaultsPlayPanel(props: {
   const payerKaspa = wallet.address?.trim();
   const { usageByRef, inUseRefs } = useKasparexGlobalNftUsage({
     payerKaspa,
-    precisionOperative: props.wardenSlots as any,
+    cipherWardenSlots: props.wardenSlots,
   });
 
   const [selectedLevel, setSelectedLevel] = useState(1);
@@ -465,7 +465,7 @@ export function CipherVaultsPlayPanel(props: {
           slotIndex: nftPickerIndex ?? 0,
         }}
         collectionAllowlist={getMinecoreDeckCollectionAllowlist()}
-        footerNotice="Assignments save to Cipher Vaults in this browser. NFTs already assigned elsewhere show as locked here."
+        footerNotice="One NFT can fill only one Hub slot at a time (Minecore, Diamond Veins, Precision Click, Cipher Vaults). Already-used NFTs stay locked until removed."
         onClose={() => setNftPickerIndex(null)}
         onRemove={() => {
           if (nftPickerIndex != null) props.onClearWarden(nftPickerIndex);
