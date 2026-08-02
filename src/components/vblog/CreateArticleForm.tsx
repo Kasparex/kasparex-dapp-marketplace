@@ -26,6 +26,7 @@ import { KxImageSourceField } from '@/components/ui/KxImageSourceField';
 import { KxRichTextEditor } from '@/components/ui/KxRichTextEditor';
 import { KxInFormPremiumRow } from '@/components/ui/KxInFormPremiumRow';
 import { KxAlertRegion } from '@/components/ui/KxAlertRegion';
+import { hubNotify } from '@/lib/hub/notify';
 import { VBlogModuleConfigFields } from './VBlogModuleConfigFields';
 import { VBlogCategoryField } from './VBlogCategoryField';
 import { VBlogDashboardBenefitsPanel } from './VBlogDashboardBenefitsPanel';
@@ -105,7 +106,6 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
   const [primaryLink, setPrimaryLink] = useState(article?.primaryLink ?? '');
   const [socialLinks, setSocialLinks] = useState<KxLinkRow[]>(() => vBlogSocialLinksToRows(article?.socialLinks));
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [paymentCurrency, setPaymentCurrency] = useState<StorePaymentCurrency>('KAS');
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [magazineIntegrationEnabled, setMagazineIntegrationEnabled] = useState(Boolean(article?.linkedMagazineId && article?.linkedIssueNumber));
@@ -396,7 +396,7 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
     if (!file) return;
     const maxSize = IPFS_MAX_UPLOAD_MB * 1024 * 1024;
     if (file.size > maxSize) {
-      setError(`Featured image must be under ${IPFS_MAX_UPLOAD_MB}MB`);
+      hubNotify.warning('Image too large', `Featured image must be under ${IPFS_MAX_UPLOAD_MB}MB`);
       e.target.value = '';
       return;
     }
@@ -406,49 +406,52 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
       setFeaturedImageName(file.name);
       setFeaturedImageUrl(normalizeIpfsUrlForForm(null, uploadedCid));
       setFeaturedImageSource('url');
-      setError(null);
+      hubNotify.success('Image uploaded', 'Featured image is ready.');
     } else {
-      setError('Failed to upload featured image to IPFS');
+      hubNotify.error('Upload failed', 'Failed to upload featured image to IPFS');
     }
     e.target.value = '';
   };
 
+  const fail = (message: string) => {
+    hubNotify.error(isEditMode ? 'Cannot update' : 'Cannot publish', message);
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
 
     if (!title.trim()) {
-      setError('Title is required');
+      fail('Title is required');
       return;
     }
     const titleValidation = validateTitle(title, pricing.isPremium);
     if (!titleValidation.valid) {
-      setError(titleValidation.error ?? 'Title validation failed');
+      fail(titleValidation.error ?? 'Title validation failed');
       return;
     }
 
     if (!description.trim()) {
-      setError('Description is required');
+      fail('Description is required');
       return;
     }
     const descValidation = validateDescription(description, pricing.isPremium);
     if (!descValidation.valid) {
-      setError(descValidation.error ?? 'Description validation failed');
+      fail(descValidation.error ?? 'Description validation failed');
       return;
     }
 
     if (!htmlToPlainText(content).trim()) {
-      setError('Content is required');
+      fail('Content is required');
       return;
     }
     const contentValidation = validateContent(content, pricing.isPremium);
     if (!contentValidation.valid) {
-      setError(contentValidation.error ?? 'Content validation failed');
+      fail(contentValidation.error ?? 'Content validation failed');
       return;
     }
 
     if (!resolvedFeaturedImage) {
-      setError('Featured image is required. Add a URL or upload to IPFS.');
+      fail('Featured image is required. Add a URL or upload to IPFS.');
       return;
     }
 
@@ -475,7 +478,7 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
       linkedIssueNumber,
     });
     if (modulesErr) {
-      setError(modulesErr);
+      fail(modulesErr);
       return;
     }
 
@@ -484,12 +487,17 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
 
   const handleConfirm = async () => {
     setIsSubmitting(true);
+    const loadingId = hubNotify.loading(
+      isEditMode ? 'Updating article…' : 'Publishing article…',
+      'Confirm in your wallet if prompted',
+    );
 
     try {
       const tagsArray = tags;
 
       if (!isWalletConnected || !walletAddress) {
-        setError('Wallet not connected. Please connect your wallet (Kaspa or EVM) to publish.');
+        fail('Wallet not connected. Please connect your wallet (Kaspa or EVM) to publish.');
+        hubNotify.dismiss(loadingId);
         setIsSubmitting(false);
         return;
       }
@@ -534,6 +542,14 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
         throw new Error('No submit handler configured');
       }
 
+      hubNotify.update(loadingId, {
+        title: isEditMode ? 'Article updated' : 'Article published',
+        description: isEditMode
+          ? 'Your changes were saved.'
+          : 'Your article is live on the Hub.',
+        variant: 'success',
+      });
+
       if (isEditMode) return;
 
       setTitle('');
@@ -568,7 +584,13 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
       setRightPanelShownByDefault(true);
     } catch (err) {
       console.error('Error creating article:', err);
-      setError(err instanceof Error ? err.message : 'Failed to create article. Please try again.');
+      const message =
+        err instanceof Error ? err.message : 'Failed to create article. Please try again.';
+      hubNotify.update(loadingId, {
+        title: isEditMode ? 'Update failed' : 'Publish failed',
+        description: message,
+        variant: 'error',
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -771,18 +793,13 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
           )}
         </div>
 
-        <KxAlertRegion>
-          {pricing.tier.hasNFTPerks ? (
+        {pricing.tier.hasNFTPerks ? (
+          <KxAlertRegion>
             <Alert type="success" compact region>
               <p>NFT Perks Active: Increased text limits enabled ({pricing.tier.nftCollections.join(', ')})</p>
             </Alert>
-          ) : null}
-          {error ? (
-            <Alert type="error" title="Error" onDismiss={() => setError(null)} compact region>
-              <p>{error}</p>
-            </Alert>
-          ) : null}
-        </KxAlertRegion>
+          </KxAlertRegion>
+        ) : null}
         </div>
 
         <div className={`${FORM_PANEL_CLASS} space-y-4`}>
@@ -922,13 +939,6 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
         >
           Preview Article
         </button>
-        <KxAlertRegion>
-          {error ? (
-            <Alert type="error" compact onDismiss={() => setError(null)} region>
-              <p>{error}</p>
-            </Alert>
-          ) : null}
-        </KxAlertRegion>
         <HubFlowProgress
           steps={getHubFlowPreset('hubPublish')}
           busy={isSubmitting || isUploading}

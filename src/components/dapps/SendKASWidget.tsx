@@ -5,8 +5,6 @@ import { useKaspaWallet } from '@/lib/kaspa/context';
 import { sendKaspaTransaction } from '@/lib/kaspa/wallet';
 import { kasToSompis } from '@/lib/kaspa/api';
 import { isValidKaspaAddress } from '@/lib/kaspa/sdk';
-import { Alert } from '@/components/Alert';
-import { KxAlertRegion } from '@/components/ui/KxAlertRegion';
 import { KxFormFieldLabel } from '@/components/ui/KxFormFieldLabel';
 import { useKaspaBalance } from '@/hooks/useKaspaBalance';
 import { DAppWidgetShell } from '@/components/dapps/DAppWidgetShell';
@@ -16,6 +14,7 @@ import { useSyncDAppWidgetQuote } from '@/lib/dapps/PaymentAmountContext';
 import { placeholderDApps } from '@/lib/dapps';
 import { awardDAppHubPoints } from '@/lib/rewards/awardDAppHubPoints';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
+import { hubNotify } from '@/lib/hub/notify';
 
 export function SendKASWidget() {
   const { state } = useKaspaWallet();
@@ -23,9 +22,7 @@ export function SendKASWidget() {
   const [toAddress, setToAddress] = useState('');
   const [amount, setAmount] = useState('');
   const [isSending, setIsSending] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
-  const [txHash, setTxHash] = useState<string | null>(null);
 
   const { tier, balance: krexBalance } = useKREXBalance();
   const sendKasDApp = placeholderDApps.find((d) => d.slug === 'send-kas');
@@ -34,29 +31,28 @@ export function SendKASWidget() {
 
   const handleSend = async () => {
     if (!state.isConnected || !state.provider) {
-      setError('Please connect your Kaspa wallet first');
+      hubNotify.error('Wallet required', 'Please connect your Kaspa wallet first');
       return;
     }
 
     if (!toAddress.trim()) {
-      setError('Please enter a recipient address');
+      hubNotify.warning('Recipient required', 'Please enter a recipient address');
       return;
     }
 
     if (!isValidKaspaAddress(toAddress.trim())) {
-      setError('Please enter a valid Kaspa address');
+      hubNotify.warning('Invalid address', 'Please enter a valid Kaspa address');
       return;
     }
 
     if (!amount || parseFloat(amount) <= 0) {
-      setError('Please enter a valid amount');
+      hubNotify.warning('Invalid amount', 'Please enter a valid amount');
       return;
     }
 
     setIsSending(true);
-    setError(null);
     setSuccess(false);
-    setTxHash(null);
+    const loadingId = hubNotify.loading('Sending KAS…', 'Confirm in your wallet');
 
     try {
       const amountNum = parseFloat(amount);
@@ -71,7 +67,6 @@ export function SendKASWidget() {
         throw new Error(result.error || 'Transaction failed');
       }
 
-      setTxHash(result.txHash);
       setSuccess(true);
       if (sendKasDApp && state.address && result.txHash) {
         awardDAppHubPoints({
@@ -88,12 +83,26 @@ export function SendKASWidget() {
       setAmount('');
       await refreshBalance();
 
-      setTimeout(() => {
-        setSuccess(false);
-        setTxHash(null);
-      }, 5000);
+      if (result.txHash) {
+        hubNotify.txSuccess({
+          id: loadingId,
+          title: 'KAS sent',
+          description: `${amountNum} KAS submitted`,
+          txHash: result.txHash,
+        });
+      } else {
+        hubNotify.update(loadingId, {
+          title: 'KAS sent',
+          description: 'Transaction submitted',
+          variant: 'success',
+        });
+      }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to send transaction');
+      hubNotify.update(loadingId, {
+        title: 'Send failed',
+        description: err instanceof Error ? err.message : 'Failed to send transaction',
+        variant: 'error',
+      });
       console.error('Send KAS error:', err);
     } finally {
       setIsSending(false);
@@ -111,24 +120,7 @@ export function SendKASWidget() {
     </button>
   ) : null;
 
-  const railAlerts =
-    error || (success && txHash) ? (
-      <KxAlertRegion>
-        {error ? (
-          <Alert type="error" compact region onDismiss={() => setError(null)}>
-            {error}
-          </Alert>
-        ) : null}
-        {success && txHash ? (
-          <Alert type="success" compact region>
-            Transaction sent. Hash: {txHash.slice(0, 16)}...
-          </Alert>
-        ) : null}
-      </KxAlertRegion>
-    ) : null;
-
   useRegisterDAppWidgetRailSlot('actions', railActions, [state.isConnected, isSending, toAddress, amount]);
-  useRegisterDAppWidgetRailSlot('alerts', railAlerts, [error, success, txHash]);
   useRegisterHubFlowProgress('hubPay', { busy: isSending, complete: Boolean(success) }, [isSending, success]);
 
   return (

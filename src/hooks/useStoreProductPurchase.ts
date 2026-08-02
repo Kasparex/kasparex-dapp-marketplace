@@ -24,6 +24,7 @@ import type { PricingSnapshot } from '@/lib/pricing/types';
 import { extractKaspaTransactionId } from '@/lib/kaspa/transactionId';
 import { normalizeKaspaAddress } from '@/lib/kaspa/sdk';
 import { assertSufficientKasBalance } from '@/lib/kaspa/readWalletKasBalance';
+import { hubNotify } from '@/lib/hub/notify';
 
 const STORE_TREASURY_ADDRESS = process.env.NEXT_PUBLIC_STORE_TREASURY_ADDRESS || '';
 
@@ -78,17 +79,23 @@ export function useStoreProductPurchase(product: Product) {
       pricingSnapshot?: PricingSnapshot | null,
     ) => {
       if (!state.isConnected || !state.address || !state.provider) {
-        setError('Connect your Kaspa wallet to purchase');
+        const msg = 'Connect your Kaspa wallet to purchase';
+        setError(msg);
+        hubNotify.error('Wallet required', msg);
         return false;
       }
 
       if (!STORE_TREASURY_ADDRESS) {
-        setError('Store treasury address not configured');
+        const msg = 'Store treasury address not configured';
+        setError(msg);
+        hubNotify.error('Store unavailable', msg);
         return false;
       }
 
       if (sameKaspaAddress(state.address, product.sellerAddress)) {
-        setError('You cannot purchase your own listing');
+        const msg = 'You cannot purchase your own listing';
+        setError(msg);
+        hubNotify.warning('Cannot buy own listing', msg);
         return false;
       }
 
@@ -216,6 +223,11 @@ export function useStoreProductPurchase(product: Product) {
 
         setTxHash(purchaseTxHash);
         setSuccess(true);
+        hubNotify.txSuccess({
+          title: 'Purchase complete',
+          description: 'Your Store purchase was submitted.',
+          txHash: purchaseTxHash,
+        });
         setTimeout(() => {
           setSuccess(false);
           setTxHash(null);
@@ -224,6 +236,7 @@ export function useStoreProductPurchase(product: Product) {
       } catch (err) {
         const message = err instanceof Error ? err.message : 'Failed to process purchase';
         setError(message);
+        hubNotify.error('Purchase failed', message);
         console.error('Product purchase error:', err);
         return false;
       } finally {

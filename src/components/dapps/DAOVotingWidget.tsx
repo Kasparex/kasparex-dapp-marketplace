@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { useAccount, useChainId } from 'wagmi';
 import { formatEther } from 'viem';
 import { getContractAddress } from '@/lib/contracts/addresses';
@@ -11,8 +11,6 @@ import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 import { useRegisterDAppWidgetRailSlot } from '@/lib/dapps/DAppWidgetActionRailContext';
 import { useRegisterHubFlowProgress } from '@/hooks/useRegisterHubFlowProgress';
 import { useSyncDAppWidgetQuote } from '@/lib/dapps/PaymentAmountContext';
-import { KxAlertRegion } from '@/components/ui/KxAlertRegion';
-import { KxAlert } from '@/components/ui/KxAlert';
 import { KxFormFieldLabel } from '@/components/ui/KxFormFieldLabel';
 import {
   KX_EMPTY_STATE,
@@ -20,6 +18,7 @@ import {
   KX_SURFACE_ROW,
   KX_TEXTAREA,
 } from '@/lib/hub/shellTokens';
+import { hubNotify } from '@/lib/hub/notify';
 
 export function DAOVotingWidget() {
   const { address, isConnected } = useAccount();
@@ -141,18 +140,20 @@ export function DAOVotingWidget() {
     isConnected,
   ]);
 
-  const railAlerts = useMemo(() => {
-    if (!error) return null;
-    return (
-      <KxAlertRegion>
-        <KxAlert variant="error" title="Action failed">
-          {error}
-        </KxAlert>
-      </KxAlertRegion>
-    );
+  useEffect(() => {
+    if (error) hubNotify.error('Action failed', error);
   }, [error]);
 
-  useRegisterDAppWidgetRailSlot('alerts', railAlerts, [error]);
+  useEffect(() => {
+    if (isConfirmed && txHash) {
+      hubNotify.txSuccess({
+        title: lastActionType === 'cast-vote' ? 'Vote submitted' : 'Proposal submitted',
+        txHash,
+        chainId: chainId || undefined,
+      });
+    }
+  }, [isConfirmed, txHash, lastActionType, chainId]);
+
   useRegisterHubFlowProgress('hubPay', { busy: isLoading }, [isLoading, showSubmitForm]);
 
   if (!isConnected) {

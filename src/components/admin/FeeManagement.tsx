@@ -16,6 +16,7 @@ import {
 } from '@/lib/contracts/subscription';
 import { getAllDApps, DApp } from '@/lib/dapps';
 import { isAddress, formatEther, parseEther } from 'viem';
+import { hubNotify } from '@/lib/hub/notify';
 
 export function FeeManagement() {
   // Global fee state
@@ -97,12 +98,12 @@ export function FeeManagement() {
     const builder = parseFloat(builderPercent);
     
     if (isNaN(treasury) || isNaN(developer) || isNaN(builder)) {
-      alert('Please enter valid percentages');
+      hubNotify.warning('Invalid percentages', 'Please enter valid percentages');
       return;
     }
     
     if (Math.abs(treasury + developer + builder - 100) > 0.01) {
-      alert('Percentages must sum to 100%');
+      hubNotify.warning('Invalid total', 'Percentages must sum to 100%');
       return;
     }
 
@@ -111,7 +112,7 @@ export function FeeManagement() {
 
   const handleUpdateAddresses = () => {
     if (!isAddress(developerAddress) || !isAddress(builderAddress)) {
-      alert('Please enter valid addresses');
+      hubNotify.warning('Invalid addresses', 'Please enter valid addresses');
       return;
     }
     updateAddresses(developerAddress, builderAddress);
@@ -120,7 +121,7 @@ export function FeeManagement() {
   const handleUpdateKasparexFee = () => {
     const fee = parseFloat(kasparexFeePercent);
     if (isNaN(fee) || fee < 0 || fee > 100) {
-      alert('Please enter a valid fee percentage (0-100)');
+      hubNotify.warning('Invalid fee', 'Please enter a valid fee percentage (0-100)');
       return;
     }
     updateFee(fee);
@@ -128,11 +129,11 @@ export function FeeManagement() {
 
   const handleUpdatePlan = () => {
     if (!selectedDApp?.contractAddress) {
-      alert('Please select a dApp');
+      hubNotify.warning('Select a dApp', 'Please select a dApp');
       return;
     }
     if (!monthlyPrice || !quarterlyPrice || !yearlyPrice) {
-      alert('Please enter all prices');
+      hubNotify.warning('Missing prices', 'Please enter all prices');
       return;
     }
 

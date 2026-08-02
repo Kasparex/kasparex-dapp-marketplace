@@ -13,6 +13,7 @@ import type { Game } from '@/lib/games/games';
 import type { UnifiedGame } from '@/lib/games/registry';
 import { CardsFilterBar } from '@/components/games/CardsFilterBar';
 import { GameItemCard } from '@/components/games/shop/GameItemCard';
+import { hubNotify } from '@/lib/hub/notify';
 
 const BASE_TABS = [
   { id: 'overview', label: 'Overview', icon: <IconOverview /> },
@@ -189,7 +190,7 @@ export function GameContent({ game: baseGame }: { game: Game }) {
                   category={item.category}
                   description={item.description}
                   priceOptions={item.priceOptions}
-                  onBuy={() => alert(`Buying ${item.title}... (Demo)`)}
+                  onBuy={() => hubNotify.info('Demo shop', `Buying ${item.title}… (demo)`)}
                 />
               ))}
               {filteredItems.length === 0 && (

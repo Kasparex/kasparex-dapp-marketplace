@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { DApp } from '@/lib/dapps';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useGenesisDapp } from '@/hooks/useGenesisDapp';
@@ -10,7 +10,6 @@ import { DAppWidgetShell } from '@/components/dapps/DAppWidgetShell';
 import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 import { KxRichTextEditor } from '@/components/ui/KxRichTextEditor';
 import { KxFormFieldLabel } from '@/components/ui/KxFormFieldLabel';
-import { Alert } from '@/components/Alert';
 import {
   CovenantTabPanel,
 } from '@/components/dapps/covenant/CovenantWidgetUi';
@@ -28,6 +27,7 @@ import {
   useRegisterWidgetTabLabel,
 } from '@/lib/dapps/DAppWidgetTabContext';
 import { KX_FORM_PANEL } from '@/lib/hub/shellTokens';
+import { hubNotify } from '@/lib/hub/notify';
 
 type TabId = 'create' | 'messages' | 'metadata';
 
@@ -58,6 +58,10 @@ export function GenesisDappWidget({ dapp }: { dapp?: DApp }) {
 
   useRegisterWidgetTabLabel('messages', `Messages (${messageCount})`, [messageCount]);
 
+  useEffect(() => {
+    if (error) hubNotify.error('Capsule error', error);
+  }, [error]);
+
   const plainLen = genesisPlainTextLength(contentHtml);
   const validationError = useMemo(() => {
     const normalized = normalizeQuillHtml(contentHtml);
@@ -75,16 +79,31 @@ export function GenesisDappWidget({ dapp }: { dapp?: DApp }) {
     if (!dapp) return;
     const normalized = normalizeQuillHtml(contentHtml);
     const err = validateGenesisMessageHtml(normalized);
-    if (err) return;
+    if (err) {
+      hubNotify.warning('Message incomplete', err);
+      return;
+    }
 
     setIsSubmitting(true);
     setSuccess(null);
+    const loadingId = hubNotify.loading('Publishing message…', 'Confirm in your wallet');
     try {
       await leaveMessage(normalized, dapp);
       setContentHtml('');
-      setSuccess('Your message was published on-chain and added to the Capsule archive.');
+      const msg = 'Your message was published on-chain and added to the Capsule archive.';
+      setSuccess(msg);
+      hubNotify.update(loadingId, {
+        title: 'Message published',
+        description: msg,
+        variant: 'success',
+      });
     } catch (e) {
       console.error(e);
+      hubNotify.update(loadingId, {
+        title: 'Publish failed',
+        description: e instanceof Error ? e.message : 'Could not publish message',
+        variant: 'error',
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -94,24 +113,8 @@ export function GenesisDappWidget({ dapp }: { dapp?: DApp }) {
     enabled: tab === 'create' && kaspaState.isConnected,
     flowBusy: isSubmitting,
     alerts:
-      (validationError && contentHtml.trim()) || error || success ? (
-        <div className="space-y-2">
-          {validationError && contentHtml.trim() ? (
-            <Alert type="warning" compact region>
-              {validationError}
-            </Alert>
-          ) : null}
-          {error ? (
-            <Alert type="error" title="Error" compact region>
-              {error}
-            </Alert>
-          ) : null}
-          {success ? (
-            <Alert type="success" compact region onDismiss={() => setSuccess(null)}>
-              {success}
-            </Alert>
-          ) : null}
-        </div>
+      validationError && contentHtml.trim() ? (
+        <p className="text-xs text-amber-600 dark:text-amber-400">{validationError}</p>
       ) : null,
     primaryAction: (
       <button

@@ -1,0 +1,44 @@
+---
+description: Global Hub toast notifications for actions, forms, and transactions
+alwaysApply: true
+---
+
+# Hub notifications (LOCKED global standard)
+
+Ephemeral user feedback across Hub (dApps, Games, Tokens, Store, vBlog, Chronicles, Magazines, Ads, Rewards) uses one system: bottom-right toast cards.
+
+## Source of truth
+
+| Piece | Path |
+|-------|------|
+| Provider UI | `src/components/ui/Toaster.tsx` (`ToasterProvider`, already in `Providers`) |
+| Hook + helpers | `useHubNotify()` / `hubNotify` from `@/lib/hub/notify` (also re-exported from `@/hooks/useToast`) |
+| Imperative bridge | `src/lib/hub/notifyBridge.ts` (do not call from UI; used by provider) |
+
+## Do this
+
+- On important actions (pay, publish, send, save, vote, refine ack, validation fail that blocks submit): call `useHubNotify()` or `hubNotify.*`.
+- Variants: `success` | `error` | `warning` | `info` | `loading`.
+- Transactions: show `loading(...)` while signing/broadcasting, then `txSuccess({ title, txHash, chainId? })` or `update(id, …)` so the same card flips. Include explorer link via `txSuccess` (Kaspa L1 default; pass EVM `chainId` for L2).
+- Forms / editors: toast for submit errors ("Title is required") and success; do not invent a second popup stack.
+- Auto-dismiss is built in; loading stays until update/dismiss. User can always close with **x**.
+- Keep rail/`Alert` only for **persistent** field help (`KX_INFO_DASHED`, ownership gates, sticky contextual notes). Prefer toast for one-shot action feedback.
+
+## Do not
+
+- Add sonner / react-hot-toast / a second toaster.
+- Use `window.alert` for Hub UX.
+- Mount another `ToasterProvider` per page or product.
+- Leave duplicate success/error banners in calculation rails when a toast already covers the same event.
+- Fork toast chrome per dApp/game; change `Toaster.tsx` once for Hub-wide look.
+
+## Quick API
+
+```ts
+const n = useHubNotify();
+const id = n.loading('Sending…', 'Confirm in wallet');
+// …
+n.txSuccess({ id, title: 'KREX sent', txHash });
+n.error('Missing fields', 'Title and description are required.');
+// or: hubNotify.success('Saved');
+```

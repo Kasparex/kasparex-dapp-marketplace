@@ -7,6 +7,7 @@ import { useQuizToEarn, Question, UserAnswer } from '@/hooks/useQuizToEarn';
 import { getContractAddress } from '@/lib/contracts/addresses';
 import { RewardsDisplay } from './RewardsDisplay';
 import { getExplorerUrl } from '@/lib/dapps/deployer';
+import { hubNotify } from '@/lib/hub/notify';
 
 export function QuizToEarnWidget() {
   const { address, isConnected } = useAccount();
@@ -75,17 +76,20 @@ export function QuizToEarnWidget() {
 
   const handleSubmitAnswer = async () => {
     if (!contractAddress || contractAddress === '' || !contractAddress.startsWith('0x')) {
-      alert('Quiz-to-Earn contract is not deployed on this network. Please switch to Kasplex Testnet (Chain ID: 167012).');
+      hubNotify.warning(
+        'Contract unavailable',
+        'Quiz-to-Earn is not deployed on this network. Switch to Kasplex Testnet (Chain ID: 167012).',
+      );
       return;
     }
 
     if (!selectedQuestion || selectedAnswerIndex === null) {
-      alert('Please select an answer');
+      hubNotify.warning('Select an answer', 'Choose an option before submitting.');
       return;
     }
 
     if (currentAnswer) {
-      alert('You have already answered this question');
+      hubNotify.info('Already answered', 'You have already answered this question.');
       return;
     }
 

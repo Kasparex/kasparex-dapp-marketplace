@@ -21,8 +21,6 @@ import { useNFTStatus } from '@/hooks/useNFTStatus';
 import { placeholderDApps } from '@/lib/dapps';
 import { storeTransaction } from '@/lib/transactions/tracker';
 import { TransactionTracker } from '@/components/transactions/TransactionTracker';
-import { Alert } from '@/components/Alert';
-import { KxAlertRegion } from '@/components/ui/KxAlertRegion';
 import { KxFormFieldLabel } from '@/components/ui/KxFormFieldLabel';
 import { DAppWidgetShell } from '@/components/dapps/DAppWidgetShell';
 import { useRegisterDAppWidgetRailSlot } from '@/lib/dapps/DAppWidgetActionRailContext';
@@ -31,6 +29,7 @@ import { TransactionSuccessModal } from '@/components/modals/TransactionSuccessM
 import { TransactionErrorModal } from '@/components/modals/TransactionErrorModal';
 import { usePaymentAmount, useSyncDAppWidgetQuote } from '@/lib/dapps/PaymentAmountContext';
 import { useQueryClient } from '@tanstack/react-query';
+import { hubNotify } from '@/lib/hub/notify';
 
 // Define ABI in proper JSON format as fallback to prevent bundling issues
 const SIMPLE_PAYMENT_ABI_FALLBACK = [
@@ -312,41 +311,46 @@ export function SimplePaymentWidget() {
     setError(null);
 
     if (!isConnected) {
-      setError('Please connect your wallet');
+      hubNotify.error('Wallet required', 'Please connect your wallet');
       return;
     }
 
     if (!recipientAddress) {
-      setError('Please enter recipient address');
+      hubNotify.warning('Recipient required', 'Please enter recipient address');
       return;
     }
 
     if (!amount || amountBigInt === 0n) {
-      setError('Please enter a valid amount');
+      hubNotify.warning('Invalid amount', 'Please enter a valid amount');
       return;
     }
 
     if (!contractAddress || contractAddress.length === 0) {
-      setError('Contract not deployed on this network');
+      hubNotify.error('Contract missing', 'Contract not deployed on this network');
       return;
     }
 
     // Validate recipient address format
     if (!recipientAddress || recipientAddress.length === 0) {
-      setError('Please enter a valid recipient address');
+      hubNotify.warning('Invalid address', 'Please enter a valid recipient address');
       return;
     }
 
     // Ensure addresses are valid hex strings
     if (!recipientAddress.startsWith('0x') || recipientAddress.length !== 42) {
-      setError('Invalid recipient address format. Must be a valid Ethereum address (0x followed by 40 hex characters)');
+      hubNotify.warning(
+        'Invalid address',
+        'Recipient must be a valid EVM address (0x followed by 40 hex characters)',
+      );
       return;
     }
 
     if (!contractAddress.startsWith('0x') || contractAddress.length !== 42) {
-      setError('Invalid contract address format');
+      hubNotify.error('Invalid contract', 'Invalid contract address format');
       return;
     }
+
+    hubNotify.loading('Sending payment…', 'Confirm in your wallet', { id: 'simple-payment' });
 
     try {
       // Validate addresses one more time
@@ -407,6 +411,32 @@ export function SimplePaymentWidget() {
   const safeWriteError = useSafeError(writeError);
   const safeTxError = useSafeError(txError);
   const displayError = error || safeWriteError || safeTxError;
+  const notifiedErrorRef = useRef<string | null>(null);
+  const notifiedSuccessRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!displayError) {
+      notifiedErrorRef.current = null;
+      return;
+    }
+    const msg = String(displayError);
+    if (notifiedErrorRef.current === msg) return;
+    notifiedErrorRef.current = msg;
+    hubNotify.error('Payment failed', msg);
+  }, [displayError]);
+
+  useEffect(() => {
+    if (!isConfirmed || !hash) return;
+    if (notifiedSuccessRef.current === hash) return;
+    notifiedSuccessRef.current = hash;
+    hubNotify.txSuccess({
+      id: 'simple-payment',
+      title: 'Payment sent',
+      txHash: hash,
+      chainId: chainId || undefined,
+    });
+  }, [isConfirmed, hash, chainId]);
+
   const railActions = isConnected ? (
     <button
       type="button"
@@ -432,22 +462,6 @@ export function SimplePaymentWidget() {
     </button>
   ) : null;
 
-  const railAlerts =
-    displayError || (isConfirmed && hash) ? (
-      <KxAlertRegion>
-        {displayError ? (
-          <Alert type="error" compact region onDismiss={() => setError(null)}>
-            <p>{String(displayError)}</p>
-          </Alert>
-        ) : null}
-        {isConfirmed && hash ? (
-          <Alert type="success" compact region>
-            <p>Payment sent. Transaction hash: {hash.slice(0, 10)}...</p>
-          </Alert>
-        ) : null}
-      </KxAlertRegion>
-    ) : null;
-
   useRegisterDAppWidgetRailSlot('actions', railActions, [
     isConnected,
     isLoading,
@@ -457,7 +471,6 @@ export function SimplePaymentWidget() {
     contractAddress,
     isPendingWrite,
   ]);
-  useRegisterDAppWidgetRailSlot('alerts', railAlerts, [displayError, isConfirmed, hash]);
   useRegisterHubFlowProgress(
     'hubPay',
     { busy: isPendingWrite || isLoading || isConfirming, complete: Boolean(isConfirmed && hash) },

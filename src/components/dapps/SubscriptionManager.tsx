@@ -12,6 +12,7 @@ import { getErrorMessage } from '@/lib/utils';
 import { useSafeError } from '@/hooks/useSafeError';
 import Link from 'next/link';
 import { KxFormDropdown } from '@/components/ui/KxFormDropdown';
+import { hubNotify } from '@/lib/hub/notify';
 
 export function SubscriptionManager() {
   const { dApps } = useMyDApps();
@@ -71,22 +72,25 @@ export function SubscriptionManager() {
 
   const handleCreateOrUpdatePlan = async () => {
     if (!isConnected || !address) {
-      alert('Please connect your wallet');
+      hubNotify.error('Wallet required', 'Please connect your wallet');
       return;
     }
 
     if (!selectedDApp || !selectedDApp.startsWith('0x')) {
-      alert('Please select a dApp with a contract address');
+      hubNotify.warning('Select a dApp', 'Please select a dApp with a contract address');
       return;
     }
 
     if (!monthlyPrice || !quarterlyPrice || !yearlyPrice) {
-      alert('Please enter all pricing tiers');
+      hubNotify.warning('Missing prices', 'Please enter all pricing tiers');
       return;
     }
 
     if (!dAppSubscriptionAddress) {
-      alert('DAppSubscription contract not found. Please check your network connection.');
+      hubNotify.error(
+        'Contract missing',
+        'DAppSubscription contract not found. Please check your network connection.',
+      );
       return;
     }
 

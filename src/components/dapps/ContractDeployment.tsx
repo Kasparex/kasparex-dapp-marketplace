@@ -9,6 +9,7 @@ import { useChainId } from 'wagmi';
 import { parseEther } from 'viem';
 import { getErrorMessage } from '@/lib/utils';
 import { useSafeError } from '@/hooks/useSafeError';
+import { hubNotify } from '@/lib/hub/notify';
 
 interface ContractStepProps {
   formData: Partial<DApp>;
@@ -52,22 +53,25 @@ export function ContractStep({ formData, onUpdate }: ContractStepProps) {
 
   const handleRegister = async () => {
     if (!isConnected || !address) {
-      alert('Please connect your wallet');
+      hubNotify.error('Wallet required', 'Please connect your wallet');
       return;
     }
 
     if (!contractAddress || !contractAddress.startsWith('0x')) {
-      alert('Please enter a valid contract address');
+      hubNotify.warning('Invalid address', 'Please enter a valid contract address');
       return;
     }
 
     if (!formData.name || !formData.category) {
-      alert('Please complete the Basic Info step first');
+      hubNotify.warning('Incomplete form', 'Please complete the Basic Info step first');
       return;
     }
 
     if (!dAppRegistryAddress) {
-      alert('DAppRegistry contract not found. Please check your network connection.');
+      hubNotify.error(
+        'Contract missing',
+        'DAppRegistry contract not found. Please check your network connection.',
+      );
       return;
     }
 

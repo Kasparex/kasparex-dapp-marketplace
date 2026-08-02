@@ -6,7 +6,7 @@ import { parseEther, type Address } from 'viem';
 import { TREASURY_ABI } from '@/lib/contracts/abis';
 import { CONTRACT_ADDRESSES } from '@/lib/contracts/addresses';
 import { getErrorMessage } from '@/lib/utils';
-import { useToast } from '@/hooks/useToast';
+import { hubNotify } from '@/lib/hub/notify';
 
 /**
  * Hardcoded Treasury addresses as fallback
@@ -127,7 +127,6 @@ export function useTreasuryPayment({
 }: UseTreasuryPaymentOptions): UseTreasuryPaymentReturn {
   const { address, isConnected } = useAccount();
   const chainId = useChainId();
-  const { toast } = useToast();
   const [error, setError] = useState<string | null>(null);
   const successCalledRef = useRef(false);
   const errorCalledRef = useRef<string | null>(null);
@@ -194,10 +193,14 @@ export function useTreasuryPayment({
       successCalledRef.current = true;
       onSuccess?.(txHash);
       if (showToast) {
-        toast({ variant: 'success', title: 'Payment sent', description: `Tx: ${txHash.slice(0, 10)}...` });
+        hubNotify.txSuccess({
+          title: 'Payment sent',
+          txHash,
+          chainId: chainId || undefined,
+        });
       }
     }
-  }, [isSuccess, txHash, onSuccess, showToast, toast]);
+  }, [isSuccess, txHash, onSuccess, showToast, chainId]);
 
   // Handle error callback and optional toast
   // writeError and txError are already strings from useMemo above
@@ -207,10 +210,10 @@ export function useTreasuryPayment({
       errorCalledRef.current = currentError;
       onError?.(new Error(currentError));
       if (showToast) {
-        toast({ variant: 'error', title: 'Payment failed', description: currentError });
+        hubNotify.error('Payment failed', currentError);
       }
     }
-  }, [currentError, onError, showToast, toast]);
+  }, [currentError, onError, showToast]);
 
   const pay = async () => {
     if (!isConnected || !address) {

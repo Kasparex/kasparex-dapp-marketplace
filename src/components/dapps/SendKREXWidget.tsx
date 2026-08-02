@@ -5,11 +5,7 @@ import { useKaspaWallet } from '@/lib/kaspa/context';
 import { queryL1KREXBalance } from '@/lib/krex/l1-balance';
 import { signKrc20Transfer } from '@/lib/kaspa/l1WalletActions';
 import { isValidKaspaAddress } from '@/lib/kaspa/sdk';
-import { Alert } from '@/components/Alert';
-import { KxAlertRegion } from '@/components/ui/KxAlertRegion';
 import { KxFormFieldLabel } from '@/components/ui/KxFormFieldLabel';
-import { getExplorerTxUrl, getKaspaExplorerAddressUrl } from '@/lib/store/utils';
-import { CopyableAddress } from '@/components/donations/CopyableAddress';
 import { DAppWidgetShell } from '@/components/dapps/DAppWidgetShell';
 import { useRegisterDAppWidgetRailSlot } from '@/lib/dapps/DAppWidgetActionRailContext';
 import { useRegisterHubFlowProgress } from '@/hooks/useRegisterHubFlowProgress';
@@ -17,6 +13,7 @@ import { useSyncDAppWidgetQuote } from '@/lib/dapps/PaymentAmountContext';
 import { placeholderDApps } from '@/lib/dapps';
 import { awardDAppHubPoints } from '@/lib/rewards/awardDAppHubPoints';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
+import { hubNotify } from '@/lib/hub/notify';
 
 export function SendKREXWidget() {
   const { state } = useKaspaWallet();
@@ -25,12 +22,7 @@ export function SendKREXWidget() {
   const [krexBalance, setKrexBalance] = useState<number>(0);
   const [krexDecimals] = useState<number>(8);
   const [isSending, setIsSending] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
-  const [txHash, setTxHash] = useState<string | null>(null);
-  const [sentTo, setSentTo] = useState<string | null>(null);
-  const [sentAmount, setSentAmount] = useState<string | null>(null);
-  const [txHashCopied, setTxHashCopied] = useState(false);
   const [isLoadingBalance, setIsLoadingBalance] = useState(false);
 
   const { tier, balance: krexBal } = useKREXBalance();
@@ -61,40 +53,39 @@ export function SendKREXWidget() {
 
   const handleSend = async () => {
     if (!state.isConnected || !state.provider) {
-      setError('Please connect your Kaspa wallet first');
+      hubNotify.error('Wallet required', 'Please connect your Kaspa wallet first');
       return;
     }
     if (state.provider !== 'kasware' && state.provider !== 'kastle' && state.provider !== 'kaspire') {
-      setError('KREX send requires KasWare or Kastle');
+      hubNotify.warning('Wallet unsupported', 'KREX send requires KasWare, Kastle, or Kaspire');
       return;
     }
 
     if (!toAddress.trim()) {
-      setError('Please enter a recipient address');
+      hubNotify.warning('Recipient required', 'Please enter a recipient address');
       return;
     }
 
     if (!isValidKaspaAddress(toAddress.trim())) {
-      setError('Please enter a valid Kaspa address');
+      hubNotify.warning('Invalid address', 'Please enter a valid Kaspa address');
       return;
     }
 
     if (!amount || parseFloat(amount) <= 0) {
-      setError('Please enter a valid amount');
+      hubNotify.warning('Invalid amount', 'Please enter a valid amount');
       return;
     }
 
     const amountNum = parseFloat(amount);
 
     if (amountNum > krexBalance) {
-      setError('Insufficient KREX balance');
+      hubNotify.error('Insufficient balance', 'Not enough KREX for this transfer');
       return;
     }
 
     setIsSending(true);
-    setError(null);
     setSuccess(false);
-    setTxHash(null);
+    const loadingId = hubNotify.loading('Sending KREX…', 'Confirm in your wallet');
 
     try {
       const amountInSmallestUnit = Math.floor(amountNum * Math.pow(10, krexDecimals));
@@ -121,7 +112,6 @@ export function SendKREXWidget() {
         priorityFeeKAS,
       );
 
-      setTxHash(hash);
       setSuccess(true);
       if (sendKrexDApp && state.address) {
         awardDAppHubPoints({
@@ -134,8 +124,6 @@ export function SendKREXWidget() {
           baseSpendKas: amountNum,
         });
       }
-      setSentTo(recipientAddress);
-      setSentAmount(amountNum.toString());
       setToAddress('');
       setAmount('');
 
@@ -148,12 +136,12 @@ export function SendKREXWidget() {
         }
       }
 
-      setTimeout(() => {
-        setSuccess(false);
-        setTxHash(null);
-        setSentTo(null);
-        setSentAmount(null);
-      }, 5000);
+      hubNotify.txSuccess({
+        id: loadingId,
+        title: 'KREX sent',
+        description: `${amountNum} KREX to ${recipientAddress.slice(0, 12)}…`,
+        txHash: hash,
+      });
     } catch (err) {
       let errorMessage = 'Failed to send KREX';
       if (err instanceof Error) {
@@ -169,7 +157,11 @@ export function SendKREXWidget() {
         errorMessage = err;
       }
 
-      setError(errorMessage);
+      hubNotify.update(loadingId, {
+        title: 'Send failed',
+        description: errorMessage,
+        variant: 'error',
+      });
     } finally {
       setIsSending(false);
     }
@@ -192,75 +184,7 @@ export function SendKREXWidget() {
     </button>
   ) : null;
 
-  const railAlerts =
-    error || (success && txHash) ? (
-      <KxAlertRegion>
-        {error ? (
-          <Alert type="error" compact region onDismiss={() => setError(null)}>
-            {error}
-          </Alert>
-        ) : null}
-        {success && txHash ? (
-          <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4 space-y-3">
-            <div className="flex items-center gap-2 text-green-700 dark:text-green-400">
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <span className="font-semibold">KREX transfer submitted</span>
-            </div>
-            <div className="flex items-center justify-between gap-2">
-              <span className="font-mono text-xs text-zinc-700 dark:text-zinc-300 break-all">{txHash}</span>
-              <div className="flex items-center gap-1 shrink-0">
-                <button
-                  type="button"
-                  onClick={async () => {
-                    try {
-                      await navigator.clipboard.writeText(txHash);
-                      setTxHashCopied(true);
-                      setTimeout(() => setTxHashCopied(false), 2000);
-                    } catch {}
-                  }}
-                  className="p-1.5 rounded border border-zinc-300 dark:border-zinc-600 text-zinc-500 hover:bg-zinc-200 dark:hover:bg-zinc-700"
-                  title="Copy tx hash"
-                >
-                  {txHashCopied ? (
-                    <svg className="w-4 h-4 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                  ) : (
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                    </svg>
-                  )}
-                </button>
-                <a
-                  href={getExplorerTxUrl(txHash)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="p-1.5 rounded border border-zinc-300 dark:border-zinc-600 text-zinc-500 hover:bg-zinc-200 dark:hover:bg-zinc-700"
-                  title="View in Explorer"
-                >
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                  </svg>
-                </a>
-              </div>
-            </div>
-            {sentTo ? (
-              <CopyableAddress label="Sent to" value={sentTo} explorerUrl={getKaspaExplorerAddressUrl(sentTo)} truncate />
-            ) : null}
-            {sentAmount ? (
-              <div className="text-xs text-zinc-600 dark:text-zinc-400">
-                Amount: <span className="font-semibold text-zinc-900 dark:text-zinc-100">{sentAmount}</span> KREX
-              </div>
-            ) : null}
-          </div>
-        ) : null}
-      </KxAlertRegion>
-    ) : null;
-
   useRegisterDAppWidgetRailSlot('actions', railActions, [state.isConnected, isSending, toAddress, amount]);
-  useRegisterDAppWidgetRailSlot('alerts', railAlerts, [error, success, txHash, sentTo, sentAmount, txHashCopied]);
   useRegisterHubFlowProgress('hubPay', { busy: isSending, complete: Boolean(success) }, [isSending, success]);
 
   return (

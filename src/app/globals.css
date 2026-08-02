@@ -493,6 +493,17 @@
   background: linear-gradient(to top, rgb(24 24 27 / 0.98) 70%, rgb(24 24 27 / 0));
 }
 
+/* Global Hub notify viewport (ToasterProvider): bottom-right stack */
+.kx-notify-viewport {
+  pointer-events: none;
+}
+.kx-notify-viewport > * {
+  pointer-events: auto;
+}
+.kx-notify-toast {
+  backdrop-filter: blur(10px);
+}
+
 /* Hub accent tokens (default: dApps cyan; overridden per page via HubAccentScope) */
 :root {
   --hub-accent: #06b6d4;

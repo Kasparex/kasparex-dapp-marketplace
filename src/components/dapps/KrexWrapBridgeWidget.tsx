@@ -4,11 +4,10 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { queryL1KREXBalance } from '@/lib/krex/l1-balance';
 import { signKrc20Transfer } from '@/lib/kaspa/l1WalletActions';
-import { Alert } from '@/components/Alert';
-import { KxAlertRegion } from '@/components/ui/KxAlertRegion';
 import { KxFormFieldLabel } from '@/components/ui/KxFormFieldLabel';
 import { getExplorerTxUrl, getKaspaExplorerAddressUrl } from '@/lib/store/utils';
 import { CopyableAddress } from '@/components/donations/CopyableAddress';
+import { hubNotify } from '@/lib/hub/notify';
 import { DAppWidgetShell } from '@/components/dapps/DAppWidgetShell';
 import { useRegisterDAppWidgetRailSlot } from '@/lib/dapps/DAppWidgetActionRailContext';
 import { useRegisterHubFlowProgress } from '@/hooks/useRegisterHubFlowProgress';
@@ -63,10 +62,7 @@ export function KrexWrapBridgeWidget() {
   const [krexBalance, setKrexBalance] = useState(0);
   const [isLoadingBalance, setIsLoadingBalance] = useState(false);
   const [isWorking, setIsWorking] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const [feeTxHash, setFeeTxHash] = useState<string | null>(null);
-  const [depositTxHash, setDepositTxHash] = useState<string | null>(null);
   const [history, setHistory] = useState<KrexWrapRecord[]>([]);
 
   const tick = getKrexWrapTick();
@@ -116,35 +112,36 @@ export function KrexWrapBridgeWidget() {
 
   const handleWrap = async () => {
     if (!state.isConnected || !state.provider || !state.address) {
-      setError('Connect a Kaspa wallet first');
+      hubNotify.error('Wallet required', 'Connect a Kaspa wallet first');
       return;
     }
     if (state.provider !== 'kasware' && state.provider !== 'kastle' && state.provider !== 'kaspire') {
-      setError('Wrap requires KasWare, Kastle, or Kaspire');
+      hubNotify.warning('Wallet unsupported', 'Wrap requires KasWare, Kastle, or Kaspire');
       return;
     }
     if (!config.ready || !config.vaultAddress || !config.treasuryAddress) {
-      setError('Wrap vault or treasury is not configured yet. Set NEXT_PUBLIC_KREX_WRAP_VAULT and treasury env.');
+      hubNotify.error(
+        'Wrap not configured',
+        'Wrap vault or treasury is not configured yet. Set NEXT_PUBLIC_KREX_WRAP_VAULT and treasury env.',
+      );
       return;
     }
     if (!parsedAmount || parsedAmount <= 0) {
-      setError('Enter a valid wrap amount');
+      hubNotify.warning('Invalid amount', 'Enter a valid wrap amount');
       return;
     }
     if (parsedAmount < config.minWrapKrex) {
-      setError(`Minimum wrap is ${config.minWrapKrex} ${tick}`);
+      hubNotify.warning('Below minimum', `Minimum wrap is ${config.minWrapKrex} ${tick}`);
       return;
     }
     if (parsedAmount > krexBalance) {
-      setError(`Insufficient ${tick} balance`);
+      hubNotify.error('Insufficient balance', `Not enough ${tick} for this wrap`);
       return;
     }
 
     setIsWorking(true);
-    setError(null);
     setSuccess(null);
-    setFeeTxHash(null);
-    setDepositTxHash(null);
+    const loadingId = hubNotify.loading('Wrapping…', 'Confirm fee and deposit in your wallet');
 
     const wrapId = newKrexWrapId();
     upsertKrexWrapRecord({
@@ -167,7 +164,6 @@ export function KrexWrapBridgeWidget() {
           senderAddress: state.address,
           plan,
         });
-        setFeeTxHash(feeHash);
         updateKrexWrapStatus(wrapId, 'fee_paid', { feeTxHash: feeHash });
       }
 
@@ -186,7 +182,6 @@ export function KrexWrapBridgeWidget() {
         config.vaultAddress,
         0.001,
       );
-      setDepositTxHash(hash);
       updateKrexWrapStatus(wrapId, config.mintLive ? 'pending_mint' : 'deposited', {
         depositTxHash: hash,
         note: config.mintLive
@@ -220,11 +215,16 @@ export function KrexWrapBridgeWidget() {
         });
       }
 
-      setSuccess(
-        config.mintLive
-          ? `Wrapped ${parsedAmount} ${tick}. Mint should arrive as KCC20 shortly.`
-          : `Locked ${parsedAmount} ${tick} in the wrap vault. KCC20 mint activates when the covenant is live.`,
-      );
+      const successMsg = config.mintLive
+        ? `Wrapped ${parsedAmount} ${tick}. Mint should arrive as KCC20 shortly.`
+        : `Locked ${parsedAmount} ${tick} in the wrap vault. KCC20 mint activates when the covenant is live.`;
+      setSuccess(successMsg);
+      hubNotify.txSuccess({
+        id: loadingId,
+        title: 'Wrap submitted',
+        description: successMsg,
+        txHash: hash,
+      });
       setAmount('');
       refreshHistory();
       void refetch();
@@ -244,7 +244,11 @@ export function KrexWrapBridgeWidget() {
         msg = err.message || msg;
         if (msg.includes('rejected')) msg = 'Transaction was rejected';
       }
-      setError(msg);
+      hubNotify.update(loadingId, {
+        title: 'Wrap failed',
+        description: msg,
+        variant: 'error',
+      });
       refreshHistory();
     } finally {
       setIsWorking(false);
@@ -263,38 +267,6 @@ export function KrexWrapBridgeWidget() {
       </button>
     ) : null;
 
-  const railAlerts =
-    error || success ? (
-      <KxAlertRegion>
-        {error ? (
-          <Alert type="error" compact region onDismiss={() => setError(null)}>
-            {error}
-          </Alert>
-        ) : null}
-        {success ? (
-          <Alert type="success" compact region onDismiss={() => setSuccess(null)}>
-            {success}
-          </Alert>
-        ) : null}
-        {feeTxHash ? (
-          <div className="text-xs text-zinc-600 dark:text-zinc-400">
-            Fee tx:{' '}
-            <a className="underline" href={getExplorerTxUrl(feeTxHash)} target="_blank" rel="noreferrer">
-              {feeTxHash.slice(0, 12)}…
-            </a>
-          </div>
-        ) : null}
-        {depositTxHash ? (
-          <div className="text-xs text-zinc-600 dark:text-zinc-400">
-            Deposit tx:{' '}
-            <a className="underline" href={getExplorerTxUrl(depositTxHash)} target="_blank" rel="noreferrer">
-              {depositTxHash.slice(0, 12)}…
-            </a>
-          </div>
-        ) : null}
-      </KxAlertRegion>
-    ) : null;
-
   useRegisterDAppWidgetRailSlot('actions', railActions, [
     tab,
     state.isConnected,
@@ -302,7 +274,6 @@ export function KrexWrapBridgeWidget() {
     amount,
     config.ready,
   ]);
-  useRegisterDAppWidgetRailSlot('alerts', railAlerts, [error, success, feeTxHash, depositTxHash]);
   useRegisterHubFlowProgress('hubPay', { busy: isWorking, complete: Boolean(success) }, [
     isWorking,
     success,

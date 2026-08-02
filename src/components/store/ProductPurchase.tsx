@@ -9,7 +9,6 @@ import { useHubListingGate } from '@/hooks/useHubListingGate';
 import { storeProductGateConfig } from '@/lib/hub/gateConfigs';
 import { HubWalletGateModal } from '@/components/hub/HubWalletGateModal';
 import { HubPaymentPanel } from '@/components/payments/HubPaymentPanel';
-import { Alert } from '@/components/Alert';
 import {
   getProductPaymentCurrency,
 } from '@/lib/store/currencies';
@@ -45,7 +44,7 @@ export function ProductPurchase({ product, onPurchaseComplete }: ProductPurchase
   const { nftStatus } = useNFTStatus();
   const gateConfig = storeProductGateConfig(product);
   const { promptGate, isOpenable, l1Modal, closeL1Modal } = useHubListingGate(gateConfig);
-  const { purchase, isProcessing, error, success, txHash } = useStoreProductPurchase(product);
+  const { purchase, isProcessing, success } = useStoreProductPurchase(product);
 
   const listedCurrency = getProductPaymentCurrency(product);
   const { tokens: sellerIntegratedTokens } = useIntegratedTokens(product.sellerAddress, 'store');
@@ -202,22 +201,6 @@ export function ProductPurchase({ product, onPurchaseComplete }: ProductPurchase
             >
               {isProcessing ? 'Processing…' : state.isConnected ? 'Purchase' : 'Connect wallet to purchase'}
             </button>
-          }
-          alerts={
-            error || (success && txHash) ? (
-              <>
-                {error ? (
-                  <Alert type="error" compact region>
-                    {error}
-                  </Alert>
-                ) : null}
-                {success && txHash ? (
-                  <Alert type="success" compact region>
-                    Purchase complete.
-                  </Alert>
-                ) : null}
-              </>
-            ) : null
           }
         />
       </div>
