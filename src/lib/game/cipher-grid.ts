@@ -1,4 +1,5 @@
 import type { CipherVaultTierId } from '@/lib/game/cipher-vaults-config';
+import { getCipherVaultTier } from '@/lib/game/cipher-vaults-config';
 
 export type CipherMove =
   | { type: 'swap'; a: number; b: number }
@@ -7,7 +8,7 @@ export type CipherMove =
 
 export interface CipherGridRunSpec {
   tierId: CipherVaultTierId;
-  size: number; // N x N
+  size: number;
   seed: string;
   initial: number[];
   target: number[];
@@ -16,7 +17,6 @@ export interface CipherGridRunSpec {
 function xorshift32(seed: number) {
   let x = seed | 0;
   return () => {
-    // xorshift32
     x ^= x << 13;
     x ^= x >>> 17;
     x ^= x << 5;
@@ -25,7 +25,6 @@ function xorshift32(seed: number) {
 }
 
 function hashSeedToU32(seed: string): number {
-  // tiny deterministic hash
   let h = 2166136261;
   for (let i = 0; i < seed.length; i++) {
     h ^= seed.charCodeAt(i);
@@ -34,18 +33,36 @@ function hashSeedToU32(seed: string): number {
   return h >>> 0;
 }
 
+function fisherYates(arr: number[], rand: () => number) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(rand() * (i + 1));
+    const t = arr[i];
+    arr[i] = arr[j]!;
+    arr[j] = t!;
+  }
+}
+
 export function makeCipherRunSpec(seed: string, tierId: CipherVaultTierId): CipherGridRunSpec {
   const size = 4;
+  const tier = getCipherVaultTier(tierId);
+  const depth = tier?.scrambleDepth ?? 0;
   const rand = xorshift32(hashSeedToU32(`${seed}:${tierId}`));
   const target = Array.from({ length: size * size }, (_, i) => i);
   const initial = [...target];
 
-  // Shuffle by doing swaps; deterministic.
-  for (let i = initial.length - 1; i > 0; i--) {
-    const j = Math.floor(rand() * (i + 1));
-    const t = initial[i];
-    initial[i] = initial[j]!;
-    initial[j] = t!;
+  // Base shuffle + optional deeper reshuffles for harder covenants.
+  fisherYates(initial, rand);
+  for (let d = 0; d < depth; d++) {
+    fisherYates(initial, rand);
+  }
+
+  // Ensure not already solved (extremely rare but cheap to fix).
+  if (initial.every((v, i) => v === target[i])) {
+    const a = 0;
+    const b = 1;
+    const t = initial[a];
+    initial[a] = initial[b]!;
+    initial[b] = t!;
   }
 
   return { tierId, size, seed, initial, target };
@@ -96,4 +113,3 @@ export function isSolved(grid: number[], target: number[]): boolean {
   for (let i = 0; i < grid.length; i++) if (grid[i] !== target[i]) return false;
   return true;
 }
-

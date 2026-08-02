@@ -1,45 +1,40 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
-import Link from 'next/link';
-import { useKaspaWallet } from '@/lib/kaspa/context';
-import { useCipherVaults } from '@/hooks/useCipherVaults';
-import { CIPHER_TICKET_REDEEM_RATE_POINTS, CIPHER_VAULTS_TREASURY_ADDRESS, CIPHER_VAULT_TIERS, type CipherVaultTierId } from '@/lib/game/cipher-vaults-config';
-import { CipherGridLockedPreview } from './CipherGridLockedPreview';
-import { CipherGridPuzzle } from './CipherGridPuzzle';
-import { Tooltip, TooltipProvider } from '@/components/ui/Tooltip';
-import { gameTooltipRich } from '@/components/games/gameTooltipRich';
+import { useMemo, useState } from 'react';
 import dynamic from 'next/dynamic';
+import Link from 'next/link';
+import { TooltipProvider } from '@/components/ui/Tooltip';
 import type { GameDeckResource } from '@/components/games/panels/GameDeckPanel';
-import { GamesWithSidebarLayout } from '@/components/games/layout/GamesWithSidebarLayout';
-import { GamesHaloHeader } from '@/components/games/GamesHaloHeader';
-import { HubBenefitsPanel } from '@/components/hub/HubBenefitsPanel';
-import { GamesSecurityPanel } from '@/components/games/panels/GamesSecurityPanel';
-import { GameMetadataPanel } from '@/components/games/panels/GameMetadataPanel';
-import { GamePurchasesPanel } from '@/components/games/panels/GamePurchasesPanel';
-import { GamesAsideRail } from '@/components/games/layout/GamesAsideRail';
-import { GameOverviewSections } from '@/components/games/panels/GameOverviewSections';
-import { GamePanelCard } from '@/components/games/layout/GamePanelCard';
-import { CHRONICLES_PANEL } from '@/lib/chronicles/typography';
-import { IconComments, IconMilestones, IconOverview, IconRedeem, IconRewards, IconVaults } from '@/components/games/icons/TabIcons';
-import { CardsFilterBar } from '@/components/games/CardsFilterBar';
-import { GamesAdaptiveGrid } from '@/components/games/layout/GamesAdaptiveGrid';
-import { useGameCommentsTabs, gameCommentsArticleId } from '@/components/games/comments/gameComments';
+import { gameDeckRefineResource } from '@/components/games/panels/GameDeckRefineControls';
+import { UnifiedGameLayout } from '@/components/games/layout/UnifiedGameLayout';
+import {
+  GameOverviewTip,
+  GameOverviewTitleBlock,
+  GAME_OVERVIEW_ACCENT_LINK,
+} from '@/components/games/panels/GameOverviewSections';
+import { RewardsPreview } from '@/components/games/modules/RewardsPreview';
+import { MilestonesPanel } from '@/components/games/modules/MilestonesPanel';
 import { GameActivityStatusDot, type GameActivityHealth } from '@/components/games/GameActivityStatusDot';
 import type { GameTab } from '@/components/games/layout/GameTabs';
-import { MilestonesPanel } from '@/components/games/modules/MilestonesPanel';
+import {
+  IconComments,
+  IconMilestones,
+  IconOverview,
+  IconPlay,
+  IconRewards,
+  IconShop,
+} from '@/components/games/icons/TabIcons';
+import { useGameCommentsTabs, gameCommentsArticleId } from '@/components/games/comments/gameComments';
 import { useGameMilestones } from '@/hooks/useGameMilestones';
-
-const TABS = [
-  { id: 'overview', label: 'Overview' },
-  { id: 'vaults', label: 'Vaults' },
-  { id: 'redeem', label: 'Redeem' },
-  { id: 'rewards', label: 'Rewards' },
-  { id: 'milestones', label: 'Milestones' },
-  { id: 'comments', label: 'Comments' },
-] as const;
-
-type TabId = (typeof TABS)[number]['id'];
+import { useCipherVaults } from '@/hooks/useCipherVaults';
+import { CipherVaultsEntryPanel } from '@/components/game/cipher-vaults/CipherVaultsEntryPanel';
+import { CipherVaultsPlayPanel } from '@/components/game/cipher-vaults/CipherVaultsPlayPanel';
+import { CipherVaultsShopPanel } from '@/components/game/cipher-vaults/CipherVaultsShopPanel';
+import { CIPHER_REFINE_MIN, type CipherVaultTierId } from '@/lib/game/cipher-vaults-config';
+import { KX_PROSE, KX_PROSE_PARAGRAPH } from '@/lib/ui/kxTypography';
+import { CardsFilterBar } from '@/components/games/CardsFilterBar';
+import { GamePanelCard } from '@/components/games/layout/GamePanelCard';
+import { getCipherVaultTier } from '@/lib/game/cipher-vaults-config';
 
 const CommentsSection = dynamic(() => import('@/components/vblog/CommentsSection').then((m) => m.CommentsSection), {
   ssr: false,
@@ -50,657 +45,434 @@ const CommentsSection = dynamic(() => import('@/components/vblog/CommentsSection
   ),
 });
 
-export function CipherVaultsDashboard({
-  featuredImage = '',
-  loreStory = '',
-  gameDescription = '',
-  game,
-  gameName,
-}: { featuredImage?: string; loreStory?: string; gameDescription?: string; game?: any; gameName?: string }) {
-  const { state: walletState } = useKaspaWallet();
-  const { state, tickets, canPayWithL1, startRun, submitRun, loadActiveRun, cancelRun, redeemRefinement, fetchDiamondVeinsRefinementPoints } = useCipherVaults();
-  const categories = (game?.categories ?? []) as string[];
-  const tags = (game?.tags ?? []) as string[];
-  const [tab, setTab] = useState<TabId>('vaults');
-  const [tierId, setTierId] = useState<CipherVaultTierId>('t1');
-  const [payWith, setPayWith] = useState<'KAS' | 'TICKET'>('KAS');
-  const [starting, setStarting] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
-  const [puzzle, setPuzzle] = useState<{ size: number; initial: number[]; target: number[]; moveLimit: number } | null>(null);
-  const [activeRunId, setActiveRunId] = useState<string | null>(null);
-  const [redeemablePoints, setRedeemablePoints] = useState(0);
-  const [redeemAmount, setRedeemAmount] = useState(CIPHER_TICKET_REDEEM_RATE_POINTS);
-  const [toast, setToast] = useState<string | null>(null);
-  const [faqOpen, setFaqOpen] = useState(false);
+const TABS = [
+  { id: 'overview', label: 'Overview', icon: <IconOverview /> },
+  { id: 'play', label: 'Play', icon: <IconPlay /> },
+  { id: 'shop', label: 'Shop', icon: <IconShop /> },
+  { id: 'rewards', label: 'Rewards', icon: <IconRewards /> },
+  { id: 'milestones', label: 'Milestones', icon: <IconMilestones /> },
+  { id: 'comments', label: 'Comments', icon: <IconComments /> },
+] as const;
 
+type TabId = (typeof TABS)[number]['id'];
+
+export function CipherVaultsDashboard(props: {
+  featuredImage?: string;
+  loreStory?: string;
+  gameDescription?: string;
+  gameName?: string;
+  game: any;
+}) {
+  const game = useCipherVaults();
+  const [tab, setTab] = useState<TabId>('play');
+  const [refineAmount, setRefineAmount] = useState<number | ''>('');
+  const [selectedTierId, setSelectedTierId] = useState<CipherVaultTierId>('seal');
+  const [submitting, setSubmitting] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [category, setCategory] = useState('all');
   const [sortBy, setSortBy] = useState('recommended');
 
-  const haloGame = game
-    ? {
-        ...game,
-        categories: (game as { categories?: string[] }).categories ?? categories,
-        tags: (game as { tags?: string[] }).tags ?? tags,
-      }
-    : {
-        name: gameName || 'Cipher Vaults',
-        description: gameDescription || '',
-        developer: 'Kasparex',
-        status: 'active' as const,
-        difficulty: 'medium' as const,
-        gameType: 'puzzle' as const,
-        featuredImage,
-        image: featuredImage,
-        entryCostKAS: 0,
-        publisher: 'kasparex' as const,
-        categories,
-        tags,
-      };
+  const playHealth: GameActivityHealth = game.runActive
+    ? 'active'
+    : game.state.activeRun
+      ? 'exhausted'
+      : 'inactive';
 
-  useEffect(() => {
-    if (!walletState.isConnected) return;
-    void fetchDiamondVeinsRefinementPoints().then((pts) => setRedeemablePoints(pts));
-  }, [walletState.isConnected, fetchDiamondVeinsRefinementPoints, state.version]);
-
-  /** Always mirror server /run/current while on Vaults so UI never disagrees with “already active” errors. */
-  useEffect(() => {
-    if (!walletState.isConnected || walletState.address == null || tab !== 'vaults') return;
-    let cancelled = false;
-    void (async () => {
-      try {
-        const cur = await loadActiveRun();
-        if (cancelled) return;
-        if (cur?.run?.runId && cur?.puzzle) {
-          setActiveRunId(cur.run.runId);
-          setPuzzle(cur.puzzle);
-        } else {
-          setActiveRunId(null);
-          setPuzzle(null);
-        }
-      } catch {
-        if (!cancelled) {
-          setActiveRunId(null);
-          setPuzzle(null);
-        }
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [walletState.isConnected, walletState.address, tab, loadActiveRun]);
-
-  const redeemableRemaining = Math.max(0, redeemablePoints - (state.redeemedRefinementPointsTotal ?? 0));
-
-  /** Authoritative: hook state tracks server activeRun; puzzle mirrors GET /run/current */
-  const hasActiveRunOnServer = Boolean(state.activeRun);
-  const canPlayGrid = Boolean(puzzle && activeRunId);
-  const runIdForActions = activeRunId ?? state.activeRun?.runId ?? null;
-
-  const tier = useMemo(() => CIPHER_VAULT_TIERS.find((t) => t.id === tierId)!, [tierId]);
-  const openOverview = () => {
-    setTab('overview');
-    try {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    } catch {
-      // ignore
-    }
-  };
-
-  const vaultHealth: GameActivityHealth = hasActiveRunOnServer
-    ? canPlayGrid
-      ? 'active'
-      : 'exhausted'
-    : 'inactive';
-
-  const baseTabs: GameTab<'overview' | 'vaults' | 'redeem' | 'rewards' | 'milestones' | 'comments'>[] = useMemo(
-    () => [
-      { id: 'overview', label: 'Overview', icon: <IconOverview /> },
-      {
-        id: 'vaults',
-        label: 'Vaults',
-        icon: <IconVaults />,
-        rightAdornment: (
-          <GameActivityStatusDot
-            health={vaultHealth}
-            title={
-              vaultHealth === 'active'
-                ? 'Vault run active'
-                : vaultHealth === 'exhausted'
-                  ? 'Run loading'
-                  : 'No active vault'
+  const tabsBase = useGameCommentsTabs(TABS as unknown as GameTab<TabId>[], 'cipher-vaults');
+  const tabs = useMemo(
+    () =>
+      tabsBase.map((t) =>
+        t.id === 'play'
+          ? {
+              ...t,
+              rightAdornment: (
+                <GameActivityStatusDot
+                  health={playHealth}
+                  title={
+                    playHealth === 'active'
+                      ? 'Vault covenant active'
+                      : playHealth === 'exhausted'
+                        ? 'Run loading / expired'
+                        : 'No active vault'
+                  }
+                />
+              ),
             }
-          />
-        ),
-      },
-      { id: 'redeem', label: 'Redeem', icon: <IconRedeem /> },
-      { id: 'rewards', label: 'Rewards', icon: <IconRewards /> },
-      { id: 'milestones', label: 'Milestones', icon: <IconMilestones /> },
-      { id: 'comments', label: 'Comments', icon: <IconComments /> },
-    ],
-    [vaultHealth],
-  );
-  const tabs = useGameCommentsTabs(baseTabs, 'cipher-vaults');
-
-  const deckResources: GameDeckResource[] = [
-    {
-      id: 'tickets',
-      label: 'Cipher Tickets',
-      value: (
-        <span className="inline-flex items-center gap-2">
-          {tickets.available.toLocaleString()}
-          <GameActivityStatusDot
-            health={vaultHealth}
-            title={
-              vaultHealth === 'active'
-                ? 'Vault run active'
-                : vaultHealth === 'exhausted'
-                  ? 'Run loading'
-                  : 'No active vault'
-            }
-          />
-        </span>
+          : t,
       ),
-      subValue: canPlayGrid ? 'Run in progress' : hasActiveRunOnServer ? 'Loading puzzle' : 'Ready',
-      description: 'In-game currency',
-      tooltip: 'Entry tickets you can spend instead of KAS to start runs. Status dot tracks vault activity.',
-      accent: 'games',
-      onClick: () => setTab('redeem'),
-    },
-    {
-      id: 'refine_bridge',
-      label: 'Refine to Hub',
-      value: 'Diamond Veins',
-      description: 'Mine & refine Diamonds → Hub points',
-      tooltip: 'Cipher Vaults uses tickets. Refine Diamonds to Hub points in Diamond Veins, then redeem tickets here.',
-      accent: 'diamonds',
-      onClick: () => {
-        window.location.href = '/games/diamond-veins';
-      },
-    },
-  ];
+    [tabsBase, playHealth],
+  );
 
   const milestoneProgress = useMemo(
     () => ({
-      cipher_clears: (state.ledger ?? []).length,
-      collections_complete: new Set((state.ledger ?? []).map((e) => e.tierId)).size >= 3 ? 1 : 0,
+      cipher_clears: (game.state.ledger ?? []).length,
+      collections_complete:
+        new Set((game.state.ledger ?? []).map((e) => e.tierId)).size >= 5 ? 1 : 0,
+      refinement_points: game.state.refinementPointsTotal,
+      cipher_fragments: game.state.fragmentsEarnedLifetime,
     }),
-    [state.ledger],
+    [game.state.ledger, game.state.refinementPointsTotal, game.state.fragmentsEarnedLifetime],
   );
   const { level: playerLevel } = useGameMilestones('cipher-vaults', milestoneProgress);
 
+  const refineFragments = game.refineFragments;
+  const deckResources: GameDeckResource[] = useMemo(
+    () => [
+      {
+        id: 'fragments',
+        label: 'Cipher Fragments',
+        value: (
+          <span className="inline-flex items-center gap-2 text-lg font-black tabular-nums tracking-tight text-emerald-600 dark:text-emerald-400 sm:text-xl">
+            {game.state.cipherFragments.toLocaleString()}
+            <GameActivityStatusDot
+              health={playHealth}
+              title={
+                playHealth === 'active'
+                  ? 'Vault covenant active'
+                  : playHealth === 'exhausted'
+                    ? 'Run loading / expired'
+                    : 'No active vault'
+              }
+            />
+          </span>
+        ),
+        subValue: game.runActive ? 'Covenant open' : 'Pay entry to open a vault',
+        description: 'In-game currency',
+        tooltip:
+          'Cipher Fragments bank when you clear a vault. Refine them below into Hub redeem points on /rewards.',
+        accent: 'games' as const,
+        onClick: () => setTab('play'),
+      },
+      gameDeckRefineResource({
+        amount: refineAmount,
+        onAmountChange: setRefineAmount,
+        minAmount: game.refineMin,
+        maxAmount: Math.floor(game.state.cipherFragments),
+        refining: game.refining,
+        onRefine: (n) => {
+          void refineFragments(n).then((res) => {
+            if (res) setRefineAmount('');
+          });
+        },
+        description: `Min ${game.refineMin} fragments → Hub points on /rewards`,
+        tooltip:
+          'Enter how many Cipher Fragments to refine. Each fragment credits exactly 1 Hub redeem point on /rewards.',
+      }),
+    ],
+    [
+      game.state.cipherFragments,
+      game.runActive,
+      game.refineMin,
+      game.refining,
+      refineFragments,
+      refineAmount,
+      playHealth,
+    ],
+  );
+
+  const categories = (props.game?.categories ?? []) as string[];
+  const tags = (props.game?.tags ?? []) as string[];
+  const gameName = props.gameName ?? props.game?.name ?? "Krex’s Cipher Vaults";
+  const description =
+    props.gameDescription?.trim() ||
+    'Open timed Cipher Vault covenants on the Kaspa network. Solve rune grids, bank Cipher Fragments, and refine them into Hub redeem points.';
+
+  const bankPreview = game.bankPreview(selectedTierId, []);
+
   return (
     <TooltipProvider>
-    <GamesWithSidebarLayout
-      tabs={tabs}
-      currentTab={tab}
-      onTabChange={setTab}
-      haloHeader={
-        <GamesHaloHeader
-          game={haloGame}
-          resources={deckResources}
-          deckFooter="Values update live as you earn tickets and clear vaults."
-          playerLevel={playerLevel}
-        />
-      }
-      main={
-        <>
-        {toast && (
-          <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-sm font-semibold text-emerald-800 dark:text-emerald-200">
-            {toast}
-          </div>
-        )}
-
+      <UnifiedGameLayout
+        tabs={tabs as any}
+        currentTab={tab}
+        onTabChange={setTab}
+        resources={deckResources}
+        playerLevel={playerLevel}
+        game={{
+          ...(props.game ?? {}),
+          name: gameName,
+          description: props.gameDescription ?? props.game?.description ?? '',
+          featuredImage: props.featuredImage || props.game?.featuredImage,
+          image: props.game?.image,
+          categories,
+          tags,
+        }}
+        deckFooter={<span>Clear vaults. Bank fragments. Refine to Hub.</span>}
+        asideExtras={
+          <CipherVaultsEntryPanel
+            selectedTierId={selectedTierId}
+            onSelectTier={setSelectedTierId}
+            runActive={Boolean(game.state.activeRun)}
+            ownedAddons={game.state.ownedAddons}
+            booster={game.state.booster}
+            inventory={game.state.inventory}
+            paying={game.paying}
+            error={game.lastError}
+            success={game.lastSuccess}
+            bankPreview={bankPreview}
+            getKasPriceAfterDiscount={game.getKasPriceAfterDiscount}
+            onPay={async (args) => {
+              const ok = await game.startVault(args);
+              if (ok) setTab('play');
+              return ok;
+            }}
+          />
+        }
+      >
         {tab === 'overview' && (
-          <div className="space-y-6">
-            <GamePanelCard title="How to play" hint="Run → solve → checkpoint.">
-              <ul className="list-disc pl-5 text-sm text-zinc-600 dark:text-zinc-400 space-y-1">
-                <li>Start a vault run by paying with KAS or spending a Cipher Ticket.</li>
-                <li>Solve the Cipher Grid within the move limit - each swap counts as one move.</li>
-                <li>A verified clear records a checkpoint, contributing to future GRID distribution.</li>
-                <li>Earn Cipher Tickets by redeeming Diamond Veins refinement points ({CIPHER_TICKET_REDEEM_RATE_POINTS} pts = 1 ticket).</li>
-              </ul>
-            </GamePanelCard>
-
-            <GamePanelCard title="Diamond Veins bridge" hint="Convert refinement points into tickets.">
-              <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                Redeem Diamond Veins <strong>refinement points</strong> into Cipher Tickets: <strong>{CIPHER_TICKET_REDEEM_RATE_POINTS} pts</strong> = <strong>1 ticket</strong>.
-              </p>
-              <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-                Need points? Start mining in{' '}
-                <Link href="/games/diamond-veins" className="font-semibold text-emerald-700 underline dark:text-emerald-300">
-                  Diamond Veins
-                </Link>
-                .
-              </p>
-            </GamePanelCard>
-
-            <GameOverviewSections
-              gameName={gameName ?? "Krex's Cipher Vaults"}
-              kicker="Game guide"
-              subtitle="Solve Cipher Grids, bank vault clears, redeem tickets."
-              description={gameDescription}
-              loreStory={loreStory}
-              tips={[
-                {
-                  title: 'Entry tip',
-                  body: 'Pay with KAS per vault tier, or spend a Cipher Ticket from the Redeem tab when you have refinement points to convert.',
-                },
-              ]}
-              flow={[
-                'Choose a vault tier and start a run with KAS or a Cipher Ticket.',
-                'Solve the Cipher Grid within the move limit to clear the vault.',
-                'Clears record checkpoints that feed later GRID distribution.',
-                'On Redeem, convert refinement points into more Cipher Tickets when you need them.',
-              ]}
-            />
-          </div>
-        )}
-
-        {tab === 'vaults' && (
-          <div className="space-y-6">
-            <GamesAdaptiveGrid gapClass="gap-3">
-              {CIPHER_VAULT_TIERS.map((t) => (
-                <button
-                  key={t.id}
-                  type="button"
-                  onClick={() => setTierId(t.id)}
-                  className={`rounded-2xl border p-4 text-left transition-colors ${
-                    tierId === t.id
-                      ? 'border-emerald-500/50 bg-emerald-500/10'
-                      : 'border-zinc-200 bg-white hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900/60 dark:hover:bg-zinc-800/50'
-                  }`}
-                >
-                  <p className="text-sm font-bold text-zinc-900 dark:text-zinc-100">{t.label}</p>
-                  <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-500">Move limit: {t.moveLimit}</p>
-                  <p className="mt-2 text-sm text-zinc-700 dark:text-zinc-300">
-                    Entry: <strong>{t.entryKAS}</strong> KAS
-                  </p>
-                  <p className="text-xs text-emerald-600 dark:text-emerald-400">Preview: {t.gridPreview} GRID · {10 * (t.gridPreview ?? 1)} pts</p>
-                </button>
-              ))}
-            </GamesAdaptiveGrid>
-
-            <div className="rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900/60 space-y-4">
-              <div className="flex flex-wrap items-center justify-between gap-4">
-                <div>
-                  <p className="text-sm font-semibold text-zinc-800 dark:text-zinc-200 inline-flex items-center gap-2">
-                    Start a run
-                    <Tooltip
-                      content={gameTooltipRich(
-                        'Start a run',
-                        'Creates one active attempt at a time. If you already have an active run, end it first to avoid duplicate payments.',
-                      )}
-                    >
-                      <button
-                        type="button"
-                        className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-zinc-300 text-[10px] font-bold text-zinc-600 dark:border-zinc-600 dark:text-zinc-300"
-                        aria-label="About starting runs"
-                      >
-                        i
-                      </button>
-                    </Tooltip>
-                  </p>
-                  <p className="text-xs text-zinc-500 dark:text-zinc-500">Pay with KAS or spend 1 ticket.</p>
-                </div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <select
-                    value={payWith}
-                    onChange={(e) => setPayWith(e.target.value === 'TICKET' ? 'TICKET' : 'KAS')}
-                    className="h-12 rounded-xl border border-zinc-200 bg-white px-4 text-sm font-semibold text-zinc-900 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100"
-                    disabled={hasActiveRunOnServer}
-                  >
-                    <option value="KAS">Pay with KAS</option>
-                    <option value="TICKET">Use 1 ticket ({tickets.available} avail)</option>
-                  </select>
-                  <button
-                    type="button"
-                    disabled={hasActiveRunOnServer || starting || (payWith === 'KAS' && !canPayWithL1)}
-                    onClick={async () => {
-                      setToast(null);
-                      setStarting(true);
-                      try {
-                        const res = await startRun(tierId, payWith);
-                        setPuzzle(res.puzzle);
-                        setActiveRunId(res.run.runId);
-                        setToast('Vault run started. Solve the cipher to submit.');
-                      } catch (e: any) {
-                        setToast(e?.message || 'Failed to start run');
-                      } finally {
-                        setStarting(false);
-                      }
-                    }}
-                    className="k-cta-games h-12 px-5 text-sm disabled:opacity-50 disabled:grayscale"
-                  >
-                    {starting ? 'Starting…' : 'Start run'}
-                  </button>
-                </div>
-              </div>
-
-              {hasActiveRunOnServer && (
-                <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-800 dark:text-amber-200">
-                  {canPlayGrid ? (
-                    <p>You have an active vault run. Submit your solution, or end the run before starting another attempt.</p>
-                  ) : (
-                    <p>Loading your active vault from the server… If this persists, tap Resume run.</p>
-                  )}
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    <button
-                      type="button"
-                      className="k-control-btn"
-                      onClick={async () => {
-                        setToast(null);
-                        try {
-                          const cur = await loadActiveRun();
-                          if (cur?.run?.runId && cur?.puzzle) {
-                            setActiveRunId(cur.run.runId);
-                            setPuzzle(cur.puzzle);
-                            setToast('Loaded your active run.');
-                          } else {
-                            setToast('No active run found.');
-                            setActiveRunId(null);
-                            setPuzzle(null);
-                          }
-                        } catch (e: any) {
-                          setToast(e?.message || 'Failed to load run');
-                        }
-                      }}
-                    >
-                      Resume run
-                    </button>
-                    <button
-                      type="button"
-                      className="k-control-btn"
-                      onClick={async () => {
-                        setToast(null);
-                        try {
-                          await cancelRun(runIdForActions ?? undefined);
-                          setPuzzle(null);
-                          setActiveRunId(null);
-                          setToast('Run ended. You can start a new attempt now.');
-                        } catch (e: any) {
-                          setToast(e?.message || 'Failed to end run');
-                        }
-                      }}
-                    >
-                      End run (no refund)
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {payWith === 'KAS' && !canPayWithL1 && (
-                <p className="text-xs text-amber-600 dark:text-amber-300">
-                  Connect with KasWare or Kastle to send L1 KAS entry payments.
-                </p>
-              )}
-            </div>
-
-            <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-6 dark:border-zinc-800 dark:bg-zinc-900/40">
-              {canPlayGrid && puzzle ? (
-                <>
-                  <CipherGridPuzzle
-                    size={puzzle.size}
-                    initial={puzzle.initial}
-                    target={puzzle.target}
-                    moveLimit={puzzle.moveLimit}
-                    onSolved={async (moves) => {
-                      setToast(null);
-                      setSubmitting(true);
-                      try {
-                        const rid = activeRunId ?? state.activeRun?.runId;
-                        if (!rid) throw new Error('Missing run id');
-                        const res = await submitRun(rid, moves);
-                        if (res?.solved) {
-                          setToast('Solution verified. Checkpoint recorded.');
-                          setPuzzle(null);
-                          setActiveRunId(null);
-                          setTab('rewards');
-                        } else {
-                          setToast('Not solved yet (server verification failed).');
-                        }
-                      } catch (e: any) {
-                        setToast(e?.message || 'Submit failed');
-                      } finally {
-                        setSubmitting(false);
-                      }
-                    }}
-                    onFailed={() => {
-                      void (async () => {
-                        setToast(null);
-                        try {
-                          await cancelRun(activeRunId ?? state.activeRun?.runId ?? undefined);
-                        } catch {
-                          // ignore
-                        } finally {
-                          setToast('Out of moves. Start a new paid attempt to try again.');
-                          setPuzzle(null);
-                          setActiveRunId(null);
-                        }
-                      })();
-                    }}
-                  />
-                  {submitting && <p className="mt-3 text-xs text-zinc-500 dark:text-zinc-500">Verifying…</p>}
-                </>
-              ) : hasActiveRunOnServer && !canPlayGrid ? (
-                <div className="space-y-3">
-                  <p className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">Fetching vault puzzle…</p>
-                  <div className="grid animate-pulse gap-3 md:grid-cols-2">
-                    <div className="h-48 rounded-2xl bg-zinc-200 dark:bg-zinc-800" />
-                    <div className="h-48 rounded-2xl bg-zinc-200 dark:bg-zinc-800" />
-                  </div>
-                </div>
-              ) : (
-                <CipherGridLockedPreview />
-              )}
-            </div>
-          </div>
-        )}
-
-        {tab === 'redeem' && (
-          <div className="space-y-6">
-            <div className="rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900/60 space-y-3">
-              <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100 inline-flex items-center gap-2">
-                Redeem Diamond Veins refinement
-                <Tooltip
-                  content={gameTooltipRich(
-                    'Redeem refinement',
-                    'Tickets are tracked in Cipher Vaults. This V1 flow does not burn points inside Diamond Veins, but each refinement point can only be redeemed once here (redeemed totals are tracked).',
-                  )}
-                >
-                  <button
-                    type="button"
-                    className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-zinc-300 text-[10px] font-bold text-zinc-600 dark:border-zinc-600 dark:text-zinc-300"
-                    aria-label="About redeeming refinement"
-                  >
-                    i
-                  </button>
-                </Tooltip>
-              </h3>
-              <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                Diamond Veins refinement points: <strong>{redeemablePoints.toLocaleString()}</strong> · Unredeemed: <strong>{redeemableRemaining.toLocaleString()}</strong>
-              </p>
-              <p className="text-xs text-zinc-500 dark:text-zinc-500">
-                Tickets earned are tracked inside Cipher Vaults. This V1 redemption does not burn points in Diamond Veins yet.
-              </p>
-              <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                Earn refinement points by playing{' '}
-                <Link href="/games/diamond-veins" className="font-semibold text-emerald-600 underline dark:text-emerald-400">
-                  Diamond Veins
-                </Link>
-                .
-              </p>
-              <div className="flex flex-wrap items-center gap-2">
-                <input
-                  type="number"
-                  min={CIPHER_TICKET_REDEEM_RATE_POINTS}
-                  step={CIPHER_TICKET_REDEEM_RATE_POINTS}
-                  value={redeemAmount}
-                  onChange={(e) => setRedeemAmount(Math.max(CIPHER_TICKET_REDEEM_RATE_POINTS, Math.floor(Number(e.target.value) || 0)))}
-                  className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm dark:border-zinc-800 dark:bg-zinc-950"
+          <article className={`${KX_PROSE} px-1 pt-6 sm:px-3 lg:px-4`}>
+            {props.loreStory?.trim() ? (
+              <>
+                <GameOverviewTitleBlock
+                  as="h2"
+                  kicker="Lore"
+                  title="From the field"
+                  subtitle="Cipher Vault story and world context."
                 />
-                <button
-                  type="button"
-                  className="k-cta-games h-11 px-5 text-sm"
-                  onClick={async () => {
-                    setToast(null);
-                    try {
-                      const rounded = Math.floor(redeemAmount / CIPHER_TICKET_REDEEM_RATE_POINTS) * CIPHER_TICKET_REDEEM_RATE_POINTS;
-                      if (rounded <= 0) throw new Error('Enter a valid amount');
-                      if (rounded > redeemableRemaining) throw new Error('Not enough unredeemed refinement points');
-                      await redeemRefinement(rounded);
-                      const pts = await fetchDiamondVeinsRefinementPoints();
-                      setRedeemablePoints(pts);
-                      setToast(`Redeemed ${rounded} points into tickets.`);
-                    } catch (e: any) {
-                      setToast(e?.message || 'Redeem failed');
-                    }
-                  }}
-                >
-                  Redeem to tickets
-                </button>
-              </div>
-            </div>
-            <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 p-6">
-              <p className="text-sm text-zinc-700 dark:text-zinc-200">
-                Tickets available: <strong className="text-emerald-700 dark:text-emerald-300">{tickets.available}</strong> (total earned: {tickets.total})
-              </p>
-            </div>
-          </div>
+                {props.loreStory
+                  .trim()
+                  .split(/\n\s*\n+/)
+                  .map((para) => para.trim())
+                  .filter(Boolean)
+                  .map((para) => (
+                    <p key={para.slice(0, 48)} className={KX_PROSE_PARAGRAPH}>
+                      {para}
+                    </p>
+                  ))}
+                <GameOverviewTip title="World tip">
+                  Browse{' '}
+                  <Link href="/chronicles/chapters" className={GAME_OVERVIEW_ACCENT_LINK}>
+                    Chronicles chapters
+                  </Link>{' '}
+                  and{' '}
+                  <Link href="/chronicles/characters" className={GAME_OVERVIEW_ACCENT_LINK}>
+                    character dossiers
+                  </Link>{' '}
+                  for ARIA, Krex, Vector, and Tessa lore.
+                </GameOverviewTip>
+              </>
+            ) : (
+              <GameOverviewTitleBlock
+                as="h2"
+                kicker="Lore"
+                title={gameName}
+                subtitle="Cipher Vault story and world context."
+              />
+            )}
+
+            <GameOverviewTitleBlock
+              as="h3"
+              kicker="Rewards"
+              title="How rewards work"
+              subtitle="Vault clears, Shop tools, and Hub refine points."
+            />
+            <p className={KX_PROSE_PARAGRAPH}>{description}</p>
+            <p className={KX_PROSE_PARAGRAPH}>
+              Cipher Vaults are covenant-style chambers. You pay to open a timed seal, reconstruct the scrambled rune
+              grid before the countdown ends, and bank Cipher Fragments on a verified clear. Fragments refine 1:1 into
+              Hub redeem points when you have at least {CIPHER_REFINE_MIN.toLocaleString()}.
+            </p>
+            <GameOverviewTip title="Covenant tip">
+              Entry starts at 10 KAS for Seal Fragment. Higher vault classes cost more, scramble deeper, and pay more
+              fragments. Chrono Seals and Cipher Warden NFTs extend the broader covenant window without wiping your
+              puzzle.
+            </GameOverviewTip>
+
+            <GameOverviewTitleBlock
+              as="h3"
+              kicker="Step 1"
+              title="Open a vault"
+              subtitle="Pay entry from the Calculation breakdown."
+            />
+            <p className={KX_PROSE_PARAGRAPH}>
+              Choose a vault class (Seal Fragment through Master Covenant), optional add-ons (Extra Swaps, Chrono
+              Buffer, Fragment Amplifier, Second Seal), then pay with KAS or KREX. Vault Passes from the Shop can open
+              Seal Fragment without a cash entry.
+            </p>
+            <GameOverviewTip title="Entry tip">
+              Shop boosters apply while active. Entry add-ons attach to the covenant you are about to open. Select them
+              before you pay.
+            </GameOverviewTip>
+
+            <GameOverviewTitleBlock
+              as="h3"
+              kicker="Step 2"
+              title="Solve the Cipher Grid"
+              subtitle="Swap runes, race the timer, submit when sealed."
+            />
+            <p className={KX_PROSE_PARAGRAPH}>
+              Match your grid to the Vault Seal target with swaps only. Correct tiles highlight with the Hub accent.
+              Use Rune Hints from the Shop if you get stuck. Slot Cipher Warden NFTs below the grid for extra swaps,
+              time, and fragment multipliers.
+            </p>
+            <GameOverviewTip title="Warden tip">
+              Standard Wardens add +1 swap and +1 minute. Partner, Premium, Diamond, and Rarest scale further, and also
+              extend the covenant window while slotted.
+            </GameOverviewTip>
+
+            <GameOverviewTitleBlock
+              as="h3"
+              kicker="Step 3"
+              title="Refine on Hub"
+              subtitle="Turn Cipher Fragments into redeem points."
+            />
+            <p className={KX_PROSE_PARAGRAPH}>
+              Refine at least {CIPHER_REFINE_MIN.toLocaleString()} Cipher Fragments from the Game Deck into Hub points,
+              then spend them on the Rewards catalog when distribution is open.
+            </p>
+          </article>
+        )}
+
+        {tab === 'play' && (
+          <CipherVaultsPlayPanel
+            run={game.state.activeRun}
+            runActive={game.runActive}
+            puzzle={game.puzzle}
+            solveMsLeft={game.solveMsLeft}
+            covenantMsLeft={game.covenantMsLeft}
+            boosterMult={game.boosterMult}
+            inventory={game.state.inventory}
+            wardenSlots={game.state.wardenSlots}
+            slotUnlockKas={game.wardenSlotUnlockKas}
+            submitting={submitting}
+            getKasPriceAfterDiscount={game.getKasPriceAfterDiscount}
+            onSubmit={async (moves) => {
+              const rid = game.state.activeRun?.runId;
+              if (!rid) return;
+              setSubmitting(true);
+              try {
+                const res = await game.submitRun(rid, moves);
+                if (res?.solved) setTab('rewards');
+              } finally {
+                setSubmitting(false);
+              }
+            }}
+            onFailed={() => {
+              void (async () => {
+                if ((game.state.activeRun?.retriesLeft ?? 0) > 0) {
+                  await game.retryRun();
+                  return;
+                }
+                await game.cancelRun(game.state.activeRun?.runId);
+              })();
+            }}
+            onCancel={() => {
+              void game.cancelRun(game.state.activeRun?.runId);
+            }}
+            onRetry={() => game.retryRun()}
+            onResume={() => {
+              void game.loadActiveRun();
+            }}
+            onConsumeHint={game.consumeRuneHint}
+            onSetWarden={game.setWarden}
+            onClearWarden={game.clearWarden}
+            onPurchaseWardenSlots={game.purchaseWardenSlots}
+          />
+        )}
+
+        {tab === 'shop' && (
+          <CipherVaultsShopPanel
+            inventory={game.state.inventory}
+            booster={game.state.booster}
+            buyBusyId={game.buyBusyId}
+            getKasPriceAfterDiscount={game.getKasPriceAfterDiscount}
+            onBuy={game.buyShopItem}
+          />
         )}
 
         {tab === 'rewards' && (
           <div className="space-y-6">
-            <div className="rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900/60">
-              <h3 className="mb-2 flex items-center gap-2 text-lg font-bold text-zinc-900 dark:text-zinc-100">Cipher checkpoints</h3>
-              <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                Your verified clears are recorded as a local+server ledger for Hub Rewards checkpoints.
+            <RewardsPreview showLink={true} />
+            <GamePanelCard title="Vault checkpoints" hint="Verified clears for this wallet.">
+              <p className="mb-4 text-sm text-zinc-600 dark:text-zinc-400">
+                Cleared covenants record moves, fragments banked, and entry receipts. Use these as your audit trail for
+                Hub Rewards.
               </p>
-            </div>
-            
-            <CardsFilterBar
-              searchQuery={searchQuery}
-              onSearchChange={setSearchQuery}
-              category={category}
-              onCategoryChange={setCategory}
-              categories={['t1', 't2', 't3']}
-              sortBy={sortBy}
-              onSortChange={setSortBy}
-            />
+              <CardsFilterBar
+                searchQuery={searchQuery}
+                onSearchChange={setSearchQuery}
+                category={category}
+                onCategoryChange={setCategory}
+                categories={['seal', 'rune', 'null', 'aria', 'master']}
+                sortBy={sortBy}
+                onSortChange={setSortBy}
+              />
+              <div className="mt-4 overflow-hidden rounded-2xl border border-zinc-200 dark:border-zinc-800">
+                <table className="w-full text-left text-sm">
+                  <thead className="border-b border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900/80">
+                    <tr>
+                      <th className="p-3 font-semibold text-zinc-700 dark:text-zinc-300">When</th>
+                      <th className="p-3 font-semibold text-zinc-700 dark:text-zinc-300">Vault</th>
+                      <th className="p-3 font-semibold text-zinc-700 dark:text-zinc-300">Moves</th>
+                      <th className="p-3 font-semibold text-zinc-700 dark:text-zinc-300">Fragments</th>
+                      <th className="p-3 font-semibold text-zinc-700 dark:text-zinc-300">Entry</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {(() => {
+                      let list = [...(game.state.ledger ?? [])];
+                      if (searchQuery) {
+                        const q = searchQuery.toLowerCase();
+                        list = list.filter(
+                          (e) =>
+                            e.tierId.toLowerCase().includes(q) ||
+                            e.entryTxHash?.toLowerCase().includes(q),
+                        );
+                      }
+                      if (category !== 'all') list = list.filter((e) => e.tierId === category);
+                      if (sortBy === 'price_asc') list.sort((a, b) => a.moves - b.moves);
+                      else if (sortBy === 'price_desc') list.sort((a, b) => b.moves - a.moves);
+                      else list.sort((a, b) => b.solvedAt - a.solvedAt);
 
-            <div className="overflow-hidden rounded-2xl border border-zinc-200 dark:border-zinc-800">
-              <table className="w-full text-left text-sm">
-                <thead className="border-b border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900/80">
-                  <tr>
-                    <th className="p-3 font-semibold text-zinc-700 dark:text-zinc-300">When</th>
-                    <th className="p-3 font-semibold text-zinc-700 dark:text-zinc-300">Tier</th>
-                    <th className="p-3 font-semibold text-zinc-700 dark:text-zinc-300">Moves</th>
-                    <th className="p-3 font-semibold text-zinc-700 dark:text-zinc-300">Entry tx</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {(() => {
-                    let list = [...(state.ledger ?? [])];
-                    if (searchQuery) {
-                      const q = searchQuery.toLowerCase();
-                      list = list.filter(e => e.tierId.toLowerCase().includes(q) || e.entryTxHash?.toLowerCase().includes(q));
-                    }
-                    if (category !== 'all') {
-                      list = list.filter(e => e.tierId === category);
-                    }
-                    if (sortBy === 'price_asc') {
-                      list.sort((a, b) => a.moves - b.moves);
-                    } else if (sortBy === 'price_desc') {
-                      list.sort((a, b) => b.moves - a.moves);
-                    } else {
-                      list.sort((a, b) => new Date(b.solvedAt).getTime() - new Date(a.solvedAt).getTime());
-                    }
-
-                    if (list.length === 0) {
-                      return (
-                        <tr>
-                          <td colSpan={4} className="p-6 text-center text-zinc-500 dark:text-zinc-400">
-                            No clears match your filters.
+                      if (list.length === 0) {
+                        return (
+                          <tr>
+                            <td colSpan={5} className="p-6 text-center text-zinc-500 dark:text-zinc-400">
+                              No clears match your filters.
+                            </td>
+                          </tr>
+                        );
+                      }
+                      return list.map((e) => (
+                        <tr key={e.id} className="border-b border-zinc-100 dark:border-zinc-800">
+                          <td className="p-3 text-zinc-600 dark:text-zinc-400">
+                            {new Date(e.solvedAt).toLocaleString()}
+                          </td>
+                          <td className="p-3 text-zinc-800 dark:text-zinc-200">
+                            {getCipherVaultTier(e.tierId as CipherVaultTierId)?.label ?? e.tierId}
+                          </td>
+                          <td className="p-3 tabular-nums text-zinc-600 dark:text-zinc-400">
+                            {e.moves}/{e.moveLimit}
+                          </td>
+                          <td className="p-3 tabular-nums text-zinc-600 dark:text-zinc-400">
+                            {(e.fragmentsBanked ?? 0).toLocaleString()}
+                          </td>
+                          <td className="p-3 font-mono text-xs text-zinc-500 dark:text-zinc-500">
+                            {e.entryTxHash ? `${e.entryTxHash.slice(0, 10)}…` : 'pass'}
                           </td>
                         </tr>
-                      );
-                    }
-
-                    return list.map((e) => (
-                      <tr key={e.id} className="border-b border-zinc-100 dark:border-zinc-800">
-                        <td className="p-3 text-zinc-600 dark:text-zinc-400">{new Date(e.solvedAt).toLocaleString()}</td>
-                        <td className="p-3 text-zinc-800 dark:text-zinc-200">{e.tierId}</td>
-                        <td className="p-3 tabular-nums text-zinc-600 dark:text-zinc-400">
-                          {e.moves}/{e.moveLimit}
-                        </td>
-                        <td className="p-3 font-mono text-xs text-zinc-500 dark:text-zinc-500">{e.entryTxHash ? e.entryTxHash.slice(0, 10) + '…' : 'ticket'}</td>
-                      </tr>
-                    ));
-                  })()}
-                </tbody>
-              </table>
-            </div>
+                      ));
+                    })()}
+                  </tbody>
+                </table>
+              </div>
+            </GamePanelCard>
           </div>
         )}
 
         {tab === 'milestones' && (
-          <MilestonesPanel gameId="cipher-vaults" progress={milestoneProgress} />
+          <MilestonesPanel
+            gameId="cipher-vaults"
+            progress={milestoneProgress}
+            kicker="Progress"
+            title="Milestones"
+            subtitle="Vault clears and lifetime fragments raise your Player level."
+          />
         )}
 
         {tab === 'comments' && (
           <CommentsSection articleId={gameCommentsArticleId('cipher-vaults')} dappSectionHeader />
         )}
-        </>
-      }
-      sidebar={
-        <GamesAsideRail>
-        <HubBenefitsPanel variant="panel" scope="games" className="w-full" />
-
-        <GamePurchasesPanel>
-          <div className="rounded-xl border border-[color:var(--hub-accent-border,rgba(16,185,129,0.25))] bg-[color:var(--hub-accent-muted,rgba(16,185,129,0.1))] p-3 text-sm text-zinc-600 dark:text-zinc-400">
-            <div className="text-xs font-semibold text-[color:var(--hub-accent,#10b981)]">Entry</div>
-            <div className="mt-1 text-[11px]">Pay with KAS or use tickets. One active run at a time.</div>
-          </div>
-        </GamePurchasesPanel>
-
-        <GameMetadataPanel categories={categories} tags={tags} />
-        <GamesSecurityPanel />
-
-        <div className={`${CHRONICLES_PANEL} overflow-hidden p-0`}>
-          <button
-            type="button"
-            onClick={() => setFaqOpen((o) => !o)}
-            className="flex w-full items-center justify-between p-4 text-left text-sm font-semibold text-zinc-700 transition-colors hover:bg-zinc-50 dark:text-zinc-200 dark:hover:bg-zinc-800/50"
-          >
-            <span className="inline-flex items-center gap-3">
-              <span className="hub-tilt-bar-sm h-5 w-1 shrink-0 -skew-y-12 rounded-full" aria-hidden="true" />
-              FAQ &amp; payouts
-            </span>
-            <svg className={`h-5 w-5 transition-transform ${faqOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-            </svg>
-          </button>
-          {faqOpen && (
-            <div className="space-y-3 border-t border-zinc-200 px-4 pb-4 pt-2 text-sm text-zinc-600 dark:border-zinc-800 dark:text-zinc-400">
-              <div>
-                <p className="font-semibold text-zinc-800 dark:text-zinc-300">What am I earning?</p>
-                <p className="mt-1">
-                  This demo records checkpoints (runs + clears). GRID distribution is handled elsewhere on Kasplex L2. The ledger here is your audit trail.
-                </p>
-              </div>
-              <div>
-                <p className="font-semibold text-zinc-800 dark:text-zinc-300">Tickets</p>
-                <p className="mt-1">
-                  Redeem Diamond Veins refinement points into Cipher Tickets. Tickets let you enter a run without sending KAS.
-                </p>
-              </div>
-            </div>
-          )}
-        </div>
-        </GamesAsideRail>
-      }
-    />
+      </UnifiedGameLayout>
     </TooltipProvider>
   );
 }
-

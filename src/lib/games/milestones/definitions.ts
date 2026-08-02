@@ -8,6 +8,7 @@ export type GameMilestoneMetric =
   | 'collections_complete'
   | 'quiz_levels'
   | 'cipher_clears'
+  | 'cipher_fragments'
   | 'precision_score'
   | 'precision_levels'
   | 'strategy_rounds'
@@ -123,10 +124,24 @@ export const GAME_MILESTONES: Record<string, GameMilestoneDef[]> = {
     },
     {
       id: 'cv-collection',
-      name: 'Complete your first collection',
+      name: 'Clear all five vault classes',
       metric: 'collections_complete',
       target: 1,
       level: 4,
+    },
+    {
+      id: 'cv-fragments',
+      name: 'Bank 1,000 Cipher Fragments lifetime',
+      metric: 'cipher_fragments',
+      target: 1000,
+      level: 2,
+    },
+    {
+      id: 'cv-refine',
+      name: 'Refine 500 Hub points from Cipher Vaults',
+      metric: 'refinement_points',
+      target: 500,
+      level: 5,
     },
   ],
   'kaspa-quiz': [

@@ -8,7 +8,11 @@ import Link from 'next/link';
 import { CipherVaultsDashboard } from '@/components/game/cipher-vaults/CipherVaultsDashboard';
 import { GamePlayWalletGate } from '@/components/games/GamePlayWalletGate';
 
-const LORE_STORY = `Krex left Cipher Vaults across Kaspaland - sealed chambers of encrypted power.\n\nEach vault contains corrupted fragments of ARIA’s early memory, scrambled into rune-grids and sequence locks. The Null Gang tried to weaponize these fragments, but their interference only made the ciphers harder.\n\nYour job is simple: pay the entry, decode the cipher, and reconstruct the key before the vault collapses. Those who clear more vaults prove their skill and earn stronger checkpoint history for future GRID distribution.`;
+const LORE_STORY = `Krex sealed Cipher Vaults across Kaspaland: covenant chambers that hold scrambled fragments of ARIA’s early memory.
+
+Each vault is a timed seal. Pay the entry, open the covenant, and reconstruct the rune grid before the countdown collapses the chamber. The Null Gang tried to weaponize these fragments; their interference only made the ciphers harder and the seals hungrier.
+
+Clear a vault and you bank Cipher Fragments. Refine them into Hub redeem points. Higher covenants cost more, scramble deeper, and pay more when you prove the key.`;
 
 function CipherVaultsContent() {
   const game = getGameBySlugFromRegistry('cipher-vaults');

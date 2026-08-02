@@ -10,12 +10,17 @@ function isValidAddress(a: string): boolean {
 }
 
 export async function GET(request: NextRequest) {
-  const address = request.nextUrl.searchParams.get('address');
-  if (!address || !isValidAddress(address)) {
-    return NextResponse.json({ error: 'Missing or invalid address' }, { status: 400 });
+  try {
+    const address = request.nextUrl.searchParams.get('address')?.trim() ?? '';
+    if (!address || !isValidAddress(address)) {
+      return NextResponse.json({ error: 'Missing or invalid address' }, { status: 400 });
+    }
+    const state = getCipherPlayerState(address);
+    return NextResponse.json({ state, found: true });
+  } catch (e) {
+    console.error('[cipher-vaults/state GET]', e);
+    return NextResponse.json({ error: 'Failed' }, { status: 500 });
   }
-  const state = getCipherPlayerState(address);
-  return NextResponse.json({ state, found: state != null });
 }
 
 export async function POST(request: NextRequest) {
@@ -25,20 +30,21 @@ export async function POST(request: NextRequest) {
     if (!address || !isValidAddress(address)) {
       return NextResponse.json({ error: 'Missing or invalid address' }, { status: 400 });
     }
-    const existing = getCipherPlayerState(address);
-    const incoming = body.state && typeof body.state === 'object' ? body.state : createInitialCipherVaultsState();
+    const incoming = body.state && typeof body.state === 'object' ? body.state : createInitialCipherVaultsState(address);
+    const server = getCipherPlayerState(address);
     // Active runs are created/cleared only via /api/games/cipher-vaults/run/* routes.
-    // Client sync must not overwrite server activeRun (stale localStorage / version races caused "ghost" states).
     const merged: CipherVaultsState = {
+      ...createInitialCipherVaultsState(address),
       ...incoming,
-      activeRun: existing.activeRun,
-      version: Math.max(existing.version ?? 0, incoming.version ?? 0),
+      walletAddress: address,
+      activeRun: server.activeRun ?? null,
+      version: Math.max(server.version ?? 0, incoming.version ?? 0) + 1,
+      updatedAt: Date.now(),
     };
     const saved = replaceCipherPlayerState(address, merged);
-    return NextResponse.json({ state: saved, ok: true });
+    return NextResponse.json({ state: saved });
   } catch (e) {
     console.error('[cipher-vaults/state]', e);
     return NextResponse.json({ error: 'Invalid body' }, { status: 400 });
   }
 }
-
