@@ -8,20 +8,27 @@ import { payKaspaL1, recordL1Reward, verifyKaspaL1Payment } from '@/lib/games/sd
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { applyKrexFeeDiscount } from '@/lib/hub/applyKrexFeeDiscount';
 import { KRC20_TRANSFER_TYPE, KREX_DECIMALS } from '@/lib/game/diamond-veins-config';
+import { classifyNftSlotRarity } from '@/lib/nft/nft-slot-rarity';
 import {
   PRECISION_CLICK_ENTRY_KAS,
   PRECISION_CLICK_GAME_ID,
   PRECISION_CLICK_REFINE_MIN,
+  PRECISION_CLICK_RUN_MS,
   PRECISION_CLICK_STORAGE_PREFIX,
   PRECISION_ENTRY_ADDONS,
   PRECISION_LEVELS,
+  PRECISION_OPERATIVE_PERKS,
+  bankFragmentsForClear,
+  getPrecisionLevel,
   getPrecisionShopItem,
   type PrecisionAddonId,
+  type PrecisionOperativeTier,
   type PrecisionShopItemId,
 } from '@/lib/game/precision-click/config';
 import {
   createEmptyPrecisionState,
   type PrecisionClickPersistedState,
+  type PrecisionOperativeSlot,
 } from '@/lib/game/precision-click/types';
 import { extractKaspaTransactionId } from '@/lib/kaspa/transactionId';
 
@@ -33,30 +40,53 @@ function storageKey(address: string) {
   return `${PRECISION_CLICK_STORAGE_PREFIX}:${address.trim().toLowerCase()}`;
 }
 
+function mapRarityToOperativeTier(collection: string, tokenId: number): PrecisionOperativeTier {
+  const c = collection.trim().toUpperCase();
+  const rarity = classifyNftSlotRarity({ collection: c, tokenId });
+  if (c === 'KREXPRIME' || c === 'PIXELKREX') {
+    if (rarity === 'diamond') return 'premium';
+    if (rarity === 'rare') return 'partner';
+    return 'standard';
+  }
+  return 'partner';
+}
+
+function normalizeLoaded(address: string, parsed: Partial<PrecisionClickPersistedState>): PrecisionClickPersistedState {
+  const base = createEmptyPrecisionState(address);
+  const cleared = Array.isArray(parsed.clearedLevels)
+    ? parsed.clearedLevels.map((n) => Math.floor(Number(n))).filter((n) => n >= 1 && n <= 10)
+    : [];
+  return {
+    ...base,
+    ...parsed,
+    version: 3,
+    walletAddress: address,
+    inventory: {
+      shard_lens: Math.max(0, Math.floor(parsed.inventory?.shard_lens ?? 0)),
+      null_filter: Math.max(0, Math.floor(parsed.inventory?.null_filter ?? 0)),
+    },
+    ownedAddons: Array.isArray(parsed.ownedAddons) ? parsed.ownedAddons : [],
+    clearedLevels: [...new Set(cleared)].sort((a, b) => a - b),
+    highestClearedLevel: Math.max(
+      0,
+      Math.min(10, Math.floor(parsed.highestClearedLevel ?? (cleared.length ? Math.max(...cleared) : 0))),
+    ),
+    ariaFragments: Math.max(0, Math.floor(parsed.ariaFragments ?? 0)),
+    fragmentsEarnedLifetime: Math.max(0, Math.floor(parsed.fragmentsEarnedLifetime ?? 0)),
+    refinementPointsTotal: Math.max(0, Math.floor(parsed.refinementPointsTotal ?? 0)),
+    booster: parsed.booster ?? null,
+    operative: parsed.operative ?? null,
+    runExpiresAt: typeof parsed.runExpiresAt === 'number' ? parsed.runExpiresAt : null,
+    entryUnlocked: Boolean(parsed.entryUnlocked),
+  };
+}
+
 function loadState(address: string): PrecisionClickPersistedState {
   if (typeof window === 'undefined') return createEmptyPrecisionState(address);
   try {
     const raw = localStorage.getItem(storageKey(address));
     if (!raw) return createEmptyPrecisionState(address);
-    const parsed = JSON.parse(raw) as Partial<PrecisionClickPersistedState>;
-    const base = createEmptyPrecisionState(address);
-    return {
-      ...base,
-      ...parsed,
-      version: 2,
-      walletAddress: address,
-      inventory: {
-        shard_lens: Math.max(0, Math.floor(parsed.inventory?.shard_lens ?? 0)),
-        null_filter: Math.max(0, Math.floor(parsed.inventory?.null_filter ?? 0)),
-      },
-      ownedAddons: Array.isArray(parsed.ownedAddons) ? parsed.ownedAddons : [],
-      highestClearedLevel: Math.max(0, Math.min(10, Math.floor(parsed.highestClearedLevel ?? 0))),
-      ariaFragments: Math.max(0, Math.floor(parsed.ariaFragments ?? 0)),
-      fragmentsEarnedLifetime: Math.max(0, Math.floor(parsed.fragmentsEarnedLifetime ?? 0)),
-      refinementPointsTotal: Math.max(0, Math.floor(parsed.refinementPointsTotal ?? 0)),
-      booster: parsed.booster ?? null,
-      entryUnlocked: Boolean(parsed.entryUnlocked),
-    };
+    return normalizeLoaded(address, JSON.parse(raw) as Partial<PrecisionClickPersistedState>);
   } catch {
     return createEmptyPrecisionState(address);
   }
@@ -77,19 +107,22 @@ function liveBooster(state: PrecisionClickPersistedState): PrecisionClickPersist
   return state.booster;
 }
 
+function isRunActive(state: PrecisionClickPersistedState, now = Date.now()): boolean {
+  return Boolean(state.entryUnlocked && state.runExpiresAt && state.runExpiresAt > now);
+}
+
 export function usePrecisionClick() {
   const { state: wallet } = useKaspaWallet();
   const { tier: krexTier, l1Balance: krexL1Balance } = useKREXBalance();
   const walletAddr = wallet.address?.trim() || '';
 
-  const [state, setState] = useState<PrecisionClickPersistedState>(() =>
-    createEmptyPrecisionState(''),
-  );
+  const [state, setState] = useState<PrecisionClickPersistedState>(() => createEmptyPrecisionState(''));
   const [paying, setPaying] = useState(false);
   const [buyBusyId, setBuyBusyId] = useState<string | null>(null);
   const [refining, setRefining] = useState(false);
   const [lastError, setLastError] = useState<string | null>(null);
   const [lastSuccess, setLastSuccess] = useState<string | null>(null);
+  const [nowTick, setNowTick] = useState(() => Date.now());
 
   useEffect(() => {
     if (!walletAddr) {
@@ -107,8 +140,41 @@ export function usePrecisionClick() {
     });
   }, []);
 
-  const booster = useMemo(() => liveBooster(state), [state]);
+  /** Expire lock window: keep fragments, reset levels so a new entry is required. */
+  const expireRunIfNeeded = useCallback(
+    (prev: PrecisionClickPersistedState, now = Date.now()): PrecisionClickPersistedState => {
+      if (!prev.entryUnlocked) return prev;
+      if (prev.runExpiresAt != null && prev.runExpiresAt > now) return prev;
+      return {
+        ...prev,
+        entryUnlocked: false,
+        runExpiresAt: null,
+        ownedAddons: [],
+        clearedLevels: [],
+        highestClearedLevel: 0,
+      };
+    },
+    [],
+  );
+
+  useEffect(() => {
+    const id = setInterval(() => {
+      setNowTick(Date.now());
+      persist((prev) => expireRunIfNeeded(prev));
+    }, 15_000);
+    return () => clearInterval(id);
+  }, [persist, expireRunIfNeeded]);
+
+  const liveState = useMemo(() => expireRunIfNeeded(state, nowTick), [state, nowTick, expireRunIfNeeded]);
+  const runActive = isRunActive(liveState, nowTick);
+  const runMsLeft = runActive && liveState.runExpiresAt ? Math.max(0, liveState.runExpiresAt - nowTick) : 0;
+
+  const booster = useMemo(() => liveBooster(liveState), [liveState]);
   const boosterMult = booster?.mult ?? 1;
+
+  const operativePerks = liveState.operative
+    ? PRECISION_OPERATIVE_PERKS[liveState.operative.tier]
+    : null;
 
   const getKasPriceAfterDiscount = useCallback(
     (listKas: number) => applyKrexFeeDiscount(listKas, krexTier),
@@ -227,8 +293,7 @@ export function usePrecisionClick() {
       try {
         let txHash = '';
         if (args.currency === 'KREX') {
-          const krexAmt = payKasAmount * KREX_PER_KAS;
-          const paid = await payKrex({ amountKrex: krexAmt, skuId: 'precision-click:entry' });
+          const paid = await payKrex({ amountKrex: payKasAmount * KREX_PER_KAS, skuId: 'precision-click:entry' });
           if (!paid.ok) {
             setLastError(paid.error);
             return false;
@@ -246,14 +311,26 @@ export function usePrecisionClick() {
           }
           txHash = paid.txHash;
         }
-        persist((prev) => ({
-          ...prev,
-          walletAddress: walletAddr,
-          entryUnlocked: true,
-          entryTxHash: txHash,
-          ownedAddons: [...args.addonIds],
-        }));
-        setLastSuccess('Entry unlocked. Levels are ready in Play.');
+        const now = Date.now();
+        persist((prev) => {
+          const operativeBonus = prev.operative
+            ? PRECISION_OPERATIVE_PERKS[prev.operative.tier].extendMs
+            : 0;
+          return {
+            ...prev,
+            walletAddress: walletAddr,
+            entryUnlocked: true,
+            entryTxHash: txHash,
+            ownedAddons: [...args.addonIds],
+            clearedLevels: [],
+            highestClearedLevel: 0,
+            runExpiresAt: now + PRECISION_CLICK_RUN_MS + operativeBonus,
+            operative: prev.operative
+              ? { ...prev.operative, appliedAt: now }
+              : null,
+          };
+        });
+        setLastSuccess('Lock opened for 24h. Cleared levels reset. Finish the cascade before the timer ends.');
         return true;
       } finally {
         setPaying(false);
@@ -269,6 +346,10 @@ export function usePrecisionClick() {
       const def = getPrecisionShopItem(args.itemId);
       if (!def) {
         setLastError('Unknown shop item.');
+        return false;
+      }
+      if (def.extendRunMs && !isRunActive(liveState)) {
+        setLastError('Open a lock first (pay entry) before buying Chrono Seals.');
         return false;
       }
       const qty = Math.max(1, Math.floor(args.quantity ?? 1));
@@ -301,7 +382,7 @@ export function usePrecisionClick() {
         }
 
         persist((prev) => {
-          const next = { ...prev, walletAddress: walletAddr || prev.walletAddress };
+          const next = expireRunIfNeeded({ ...prev, walletAddress: walletAddr || prev.walletAddress });
           if (def.boosterMult && def.durationMs) {
             next.booster = {
               mult: def.boosterMult,
@@ -309,6 +390,10 @@ export function usePrecisionClick() {
               itemId: def.id,
               txHash,
             };
+          }
+          if (def.extendRunMs && next.runExpiresAt) {
+            next.runExpiresAt = next.runExpiresAt + def.extendRunMs * qty;
+            next.entryUnlocked = true;
           }
           if (def.effect === 'shard_lens') {
             next.inventory = {
@@ -330,7 +415,15 @@ export function usePrecisionClick() {
         setBuyBusyId(null);
       }
     },
-    [getKasPriceAfterDiscount, payKrex, payKas, persist, walletAddr],
+    [
+      getKasPriceAfterDiscount,
+      payKrex,
+      payKas,
+      persist,
+      walletAddr,
+      liveState,
+      expireRunIfNeeded,
+    ],
   );
 
   const consumeRunItems = useCallback(
@@ -345,20 +438,73 @@ export function usePrecisionClick() {
     [persist],
   );
 
-  const bankRunFragments = useCallback(
-    (grossFragments: number, levelId: number, cleared: boolean) => {
-      const gained = Math.max(0, Math.floor(grossFragments));
-      persist((prev) => ({
-        ...prev,
-        ariaFragments: prev.ariaFragments + gained,
-        fragmentsEarnedLifetime: prev.fragmentsEarnedLifetime + gained,
-        highestClearedLevel: cleared
-          ? Math.max(prev.highestClearedLevel, Math.min(10, levelId))
-          : prev.highestClearedLevel,
-      }));
+  /** Bank fixed clear reward only when a level is newly cleared this lock. */
+  const clearLevel = useCallback(
+    (levelId: number, payoutMult: number) => {
+      const level = getPrecisionLevel(levelId);
+      if (!level) return { ok: false as const, banked: 0 };
+      if (liveState.clearedLevels.includes(levelId) || !isRunActive(liveState)) {
+        return { ok: false as const, banked: 0 };
+      }
+      const banked = bankFragmentsForClear({
+        bankReward: level.bankReward,
+        levelMult: level.fragmentMult,
+        addonFragmentMult: 1,
+        boosterMult: payoutMult,
+        operativeMult: 1,
+      });
+      persist((prev) => {
+        const live = expireRunIfNeeded(prev);
+        if (!isRunActive(live) || live.clearedLevels.includes(levelId)) return live;
+        const clearedLevels = [...live.clearedLevels, levelId].sort((a, b) => a - b);
+        return {
+          ...live,
+          clearedLevels,
+          highestClearedLevel: Math.max(live.highestClearedLevel, levelId),
+          ariaFragments: live.ariaFragments + banked,
+          fragmentsEarnedLifetime: live.fragmentsEarnedLifetime + banked,
+        };
+      });
+      return { ok: true as const, banked };
     },
-    [persist],
+    [persist, expireRunIfNeeded, liveState],
   );
+
+  const setOperative = useCallback(
+    (slot: Omit<PrecisionOperativeSlot, 'appliedAt' | 'tier'> & { tier?: PrecisionOperativeTier }) => {
+      const tier = slot.tier ?? mapRarityToOperativeTier(slot.collection, slot.tokenId);
+      const perks = PRECISION_OPERATIVE_PERKS[tier];
+      persist((prev) => {
+        const live = expireRunIfNeeded(prev);
+        const now = Date.now();
+        const already = live.operative?.nftRef === slot.nftRef;
+        let runExpiresAt = live.runExpiresAt;
+        if (live.entryUnlocked && runExpiresAt && !already) {
+          runExpiresAt = runExpiresAt + perks.extendMs;
+        }
+        return {
+          ...live,
+          runExpiresAt,
+          operative: {
+            nftRef: slot.nftRef,
+            collection: slot.collection,
+            tokenId: slot.tokenId,
+            tier,
+            imageUrl: slot.imageUrl ?? null,
+            appliedAt: now,
+          },
+        };
+      });
+      setLastSuccess(
+        `Sync Operative slotted (${PRECISION_OPERATIVE_PERKS[tier].label}). Lock extended while active.`,
+      );
+    },
+    [persist, expireRunIfNeeded],
+  );
+
+  const clearOperative = useCallback(() => {
+    persist((prev) => ({ ...prev, operative: null }));
+  }, [persist]);
 
   const refineFragments = useCallback(
     async (amountArg: number): Promise<{ points: number; amount: number } | null> => {
@@ -366,7 +512,7 @@ export function usePrecisionClick() {
         setLastError('Connect a Kaspa wallet to refine.');
         return null;
       }
-      const bag = Math.floor(state.ariaFragments);
+      const bag = Math.floor(liveState.ariaFragments);
       const amount = Math.max(0, Math.min(bag, Math.floor(amountArg)));
       if (amount < PRECISION_CLICK_REFINE_MIN) {
         setLastError(`Refine at least ${PRECISION_CLICK_REFINE_MIN} Aria fragments.`);
@@ -374,7 +520,7 @@ export function usePrecisionClick() {
       }
       setRefining(true);
       try {
-        const points = amount; // 1:1 Hub points
+        const points = amount;
         const syntheticTx =
           typeof crypto !== 'undefined' && typeof crypto.getRandomValues === 'function'
             ? Array.from(crypto.getRandomValues(new Uint8Array(32)), (b) => b.toString(16).padStart(2, '0')).join('')
@@ -404,26 +550,33 @@ export function usePrecisionClick() {
         setRefining(false);
       }
     },
-    [walletAddr, state.ariaFragments, persist],
+    [walletAddr, liveState.ariaFragments, persist],
   );
 
-  const maxUnlockedLevel = Math.min(10, state.highestClearedLevel + 1);
+  const maxUnlockedLevel = runActive
+    ? Math.min(10, liveState.highestClearedLevel + 1)
+    : 0;
+
   const addonBundle = useMemo(() => {
     let extraTimeMs = 0;
     let fragmentBonusMult = 1;
     let missForgiveness = 0;
-    for (const id of state.ownedAddons) {
+    for (const id of liveState.ownedAddons) {
       const def = PRECISION_ENTRY_ADDONS.find((a) => a.id === id);
       if (!def) continue;
       extraTimeMs += def.extraTimeMs ?? 0;
       fragmentBonusMult *= def.fragmentBonusMult ?? 1;
       missForgiveness += def.missForgiveness ?? 0;
     }
+    if (operativePerks) {
+      fragmentBonusMult *= operativePerks.fragmentMult;
+      missForgiveness += operativePerks.missForgiveness;
+    }
     return { extraTimeMs, fragmentBonusMult, missForgiveness };
-  }, [state.ownedAddons]);
+  }, [liveState.ownedAddons, operativePerks]);
 
   return {
-    state,
+    state: liveState,
     walletConnected: Boolean(wallet.isConnected && walletAddr),
     walletAddr,
     krexTier,
@@ -445,10 +598,16 @@ export function usePrecisionClick() {
     maxUnlockedLevel,
     levels: PRECISION_LEVELS,
     addonBundle,
+    runActive,
+    runMsLeft,
+    runExpiresAt: liveState.runExpiresAt,
+    operativePerks,
     payEntry,
     buyShopItem,
     consumeRunItems,
-    bankRunFragments,
+    clearLevel,
+    setOperative,
+    clearOperative,
     refineFragments,
     refineMin: PRECISION_CLICK_REFINE_MIN,
   };

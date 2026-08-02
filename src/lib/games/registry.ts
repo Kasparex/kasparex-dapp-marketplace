@@ -245,15 +245,15 @@ export const gamesRegistry: UnifiedGame[] = [
       name: 'Precision Click: ARIA Lock',
       slug: 'precision-click',
       description:
-        'ARIA Lock precision training across 10 levels. Click shard, chip, and character targets for Aria fragments; avoid Null hazards. Refine fragments into Hub points.',
+        'Open a 24h ARIA Lock, clear ten cascading seals, and bank Aria fragments only on clear. Extend with Chrono Seals or a Sync Operative NFT. Refine fragments into Hub points.',
       instructions:
-        'Pay the 10 KAS training entry (optional add-ons). Clear each level fragment goal to unlock the next. Shop boosters multiply fragment gains; refine to Hub points from the Game Deck.',
+        'Pay 10 KAS to open the lock. Clear each level once per lock window. Clicks fill progress only. Fragments bank on clear. Chrono Seals and Sync Operative NFTs extend time. Refine min 1,000 fragments from the Game Deck.',
       gameType: 'skill',
       difficulty: 'expert',
       entryCostKAS: 10,
       status: 'beta',
       developer: 'Kasparex',
-      version: '2.0.0',
+      version: '2.1.0',
       rewardConfig: { gridReward: 3, xpReward: 20 },
       createdAt: '2025-01-19T10:00:00.000Z',
       featuredImage: 'https://static.wixstatic.com/media/de4185_aedf26d623274f75aa8322e9a2266b7f~mv2.jpg',

@@ -4,17 +4,25 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { GamePanelCard } from '@/components/games/layout/GamePanelCard';
 import { GameOverviewTitleBlock } from '@/components/games/panels/GameOverviewSections';
 import { HubMetadataStatGrid } from '@/components/hub/HubMetadataStatGrid';
+import { ToggleSwitch } from '@/components/ui/ToggleSwitch';
+import { EmptyVeinSlotFrame, EmptyVeinSlotPlusIcon } from '@/components/game/EmptyVeinSlotFrame';
+import { KasparexNftSlotSelector } from '@/components/nft/KasparexNftSlotSelector';
+import { LazyImg } from '@/components/ui/LazyImg';
 import { KX_SURFACE_NESTED } from '@/lib/hub/shellTokens';
 import {
   ARIA_TARGETS,
+  PRECISION_CLICK_RUN_MS,
   PRECISION_LEVELS,
+  PRECISION_OPERATIVE_PERKS,
   fragmentsForClick,
   getAriaTarget,
   getPrecisionLevel,
   pickAriaTargetKind,
   type AriaTargetKind,
   type PrecisionLevelDef,
+  type PrecisionOperativeTier,
 } from '@/lib/game/precision-click/config';
+import type { PrecisionOperativeSlot } from '@/lib/game/precision-click/types';
 
 type LiveTarget = {
   id: string;
@@ -26,16 +34,37 @@ type LiveTarget = {
   createdAt: number;
 };
 
+function formatDuration(ms: number): string {
+  const totalSec = Math.max(0, Math.floor(ms / 1000));
+  const h = Math.floor(totalSec / 3600);
+  const m = Math.floor((totalSec % 3600) / 60);
+  const s = totalSec % 60;
+  if (h > 0) return `${h}h ${m.toString().padStart(2, '0')}m`;
+  return `${m}m ${s.toString().padStart(2, '0')}s`;
+}
+
 export function PrecisionClickPlayPanel(props: {
   entryUnlocked: boolean;
+  runActive: boolean;
+  runMsLeft: number;
   maxUnlockedLevel: number;
   highestClearedLevel: number;
+  clearedLevels: number[];
   boosterMult: number;
   tierNftMult: number;
   addonBundle: { extraTimeMs: number; fragmentBonusMult: number; missForgiveness: number };
   inventory: { shard_lens: number; null_filter: number };
+  operative: PrecisionOperativeSlot | null;
   onConsumeItems: (opts: { useShardLens: boolean; useNullFilter: boolean }) => void;
-  onBankRun: (grossFragments: number, levelId: number, cleared: boolean) => void;
+  onClearLevel: (levelId: number, payoutMult: number) => { ok: boolean; banked: number };
+  onSetOperative: (slot: {
+    nftRef: string;
+    collection: string;
+    tokenId: number;
+    tier?: PrecisionOperativeTier;
+    imageUrl?: string | null;
+  }) => void;
+  onClearOperative: () => void;
   onRunningChange?: (running: boolean) => void;
 }) {
   const [selectedLevel, setSelectedLevel] = useState(1);
@@ -50,6 +79,7 @@ export function PrecisionClickPlayPanel(props: {
   const [runLens, setRunLens] = useState(false);
   const [runFilter, setRunFilter] = useState(false);
   const [endReason, setEndReason] = useState<string | null>(null);
+  const [nftPickerOpen, setNftPickerOpen] = useState(false);
   const arenaRef = useRef<HTMLDivElement | null>(null);
   const sessionRef = useRef(0);
   const missesRef = useRef(0);
@@ -57,13 +87,16 @@ export function PrecisionClickPlayPanel(props: {
   const finishedRef = useRef(false);
 
   const level = getPrecisionLevel(selectedLevel) ?? PRECISION_LEVELS[0]!;
-  const unlocked = props.entryUnlocked && selectedLevel <= props.maxUnlockedLevel;
+  const cleared = props.clearedLevels.includes(selectedLevel);
+  const unlocked =
+    props.runActive && selectedLevel <= props.maxUnlockedLevel && !cleared;
   const totalMult = props.boosterMult * props.tierNftMult * props.addonBundle.fragmentBonusMult;
   const maxMisses = level.maxMisses + props.addonBundle.missForgiveness;
   const durationMs = level.durationMs + props.addonBundle.extraTimeMs;
+  const lockPct = Math.max(0, Math.min(100, (props.runMsLeft / PRECISION_CLICK_RUN_MS) * 100));
 
   const onRunningChange = props.onRunningChange;
-  const onBankRun = props.onBankRun;
+  const onClearLevel = props.onClearLevel;
 
   useEffect(() => {
     runningRef.current = running;
@@ -71,29 +104,39 @@ export function PrecisionClickPlayPanel(props: {
   }, [running, onRunningChange]);
 
   useEffect(() => {
+    if (!props.runActive) {
+      setSelectedLevel(1);
+      return;
+    }
     if (selectedLevel > props.maxUnlockedLevel) {
       setSelectedLevel(Math.max(1, props.maxUnlockedLevel));
     }
-  }, [props.maxUnlockedLevel, selectedLevel]);
+  }, [props.maxUnlockedLevel, props.runActive, selectedLevel]);
 
-  const finishRun = useCallback(
+  const finishLevel = useCallback(
     (reason: 'time' | 'misses' | 'cleared') => {
       if (!runningRef.current || finishedRef.current) return;
       finishedRef.current = true;
       runningRef.current = false;
       setRunning(false);
-      const gained = Math.max(0, Math.floor(sessionRef.current));
-      const cleared = gained >= level.clearGoal || reason === 'cleared';
-      const end =
-        reason === 'misses'
-          ? 'Too many misses. Run ended early.'
-          : cleared
-            ? `Level ${level.id} cleared. Next level unlocked.`
-            : `Run finished. Need ${level.clearGoal} fragments to clear (got ${gained}).`;
-      setEndReason(end);
-      onBankRun(gained, level.id, cleared);
+      const progress = Math.max(0, Math.floor(sessionRef.current));
+      const didClear = progress >= level.clearGoal || reason === 'cleared';
+      if (didClear) {
+        const res = onClearLevel(level.id, totalMult);
+        setEndReason(
+          res.ok
+            ? `Level ${level.id} locked clear. +${res.banked.toLocaleString()} Aria fragments banked.`
+            : `Level ${level.id} was already cleared this lock.`,
+        );
+      } else if (reason === 'misses') {
+        setEndReason('Too many misses. No fragments banked. Cleared levels stay locked.');
+      } else {
+        setEndReason(
+          `Level failed. Need ${level.clearGoal} progress (got ${progress}). No fragments banked.`,
+        );
+      }
     },
-    [level.clearGoal, level.id, onBankRun],
+    [level.clearGoal, level.id, onClearLevel, totalMult],
   );
 
   function spawnTarget(levelDef: PrecisionLevelDef, lensActive: boolean) {
@@ -163,16 +206,16 @@ export function PrecisionClickPlayPanel(props: {
   useEffect(() => {
     if (!running) return;
     if (timeLeftMs <= 0) {
-      finishRun('time');
+      finishLevel('time');
       return;
     }
     if (missesRef.current > maxMisses) {
-      finishRun('misses');
+      finishLevel('misses');
     }
-  }, [timeLeftMs, misses, running, maxMisses, finishRun]);
+  }, [timeLeftMs, misses, running, maxMisses, finishLevel]);
 
-  function startRun() {
-    if (!unlocked || running) return;
+  function startLevel() {
+    if (!unlocked || running || !props.runActive) return;
     const lens = useShardLens && props.inventory.shard_lens > 0;
     const filter = useNullFilter && props.inventory.null_filter > 0;
     setRunLens(lens);
@@ -192,19 +235,45 @@ export function PrecisionClickPlayPanel(props: {
     return lines[(selectedLevel - 1) % lines.length]!;
   }, [selectedLevel]);
 
+  const operativeLabel = props.operative
+    ? PRECISION_OPERATIVE_PERKS[props.operative.tier].label
+    : null;
+
   return (
     <div className="space-y-6">
-      <GamePanelCard title="Level select" hint="Clear a level to unlock the next.">
+      <GamePanelCard title="Lock window" hint="Finish the cascade before expiry.">
+        <div className="space-y-3">
+          <div className="flex flex-wrap items-end justify-between gap-2">
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Time remaining</p>
+              <p className="text-xl font-black tabular-nums text-zinc-900 dark:text-zinc-100">
+                {props.runActive ? formatDuration(props.runMsLeft) : 'Locked'}
+              </p>
+            </div>
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">
+              Base 24h · extend via Chrono Seals or a Sync Operative NFT
+            </p>
+          </div>
+          <div className="h-2.5 overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800">
+            <div
+              className="h-full rounded-full bg-[color:var(--hub-accent)] transition-[width] duration-500"
+              style={{ width: `${props.runActive ? lockPct : 0}%` }}
+            />
+          </div>
+        </div>
+      </GamePanelCard>
+
+      <GamePanelCard title="Level select" hint="Cleared levels stay locked until this lock expires or you pay entry again.">
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
           {PRECISION_LEVELS.map((lv) => {
-            const isUnlocked = props.entryUnlocked && lv.id <= props.maxUnlockedLevel;
-            const cleared = lv.id <= props.highestClearedLevel;
+            const isCleared = props.clearedLevels.includes(lv.id);
+            const isUnlocked = props.runActive && lv.id <= props.maxUnlockedLevel && !isCleared;
             const active = lv.id === selectedLevel;
             return (
               <button
                 key={lv.id}
                 type="button"
-                disabled={!isUnlocked || running}
+                disabled={(!isUnlocked && !isCleared) || running}
                 onClick={() => setSelectedLevel(lv.id)}
                 className={`rounded-xl border px-3 py-2.5 text-left transition-colors ${
                   active
@@ -214,7 +283,7 @@ export function PrecisionClickPlayPanel(props: {
               >
                 <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">
                   Lv {lv.id}
-                  {cleared ? ' · Cleared' : !isUnlocked ? ' · Locked' : ''}
+                  {isCleared ? ' · Cleared' : !isUnlocked ? ' · Locked' : ''}
                 </p>
                 <p className="mt-0.5 text-xs font-semibold text-zinc-900 dark:text-zinc-100">{lv.name}</p>
               </button>
@@ -223,70 +292,47 @@ export function PrecisionClickPlayPanel(props: {
         </div>
       </GamePanelCard>
 
-      {!props.entryUnlocked ? (
+      {!props.runActive ? (
         <GamePanelCard title="Entry required" hint="Pay from the Calculation breakdown.">
           <p className="text-sm text-zinc-600 dark:text-zinc-400">
-            Unlock ARIA Lock with the 10 KAS training entry (add-ons optional) in the sidebar Calculation breakdown.
+            Open a 24h ARIA Lock from the sidebar Calculation breakdown. When the timer ends, cleared levels reset and you
+            must pay entry again. Chrono Seals and a Sync Operative NFT extend the window without resetting progress.
           </p>
         </GamePanelCard>
       ) : (
         <div className="space-y-5">
-          <div className="flex flex-wrap items-start justify-between gap-4">
-            <GameOverviewTitleBlock
-              as="h3"
-              kicker="Precision training"
-              title={level.name}
-              subtitle={`${level.subtitle} ${lore}`}
-              compact
-            />
-            <div className="text-right">
-              <p className="text-xs font-semibold text-zinc-500">Session fragments</p>
-              <p className="text-2xl font-bold tabular-nums text-emerald-600 dark:text-emerald-400">
-                {sessionFragments.toLocaleString()}
-              </p>
-              <p className="text-xs text-zinc-500">
-                Goal {level.clearGoal} · Mult ×{totalMult.toFixed(2)}
-              </p>
-            </div>
-          </div>
+          <GameOverviewTitleBlock
+            as="h3"
+            kicker="ARIA Lock"
+            title={level.name}
+            subtitle={`${level.subtitle} ${lore}`}
+            compact
+          />
 
           <HubMetadataStatGrid
             stats={[
+              { label: 'Progress', value: sessionFragments.toLocaleString(), copyable: false, accent: true },
+              { label: 'Clear goal', value: level.clearGoal.toLocaleString(), copyable: false },
+              { label: 'Multiplier', value: `×${totalMult.toFixed(2)}`, copyable: false },
               { label: 'Time', value: `${(timeLeftMs / 1000).toFixed(1)}s`, copyable: false },
               { label: 'Hits', value: String(hits), copyable: false },
               { label: 'Misses', value: `${misses} / ${maxMisses}`, copyable: false },
             ]}
           />
 
-          <div className={`${KX_SURFACE_NESTED} flex flex-wrap items-center gap-4 rounded-xl p-3 text-xs`}>
-            <label className="inline-flex items-center gap-2 text-zinc-700 dark:text-zinc-300">
-              <input
-                type="checkbox"
-                disabled={running || props.inventory.shard_lens <= 0}
-                checked={useShardLens}
-                onChange={(e) => setUseShardLens(e.target.checked)}
-              />
-              Shard Lens ({props.inventory.shard_lens})
-            </label>
-            <label className="inline-flex items-center gap-2 text-zinc-700 dark:text-zinc-300">
-              <input
-                type="checkbox"
-                disabled={running || props.inventory.null_filter <= 0}
-                checked={useNullFilter}
-                onChange={(e) => setUseNullFilter(e.target.checked)}
-              />
-              Null Filter ({props.inventory.null_filter})
-            </label>
-            <div className="ml-auto flex flex-wrap gap-2 text-[11px] text-zinc-500">
-              {ARIA_TARGETS.slice(0, 4).map((t) => (
-                <span key={t.id} className="inline-flex items-center gap-1">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={t.imageSrc} alt="" width={14} height={14} className="rounded-sm" />
-                  +{t.fragmentMult}×
-                </span>
-              ))}
-              <span className="text-rose-600 dark:text-rose-400">Hazards drain fragments</span>
-            </div>
+          <div className={`${KX_SURFACE_NESTED} flex flex-wrap items-center gap-3 rounded-xl p-3`}>
+            <p className="w-full text-[10px] font-bold uppercase tracking-widest text-zinc-500">Target values</p>
+            {ARIA_TARGETS.filter((t) => !t.hazard).map((t) => (
+              <span
+                key={t.id}
+                className="inline-flex items-center gap-2 rounded-lg border border-zinc-200 bg-white px-2.5 py-1.5 text-sm font-bold tabular-nums text-zinc-800 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={t.imageSrc} alt="" width={20} height={20} className="rounded-md" />
+                +{t.fragmentMult}×
+              </span>
+            ))}
+            <span className="text-sm font-semibold text-rose-600 dark:text-rose-400">Hazards drain progress</span>
           </div>
 
           {endReason ? (
@@ -309,9 +355,9 @@ export function PrecisionClickPlayPanel(props: {
                   type="button"
                   className="k-cta-games h-12 px-6 text-sm"
                   disabled={!unlocked}
-                  onClick={startRun}
+                  onClick={startLevel}
                 >
-                  Start level {level.id}
+                  {cleared ? `Level ${level.id} cleared` : `Start level ${level.id}`}
                 </button>
               </div>
             ) : null}
@@ -340,7 +386,7 @@ export function PrecisionClickPlayPanel(props: {
                       const next = Math.max(0, s + delta);
                       sessionRef.current = next;
                       if (next >= level.clearGoal) {
-                        queueMicrotask(() => finishRun('cleared'));
+                        queueMicrotask(() => finishLevel('cleared'));
                       }
                       return next;
                     });
@@ -352,8 +398,101 @@ export function PrecisionClickPlayPanel(props: {
               );
             })}
           </div>
+
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className={`${KX_SURFACE_NESTED} rounded-xl p-4`}>
+              <ToggleSwitch
+                checked={useShardLens}
+                onChange={setUseShardLens}
+                disabled={running || props.inventory.shard_lens <= 0}
+                label={`Shard Lens (${props.inventory.shard_lens})`}
+                description="Larger positive targets for the next level."
+              />
+            </div>
+            <div className={`${KX_SURFACE_NESTED} rounded-xl p-4`}>
+              <ToggleSwitch
+                checked={useNullFilter}
+                onChange={setUseNullFilter}
+                disabled={running || props.inventory.null_filter <= 0}
+                label={`Null Filter (${props.inventory.null_filter})`}
+                description="Halves hazard drain on the next level."
+              />
+            </div>
+          </div>
+
+          <GamePanelCard title="Sync Operative" hint="NFT slot extends the lock window.">
+            <p className="mb-4 text-sm text-zinc-600 dark:text-zinc-400">
+              Slot a Krex deck NFT as your Sync Operative. Standard adds +6h, Partner +8h with mild perks, Premium
+              (Diamond) +12h with stronger fragment and miss bonuses.
+            </p>
+            <div className="mx-auto w-full max-w-xs">
+              {props.operative ? (
+                <div className="relative overflow-hidden rounded-2xl border border-zinc-200 bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-900">
+                  {props.operative.imageUrl ? (
+                    <LazyImg
+                      src={props.operative.imageUrl}
+                      alt={props.operative.nftRef}
+                      className="aspect-square w-full object-cover"
+                    />
+                  ) : (
+                    <div className="flex aspect-square items-center justify-center text-sm text-zinc-500">
+                      {props.operative.nftRef}
+                    </div>
+                  )}
+                  <div className="space-y-1 p-3">
+                    <p className="text-xs font-bold text-zinc-900 dark:text-zinc-100">
+                      {props.operative.nftRef}
+                    </p>
+                    <p className="text-[11px] text-zinc-500">
+                      {operativeLabel} · +
+                      {(PRECISION_OPERATIVE_PERKS[props.operative.tier].extendMs / 3600000).toFixed(0)}h · ×
+                      {PRECISION_OPERATIVE_PERKS[props.operative.tier].fragmentMult}
+                    </p>
+                    <div className="flex gap-2 pt-1">
+                      <button type="button" className="k-control-btn h-9 flex-1 text-xs" onClick={() => setNftPickerOpen(true)}>
+                        Swap
+                      </button>
+                      <button type="button" className="k-control-btn h-9 flex-1 text-xs" onClick={props.onClearOperative}>
+                        Remove
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <EmptyVeinSlotFrame onClick={() => setNftPickerOpen(true)} frameClassName="aspect-square min-h-[220px]">
+                  <EmptyVeinSlotPlusIcon />
+                  <p className="mt-3 text-sm font-semibold text-zinc-700 dark:text-zinc-200">Add Sync Operative</p>
+                  <p className="mt-1 text-xs text-zinc-500">Extend lock · unlock perks</p>
+                </EmptyVeinSlotFrame>
+              )}
+            </div>
+          </GamePanelCard>
         </div>
       )}
+
+      <KasparexNftSlotSelector
+        isOpen={nftPickerOpen}
+        title="Choose Sync Operative"
+        description="Deploy one NFT to extend your ARIA Lock window and grant operative perks."
+        currentValue={props.operative?.nftRef ?? null}
+        inUseRefs={new Set(props.operative?.nftRef ? [props.operative.nftRef] : [])}
+        onClose={() => setNftPickerOpen(false)}
+        onRemove={() => {
+          props.onClearOperative();
+          setNftPickerOpen(false);
+        }}
+        onSelect={(nftRef) => {
+          const [collection, tokenStr] = nftRef.split('#');
+          const tokenId = Number(tokenStr);
+          if (!collection || !Number.isFinite(tokenId)) return;
+          props.onSetOperative({
+            nftRef,
+            collection,
+            tokenId,
+          });
+          setNftPickerOpen(false);
+        }}
+      />
     </div>
   );
 }

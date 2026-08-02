@@ -77,7 +77,7 @@ export function PrecisionClickDashboard(props: {
 
   const playHealth: GameActivityHealth = roundActive
     ? 'active'
-    : game.state.entryUnlocked
+    : game.runActive
       ? 'inactive'
       : 'exhausted';
 
@@ -91,15 +91,13 @@ export function PrecisionClickDashboard(props: {
               rightAdornment: (
                 <GameActivityStatusDot
                   health={playHealth}
-                  title={
-                    roundActive ? 'Round active' : game.state.entryUnlocked ? 'Ready' : 'Entry locked'
-                  }
+                  title={roundActive ? 'Level active' : game.runActive ? 'Lock open' : 'Lock closed'}
                 />
               ),
             }
           : t,
       ),
-    [tabsBase, playHealth, roundActive, game.state.entryUnlocked],
+    [tabsBase, playHealth, roundActive, game.runActive],
   );
 
   const milestoneProgress = useMemo(
@@ -112,6 +110,7 @@ export function PrecisionClickDashboard(props: {
   );
   const { level: playerLevel } = useGameMilestones('precision-click', milestoneProgress);
 
+  const refineFragments = game.refineFragments;
   const deckResources: GameDeckResource[] = useMemo(
     () => [
       {
@@ -122,16 +121,16 @@ export function PrecisionClickDashboard(props: {
             {game.state.ariaFragments.toLocaleString()}
             <GameActivityStatusDot
               health={playHealth}
-              title={roundActive ? 'Round active' : game.state.entryUnlocked ? 'Ready' : 'Entry locked'}
+              title={roundActive ? 'Level active' : game.runActive ? 'Lock open' : 'Lock closed'}
             />
           </span>
         ),
-        subValue: game.state.entryUnlocked
-          ? `Lv ${Math.min(10, game.maxUnlockedLevel)} unlocked`
-          : 'Pay entry to play',
+        subValue: game.runActive
+          ? `Lv ${Math.min(10, Math.max(1, game.maxUnlockedLevel))} · lock open`
+          : 'Pay entry to open lock',
         description: 'In-game currency',
         tooltip:
-          'Aria fragments earned from precision locks. Refine them into Hub points below. Hazards can reduce a run total before banking.',
+          'Aria fragments are banked only when you clear a level. Cleared levels cannot be farmed again until the 24h lock expires or you pay a new entry. Refine below into Hub points.',
         accent: 'games' as const,
         onClick: () => setTab('play'),
       },
@@ -142,7 +141,7 @@ export function PrecisionClickDashboard(props: {
         maxAmount: Math.floor(game.state.ariaFragments),
         refining: game.refining,
         onRefine: (n) => {
-          void game.refineFragments(n).then((res) => {
+          void refineFragments(n).then((res) => {
             if (res) setRefineAmount('');
           });
         },
@@ -153,11 +152,11 @@ export function PrecisionClickDashboard(props: {
     ],
     [
       game.state.ariaFragments,
-      game.state.entryUnlocked,
+      game.runActive,
       game.maxUnlockedLevel,
       game.refineMin,
       game.refining,
-      game.refineFragments,
+      refineFragments,
       refineAmount,
       playHealth,
       roundActive,
@@ -184,10 +183,10 @@ export function PrecisionClickDashboard(props: {
           categories,
           tags,
         }}
-        deckFooter={<span>Earn Aria fragments in Play, refine to Hub points, shop boosters in Shop.</span>}
+        deckFooter={<span>Clear levels to bank Aria fragments. Refine to Hub points. Extend the lock in Shop or with a Sync Operative.</span>}
         asideExtras={
           <PrecisionClickEntryPanel
-            entryUnlocked={game.state.entryUnlocked}
+            entryUnlocked={game.runActive}
             ownedAddons={game.state.ownedAddons}
             booster={game.booster}
             inventory={game.state.inventory}
@@ -201,21 +200,23 @@ export function PrecisionClickDashboard(props: {
       >
         {tab === 'overview' && (
           <div className="space-y-6">
-            <GamePanelCard title="Training note" hint="Timing and intent.">
+            <GamePanelCard title="Story" hint="ARIA Lock.">
               <p className="text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
-                ARIA fragments do not wait. Ten levels of rising pressure, hazard glyphs, and shop gear. Lock clean
-                targets, bank fragments, refine them into Hub points the same way Diamond Veins and Minecore refine
-                Diamonds.
+                The Null Gang flooded the old lock grid with static. ARIA still answers, but only in short, precise
+                windows. Krex marks the traces, Vector fights calibration drift, and Tessa opens stealth gaps when the
+                glyphs turn hostile. Your job is not practice. You open a paid lock, clear ten cascading seals before the
+                chrono window dies, and bank real Aria fragments for Hub refine. Fail a level and you keep trying that seal.
+                Clear it, and it stays sealed for this lock so nobody farms the same stage forever.
               </p>
             </GamePanelCard>
 
-            <GamePanelCard title="How to play" hint="Quick rules.">
+            <GamePanelCard title="How to play" hint="Fair lock rules.">
               <ul className="list-disc space-y-1 pl-5 text-sm text-zinc-600 dark:text-zinc-400">
-                <li>Pay the 10 KAS entry (optional add-ons) from the Calculation breakdown rail.</li>
-                <li>Clear each level’s fragment goal to unlock the next (10 levels total).</li>
-                <li>Base positive click = 10 fragments, then level / booster / add-on multipliers.</li>
-                <li>Hazards (Null Glyph, Static Burst) drain fragments. Too many misses ends the run early.</li>
-                <li>Buy boosters and items in Shop. Refine fragments to Hub points from the Game Deck.</li>
+                <li>Pay 10 KAS to open a 24h lock (optional entry add-ons on the Calculation breakdown).</li>
+                <li>Clicks only fill level progress. Aria fragments bank only when you clear a level.</li>
+                <li>Cleared levels stay locked until the timer ends or you pay entry again for a fresh lock.</li>
+                <li>Extend time with Chrono Seals in Shop or slot a Sync Operative NFT below the arena.</li>
+                <li>Refine at least 1,000 Aria fragments into Hub points from the Game Deck.</li>
               </ul>
             </GamePanelCard>
 
@@ -242,24 +243,24 @@ export function PrecisionClickDashboard(props: {
             <GameOverviewSections
               gameName={props.gameName ?? 'Precision Click: ARIA Lock'}
               kicker="Game guide"
-              subtitle="Ten-level ARIA Lock reflex training with Aria fragments and Hub refine."
+              subtitle="Timed 10-level cascade. Bank fragments on clear. Refine to Hub points."
               description={props.gameDescription}
               loreStory={props.loreStory}
               tips={[
                 {
-                  title: 'Value over speed',
-                  body: 'Tessa Marks and Vector Nodes pay more than basic shards. Skipping a Null Glyph is often worth more than a rushed click.',
+                  title: 'Progress vs payout',
+                  body: 'Clicks push the clear meter. Only a successful clear pays the level bank reward (multiplied by boosters, add-ons, and Sync Operative perks).',
                 },
                 {
-                  title: 'Stack smart',
-                  body: 'Entry add-ons, Shop boosters, KREX tier, and NFT deck bonuses all multiply positive fragment hits.',
+                  title: 'Beat the clock',
+                  body: 'If the 24h lock expires, cleared levels reset and you must pay entry again. Chrono Seals extend without wiping progress.',
                 },
               ]}
               flow={[
-                'Pay 10 KAS training entry (optional Focus Extension, Fragment Magnet, Second Chance).',
-                'Clear timed levels in order. Each clear unlocks the next scenery and harder spawn rules.',
-                'Spend KAS or KREX in Shop for boosters and run items.',
-                'Refine Aria fragments into Hub points from the Game Deck, then spend them on /rewards.',
+                'Pay 10 KAS to open the lock and start the 24h window.',
+                'Clear levels in order. Each clear banks fragments and locks that stage for this run.',
+                'Extend with Chrono Seals or a Sync Operative NFT. Buy lenses and filters in Shop.',
+                'Refine Aria fragments (min 1,000) into Hub points from the Game Deck.',
               ]}
             />
           </div>
@@ -268,18 +269,21 @@ export function PrecisionClickDashboard(props: {
         {tab === 'play' && (
           <PrecisionClickPlayPanel
             entryUnlocked={game.state.entryUnlocked}
+            runActive={game.runActive}
+            runMsLeft={game.runMsLeft}
             maxUnlockedLevel={game.maxUnlockedLevel}
             highestClearedLevel={game.state.highestClearedLevel}
+            clearedLevels={game.state.clearedLevels}
             boosterMult={game.boosterMult}
             tierNftMult={tierNftMult}
             addonBundle={game.addonBundle}
             inventory={game.state.inventory}
+            operative={game.state.operative}
             onRunningChange={setRoundActive}
             onConsumeItems={game.consumeRunItems}
-            onBankRun={(gross, levelId, cleared) => {
-              setRoundActive(false);
-              game.bankRunFragments(gross, levelId, cleared);
-            }}
+            onClearLevel={game.clearLevel}
+            onSetOperative={game.setOperative}
+            onClearOperative={game.clearOperative}
           />
         )}
 

@@ -44,7 +44,7 @@ function PageInner() {
                 featuredImage={game.featuredImage ?? ''}
                 gameDescription={game.description}
                 gameName={game.name}
-                loreStory="ARIA fragments flicker across ten training locks. Clear each level, bank what you catch, and refine the rest into Hub points before the Null Gang static eats the feed."
+                loreStory="The Null Gang flooded the lock grid with static. Open a paid 24h ARIA Lock, clear ten cascading seals without farming the same stage twice, and refine banked Aria fragments into Hub points before the chrono dies."
               />
             </GamePlayWalletGate>
           </div>

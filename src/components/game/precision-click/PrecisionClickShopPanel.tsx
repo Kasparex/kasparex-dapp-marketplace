@@ -62,7 +62,7 @@ export function PrecisionClickShopPanel(props: {
         onSearchChange={setSearchQuery}
         category={category}
         onCategoryChange={setCategory}
-        categories={['Booster', 'Item']}
+        categories={['Booster', 'Item', 'Chrono']}
         sortBy={sortBy}
         onSortChange={setSortBy}
       />

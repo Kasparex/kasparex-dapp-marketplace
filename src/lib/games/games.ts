@@ -162,9 +162,9 @@ export const placeholderGames: Game[] = [
     name: 'Precision Click: ARIA Lock',
     slug: 'precision-click',
     description:
-      'Ten-level ARIA Lock training. Click shard and character targets for Aria fragments; refine them into Hub points.',
+      'Open a 24h ARIA Lock, clear ten cascading seals, and bank Aria fragments only on clear. Refine into Hub points.',
     instructions:
-      'Pay the 10 KAS entry. Clear each level fragment goal to unlock the next. Avoid hazard glyphs. Shop boosters multiply fragment gains.',
+      'Pay 10 KAS to open the lock. Clear each level once per lock. Extend with Chrono Seals or a Sync Operative NFT. Refine min 1,000 fragments.',
     gameType: 'skill',
     difficulty: 'expert',
     entryCostKAS: 10,

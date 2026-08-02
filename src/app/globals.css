@@ -394,12 +394,13 @@
 }
 
 .checkbox-custom input:checked~.control__indicator {
-  background: #02abb8;
+  background: var(--hub-accent, #10b981);
 }
 
 .checkbox-custom:hover input:not([disabled]):checked~.control__indicator,
 .checkbox-custom input:checked:focus~.control__indicator {
-  background: #02919c;
+  background: var(--hub-accent, #10b981);
+  filter: brightness(0.92);
 }
 
 .checkbox-custom input:disabled~.control__indicator {

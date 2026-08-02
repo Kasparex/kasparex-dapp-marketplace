@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { HubPaymentPanel } from '@/components/payments/HubPaymentPanel';
+import { KxCheckbox } from '@/components/ui/KxCheckbox';
 import { useHubPayWithCatalog } from '@/hooks/useHubPayWithCatalog';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { formatHubPaymentAmount, type HubPaymentQuoteLine } from '@/lib/payments/hubPaymentTypes';
@@ -76,8 +77,8 @@ export function PrecisionClickEntryPanel(props: {
       totalDisplay={fmt(payKas)}
       totalSubtitle={
         props.entryUnlocked
-          ? 'Entry already unlocked. You can pay again to refresh add-ons for this wallet.'
-          : 'Pay once to unlock all 10 ARIA Lock levels. Add-ons apply to your unlocked session.'
+          ? 'Paying again opens a fresh 24h lock and resets cleared levels so you can replay.'
+          : 'Pay once to open a 24h ARIA Lock. Clear each level once per lock. Chrono Seals and Sync Operative NFTs extend time.'
       }
       catalogEntries={catalogEntries}
       selectedCurrencyId={payCurrencyId}
@@ -101,25 +102,13 @@ export function PrecisionClickEntryPanel(props: {
             {PRECISION_ENTRY_ADDONS.map((addon) => {
               const checked = selectedAddons.includes(addon.id);
               return (
-                <label
+                <KxCheckbox
                   key={addon.id}
-                  className="flex cursor-pointer items-start gap-2 text-xs text-zinc-700 dark:text-zinc-300"
-                >
-                  <input
-                    type="checkbox"
-                    className="mt-0.5"
-                    checked={checked}
-                    onChange={() => toggleAddon(addon.id)}
-                  />
-                  <span>
-                    <span className="font-semibold text-zinc-900 dark:text-zinc-100">
-                      {addon.label} · {fmt(addon.listKas)}
-                    </span>
-                    <span className="mt-0.5 block text-[11px] text-zinc-500 dark:text-zinc-400">
-                      {addon.description}
-                    </span>
-                  </span>
-                </label>
+                  checked={checked}
+                  onChange={() => toggleAddon(addon.id)}
+                  label={`${addon.label} · ${fmt(addon.listKas)}`}
+                  description={addon.description}
+                />
               );
             })}
           </div>
@@ -152,8 +141,8 @@ export function PrecisionClickEntryPanel(props: {
               : !canPayCurrency
                 ? 'Select KAS or KREX'
                 : props.entryUnlocked
-                  ? `Refresh entry · ${fmt(payKas)}`
-                  : `Pay ${fmt(payKas)} to unlock`}
+                  ? `New lock · ${fmt(payKas)}`
+                  : `Pay ${fmt(payKas)} to open lock`}
           </button>
         </div>
       }

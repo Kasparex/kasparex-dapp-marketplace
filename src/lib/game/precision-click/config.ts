@@ -1,15 +1,18 @@
 /** Precision Click: ARIA Lock - shared game constants (entry, levels, targets, shop). */
 
 export const PRECISION_CLICK_GAME_ID = 'precision-click';
-export const PRECISION_CLICK_STORAGE_PREFIX = 'kasparex:precision-click:v2';
+export const PRECISION_CLICK_STORAGE_PREFIX = 'kasparex:precision-click:v3';
 
-/** List price for training entry (KAS). */
+/** List price for lock entry (KAS). */
 export const PRECISION_CLICK_ENTRY_KAS = 10;
 
 /** Min Aria fragments to refine into Hub points (1:1). */
-export const PRECISION_CLICK_REFINE_MIN = 50;
+export const PRECISION_CLICK_REFINE_MIN = 1000;
 
-/** Base fragments awarded for a standard target click before multipliers. */
+/** Base lock window after paying entry. */
+export const PRECISION_CLICK_RUN_MS = 24 * 60 * 60 * 1000;
+
+/** Base fragments awarded for a standard target click before multipliers (progress only). */
 export const PRECISION_CLICK_BASE_CLICK_FRAGMENTS = 10;
 
 export type AriaTargetKind =
@@ -98,8 +101,10 @@ export type PrecisionLevelDef = {
   id: number;
   name: string;
   subtitle: string;
-  /** Level clear goal (session fragments after multipliers, before banking). */
+  /** Progress goal to clear the level (session meter only; not banked). */
   clearGoal: number;
+  /** Aria fragments banked on clear (before multipliers). */
+  bankReward: number;
   durationMs: number;
   spawnEveryMs: number;
   /** Chance of a second spawn on the same tick. */
@@ -108,7 +113,7 @@ export type PrecisionLevelDef = {
   ttlMaxMs: number;
   /** Soft miss cap; run ends early when exceeded. */
   maxMisses: number;
-  /** Multiplies fragment payouts for this level. */
+  /** Multiplies progress clicks and clear payout for this level. */
   fragmentMult: number;
   /** Hazard weight scale (1 = config weights). */
   hazardScale: number;
@@ -122,6 +127,7 @@ export const PRECISION_LEVELS: PrecisionLevelDef[] = [
     name: 'Signal Trace',
     subtitle: 'Warm up on calm ARIA pulses.',
     clearGoal: 120,
+    bankReward: 100,
     durationMs: 35_000,
     spawnEveryMs: 700,
     doubleSpawnChance: 0.1,
@@ -138,6 +144,7 @@ export const PRECISION_LEVELS: PrecisionLevelDef[] = [
     name: 'Glyph Corridor',
     subtitle: 'Narrow windows, cleaner clicks.',
     clearGoal: 180,
+    bankReward: 150,
     durationMs: 34_000,
     spawnEveryMs: 650,
     doubleSpawnChance: 0.15,
@@ -154,6 +161,7 @@ export const PRECISION_LEVELS: PrecisionLevelDef[] = [
     name: 'Null Static',
     subtitle: 'Hazards start leaking into the feed.',
     clearGoal: 240,
+    bankReward: 200,
     durationMs: 32_000,
     spawnEveryMs: 600,
     doubleSpawnChance: 0.2,
@@ -170,6 +178,7 @@ export const PRECISION_LEVELS: PrecisionLevelDef[] = [
     name: 'Visor Overlay',
     subtitle: 'Krex highlights keep shifting.',
     clearGoal: 320,
+    bankReward: 280,
     durationMs: 32_000,
     spawnEveryMs: 560,
     doubleSpawnChance: 0.22,
@@ -186,6 +195,7 @@ export const PRECISION_LEVELS: PrecisionLevelDef[] = [
     name: 'Fragment Storm',
     subtitle: 'Dense spawn. Prioritize value.',
     clearGoal: 420,
+    bankReward: 360,
     durationMs: 30_000,
     spawnEveryMs: 520,
     doubleSpawnChance: 0.3,
@@ -202,6 +212,7 @@ export const PRECISION_LEVELS: PrecisionLevelDef[] = [
     name: 'Vector Drift',
     subtitle: 'Calibration slips. Stay precise.',
     clearGoal: 520,
+    bankReward: 450,
     durationMs: 30_000,
     spawnEveryMs: 480,
     doubleSpawnChance: 0.32,
@@ -218,6 +229,7 @@ export const PRECISION_LEVELS: PrecisionLevelDef[] = [
     name: 'Stealth Window',
     subtitle: 'Tessa marks fade fast.',
     clearGoal: 640,
+    bankReward: 550,
     durationMs: 28_000,
     spawnEveryMs: 450,
     doubleSpawnChance: 0.35,
@@ -234,6 +246,7 @@ export const PRECISION_LEVELS: PrecisionLevelDef[] = [
     name: 'ARIA Pulse',
     subtitle: 'High yield, high risk.',
     clearGoal: 780,
+    bankReward: 700,
     durationMs: 28_000,
     spawnEveryMs: 420,
     doubleSpawnChance: 0.38,
@@ -250,6 +263,7 @@ export const PRECISION_LEVELS: PrecisionLevelDef[] = [
     name: 'Lock Cascade',
     subtitle: 'Almost synced. No wasted motion.',
     clearGoal: 960,
+    bankReward: 900,
     durationMs: 26_000,
     spawnEveryMs: 390,
     doubleSpawnChance: 0.42,
@@ -266,6 +280,7 @@ export const PRECISION_LEVELS: PrecisionLevelDef[] = [
     name: 'Full Sync',
     subtitle: 'Master lock. Bank the fragments.',
     clearGoal: 1200,
+    bankReward: 1200,
     durationMs: 25_000,
     spawnEveryMs: 360,
     doubleSpawnChance: 0.48,
@@ -299,21 +314,21 @@ export const PRECISION_ENTRY_ADDONS: PrecisionAddonDef[] = [
   {
     id: 'extra_time',
     label: 'Focus Extension',
-    description: '+5s run time on every level this session unlock.',
+    description: '+5s arena time on every level this lock.',
     listKas: 2,
     extraTimeMs: 5_000,
   },
   {
     id: 'fragment_magnet',
     label: 'Fragment Magnet',
-    description: '+15% Aria fragments from positive targets.',
+    description: '+15% clear payout and progress from positive targets.',
     listKas: 3,
     fragmentBonusMult: 1.15,
   },
   {
     id: 'second_chance',
     label: 'Second Chance',
-    description: '+3 miss forgiveness before a run ends early.',
+    description: '+3 miss forgiveness before a level ends early.',
     listKas: 2,
     missForgiveness: 3,
   },
@@ -324,18 +339,22 @@ export type PrecisionShopItemId =
   | 'boost_deep_scan'
   | 'boost_aria_sync'
   | 'item_shard_lens'
-  | 'item_null_filter';
+  | 'item_null_filter'
+  | 'chrono_seal_12h'
+  | 'chrono_seal_24h';
 
 export type PrecisionShopItemDef = {
   id: PrecisionShopItemId;
   title: string;
-  category: 'Booster' | 'Item';
+  category: 'Booster' | 'Item' | 'Chrono';
   description: string;
   listKas: number;
   imageSrc: string;
   /** Time-limited score/fragment multiplier while active. */
   boosterMult?: number;
   durationMs?: number;
+  /** Extends the 24h lock window. */
+  extendRunMs?: number;
   /** Permanent inventory item used in Play (consumable charges). */
   charges?: number;
   /** Effect id for runtime. */
@@ -347,7 +366,7 @@ export const PRECISION_SHOP_ITEMS: PrecisionShopItemDef[] = [
     id: 'boost_overclock',
     title: 'Overclock',
     category: 'Booster',
-    description: '×1.1 Aria fragments for 60 minutes.',
+    description: '×1.1 clear payout for 60 minutes.',
     listKas: 2,
     imageSrc: '/games/precision-click/shop/boost-overclock.svg',
     boosterMult: 1.1,
@@ -357,7 +376,7 @@ export const PRECISION_SHOP_ITEMS: PrecisionShopItemDef[] = [
     id: 'boost_deep_scan',
     title: 'Deep Scan',
     category: 'Booster',
-    description: '×1.2 Aria fragments for 120 minutes.',
+    description: '×1.2 clear payout for 120 minutes.',
     listKas: 5,
     imageSrc: '/games/precision-click/shop/boost-deep-scan.svg',
     boosterMult: 1.2,
@@ -367,17 +386,35 @@ export const PRECISION_SHOP_ITEMS: PrecisionShopItemDef[] = [
     id: 'boost_aria_sync',
     title: 'ARIA Sync',
     category: 'Booster',
-    description: '×1.3 Aria fragments for 180 minutes.',
+    description: '×1.3 clear payout for 180 minutes.',
     listKas: 9,
     imageSrc: '/games/precision-click/shop/boost-aria-sync.svg',
     boosterMult: 1.3,
     durationMs: 3 * 60 * 60 * 1000,
   },
   {
+    id: 'chrono_seal_12h',
+    title: 'Chrono Seal +12h',
+    category: 'Chrono',
+    description: 'Extend your active lock window by 12 hours. Does not reset cleared levels.',
+    listKas: 4,
+    imageSrc: '/games/precision-click/shop/boost-overclock.svg',
+    extendRunMs: 12 * 60 * 60 * 1000,
+  },
+  {
+    id: 'chrono_seal_24h',
+    title: 'Chrono Seal +24h',
+    category: 'Chrono',
+    description: 'Extend your active lock window by 24 hours. Does not reset cleared levels.',
+    listKas: 7,
+    imageSrc: '/games/precision-click/shop/boost-deep-scan.svg',
+    extendRunMs: 24 * 60 * 60 * 1000,
+  },
+  {
     id: 'item_shard_lens',
     title: 'Shard Lens',
     category: 'Item',
-    description: 'Next run: +1 radius on positive targets (easier clicks). 3 charges.',
+    description: 'Next level: +1 radius on positive targets (easier clicks). 3 charges.',
     listKas: 1.5,
     imageSrc: '/games/precision-click/shop/item-shard-lens.svg',
     charges: 3,
@@ -387,13 +424,41 @@ export const PRECISION_SHOP_ITEMS: PrecisionShopItemDef[] = [
     id: 'item_null_filter',
     title: 'Null Filter',
     category: 'Item',
-    description: 'Next run: hazard fragment loss halved. 2 charges.',
+    description: 'Next level: hazard progress loss halved. 2 charges.',
     listKas: 2.5,
     imageSrc: '/games/precision-click/shop/item-null-filter.svg',
     charges: 2,
     effect: 'null_filter',
   },
 ];
+
+/** Perks while an NFT Sync Operative is slotted. */
+export const PRECISION_OPERATIVE_PERKS = {
+  standard: { extendMs: 6 * 60 * 60 * 1000, fragmentMult: 1, missForgiveness: 1, label: 'Standard' },
+  partner: { extendMs: 8 * 60 * 60 * 1000, fragmentMult: 1.05, missForgiveness: 2, label: 'Partner' },
+  premium: { extendMs: 12 * 60 * 60 * 1000, fragmentMult: 1.1, missForgiveness: 3, label: 'Premium' },
+} as const;
+
+export type PrecisionOperativeTier = keyof typeof PRECISION_OPERATIVE_PERKS;
+
+export function bankFragmentsForClear(args: {
+  bankReward: number;
+  levelMult: number;
+  addonFragmentMult: number;
+  boosterMult: number;
+  operativeMult: number;
+}): number {
+  return Math.max(
+    1,
+    Math.round(
+      args.bankReward *
+        args.levelMult *
+        args.addonFragmentMult *
+        args.boosterMult *
+        args.operativeMult,
+    ),
+  );
+}
 
 export function getPrecisionLevel(id: number): PrecisionLevelDef | undefined {
   return PRECISION_LEVELS.find((l) => l.id === id);
