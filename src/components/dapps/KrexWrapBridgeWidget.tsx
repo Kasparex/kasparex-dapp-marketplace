@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useKaspaWallet } from '@/lib/kaspa/context';
-import { queryL1KREXBalance } from '@/lib/krex/l1-balance';
 import { signKrc20Transfer } from '@/lib/kaspa/l1WalletActions';
 import { KxFormFieldLabel } from '@/components/ui/KxFormFieldLabel';
 import { getExplorerTxUrl, getKaspaExplorerAddressUrl } from '@/lib/store/utils';
@@ -15,11 +14,16 @@ import { useSyncDAppWidgetQuote, useSyncHubQuote } from '@/lib/dapps/PaymentAmou
 import { placeholderDApps } from '@/lib/dapps';
 import { awardDAppHubPoints } from '@/lib/rewards/awardDAppHubPoints';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
+import { useKaspaTokenBalance } from '@/hooks/useKaspaTokenBalance';
 import { useDAppWidgetSection } from '@/lib/dapps/DAppWidgetTabContext';
+import { Krc20TickerSearchField } from '@/components/tokens/Krc20TickerSearchField';
+import type { Krc20TokenInfo } from '@/lib/tokens/krc20Lookup';
+import { fetchKrc20TokenInfo } from '@/lib/tokens/krc20Lookup';
+import { HubMetadataStatGrid } from '@/components/hub/HubMetadataStatGrid';
+import { KX_INFO_DASHED } from '@/lib/hub/shellTokens';
 import {
   getKrexWrapPublicConfig,
-  getKrexWrapTick,
-  getKrexWrapDecimals,
+  isWrapMintLiveForTick,
 } from '@/lib/krex/wrap/config';
 import { buildKrexWrapHubQuote, quoteKrexWrapFeeKas } from '@/lib/krex/wrap/fees';
 import {
@@ -54,33 +58,47 @@ function statusLabel(status: KrexWrapRecord['status']): string {
 export function KrexWrapBridgeWidget() {
   const { state } = useKaspaWallet();
   const tab = useDAppWidgetSection('wrap');
-  const { tier, balance: krexBal, kcc20Balance, refetch } = useKREXBalance();
+  const { tier, balance: krexBal, refetch } = useKREXBalance();
   const wrapDApp = placeholderDApps.find((d) => d.slug === 'krex-wrap-bridge');
   const config = useMemo(() => getKrexWrapPublicConfig(), []);
 
+  const [tickInput, setTickInput] = useState(config.defaultTick);
+  const [selectedToken, setSelectedToken] = useState<Krc20TokenInfo | null>(null);
   const [amount, setAmount] = useState('');
-  const [krexBalance, setKrexBalance] = useState(0);
-  const [isLoadingBalance, setIsLoadingBalance] = useState(false);
   const [isWorking, setIsWorking] = useState(false);
   const [success, setSuccess] = useState<string | null>(null);
   const [history, setHistory] = useState<KrexWrapRecord[]>([]);
 
-  const tick = getKrexWrapTick();
-  const decimals = getKrexWrapDecimals();
+  const tick = (selectedToken?.ticker || tickInput || config.defaultTick).trim().toUpperCase();
+  const decimals =
+    selectedToken?.decimals != null && Number.isFinite(selectedToken.decimals)
+      ? Number(selectedToken.decimals)
+      : config.decimals;
+  const mintLive = isWrapMintLiveForTick(tick);
+  const {
+    balance: tokenBalance,
+    isLoading: isLoadingBalance,
+    refetch: refetchTokenBalance,
+  } = useKaspaTokenBalance(selectedToken ? tick : null);
+
   const parsedAmount = amount && !Number.isNaN(parseFloat(amount)) ? parseFloat(amount) : null;
   const feeKas = quoteKrexWrapFeeKas(tier);
 
   const hubQuote = useMemo(() => {
-    if (!wrapDApp || parsedAmount == null || parsedAmount <= 0) return null;
+    if (!wrapDApp || parsedAmount == null || parsedAmount <= 0 || !selectedToken) return null;
     return buildKrexWrapHubQuote({
       dapp: wrapDApp,
-      amountKrex: parsedAmount,
+      amount: parsedAmount,
+      tick,
       tier,
       krexBalance: krexBal ?? 0,
     });
-  }, [wrapDApp, parsedAmount, tier, krexBal]);
+  }, [wrapDApp, parsedAmount, tick, tier, krexBal, selectedToken]);
 
-  useSyncDAppWidgetQuote(feeKas > 0 && parsedAmount && parsedAmount > 0 ? feeKas : null, 'wrap');
+  useSyncDAppWidgetQuote(
+    feeKas > 0 && selectedToken && parsedAmount && parsedAmount > 0 ? feeKas : null,
+    'wrap',
+  );
   useSyncHubQuote(hubQuote, [hubQuote]);
 
   const refreshHistory = useCallback(() => {
@@ -92,23 +110,23 @@ export function KrexWrapBridgeWidget() {
   }, [refreshHistory]);
 
   useEffect(() => {
-    const fetchBalance = async () => {
-      if (state.isConnected && state.address) {
-        setIsLoadingBalance(true);
-        try {
-          const bal = await queryL1KREXBalance(state.address);
-          setKrexBalance(bal);
-        } catch {
-          setKrexBalance(0);
-        } finally {
-          setIsLoadingBalance(false);
+    let cancelled = false;
+    const boot = async () => {
+      try {
+        const info = await fetchKrc20TokenInfo(config.defaultTick);
+        if (!cancelled && info) {
+          setSelectedToken(info);
+          setTickInput(info.ticker);
         }
-      } else {
-        setKrexBalance(0);
+      } catch {
+        /* ignore */
       }
     };
-    void fetchBalance();
-  }, [state.isConnected, state.address]);
+    void boot();
+    return () => {
+      cancelled = true;
+    };
+  }, [config.defaultTick]);
 
   const handleWrap = async () => {
     if (!state.isConnected || !state.provider || !state.address) {
@@ -122,19 +140,23 @@ export function KrexWrapBridgeWidget() {
     if (!config.ready || !config.vaultAddress || !config.treasuryAddress) {
       hubNotify.error(
         'Wrap not configured',
-        'Wrap vault or treasury is not configured yet. Set NEXT_PUBLIC_KREX_WRAP_VAULT and treasury env.',
+        'Wrap vault or treasury is not configured yet.',
       );
+      return;
+    }
+    if (!selectedToken) {
+      hubNotify.warning('Select a token', 'Look up and select a KRC-20 ticker first');
       return;
     }
     if (!parsedAmount || parsedAmount <= 0) {
       hubNotify.warning('Invalid amount', 'Enter a valid wrap amount');
       return;
     }
-    if (parsedAmount < config.minWrapKrex) {
-      hubNotify.warning('Below minimum', `Minimum wrap is ${config.minWrapKrex} ${tick}`);
+    if (parsedAmount < config.minWrapAmount) {
+      hubNotify.warning('Below minimum', `Minimum wrap is ${config.minWrapAmount} ${tick}`);
       return;
     }
-    if (parsedAmount > krexBalance) {
+    if (parsedAmount > tokenBalance) {
       hubNotify.error('Insufficient balance', `Not enough ${tick} for this wrap`);
       return;
     }
@@ -147,7 +169,8 @@ export function KrexWrapBridgeWidget() {
     upsertKrexWrapRecord({
       id: wrapId,
       wallet: state.address,
-      amountKrex: parsedAmount,
+      tick,
+      amount: parsedAmount,
       feeKas,
       status: 'draft',
     });
@@ -157,7 +180,7 @@ export function KrexWrapBridgeWidget() {
         const plan = buildHubKasListingPlan({
           feeKas,
           treasuryAddress: config.treasuryAddress,
-          note: `krex-wrap:${wrapId}`,
+          note: `krc20-wrap:${tick}:${wrapId}`,
         });
         const feeHash = await payHubKasPlan({
           provider: state.provider,
@@ -182,11 +205,11 @@ export function KrexWrapBridgeWidget() {
         config.vaultAddress,
         0.001,
       );
-      updateKrexWrapStatus(wrapId, config.mintLive ? 'pending_mint' : 'deposited', {
+      updateKrexWrapStatus(wrapId, mintLive ? 'pending_mint' : 'deposited', {
         depositTxHash: hash,
-        note: config.mintLive
+        note: mintLive
           ? 'Deposit submitted. Waiting for KCC20 mint watcher.'
-          : 'Deposit submitted. KCC20 mint goes live when the covenant + watcher are configured.',
+          : 'Deposit submitted. KCC20 mint goes live when a covenant is configured for this tick.',
       });
 
       try {
@@ -196,7 +219,8 @@ export function KrexWrapBridgeWidget() {
           body: JSON.stringify({
             depositTxHash: hash,
             wallet: state.address,
-            amountKrex: parsedAmount,
+            tick,
+            amount: parsedAmount,
           }),
         });
       } catch {
@@ -215,9 +239,9 @@ export function KrexWrapBridgeWidget() {
         });
       }
 
-      const successMsg = config.mintLive
+      const successMsg = mintLive
         ? `Wrapped ${parsedAmount} ${tick}. Mint should arrive as KCC20 shortly.`
-        : `Locked ${parsedAmount} ${tick} in the wrap vault. KCC20 mint activates when the covenant is live.`;
+        : `Locked ${parsedAmount} ${tick} in the wrap vault. KCC20 mint activates when this tick's covenant is live.`;
       setSuccess(successMsg);
       hubNotify.txSuccess({
         id: loadingId,
@@ -228,13 +252,7 @@ export function KrexWrapBridgeWidget() {
       setAmount('');
       refreshHistory();
       void refetch();
-      if (state.address) {
-        try {
-          setKrexBalance(await queryL1KREXBalance(state.address));
-        } catch {
-          /* ignore */
-        }
-      }
+      void refetchTokenBalance();
     } catch (err) {
       updateKrexWrapStatus(wrapId, 'failed', {
         note: err instanceof Error ? err.message : 'Wrap failed',
@@ -260,10 +278,10 @@ export function KrexWrapBridgeWidget() {
       <button
         type="button"
         onClick={() => void handleWrap()}
-        disabled={isWorking || !parsedAmount || parsedAmount <= 0 || !config.ready}
-        className="w-full k-control-btn !border-[#02abb8] !bg-[#02abb8] !text-white hover:!bg-[#028a94] disabled:cursor-not-allowed disabled:opacity-50"
+        disabled={isWorking || !selectedToken || !parsedAmount || parsedAmount <= 0 || !config.ready}
+        className="w-full k-control-btn !border-[color:var(--hub-accent)] !bg-[color:var(--hub-accent)] !text-white hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
       >
-        {isWorking ? 'Wrapping...' : `Wrap ${tick} → KCC20`}
+        {isWorking ? 'Wrapping…' : selectedToken ? `Wrap ${tick} → KCC20` : 'Select a token'}
       </button>
     ) : null;
 
@@ -272,6 +290,8 @@ export function KrexWrapBridgeWidget() {
     state.isConnected,
     isWorking,
     amount,
+    tick,
+    selectedToken,
     config.ready,
   ]);
   useRegisterHubFlowProgress('hubPay', { busy: isWorking, complete: Boolean(success) }, [
@@ -284,7 +304,7 @@ export function KrexWrapBridgeWidget() {
       <DAppWidgetShell
         title="History"
         heading="Your wraps"
-        description="Client-side wrap history for this browser. Deposits are on Kaspa L1; mint status updates when the watcher is live."
+        description="Local wrap history for this browser. Deposits are on Kaspa L1; mint status updates when the watcher is live."
       >
         {history.length === 0 ? (
           <p className="text-sm text-zinc-600 dark:text-zinc-400">No wraps recorded in this browser yet.</p>
@@ -293,11 +313,11 @@ export function KrexWrapBridgeWidget() {
             {history.map((row) => (
               <li
                 key={row.id}
-                className="rounded-xl border border-zinc-200 dark:border-zinc-700 p-4 space-y-2 text-sm"
+                className="rounded-xl border border-zinc-200 p-4 space-y-2 text-sm dark:border-zinc-700"
               >
                 <div className="flex items-center justify-between gap-2">
                   <span className="font-semibold text-zinc-900 dark:text-zinc-100">
-                    {row.amountKrex} {tick}
+                    {row.amount} {row.tick}
                   </span>
                   <span className="text-xs text-zinc-500">{statusLabel(row.status)}</span>
                 </div>
@@ -306,7 +326,7 @@ export function KrexWrapBridgeWidget() {
                 </div>
                 {row.depositTxHash ? (
                   <a
-                    className="text-xs text-[#02abb8] underline break-all"
+                    className="break-all text-xs text-[color:var(--hub-accent)] underline"
                     href={getExplorerTxUrl(row.depositTxHash)}
                     target="_blank"
                     rel="noreferrer"
@@ -328,12 +348,12 @@ export function KrexWrapBridgeWidget() {
       <DAppWidgetShell
         title="Unwrap"
         heading="KCC20 → KRC-20"
-        description="Two-way release needs a vault that can send KRC-20 back. That path stays disabled until release signing is production-ready."
+        description="Two-way release needs a vault that can send KRC-20 back. Disabled until release signing is production-ready."
       >
         <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-100">
           {config.unwrapEnabled
             ? 'Unwrap is flagged on in env. Wire the release watcher before enabling this UI for users.'
-            : 'Unwrap is not enabled yet. One-way wrap (burn-in) is available on the Wrap tab.'}
+            : 'Unwrap is not enabled yet. Use the Wrap tab for one-way KRC-20 → KCC20.'}
         </div>
       </DAppWidgetShell>
     );
@@ -342,45 +362,69 @@ export function KrexWrapBridgeWidget() {
   return (
     <DAppWidgetShell
       title="Wrap"
-      heading="KREX Wrap Bridge"
-      description="One-way migrate: KRC-20 KREX → wrap vault → KCC20. Same supply story, Hub-ready utility. Wallets may list KRC20 and KCC20 separately; Hub tiers count both when mint is live."
+      heading="KRC20 Wrap Bridge"
+      description="Lock any KRC-20 in the Hub vault and receive matching KCC20 1:1 when mint is live for that ticker. One-way for now."
     >
-      <div className="rounded-xl border border-dashed border-[color:var(--hub-accent-border,rgba(6,182,212,0.35))] bg-[color:var(--hub-accent-muted,rgba(6,182,212,0.06))] px-3.5 py-3 text-sm leading-snug text-zinc-700 dark:text-zinc-300">
-        <p className="font-semibold text-zinc-900 dark:text-zinc-100">Before you wrap</p>
-        <ul className="mt-2 list-disc space-y-1 pl-4">
-          <li>This release is <strong>one-way</strong>. You cannot unwrap back to KRC-20 here yet.</li>
-          <li>CEX deposits still use KRC-20. Keep exchange inventory unwrapped if you trade there.</li>
-          <li>Wrapped KCC20 is meant for Hub utility (tiers, covenants). It is not a new free allocation.</li>
-          <li>Only send to the vault address shown in this dApp.</li>
-        </ul>
+      <div className={KX_INFO_DASHED}>
+        One-way wrap only. Pay a small KAS fee (KREX tiers discount it), then send the token to the vault shown
+        below. CEX deposits still use KRC-20.
       </div>
 
       {!config.ready ? (
         <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-100">
           Vault not configured. Set <code className="font-mono text-xs">NEXT_PUBLIC_KREX_WRAP_VAULT</code> and a
-          treasury address, then redeploy. The UI and fee rails are ready.
+          treasury address, then redeploy.
         </div>
       ) : null}
 
-      <div className="grid gap-3 sm:grid-cols-2 text-xs text-zinc-600 dark:text-zinc-400">
-        <div className="rounded-xl border border-zinc-200 dark:border-zinc-700 p-3">
-          <div className="font-semibold text-zinc-900 dark:text-zinc-100 mb-1">Mint status</div>
-          {config.mintLive ? 'Live (covenant configured)' : 'Vault deposits accepted; KCC20 mint pending ops'}
-        </div>
-        <div className="rounded-xl border border-zinc-200 dark:border-zinc-700 p-3">
-          <div className="font-semibold text-zinc-900 dark:text-zinc-100 mb-1">Your KCC20 KREX</div>
-          {kcc20Balance > 0 ? `${kcc20Balance.toLocaleString()} wKREX` : '0 (shows after mint + covenant id)'}
-        </div>
-      </div>
+      <HubMetadataStatGrid
+        stats={[
+          {
+            label: 'Mint',
+            value: !selectedToken
+              ? 'Select a token'
+              : mintLive
+                ? 'Live for this tick'
+                : 'Deposit OK · mint pending',
+            hint: selectedToken
+              ? mintLive
+                ? `KCC20 covenant configured for ${tick}`
+                : `Add ${tick} to NEXT_PUBLIC_KRC20_WRAP_COVENANTS when ready`
+              : 'Look up a KRC-20 ticker first',
+            copyable: false,
+          },
+          {
+            label: 'Wrap fee',
+            value: `${feeKas} KAS`,
+            hint: 'Base fee after your KREX tier discount',
+            copyable: false,
+          },
+        ]}
+      />
 
       {!state.isConnected ? (
         <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-6 text-center dark:border-zinc-700 dark:bg-zinc-950">
           <p className="text-sm text-zinc-600 dark:text-zinc-400">
-            Connect KasWare, Kastle, or Kaspire from the site header to wrap KREX.
+            Connect KasWare, Kastle, or Kaspire from the site header to wrap a KRC-20.
           </p>
         </div>
       ) : (
         <>
+          <Krc20TickerSearchField
+            value={tickInput}
+            onChange={(next) => {
+              setTickInput(next);
+              setSelectedToken(null);
+              setAmount('');
+            }}
+            onSelect={(info) => {
+              setSelectedToken(info);
+              if (info) setTickInput(info.ticker);
+            }}
+            selected={selectedToken}
+            disabled={isWorking}
+          />
+
           {config.vaultAddress ? (
             <CopyableAddress
               label="Wrap vault"
@@ -391,35 +435,34 @@ export function KrexWrapBridgeWidget() {
           ) : null}
 
           <div>
-            <KxFormFieldLabel htmlFor="krex-wrap-amount">
-              Amount ({tick}
-              {isLoadingBalance ? '' : ` · bal ${krexBalance.toLocaleString()}`})
+            <KxFormFieldLabel htmlFor="krc20-wrap-amount">
+              Amount
+              {selectedToken
+                ? ` (${tick}${isLoadingBalance ? '' : ` · bal ${tokenBalance.toLocaleString()}`})`
+                : ''}
             </KxFormFieldLabel>
             <div className="mt-1.5 flex gap-2">
               <input
-                id="krex-wrap-amount"
+                id="krc20-wrap-amount"
                 type="number"
                 min={0}
                 step="any"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
                 placeholder="0.0"
+                disabled={!selectedToken || isWorking}
                 className="k-control-input w-full"
               />
               <button
                 type="button"
                 className="k-control-btn shrink-0"
-                onClick={() => setAmount(krexBalance > 0 ? String(krexBalance) : '')}
+                disabled={!selectedToken || isWorking || tokenBalance <= 0}
+                onClick={() => setAmount(tokenBalance > 0 ? String(tokenBalance) : '')}
               >
                 Max
               </button>
             </div>
           </div>
-
-          <p className="text-xs text-zinc-500 dark:text-zinc-400">
-            You pay ~{feeKas} KAS wrap fee (tier-discounted), then send {tick} 1:1 to the vault. After mint,
-            wallets can show a separate KCC20 row; Hub still counts wrapped balance toward the same tiers.
-          </p>
         </>
       )}
     </DAppWidgetShell>

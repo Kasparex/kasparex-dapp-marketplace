@@ -39,11 +39,12 @@ export function DAppMetadataTable({
 
   if (dapp.slug === 'krex-wrap-bridge') {
     const wrap = getKrexWrapPublicConfig();
+    const covenantTicks = Object.keys(wrap.covenants);
     stats.push(
       {
         label: 'Direction',
         value: 'One-way',
-        hint: 'KRC-20 → vault → KCC20 mint. Unwrap later.',
+        hint: 'Any KRC-20 → vault → KCC20 mint. Unwrap later.',
         copyable: false,
       },
       {
@@ -55,16 +56,17 @@ export function DAppMetadataTable({
       {
         label: 'Vault',
         value: wrap.vaultAddress || 'Not configured',
-        hint: wrap.vaultAddress ? 'KRC-20 deposit address' : 'Set NEXT_PUBLIC_KREX_WRAP_VAULT',
+        hint: wrap.vaultAddress ? 'Shared KRC-20 deposit address' : 'Set NEXT_PUBLIC_KREX_WRAP_VAULT',
         mono: Boolean(wrap.vaultAddress),
         copyable: Boolean(wrap.vaultAddress),
       },
       {
-        label: 'Mint',
-        value: wrap.mintLive ? 'Live' : 'Pending ops',
-        hint: wrap.kcc20CovenantId
-          ? `KCC20 ${wrap.kcc20CovenantId.slice(0, 10)}…`
-          : 'Covenant id not set yet',
+        label: 'Mint live',
+        value: covenantTicks.length > 0 ? covenantTicks.join(', ') : 'Pending ops',
+        hint:
+          covenantTicks.length > 0
+            ? 'Ticksers with a configured KCC20 covenant'
+            : 'Set NEXT_PUBLIC_KRC20_WRAP_COVENANTS or NEXT_PUBLIC_KREX_KCC20_COVENANT_ID',
         copyable: false,
       },
     );

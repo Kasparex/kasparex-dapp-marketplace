@@ -7,6 +7,9 @@ export const runtime = 'edge';
 type Body = {
   depositTxHash?: string;
   wallet?: string;
+  tick?: string;
+  amount?: number;
+  /** @deprecated Prefer `amount`. */
   amountKrex?: number;
 };
 
@@ -32,7 +35,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: false, error: 'depositTxHash must be a 64-char hex tx id' }, { status: 400 });
   }
 
-  const tick = getKrexWrapTick().toUpperCase();
+  const tick = (body.tick || getKrexWrapTick()).trim().toUpperCase();
+  if (!tick || tick.length < 4 || tick.length > 6) {
+    return NextResponse.json({ ok: false, error: 'tick must be a 4–6 character KRC-20 ticker' }, { status: 400 });
+  }
+
   const vaultNorm = stripKaspaAddressHrp(vault).toLowerCase();
   const walletNorm = body.wallet ? stripKaspaAddressHrp(body.wallet).toLowerCase() : null;
 
@@ -75,12 +82,14 @@ export async function POST(req: NextRequest) {
         ok: false,
         verified: false,
         txHash,
+        tick,
         error: 'No matching KRC-20 transfer to the wrap vault found for this tx yet',
       });
     }
 
     const amtRaw = match.amt ? Number(match.amt) : NaN;
     const amountHuman = Number.isFinite(amtRaw) ? amtRaw / 1e8 : null;
+    const claimed = body.amount ?? body.amountKrex ?? null;
 
     return NextResponse.json({
       ok: true,
@@ -91,9 +100,11 @@ export async function POST(req: NextRequest) {
       from: match.from,
       to: match.to,
       amountRaw: match.amt,
+      amount: amountHuman,
       amountKrex: amountHuman,
+      claimedAmount: claimed,
       status: 'pending_mint',
-      note: 'Deposit verified. KCC20 mint is fulfilled by the wrap watcher once mintLive is true.',
+      note: 'Deposit verified. KCC20 mint is fulfilled by the wrap watcher once mint is live for this tick.',
     });
   } catch (err) {
     return NextResponse.json(

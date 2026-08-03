@@ -76,7 +76,7 @@ const DEFAULT_PAYMENT_CONFIGS: Record<string, PaymentConfig> = {
     actions: [
       {
         actionId: 'wrap',
-        actionName: 'Wrap KREX',
+        actionName: 'Wrap KRC-20',
         baseCost: 2.0,
         costL1: 2.0,
         nextStep: 'Deposit KRC-20 to vault',

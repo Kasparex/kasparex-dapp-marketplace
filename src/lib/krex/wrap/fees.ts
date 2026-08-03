@@ -13,12 +13,16 @@ export function quoteKrexWrapFeeKas(tier: KREXTier, baseFeeKas = getKrexWrapBase
 
 export function buildKrexWrapHubQuote(args: {
   dapp: DApp;
-  amountKrex: number;
+  amount: number;
+  tick: string;
   tier: KREXTier;
   krexBalance: number;
   baseFeeKas?: number;
+  /** @deprecated Use `amount`. */
+  amountKrex?: number;
 }): HubQuoteDisplay | null {
-  const amount = args.amountKrex;
+  const amount = args.amount ?? args.amountKrex ?? 0;
+  const tick = (args.tick || 'KREX').trim().toUpperCase() || 'KREX';
   if (!Number.isFinite(amount) || amount <= 0) return null;
 
   const baseFee = args.baseFeeKas ?? getKrexWrapBaseFeeKas();
@@ -37,11 +41,11 @@ export function buildKrexWrapHubQuote(args: {
     lines: [
       {
         label: 'Wrap amount',
-        value: `${formatPrice(amount)} KREX`,
+        value: `${formatPrice(amount)} ${tick}`,
       },
       {
         label: 'You receive (KCC20, 1:1)',
-        value: `${formatPrice(amount)} wKREX`,
+        value: `${formatPrice(amount)} w${tick}`,
       },
       {
         label: 'Wrap fee',
@@ -57,7 +61,7 @@ export function buildKrexWrapHubQuote(args: {
     hubPoints,
     hubPointsDetail: formatHubPointsTierLabel(args.tier),
     infoText:
-      'Pay the KAS wrap fee to Hub treasury, then send KRC-20 KREX to the vault. Minted KCC20 is 1:1 with your deposit once the mint watcher confirms.',
+      'Pay the KAS wrap fee to Hub treasury, then send the KRC-20 to the vault. Minted KCC20 is 1:1 with your deposit once the mint watcher confirms.',
     tierLabel: KREX_TIERS[args.tier].label,
     hasKrexDiscount: discountKas > 0 && args.krexBalance >= KREX_TIERS.Tier1.minKREX,
     authoritative: true,

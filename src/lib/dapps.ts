@@ -173,16 +173,16 @@ export const placeholderDApps: DApp[] = [
   },
   {
     id: 'krex-wrap-bridge',
-    name: 'KREX Wrap Bridge',
+    name: 'KRC20 Wrap Bridge',
     slug: 'krex-wrap-bridge',
     featuredImage: 'https://static.wixstatic.com/media/de4185_80a72a2cb33b49909fe69fccc8991a37~mv2.png',
     category: 'payment',
     utility:
-      'Move your KRC-20 KREX into covenant-native KCC20 so it can power Hub tiers, gates, and L1 apps, while keeping a 1:1 claim on the same supply.',
+      'Move any KRC-20 into covenant-native KCC20 so it can power Hub apps and markets, while keeping a 1:1 claim on the same supply.',
     process:
-      '1) Connect a Kaspa wallet. 2) Enter how much KREX to wrap. 3) Pay a small KAS wrap fee (KREX tiers discount it). 4) Confirm the KRC-20 send to the wrap vault. 5) When mint is live, matching KCC20 arrives to your address. This path is one-way for now.',
+      '1) Connect a Kaspa wallet. 2) Select a KRC-20 ticker. 3) Enter the amount. 4) Pay a small KAS wrap fee (KREX tiers discount it). 5) Confirm the send to the wrap vault. 6) When mint is live for that tick, matching KCC20 arrives. One-way for now.',
     benefits:
-      'Same Hub tier discounts and multipliers once wrapped KCC20 is counted. No new free supply: wrap only moves existing KREX. CEX and unwrapped KRC-20 keep working for holders who stay on the legacy rail.',
+      'One wrap rail for every KRC-20. No new free supply: wrap only locks existing tokens. CEX and unwrapped KRC-20 keep working for holders who stay on the inscription rail.',
     developer: 'Kasparex',
     developerLinks: [
       { label: 'Website', url: 'https://www.kasparex.com' },
@@ -193,13 +193,13 @@ export const placeholderDApps: DApp[] = [
     network: 'Kaspa Mainnet',
     networkType: 'L1',
     provider: 'Kasparex',
-    version: '0.1.0',
+    version: '0.2.0',
     description:
-      'KREX Wrap Bridge is the Hub home for migrating inscription KRC-20 KREX into KCC20 (covenant tokens on Kaspa L1). You pay a tier-discounted KAS fee, send KREX to the Kasparex wrap vault, and receive wrapped KCC20 1:1 when the mint watcher confirms. Wallets may show two rows (KRC20 and KCC20). Hub counts both toward tiers. This release is one-way: unwrapping back to KRC-20 comes later. It is not a brand-new token launch and does not create extra KREX beyond what is locked in the vault.',
+      'KRC20 Wrap Bridge migrates inscription KRC-20 tokens into KCC20 (covenant tokens on Kaspa L1). Pick a ticker, pay a tier-discounted KAS fee, send to the Kasparex wrap vault, and receive wrapped KCC20 1:1 when the mint watcher confirms. Wallets may show KRC20 and KCC20 separately. This release is one-way; unwrap comes later. It does not create extra supply beyond what is locked in the vault.',
     security:
-      'Deposits are verified via KRC-20 indexers against the published vault. Minting is operated by Kasparex automation. This is an honest wrap operator model, not a fully trustless consensus bridge. Never send KREX to an address that is not shown in this dApp.',
+      'Deposits are verified via KRC-20 indexers against the published vault. Minting is operated by Kasparex automation per configured tick. This is an honest wrap operator model, not a fully trustless consensus bridge. Never send tokens to an address that is not shown in this dApp.',
     roadmap:
-      'Now: One-way wrap UI, Hub fee rail, deposit verify, tier-ready KCC20 balance\nNext: Production vault + mint watcher + public vault vs wrapped supply proof\nLater: Optional two-way unwrap under Kasparex operation',
+      'Now: Multi-token wrap UI, Hub fee rail, deposit verify, per-tick covenant map\nNext: Production vault + mint watcher + vault vs wrapped supply proof\nLater: Optional two-way unwrap under Kasparex operation',
     createdAt: new Date().toISOString(),
   },
   {
