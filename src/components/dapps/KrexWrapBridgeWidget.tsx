@@ -431,7 +431,7 @@ export function KrexWrapBridgeWidget() {
       {networkToggle}
 
       <div className={KX_INFO_DASHED}>
-        One-way migration. Pay a small KAS fee (KREX tiers discount it), then send the token to the vault
+        One-way migration. Pay a KAS bridge fee (KREX tiers discount it), then send the token to the vault
         shown below. Exchange deposits still use KRC-20.
       </div>
 
@@ -529,6 +529,27 @@ export function KrexWrapBridgeWidget() {
           </div>
         </>
       )}
+
+      <div
+        role="note"
+        className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm leading-snug text-amber-950 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-100"
+      >
+        <p className="font-semibold">Migration risks</p>
+        <ul className="mt-2 list-disc space-y-1.5 pl-4">
+          <li>This path is one-way for now. You cannot reverse back to KRC-20 from this dApp yet.</li>
+          <li>
+            Minting depends on Kasparex automation and KRC-20 indexers. It is not a fully trustless consensus
+            bridge.
+          </li>
+          <li>
+            Only send the selected ticker to the vault address shown here. Tokens sent elsewhere may be lost.
+          </li>
+          <li>
+            Centralized exchanges still expect KRC-20. Keep exchange inventory unmigrated if you deposit there.
+          </li>
+          <li>Practice on Testnet before moving mainnet funds.</li>
+        </ul>
+      </div>
     </DAppWidgetShell>
   );
 }

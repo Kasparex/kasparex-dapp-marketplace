@@ -1,7 +1,7 @@
 import { getAdsTreasuryL1Address } from '@/lib/ads/config';
 import type { Krc20WrapCovenantMap, KrexWrapPublicConfig, Krc20BridgeNetwork } from './types';
 
-const DEFAULT_BASE_FEE_KAS = 2;
+const DEFAULT_BASE_FEE_KAS = 5;
 const DEFAULT_MIN_WRAP = 1;
 const DEFAULT_DECIMALS = 8;
 const DEFAULT_TICK = 'KREX';

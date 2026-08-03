@@ -77,8 +77,8 @@ const DEFAULT_PAYMENT_CONFIGS: Record<string, PaymentConfig> = {
       {
         actionId: 'migrate',
         actionName: 'Migrate KRC-20',
-        baseCost: 2.0,
-        costL1: 2.0,
+        baseCost: 5.0,
+        costL1: 5.0,
         nextStep: 'Deposit KRC-20 to vault',
       },
     ],
