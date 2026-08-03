@@ -21,6 +21,10 @@ When changing Store, Games, Ads, listing fees, tips, votes, Select currency, or 
 - Call `api.kaspa.com` / KasLab / Minecore peg directly from components.
 - Fix one screen and leave other Pay with / checkout surfaces on old logic.
 
+## Pay with button
+
+Locked face is **icon + amount + chevron** via `HubPaymentCurrencyCatalogTrigger`. See `hub-pay-with-currency-button.mdc`. Never use `GameCurrencyMenu` for Hub calculation-rail Pay with.
+
 ## After FX or rail changes
 
 Update the shared module once, wire callers through the hooks above, bump pricing client cache namespace when the source/shape changes, and push so every surface picks it up together.

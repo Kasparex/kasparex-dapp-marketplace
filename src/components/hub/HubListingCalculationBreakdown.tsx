@@ -171,6 +171,8 @@ export function HubListingCalculationBreakdown({
             <HubPaymentCurrencyCatalogTrigger
               entries={catalogEntries}
               selectedId={selectedCurrencyId}
+              amountKas={quote.totalKas}
+              pricingSnapshot={pricingSnapshot}
               onSelect={(option) => onCurrencySelect?.(option)}
             />
           </div>

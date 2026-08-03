@@ -98,10 +98,7 @@ export function KrexWrapBridgeWidget() {
     });
   }, [bridgeDApp, parsedAmount, tick, tier, krexBal, selectedToken]);
 
-  useSyncDAppWidgetQuote(
-    feeKas > 0 && selectedToken && parsedAmount && parsedAmount > 0 ? feeKas : null,
-    'migrate',
-  );
+  useSyncDAppWidgetQuote(feeKas > 0 ? feeKas : null, 'migrate');
   useSyncHubQuote(hubQuote, [hubQuote]);
 
   const refreshHistory = useCallback(() => {

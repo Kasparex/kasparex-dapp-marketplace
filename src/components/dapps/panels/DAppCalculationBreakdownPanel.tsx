@@ -132,6 +132,20 @@ export const DAppCalculationBreakdownPanel = memo(function DAppCalculationBreakd
 
   const quote = computedQuote;
 
+  /** Prefer quote total so Pay with always shows amount (fixed-fee dApps included). */
+  const payFaceAmountKas = quote?.totalKas ?? paymentAmount ?? customHubQuote?.totalKas ?? null;
+
+  const catalogForPay = useMemo(() => {
+    if (payFaceAmountKas == null || payFaceAmountKas <= 0) return catalogEntries;
+    return catalogEntries.map((entry) => {
+      if (entry.amountLabel?.trim()) return entry;
+      return {
+        ...entry,
+        amountLabel: formatHubPaymentAmount(entry, payFaceAmountKas, { snapshot: pricingSnapshot }),
+      };
+    });
+  }, [catalogEntries, payFaceAmountKas, pricingSnapshot]);
+
   const formatPayAmount = (kas: number) =>
     formatHubPaymentAmount(paymentOption, kas, { snapshot: pricingSnapshot });
 
@@ -186,7 +200,7 @@ export const DAppCalculationBreakdownPanel = memo(function DAppCalculationBreakd
   const baseSpendKas = paymentAmount ?? quote?.subtotalKas ?? quote?.totalKas;
   const steps = flowSteps ?? getHubFlowPreset(isCovenant ? 'covenantCreate' : 'hubPay');
   const showPayWith =
-    !isCovenant && !isPeerTransfer && networkType === 'L1' && catalogEntries.length > 0;
+    !isCovenant && !isPeerTransfer && networkType === 'L1' && catalogForPay.length > 0;
   const showSplit = Boolean(splitLegs && splitLegs.length >= 1);
   const infoText =
     quote?.infoText &&
@@ -249,8 +263,10 @@ export const DAppCalculationBreakdownPanel = memo(function DAppCalculationBreakd
               <div className="border-t border-zinc-200 pt-3 dark:border-zinc-700">
                 <p className="mb-2 text-xs uppercase tracking-widest text-zinc-500">Pay with</p>
                 <HubPaymentCurrencyCatalogTrigger
-                  entries={catalogEntries}
+                  entries={catalogForPay}
                   selectedId={payCurrencyId}
+                  amountKas={payFaceAmountKas}
+                  pricingSnapshot={pricingSnapshot}
                   onSelect={(opt) => {
                     setPayCurrencyId(hubCatalogSelectionToStoreCurrency(opt));
                   }}

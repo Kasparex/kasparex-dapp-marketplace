@@ -9,8 +9,10 @@ import { KREXBuyWizard } from '@/components/rewards/KREXBuyWizard';
 import type { HubCurrencyCatalogEntry } from '@/lib/payments/currencyCatalog';
 import { catalogEntryToOption } from '@/lib/payments/currencyCatalog';
 import type { HubPaymentCurrencyOption } from '@/lib/payments/hubPaymentTypes';
+import { formatHubPaymentAmount } from '@/lib/payments/hubPaymentTypes';
 import { prefetchImageUrls } from '@/lib/hub/aggressiveCache';
 import { usePricingSnapshot } from '@/hooks/usePricingSnapshot';
+import type { PricingSnapshot } from '@/lib/pricing/types';
 
 type NetworkFilter = 'all' | 'kcc20_l1' | 'krc20_l1' | 'kasplex_l2' | 'igra_l2';
 type DexFilter = 'all' | 'kron' | 'kcom' | 'zealous';
@@ -375,7 +377,10 @@ function CurrencyRow({
   );
 }
 
-/** Compact trigger used inside Calculation / payment rails. */
+/** Compact trigger used inside Calculation / payment rails.
+ * LOCKED Hub face: currency icon + amount (or ticker) + chevron.
+ * Never show network/detail subtitles on this button.
+ */
 export function HubPaymentCurrencyCatalogTrigger({
   entries,
   selectedId,
@@ -384,6 +389,12 @@ export function HubPaymentCurrencyCatalogTrigger({
   className,
   /** Always show the Pay with control even when only one currency exists. */
   alwaysShow = true,
+  /**
+   * KAS-equivalent total for the current quote. When set, the button face shows
+   * the converted amount even if catalog entries were built without amountLabel.
+   */
+  amountKas,
+  pricingSnapshot,
 }: {
   entries: HubCurrencyCatalogEntry[];
   selectedId?: string;
@@ -391,6 +402,8 @@ export function HubPaymentCurrencyCatalogTrigger({
   accent?: 'default' | 'store';
   className?: string;
   alwaysShow?: boolean;
+  amountKas?: number | null;
+  pricingSnapshot?: PricingSnapshot | null;
 }) {
   const [open, setOpen] = useState(false);
   const selected = useMemo(
@@ -398,10 +411,18 @@ export function HubPaymentCurrencyCatalogTrigger({
     [entries, selectedId],
   );
 
+  const faceAmount = useMemo(() => {
+    if (selected?.amountLabel?.trim()) return selected.amountLabel.trim();
+    if (selected && amountKas != null && Number.isFinite(amountKas) && amountKas > 0) {
+      return formatHubPaymentAmount(selected, amountKas, { snapshot: pricingSnapshot });
+    }
+    return selected?.label?.trim() || 'Select currency';
+  }, [selected, amountKas, pricingSnapshot]);
+
   if (!alwaysShow && entries.length <= 1 && !entries.some((e) => e.status === 'locked')) {
     return selected ? (
       <p className={`text-sm font-semibold tabular-nums text-zinc-900 dark:text-zinc-100 ${className ?? ''}`}>
-        {selected.label}
+        {faceAmount}
       </p>
     ) : null;
   }
@@ -436,16 +457,7 @@ export function HubPaymentCurrencyCatalogTrigger({
               {(selected.tick ?? selected.label).slice(0, 3)}
             </span>
           ) : null}
-          {selected?.amountLabel ? (
-            <span className="truncate font-semibold tabular-nums">{selected.amountLabel}</span>
-          ) : (
-            <>
-              <span className="font-semibold">{selected?.label ?? 'Select currency'}</span>
-              {selected?.detail ? (
-                <span className="truncate text-xs font-normal text-zinc-500">{selected.detail}</span>
-              ) : null}
-            </>
-          )}
+          <span className="truncate font-semibold tabular-nums">{faceAmount}</span>
         </span>
         <svg
           className="h-4 w-4 shrink-0 text-zinc-500"

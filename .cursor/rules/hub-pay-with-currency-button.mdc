@@ -1,0 +1,38 @@
+---
+description: LOCKED Hub Pay with currency button (icon + amount + chevron)
+alwaysApply: true
+---
+
+# Hub Pay with currency button (LOCKED)
+
+Every Hub **Pay with** control must look identical: calculation rails, dApps, listings, Store, Games, tips, ads.
+
+## Single implementation
+
+- Component: `HubPaymentCurrencyCatalogTrigger` in `src/components/payments/HubPaymentCurrencyCatalogModal.tsx`
+- Catalog source: `useHubPayWithCatalog` / `buildHubCurrencyCatalog` with `amountKas` set from the quote total
+- Calculation rails: `HubPaymentPanel`, `HubListingCalculationBreakdown`, `DAppCalculationBreakdownPanel`
+
+## Locked button face
+
+Left → right, nothing else:
+
+1. Currency icon (image or 3-letter chip)
+2. **Amount** in the selected currency (e.g. `5 KAS`, `12.5 KREX`), tabular nums
+3. Chevron
+
+## Required
+
+- Always pass `amountKas` (quote total in KAS) into the catalog builder and/or the trigger so `amountLabel` is populated.
+- Detail / network subtitles (`Native Kaspa L1`, market rate lines) belong in the **catalog modal rows only**, never on the closed button.
+
+## Forbidden
+
+- `GameCurrencyMenu` / `HubPaymentCurrencyDropdown` for Hub **Pay with** on calculation rails
+- Button face that is only ticker + subtitle with no amount when a quote total exists
+- Per-page forks of the Pay with chrome
+
+## When no amount is known yet
+
+Show ticker only (e.g. `KAS`) until the quote has a total. Still never show the detail subtitle on the button.
+---

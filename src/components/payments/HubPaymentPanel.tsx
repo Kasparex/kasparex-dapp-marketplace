@@ -6,7 +6,6 @@ import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 import { HubFlowProgress } from '@/components/hub/HubFlowProgress';
 import { HubPointsEarnBadge } from '@/components/hub/HubPointsEarnBadge';
 import { HubPaymentCurrencyCatalogTrigger } from '@/components/payments/HubPaymentCurrencyCatalogModal';
-import { HubPaymentCurrencyDropdown } from '@/components/payments/HubPaymentCurrencyDropdown';
 import { TierBadge } from '@/components/rewards/TierBadge';
 import { KX_CALCULATION_ASIDE } from '@/lib/hub/shellTokens';
 import {
@@ -19,9 +18,11 @@ import {
   type HubCurrencyCatalogEntry,
 } from '@/lib/payments/currencyCatalog';
 import type { HubPaymentCurrencyOption, HubPaymentQuoteLine } from '@/lib/payments/hubPaymentTypes';
+import { formatHubPaymentAmount } from '@/lib/payments/hubPaymentTypes';
 import type { PaymentLeg } from '@/lib/payments/paymentPlan';
 import { hubPaymentSplitFooter } from '@/lib/payments/paymentSplitCopy';
 import type { KREXTier } from '@/lib/rewards/types';
+import type { PricingSnapshot } from '@/lib/pricing/types';
 
 export function HubPaymentPanel({
   title = 'Calculation breakdown',
@@ -36,6 +37,9 @@ export function HubPaymentPanel({
   catalogEntries,
   onCatalogSelect,
   currencyPicker = 'catalog',
+  /** KAS-equivalent total so Pay with shows amount on the locked button face. */
+  amountKas,
+  pricingSnapshot = null,
   splitLegs,
   splitUnit = 'KAS',
   splitInfoText,
@@ -72,6 +76,9 @@ export function HubPaymentPanel({
   catalogEntries?: HubCurrencyCatalogEntry[];
   onCatalogSelect?: (option: HubPaymentCurrencyOption) => void;
   currencyPicker?: 'catalog' | 'dropdown';
+  /** KAS-equivalent of totalDisplay for the Pay with amount face. */
+  amountKas?: number | null;
+  pricingSnapshot?: PricingSnapshot | null;
   /** When set, shows how the payment splits across addresses. */
   splitLegs?: PaymentLeg[];
   /** Unit shown next to each split leg amount (default KAS). */
@@ -102,10 +109,31 @@ export function HubPaymentPanel({
 }) {
   const steps = flowSteps ?? getHubFlowPreset(flowPreset);
 
+  const resolvedAmountKas = useMemo(() => {
+    if (amountKas != null && Number.isFinite(amountKas) && amountKas > 0) return amountKas;
+    const m = totalDisplay.trim().match(/^([\d]+(?:[.,]\d+)?)\s*KAS$/i);
+    if (!m) return null;
+    const n = Number(m[1]!.replace(',', '.'));
+    return Number.isFinite(n) && n > 0 ? n : null;
+  }, [amountKas, totalDisplay]);
+
   const resolvedCatalog = useMemo(() => {
-    if (catalogEntries?.length) return catalogEntries;
+    const amount = resolvedAmountKas != null && resolvedAmountKas > 0 ? resolvedAmountKas : undefined;
+    if (catalogEntries?.length) {
+      if (!amount) return catalogEntries;
+      return catalogEntries.map((entry) =>
+        entry.amountLabel?.trim()
+          ? entry
+          : {
+              ...entry,
+              amountLabel: formatHubPaymentAmount(entry, amount, { snapshot: pricingSnapshot }),
+            },
+      );
+    }
     if (currencies?.length) {
       return buildHubCurrencyCatalog({
+        amountKas: amount,
+        pricingSnapshot,
         includeKasKrex: false,
         integratedTokens: currencies
           .filter((c) => c.kind === 'krc20' && c.tick)
@@ -127,24 +155,23 @@ export function HubPaymentPanel({
       }).concat(
         currencies
           .filter((c) => c.kind === 'kas' || c.kind === 'krex')
-          .map((c) => ({ ...c, status: 'available' as const })),
+          .map((c) => ({
+            ...c,
+            status: 'available' as const,
+            amountLabel:
+              amount != null
+                ? formatHubPaymentAmount(c, amount, { snapshot: pricingSnapshot })
+                : undefined,
+          })),
       );
     }
     return [];
-  }, [catalogEntries, currencies]);
+  }, [catalogEntries, currencies, resolvedAmountKas, pricingSnapshot]);
 
   const showCatalog =
-    currencyPicker === 'catalog' &&
     resolvedCatalog.length > 0 &&
     selectedCurrencyId &&
     (onCatalogSelect || onCurrencyChange);
-
-  const showDropdown =
-    currencyPicker === 'dropdown' &&
-    currencies &&
-    currencies.length > 1 &&
-    selectedCurrencyId &&
-    onCurrencyChange;
 
   return (
     <aside className={`${asideClassName ?? KX_CALCULATION_ASIDE} ${className}`.trim()}>
@@ -182,24 +209,13 @@ export function HubPaymentPanel({
             <HubPaymentCurrencyCatalogTrigger
               entries={resolvedCatalog}
               selectedId={selectedCurrencyId}
+              amountKas={resolvedAmountKas}
+              pricingSnapshot={pricingSnapshot}
               accent={currencyAccent}
               onSelect={(option) => {
                 if (onCatalogSelect) onCatalogSelect(option);
                 else onCurrencyChange?.(option.id);
               }}
-            />
-          </div>
-        ) : null}
-
-        {showDropdown ? (
-          <div className="border-t border-zinc-200 pt-3 dark:border-zinc-700">
-            <p className="mb-2 text-xs uppercase tracking-widest text-zinc-500">Pay with</p>
-            <HubPaymentCurrencyDropdown
-              value={selectedCurrencyId}
-              onChange={onCurrencyChange}
-              options={currencies.map((c) => ({ value: c.id, label: c.label }))}
-              ariaLabel="Payment currency"
-              accent={currencyAccent}
             />
           </div>
         ) : null}
