@@ -33,22 +33,22 @@ export function buildKrexWrapHubQuote(args: {
 
   const hubPoints = computeHubPointsForAction({
     dapp: args.dapp,
-    actionId: 'wrap',
+    actionId: 'migrate',
     tier: args.tier,
   });
 
   return {
     lines: [
       {
-        label: 'Wrap amount',
+        label: 'Amount',
         value: `${formatPrice(amount)} ${tick}`,
       },
       {
         label: 'You receive (KCC20, 1:1)',
-        value: `${formatPrice(amount)} w${tick}`,
+        value: `${formatPrice(amount)} ${tick}`,
       },
       {
-        label: 'Wrap fee',
+        label: 'Bridge fee',
         value: `${formatPrice(feeKas)} KAS`,
       },
     ],
@@ -61,7 +61,7 @@ export function buildKrexWrapHubQuote(args: {
     hubPoints,
     hubPointsDetail: formatHubPointsTierLabel(args.tier),
     infoText:
-      'Pay the KAS wrap fee to Hub treasury, then send the KRC-20 to the vault. Minted KCC20 is 1:1 with your deposit once the mint watcher confirms.',
+      'Pay the KAS bridge fee to Hub treasury, then send the KRC-20 to the vault. Matching KCC20 is 1:1 once mint confirms.',
     tierLabel: KREX_TIERS[args.tier].label,
     hasKrexDiscount: discountKas > 0 && args.krexBalance >= KREX_TIERS.Tier1.minKREX,
     authoritative: true,

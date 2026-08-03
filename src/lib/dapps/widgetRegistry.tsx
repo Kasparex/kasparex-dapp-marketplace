@@ -33,7 +33,7 @@ const WIDGET_REGISTRY: WidgetEntry[] = [
   { slug: 'covenant-voucher', component: CovenantVoucherWidget },
   { slug: 'send-krex', id: '16', component: SendKREXWidget },
   { slug: 'send-kas', id: '15', component: SendKASWidget },
-  { slug: 'krex-wrap-bridge', id: 'krex-wrap-bridge', component: KrexWrapBridgeWidget },
+  { slug: 'kcc20-bridge', id: 'kcc20-bridge', component: KrexWrapBridgeWidget },
 ];
 
 export function resolveWidgetEntry(dapp: DApp): WidgetEntry | null {

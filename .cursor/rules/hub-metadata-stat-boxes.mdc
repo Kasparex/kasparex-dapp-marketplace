@@ -21,11 +21,19 @@ Reference: **vBlog aside “On-chain metadata”** and **dApps Metadata** tab bo
 | Card | `KX_METADATA_STAT_CARD` (`kx-metadata-stat-card` + nest; hover border via globals.css → `--hub-accent`) |
 | Label | `KX_METADATA_STAT_LABEL` |
 | Value | `KX_METADATA_STAT_VALUE` / `_ACCENT` / `_MUTED` / `_LINK` |
-| Grid | `metadataStatGridClassForCount(n)`: 1→1, 2/4→2 cols, 3→3, 5+→up to 3. **Never leave an empty third column for 2 items; never full-width leftover for 4.** |
-| Stack / smart pack | `smartPack` or `KX_METADATA_STAT_GRID_SMART`: short values 2-up, long ids/txs `sm:col-span-2` |
+| Grid | Prefer **smart pack** (default on `HubMetadataStatGrid`): 2 cols; long ids/txs/addresses `sm:col-span-2`. Count helper: 1→1, 2/4→2 cols, 3→3, 5+→up to 3 only when all values are short and pack evenly. **Never leave an empty third column for 2 items; never full-width leftover for 4.** |
+| Stack / smart pack | Default `smartPack` on. Long **values or hints** span full width. Put long explanations in `tooltipTitle` + `tooltipDescription`, not tall `hint` lines that break the grid. |
 | Tooltips | On the **whole card** via `tooltipTitle` + `tooltipDescription`. **No** inline `?` icons. Never pass height classes (`h-full`) into `Tooltip` `className` (that styles the portal surface). |
 | Section titles (token / game overview body) | `GameOverviewTitleBlock` with `as="h3"`: locked tilt (`h-4`), `kx-page-kicker`, `GAME_OVERVIEW_H3`, bottom divider. `compact` is **margin only**. |
 | Datetime presets | `CovenantDatetimeField`: chips **inline** with the input (same row height), not stacked below. |
+
+## Smart packing (required)
+
+1. Omit empty values (grid already filters blanks).
+2. Omit admin/ops values (see `hub-no-admin-ops-public.mdc`).
+3. If `dApp ID` equals `Slug`, show **Slug** only (drop redundant id).
+4. Short pairs stay 2-up; long mono ids/addresses get their own row.
+5. Do not force `lg:grid-cols-3` when that leaves a lonely orphan beside empty space.
 
 ## Section titles
 
@@ -37,3 +45,5 @@ Chronicles / Hub standard: **white / zinc-100 titles**, accent only on tilt bar 
 - Hardcoded cyan/blue (`#02abb8`, `bg-blue-*`) instead of `--hub-accent*`
 - Forcing `lg:grid-cols-3` when only 1–2 boxes exist in a panel
 - Full-width span leftovers that create empty panel space
+- Tall multi-line hints that make one short-value card dominate the row (use tooltips)
+---

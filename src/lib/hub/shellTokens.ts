@@ -114,7 +114,10 @@ export const KX_METADATA_STAT_GRID_SMART = 'grid grid-cols-1 items-stretch gap-3
 export const KX_METADATA_STAT_GRID_STACK = KX_METADATA_STAT_GRID_SMART;
 
 /** True when the value should occupy a full row (not sit beside another short box). */
-export function isMetadataStatValueLong(value: string, opts?: { dense?: boolean }): boolean {
+export function isMetadataStatValueLong(
+  value: string,
+  opts?: { dense?: boolean; hint?: string },
+): boolean {
   const v = value.trim();
   if (!v) return false;
   if (v.length >= 28) return true;
@@ -122,11 +125,29 @@ export function isMetadataStatValueLong(value: string, opts?: { dense?: boolean 
   if (v.startsWith('kaspa:') || v.startsWith('kaspatest:')) return true;
   if (/^[a-f0-9]{40,}$/i.test(v)) return true;
   if (opts?.dense && v.length >= 18) return true;
+  // Long hints under a short value still break 2-up rows; span full width.
+  const hint = opts?.hint?.trim() ?? '';
+  if (hint.length >= 48) return true;
   return false;
 }
 
-export function metadataStatItemSpanClassForValue(value: string, opts?: { dense?: boolean }): string {
+export function metadataStatItemSpanClassForValue(
+  value: string,
+  opts?: { dense?: boolean; hint?: string },
+): string {
   return isMetadataStatValueLong(value, opts) ? 'sm:col-span-2' : '';
+}
+
+/** Public Hub: hide admin/ops placeholder values from metadata grids. */
+export function isPublicMetadataStatValue(value: string, hint?: string): boolean {
+  const v = value.trim();
+  if (!v) return false;
+  const blob = `${v} ${hint ?? ''}`.toLowerCase();
+  if (blob.includes('next_public_')) return false;
+  if (blob.includes('not configured')) return false;
+  if (blob.includes('pending ops')) return false;
+  if (/\bset\s+next_public_/i.test(`${v} ${hint ?? ''}`)) return false;
+  return true;
 }
 
 /** @deprecated Prefer metadataStatGridClassForCount(n). Kept as 3-col default for explicit overrides. */

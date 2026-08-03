@@ -13,6 +13,7 @@ import {
   KX_METADATA_STAT_VALUE_LINK,
   KX_METADATA_STAT_VALUE_MUTED,
   isMetadataStatValueLong,
+  isPublicMetadataStatValue,
   metadataStatGridClassForCount,
   metadataStatItemSpanClassForValue,
   KX_METADATA_STAT_GRID_SMART,
@@ -114,27 +115,31 @@ export function HubMetadataStatGrid({
   stats,
   className = '',
   gridClassName,
-  smartPack = false,
+  /** Default on: short values 2-up; long ids/hints span full width. */
+  smartPack = true,
   footer,
 }: {
   stats: HubMetadataStat[];
   className?: string;
-  /** Override auto grid. Prefer omitting this and using smartPack for mixed short/long panels. */
+  /** Override auto grid. Prefer omitting this and using default smart pack. */
   gridClassName?: string;
   /**
-   * Short values sit 2-up; long ids/txs span full width.
-   * Default true when gridClassName is omitted and values are mixed, or when caller sets it.
+   * Short values sit 2-up; long ids/txs/hints span full width.
+   * Default true. Set false only for intentional equal short grids.
    */
   smartPack?: boolean;
   footer?: ReactNode;
 }) {
-  const visible = stats.filter((s) => s.value?.trim() || s.valueNode);
+  const visible = stats.filter((s) => {
+    if (s.valueNode) return true;
+    return isPublicMetadataStatValue(s.value || '', s.hint);
+  });
   if (visible.length === 0 && !footer) return null;
 
-  const useSmart =
-    smartPack ||
-    (!gridClassName &&
-      visible.some((s) => isMetadataStatValueLong(s.value || '', { dense: s.dense })));
+  const hasLong = visible.some((s) =>
+    isMetadataStatValueLong(s.value || '', { dense: s.dense, hint: s.hint }),
+  );
+  const useSmart = Boolean(gridClassName) ? false : smartPack || hasLong;
 
   const resolvedGrid =
     gridClassName ??
@@ -151,7 +156,10 @@ export function HubMetadataStatGrid({
         <div className={resolvedGrid}>
           {visible.map((stat, index) => {
             const span = applySpans
-              ? metadataStatItemSpanClassForValue(stat.value || '', { dense: stat.dense })
+              ? metadataStatItemSpanClassForValue(stat.value || '', {
+                  dense: stat.dense,
+                  hint: stat.hint,
+                })
               : '';
             const key = `${stat.label}-${stat.value}-${index}`;
             const card = <HubMetadataStatCard {...stat} className={stat.className} />;

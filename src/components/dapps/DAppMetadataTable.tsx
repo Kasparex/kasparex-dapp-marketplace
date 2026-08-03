@@ -26,50 +26,63 @@ export function DAppMetadataTable({
   const explorerUrl =
     resolvedContract?.startsWith('0x') && chainId ? getExplorerUrl(resolvedContract, chainId) : null;
 
-  const stats: HubMetadataStat[] = [
-    { label: 'dApp ID', value: dapp.id, mono: true },
-    { label: 'Slug', value: dapp.slug || '', mono: true, copyable: true },
-    { label: 'Version', value: dapp.version || '', copyable: false },
-    { label: 'Network', value: dapp.network || '', copyable: false },
-    { label: 'Status', value: dapp.status || '', copyable: false },
-    { label: 'Provider', value: dapp.provider || '', copyable: false },
-    { label: 'Contract', value: resolvedContract, mono: true },
-    { label: 'Deployer', value: dapp.deployerAddress || '', mono: true },
-  ];
+  const stats: HubMetadataStat[] = [];
+  const id = dapp.id?.trim() || '';
+  const slug = dapp.slug?.trim() || '';
+  // Smart: do not duplicate id when it matches slug.
+  if (id && id !== slug) {
+    stats.push({ label: 'dApp ID', value: id, mono: true });
+  }
+  if (slug) {
+    stats.push({ label: 'Slug', value: slug, mono: true, copyable: true });
+  }
+  if (dapp.version) {
+    stats.push({ label: 'Version', value: dapp.version, copyable: false });
+  }
+  if (dapp.network) {
+    stats.push({ label: 'Network', value: dapp.network, copyable: false });
+  }
+  if (dapp.status) {
+    stats.push({ label: 'Status', value: dapp.status, copyable: false });
+  }
+  if (dapp.provider) {
+    stats.push({ label: 'Provider', value: dapp.provider, copyable: false });
+  }
+  if (resolvedContract) {
+    stats.push({ label: 'Contract', value: resolvedContract, mono: true });
+  }
+  if (dapp.deployerAddress) {
+    stats.push({ label: 'Deployer', value: dapp.deployerAddress, mono: true });
+  }
 
-  if (dapp.slug === 'krex-wrap-bridge') {
-    const wrap = getKrexWrapPublicConfig();
-    const covenantTicks = Object.keys(wrap.covenants);
+  if (dapp.slug === 'kcc20-bridge' || dapp.slug === 'krex-wrap-bridge') {
+    const bridge = getKrexWrapPublicConfig('mainnet');
     stats.push(
       {
         label: 'Direction',
         value: 'One-way',
-        hint: 'Any KRC-20 → vault → KCC20 mint. Unwrap later.',
+        tooltipTitle: 'Direction',
+        tooltipDescription: 'KRC-20 → vault → KCC20. Reverse migration comes later.',
         copyable: false,
       },
       {
-        label: 'Wrap fee',
-        value: `${wrap.baseFeeKas} KAS`,
-        hint: 'Base fee before KREX tier discount',
-        copyable: false,
-      },
-      {
-        label: 'Vault',
-        value: wrap.vaultAddress || 'Not configured',
-        hint: wrap.vaultAddress ? 'Shared KRC-20 deposit address' : 'Set NEXT_PUBLIC_KREX_WRAP_VAULT',
-        mono: Boolean(wrap.vaultAddress),
-        copyable: Boolean(wrap.vaultAddress),
-      },
-      {
-        label: 'Mint live',
-        value: covenantTicks.length > 0 ? covenantTicks.join(', ') : 'Pending ops',
-        hint:
-          covenantTicks.length > 0
-            ? 'Ticksers with a configured KCC20 covenant'
-            : 'Set NEXT_PUBLIC_KRC20_WRAP_COVENANTS or NEXT_PUBLIC_KREX_KCC20_COVENANT_ID',
+        label: 'Bridge fee',
+        value: `${bridge.baseFeeKas} KAS`,
+        tooltipTitle: 'Bridge fee',
+        tooltipDescription: 'Base KAS fee before your KREX tier discount.',
         copyable: false,
       },
     );
+    if (bridge.vaultAddress) {
+      stats.push({
+        label: 'Vault',
+        value: bridge.vaultAddress,
+        tooltipTitle: 'Deposit vault',
+        tooltipDescription: 'Send only the selected KRC-20 to this address from the Migrate tab.',
+        mono: true,
+        copyable: true,
+      });
+    }
   }
 
   if (listing) {
@@ -106,7 +119,7 @@ export function DAppMetadataTable({
                   href={explorerUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="font-semibold text-[#02abb8] hover:underline"
+                  className="font-semibold text-[color:var(--hub-accent)] hover:underline"
                 >
                   View contract on explorer ↗
                 </Link>
@@ -118,7 +131,7 @@ export function DAppMetadataTable({
                   href={contactXProfileUrl(listing.contactX) || '#'}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="font-semibold text-[#02abb8] hover:underline"
+                  className="font-semibold text-[color:var(--hub-accent)] hover:underline"
                 >
                   Contact on X ↗
                 </Link>

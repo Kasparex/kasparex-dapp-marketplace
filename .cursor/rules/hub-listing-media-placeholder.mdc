@@ -1,0 +1,24 @@
+---
+description: Never reuse another product media; use Hub default listing placeholder
+alwaysApply: true
+---
+
+# Hub listing media (no borrowed images)
+
+## Do this
+
+- Each product/dApp/game gets its **own** featured / logo art, or **no** image.
+- When there is no dedicated asset, omit `featuredImage` / `image` / `logoImage` so UI falls back to `KxListingFeaturedPlaceholder` (or the shared listing placeholder tokens).
+- Prefer generating or commissioning Kasparex-owned assets later; never copy another dApp’s Wix/CDN URL as a stand-in.
+
+## Forbidden
+
+- Reusing Send KREX / Capsule / Lockbox / Store / any other product’s `static.wixstatic.com` (or similar) image on a different product.
+- Hotlinking third-party marketing art that is not licensed for that listing.
+- Inventing a one-off “temporary” featured image from another card “just so it is not empty.”
+
+## Placeholder
+
+- Component: `KxListingFeaturedPlaceholder` (`src/components/kx/KxListingFeaturedPlaceholder.tsx`)
+- Tokens: `KX_LISTING_PLACEHOLDER_*` in `src/lib/ui/kxListingPlaceholder.ts`
+---

@@ -24,6 +24,7 @@ function normalizeRecord(raw: Partial<KrexWrapRecord> & { id?: string }): KrexWr
     updatedAt,
     wallet: raw.wallet || '',
     tick,
+    network: raw.network === 'testnet-10' ? 'testnet-10' : raw.network === 'mainnet' ? 'mainnet' : undefined,
     amount,
     amountKrex: amount,
     feeKas: typeof raw.feeKas === 'number' ? raw.feeKas : 0,

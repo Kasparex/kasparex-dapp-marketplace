@@ -8,6 +8,8 @@ const __dirname = path.dirname(__filename);
 const nextConfig = {
   async redirects() {
     return [
+      { source: '/dapps/krex-wrap-bridge', destination: '/dapps/kcc20-bridge', permanent: true },
+      { source: '/dapps/krex-wrap-bridge/:path*', destination: '/dapps/kcc20-bridge/:path*', permanent: true },
       { source: '/dapps/covenant-lab', destination: '/dapps/lockbox', permanent: true },
       { source: '/points', destination: '/rewards', permanent: true },
       { source: '/rewards-and-points', destination: '/rewards', permanent: true },

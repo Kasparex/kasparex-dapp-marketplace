@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react';
 import { KxFormFieldLabel } from '@/components/ui/KxFormFieldLabel';
 import { fetchKrc20TokenInfo, formatKrc20Supply, type Krc20TokenInfo } from '@/lib/tokens/krc20Lookup';
+import { fetchKrc20TokenInfoOnNetwork } from '@/lib/krex/wrap/networkFetch';
+import type { Krc20BridgeNetwork } from '@/lib/krex/wrap/types';
 
 interface Krc20TickerSearchFieldProps {
   value: string;
@@ -10,6 +12,8 @@ interface Krc20TickerSearchFieldProps {
   onSelect: (info: Krc20TokenInfo | null) => void;
   disabled?: boolean;
   selected?: Krc20TokenInfo | null;
+  /** Kaspa L1 network for indexer lookup. Default mainnet. */
+  network?: Krc20BridgeNetwork;
 }
 
 export function Krc20TickerSearchField({
@@ -18,6 +22,7 @@ export function Krc20TickerSearchField({
   onSelect,
   disabled,
   selected,
+  network = 'mainnet',
 }: Krc20TickerSearchFieldProps) {
   const [isSearching, setIsSearching] = useState(false);
   const [result, setResult] = useState<Krc20TokenInfo | null>(null);
@@ -39,7 +44,10 @@ export function Krc20TickerSearchField({
       setIsSearching(true);
       setError(null);
       try {
-        const info = await fetchKrc20TokenInfo(tick);
+        const info =
+          network === 'mainnet'
+            ? await fetchKrc20TokenInfo(tick)
+            : await fetchKrc20TokenInfoOnNetwork(tick, network);
         setResult(info);
         setNotFound(!info);
       } catch {
@@ -52,7 +60,7 @@ export function Krc20TickerSearchField({
     }, 450);
 
     return () => window.clearTimeout(timer);
-  }, [value, selected]);
+  }, [value, selected, network]);
 
   const displayResult = selected ?? result;
 
@@ -75,7 +83,8 @@ export function Krc20TickerSearchField({
       ) : null}
       {notFound && !selected ? (
         <p className="text-xs font-medium text-amber-600 dark:text-amber-400">
-          No KRC-20 token found for &quot;{value.trim().toUpperCase()}&quot;. Check the ticker and try again.
+          No KRC-20 token found for &quot;{value.trim().toUpperCase()}&quot; on{' '}
+          {network === 'testnet-10' ? 'Testnet' : 'Mainnet'}. Check the ticker and try again.
         </p>
       ) : null}
       {error ? <p className="text-xs font-medium text-red-500">{error}</p> : null}
@@ -84,11 +93,11 @@ export function Krc20TickerSearchField({
         <button
           type="button"
           onClick={() => onSelect(displayResult)}
-          className="w-full rounded-xl border border-[#02abb8]/40 bg-[#02abb8]/5 p-4 text-left transition hover:border-[#02abb8] hover:bg-[#02abb8]/10"
+          className="w-full rounded-xl border border-[color:var(--hub-accent-border)] bg-[color:var(--hub-accent-muted)] p-4 text-left transition hover:border-[color:var(--hub-accent)]"
         >
           <div className="flex items-center justify-between gap-2">
             <span className="text-lg font-black text-zinc-900 dark:text-zinc-100">{displayResult.ticker}</span>
-            <span className="rounded-md bg-[#02abb8]/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[#02abb8]">
+            <span className="rounded-md bg-[color:var(--hub-accent-muted)] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[color:var(--hub-accent)]">
               Select token
             </span>
           </div>
@@ -119,7 +128,7 @@ export function Krc20TickerSearchField({
               }}
               className="text-xs font-semibold text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200"
             >
-              Clear
+              Change
             </button>
           </div>
           <p className="mt-1 text-xs text-zinc-600 dark:text-zinc-400">

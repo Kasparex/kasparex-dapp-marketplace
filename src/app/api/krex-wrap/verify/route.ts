@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getKrexWrapTick, getKrexWrapVaultAddress } from '@/lib/krex/wrap/config';
+import {
+  getBridgeVaultAddress,
+  getKrexWrapTick,
+  kasplexApiBaseForNetwork,
+} from '@/lib/krex/wrap/config';
 import { stripKaspaAddressHrp } from '@/lib/kaspa/sdk';
+import type { Krc20BridgeNetwork } from '@/lib/krex/wrap/types';
 
 export const runtime = 'edge';
 
@@ -8,26 +13,32 @@ type Body = {
   depositTxHash?: string;
   wallet?: string;
   tick?: string;
+  network?: Krc20BridgeNetwork;
   amount?: number;
   /** @deprecated Prefer `amount`. */
   amountKrex?: number;
 };
 
+function parseNetwork(raw: unknown): Krc20BridgeNetwork {
+  return raw === 'testnet-10' ? 'testnet-10' : 'mainnet';
+}
+
 /**
- * Soft-verify a wrap deposit against Kasplex KRC-20 ops for the vault address.
+ * Soft-verify a bridge deposit against Kasplex KRC-20 ops for the vault address.
  * Does not mint; operators / watcher use this as an eligibility check.
  */
 export async function POST(req: NextRequest) {
-  const vault = getKrexWrapVaultAddress();
-  if (!vault) {
-    return NextResponse.json({ ok: false, error: 'Wrap vault is not configured' }, { status: 503 });
-  }
-
   let body: Body;
   try {
     body = (await req.json()) as Body;
   } catch {
     return NextResponse.json({ ok: false, error: 'Invalid JSON body' }, { status: 400 });
+  }
+
+  const network = parseNetwork(body.network);
+  const vault = getBridgeVaultAddress(network);
+  if (!vault) {
+    return NextResponse.json({ ok: false, error: 'Bridge vault is not available on this network' }, { status: 503 });
   }
 
   const txHash = body.depositTxHash?.trim().toLowerCase();
@@ -42,16 +53,17 @@ export async function POST(req: NextRequest) {
 
   const vaultNorm = stripKaspaAddressHrp(vault).toLowerCase();
   const walletNorm = body.wallet ? stripKaspaAddressHrp(body.wallet).toLowerCase() : null;
+  const apiBase = kasplexApiBaseForNetwork(network);
 
   try {
-    const url = `https://api.kasplex.org/v1/krc20/oplist?tick=${encodeURIComponent(tick)}&txId=${encodeURIComponent(txHash)}`;
+    const url = `${apiBase}/v1/krc20/oplist?tick=${encodeURIComponent(tick)}&txId=${encodeURIComponent(txHash)}`;
     const res = await fetch(url, {
       headers: { Accept: 'application/json' },
       signal: AbortSignal.timeout(15_000),
     });
     if (!res.ok) {
       return NextResponse.json(
-        { ok: false, error: `Kasplex indexer returned ${res.status}`, txHash },
+        { ok: false, error: `Kasplex indexer returned ${res.status}`, txHash, network },
         { status: 502 },
       );
     }
@@ -83,7 +95,8 @@ export async function POST(req: NextRequest) {
         verified: false,
         txHash,
         tick,
-        error: 'No matching KRC-20 transfer to the wrap vault found for this tx yet',
+        network,
+        error: 'No matching KRC-20 transfer to the bridge vault found for this tx yet',
       });
     }
 
@@ -96,6 +109,7 @@ export async function POST(req: NextRequest) {
       verified: true,
       txHash,
       tick,
+      network,
       vault,
       from: match.from,
       to: match.to,
@@ -104,7 +118,7 @@ export async function POST(req: NextRequest) {
       amountKrex: amountHuman,
       claimedAmount: claimed,
       status: 'pending_mint',
-      note: 'Deposit verified. KCC20 mint is fulfilled by the wrap watcher once mint is live for this tick.',
+      note: 'Deposit verified. KCC20 mint is fulfilled when mint is live for this tick.',
     });
   } catch (err) {
     return NextResponse.json(
@@ -112,6 +126,7 @@ export async function POST(req: NextRequest) {
         ok: false,
         error: err instanceof Error ? err.message : 'Verify failed',
         txHash,
+        network,
       },
       { status: 502 },
     );

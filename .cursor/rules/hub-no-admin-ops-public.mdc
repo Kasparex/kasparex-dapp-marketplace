@@ -1,0 +1,25 @@
+---
+description: Never show admin ops, env vars, or pending operator work in public Hub UI
+alwaysApply: true
+---
+
+# No admin ops in public UI
+
+Public Hub pages (dApps, Games, Tokens, Store, etc.) must never expose operator / deploy / env setup status.
+
+## Forbidden in public UI
+
+- Env var names (`NEXT_PUBLIC_*`, `process.env`, “Set NEXT_PUBLIC_…”)
+- Phrases like “Pending ops”, “Not configured”, “Vault not configured”, “awaiting watcher”, “redeploy”
+- Internal ops checklists, mint-watcher status for operators, or secrets/treasury setup hints
+
+## Do this instead
+
+- Show only user-facing facts: fee, direction, live vault address (when set), network, version.
+- If a vault / covenant / feature is not ready: omit the box, or show a short user line (“Coming soon”) without env or ops detail.
+- Keep operator docs in `docs/` or private runbooks, not in Metadata tabs or widget banners.
+
+## Metadata boxes
+
+Never push a `HubMetadataStat` whose value or hint is an env instruction or ops pending state.
+---

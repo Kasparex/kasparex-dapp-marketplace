@@ -6,13 +6,16 @@ export type KrexWrapStatus =
   | 'minted'
   | 'failed';
 
+export type Krc20BridgeNetwork = 'mainnet' | 'testnet-10';
+
 export type KrexWrapRecord = {
   id: string;
   createdAt: string;
   updatedAt: string;
   wallet: string;
-  /** KRC-20 tick wrapped (uppercase). Older records may omit; treat as KREX. */
+  /** KRC-20 tick migrated (uppercase). Older records may omit; treat as KREX. */
   tick: string;
+  network?: Krc20BridgeNetwork;
   /** Human amount of KRC-20 sent to the vault. */
   amount: number;
   /** @deprecated Prefer `amount`. Kept for older localStorage rows. */
@@ -29,6 +32,7 @@ export type KrexWrapRecord = {
 export type Krc20WrapCovenantMap = Record<string, string>;
 
 export type KrexWrapPublicConfig = {
+  network: Krc20BridgeNetwork;
   vaultAddress: string | null;
   treasuryAddress: string | null;
   /** Default / legacy KREX covenant (also present in `covenants` when set). */
@@ -46,4 +50,6 @@ export type KrexWrapPublicConfig = {
   /** True when the default tick has a covenant + vault. */
   mintLive: boolean;
   ready: boolean;
+  /** True when a testnet vault env is set (shows Testnet option). */
+  testnetAvailable: boolean;
 };
