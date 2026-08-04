@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { signKrc20Transfer } from '@/lib/kaspa/l1WalletActions';
+import { normalizeKaspaAddress } from '@/lib/kaspa/sdk';
 import { KxFormFieldLabel } from '@/components/ui/KxFormFieldLabel';
 import { getExplorerTxUrl, getKaspaExplorerAddressUrl } from '@/lib/store/utils';
 import { CopyableAddress } from '@/components/donations/CopyableAddress';
@@ -18,7 +19,7 @@ import { useDAppWidgetSection } from '@/lib/dapps/DAppWidgetTabContext';
 import { Krc20TickerSearchField } from '@/components/tokens/Krc20TickerSearchField';
 import type { Krc20TokenInfo } from '@/lib/tokens/krc20Lookup';
 import { HubMetadataStatGrid } from '@/components/hub/HubMetadataStatGrid';
-import { KX_INFO_DASHED, KX_DASHBOARD_TAB_BTN, KX_DASHBOARD_TAB_BTN_ACTIVE, KX_SURFACE_NESTED } from '@/lib/hub/shellTokens';
+import { KX_INFO_DASHED, KX_DASHBOARD_TAB_BTN, KX_DASHBOARD_TAB_BTN_ACTIVE, KX_PANEL } from '@/lib/hub/shellTokens';
 import {
   getKrexWrapPublicConfig,
   isWrapMintLiveForTick,
@@ -230,19 +231,20 @@ export function KrexWrapBridgeWidget() {
         updateKrexWrapStatus(wrapId, 'fee_paid', { feeTxHash: feeHash });
       }
 
+      const depositTo = normalizeKaspaAddress(config.vaultAddress);
       const amountInSmallestUnit = Math.floor(parsedAmount * Math.pow(10, decimals));
       const inscribeJson = {
         p: 'KRC-20',
         op: 'transfer',
         tick,
         amt: amountInSmallestUnit.toString(),
-        to: config.vaultAddress,
+        to: depositTo,
       };
       const hash = await signKrc20Transfer(
         state.provider,
         JSON.stringify(inscribeJson),
         4,
-        config.vaultAddress,
+        depositTo,
         0.001,
       );
       updateKrexWrapStatus(wrapId, mintLive ? 'pending_mint' : 'deposited', {
@@ -491,11 +493,15 @@ export function KrexWrapBridgeWidget() {
 
             {config.vaultAddress ? (
               <div
-                className={`${KX_SURFACE_NESTED} group p-4 sm:p-5 ring-1 ring-[color:var(--hub-accent)]/45 transition-[box-shadow,ring-color] hover:ring-2 hover:ring-[color:var(--hub-accent)] hover:shadow-[0_0_0_1px_var(--hub-accent-shadow,rgba(2,171,184,0.35))]`}
+                className={`${KX_PANEL} relative overflow-hidden border-[color:var(--hub-accent)]/30 bg-gradient-to-br from-[color:var(--hub-accent)]/[0.08] via-teal-500/5 to-cyan-500/5 p-4 sm:p-5 dark:from-[color:var(--hub-accent)]/15 dark:via-teal-950/30 dark:to-cyan-950/20 transition-[box-shadow,border-color] hover:border-[color:var(--hub-accent)]/60 hover:shadow-[0_0_24px_-12px_var(--hub-accent-shadow,rgba(2,171,184,0.45))]`}
               >
-                <div className="flex items-start gap-3">
+                <div
+                  className="pointer-events-none absolute -right-6 -top-6 h-24 w-24 rounded-full bg-[color:var(--hub-accent)]/10 blur-2xl"
+                  aria-hidden
+                />
+                <div className="relative flex items-start gap-3">
                   <div
-                    className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-[color:var(--hub-accent)]/35 bg-[color:var(--hub-accent)]/10 text-[color:var(--hub-accent)] dark:border-[color:var(--hub-accent)]/40 dark:bg-[color:var(--hub-accent)]/15"
+                    className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[color:var(--hub-accent)]/15 text-[color:var(--hub-accent)]"
                     aria-hidden
                   >
                     <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
@@ -507,7 +513,7 @@ export function KrexWrapBridgeWidget() {
                     </svg>
                   </div>
                   <div className="min-w-0 flex-1 space-y-1">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-[color:var(--hub-accent)]">
+                    <p className="text-xs font-black uppercase tracking-widest text-[color:var(--hub-accent)]">
                       Deposit vault
                     </p>
                     <p className="text-sm text-zinc-600 dark:text-zinc-300">
@@ -518,6 +524,7 @@ export function KrexWrapBridgeWidget() {
                       explorerUrl={getKaspaExplorerAddressUrl(config.vaultAddress)}
                       explorerLabel={network === 'testnet-10' ? 'View on TN10 explorer' : 'View in Explorer'}
                       truncate
+                      plainActions
                       className="pt-1"
                     />
                   </div>

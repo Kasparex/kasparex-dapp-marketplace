@@ -374,9 +374,24 @@ export async function signKRC20Transaction(
     console.error('[KasWare] Invalid destAddr type:', typeof destAddr, destAddr);
     throw new Error(`destAddr must be a non-empty string, received ${typeof destAddr}`);
   }
-  // Wallet expects kaspa: prefix
-  if (!destAddr.trim().toLowerCase().startsWith('kaspa:')) {
+  const dest = destAddr.trim();
+  const destLower = dest.toLowerCase();
+  const isTestnetDest = destLower.startsWith('kaspatest:');
+  const isMainnetDest = destLower.startsWith('kaspa:') && !isTestnetDest;
+  if (!isTestnetDest && !isMainnetDest) {
     throw new Error('The address prefix is missing');
+  }
+
+  // Ensure JSON `to` carries the full prefixed address (source of truth for TN10).
+  let payload = inscribeJsonString;
+  try {
+    const parsed = JSON.parse(inscribeJsonString) as Record<string, unknown>;
+    if (typeParam === 4) {
+      parsed.to = dest;
+      payload = JSON.stringify(parsed);
+    }
+  } catch {
+    payload = inscribeJsonString;
   }
   
   // Ensure priorityFee is a number if provided
@@ -392,30 +407,36 @@ export async function signKRC20Transaction(
   try {
     // Final validation: ensure inscribeJsonString is valid JSON
     try {
-      JSON.parse(inscribeJsonString);
+      JSON.parse(payload);
     } catch (e) {
       throw new Error(`inscribeJsonString is not valid JSON: ${e instanceof Error ? e.message : String(e)}`);
     }
     
     console.log('[KasWare] Calling signKRC20Transaction with:', {
-      inscribeJsonString: inscribeJsonString.substring(0, 100) + (inscribeJsonString.length > 100 ? '...' : ''),
-      inscribeJsonStringLength: inscribeJsonString.length,
-      inscribeJsonStringType: typeof inscribeJsonString,
+      inscribeJsonString: payload.substring(0, 100) + (payload.length > 100 ? '...' : ''),
+      inscribeJsonStringLength: payload.length,
+      inscribeJsonStringType: typeof payload,
       type: typeParam,
       typeType: typeof typeParam,
-      destAddr,
-      destAddrType: typeof destAddr,
+      destAddr: dest,
+      destAddrType: typeof dest,
+      omitDestAddrArg: isTestnetDest,
       priorityFee: priorityFeeNum,
       priorityFeeType: typeof priorityFeeNum,
     });
     
-    // Call with explicit types: string, number, string, number|undefined
-    const result = await kasware.signKRC20Transaction(
-      inscribeJsonString, // string
-      typeParam,          // number (2, 3, or 4)
-      destAddr.trim(),    // string
-      priorityFeeNum      // number | undefined
-    );
+    // KasWare's destAddr guard often checks the literal 6-char `kaspa:` HRP and rejects
+    // `kaspatest:`. On TN10, omit destAddr and pass destination only via JSON `to`.
+    const result = isTestnetDest
+      ? await (
+          kasware.signKRC20Transaction as (
+            json: string,
+            type: number,
+            dest?: string,
+            fee?: number,
+          ) => Promise<string>
+        )(payload, typeParam, undefined, priorityFeeNum)
+      : await kasware.signKRC20Transaction(payload, typeParam, dest, priorityFeeNum);
     console.log('[KasWare] signKRC20Transaction success, txHash:', result);
     return result;
   } catch (err) {

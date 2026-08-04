@@ -11,9 +11,19 @@ interface CopyableAddressProps {
   className?: string;
   /** Display as truncated (e.g. 0x1234...5678) */
   truncate?: boolean;
+  /** Borderless icon buttons (vault / accent panels). */
+  plainActions?: boolean;
 }
 
-export function CopyableAddress({ value, label, explorerUrl, explorerLabel = 'View in Explorer', className = '', truncate = true }: CopyableAddressProps) {
+export function CopyableAddress({
+  value,
+  label,
+  explorerUrl,
+  explorerLabel = 'View in Explorer',
+  className = '',
+  truncate = true,
+  plainActions = false,
+}: CopyableAddressProps) {
   const [copied, setCopied] = useState(false);
 
   const display = truncate && value.length > 14
@@ -23,6 +33,10 @@ export function CopyableAddress({ value, label, explorerUrl, explorerLabel = 'Vi
         ? `${value.slice(0, 8)}...${value.slice(-4)}`
         : value
     : value;
+
+  const actionClass = plainActions
+    ? 'p-1 rounded text-[color:var(--hub-accent)] hover:bg-[color:var(--hub-accent)]/10 transition-colors'
+    : 'p-1.5 rounded border border-zinc-300 dark:border-zinc-600 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors';
 
   const handleCopy = async () => {
     if (!value) return;
@@ -42,11 +56,11 @@ export function CopyableAddress({ value, label, explorerUrl, explorerLabel = 'Vi
         <span className="font-mono text-sm text-zinc-800 dark:text-zinc-200 break-all" title={value}>
           {display}
         </span>
-        <div className="flex items-center gap-1 shrink-0">
+        <div className="flex items-center gap-0.5 shrink-0">
           <button
             type="button"
             onClick={handleCopy}
-            className="p-1.5 rounded border border-zinc-300 dark:border-zinc-600 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+            className={actionClass}
             title="Copy address"
           >
             {copied ? (
@@ -60,7 +74,7 @@ export function CopyableAddress({ value, label, explorerUrl, explorerLabel = 'Vi
               href={explorerUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="p-1.5 rounded border border-zinc-300 dark:border-zinc-600 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+              className={actionClass}
               title={explorerLabel}
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
