@@ -27,21 +27,36 @@ export function extractTxId(txHash: string | unknown): string {
   return String(txHash);
 }
 
-/**
- * Build explorer URL for a Kaspa L1 transaction
- */
-export function getExplorerTxUrl(txHash: string | unknown): string {
-  const txId = extractTxId(txHash);
-  return `https://explorer.kaspa.org/transactions/${txId}`;
+const KASPA_EXPLORER_MAINNET = 'https://explorer.kaspa.org';
+const KASPA_EXPLORER_TESTNET_10 = 'https://tn10.kaspa.stream';
+
+function isKaspaTestnetAddress(address: string): boolean {
+  return /^kaspatest:/i.test(address.trim());
 }
 
 /**
- * Build explorer URL for a Kaspa L1 address
+ * Build explorer URL for a Kaspa L1 transaction.
+ * Pass `testnet-10` (or a kaspatest deposit context) for TN10 txs.
+ */
+export function getExplorerTxUrl(
+  txHash: string | unknown,
+  network?: 'mainnet' | 'testnet-10',
+): string {
+  const txId = extractTxId(txHash);
+  const base = network === 'testnet-10' ? KASPA_EXPLORER_TESTNET_10 : KASPA_EXPLORER_MAINNET;
+  return `${base}/transactions/${txId}`;
+}
+
+/**
+ * Build explorer URL for a Kaspa L1 address.
+ * `kaspatest:` must be checked before `kaspa:` (`kaspatest`.startsWith(`kaspa`) is true).
  */
 export function getKaspaExplorerAddressUrl(address: string): string {
   const addr = (address || '').trim();
   if (!addr) return '#';
-  // Kaspa explorer expects the "kaspa:" prefix.
-  const withPrefix = addr.toLowerCase().startsWith('kaspa:') ? addr : `kaspa:${addr}`;
-  return `https://explorer.kaspa.org/addresses/${withPrefix}`;
+  if (isKaspaTestnetAddress(addr)) {
+    return `${KASPA_EXPLORER_TESTNET_10}/addresses/${addr}`;
+  }
+  const withPrefix = /^kaspa:/i.test(addr) ? addr : `kaspa:${addr}`;
+  return `${KASPA_EXPLORER_MAINNET}/addresses/${withPrefix}`;
 }

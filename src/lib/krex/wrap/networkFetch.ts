@@ -61,18 +61,28 @@ export async function fetchKrc20TokenInfoOnNetwork(
   }
 }
 
+/** Kasplex address token routes need the full `kaspa:` / `kaspatest:` prefix; do not strip or encode the colon. */
+function kasplexAddressPath(address: string, network: Krc20BridgeNetwork): string | null {
+  const raw = address.trim();
+  if (!raw) return null;
+  if (/^kaspatest:/i.test(raw) || /^kaspa:/i.test(raw)) return raw;
+  const body = raw.replace(/^kaspa:/i, '').replace(/^kaspatest:/i, '').trim();
+  if (!body) return null;
+  return network === 'testnet-10' ? `kaspatest:${body}` : `kaspa:${body}`;
+}
+
 export async function fetchKrc20BalanceOnNetwork(
   address: string,
   tick: string,
   network: Krc20BridgeNetwork,
 ): Promise<number> {
-  const normalizedAddress = address.replace(/^kaspa:/i, '').replace(/^kaspatest:/i, '').trim();
+  const pathAddress = kasplexAddressPath(address, network);
   const normalizedTick = tick.trim().toUpperCase();
-  if (!normalizedAddress || !normalizedTick) return 0;
+  if (!pathAddress || !normalizedTick) return 0;
   try {
     const res = await kasplexGet(
       network,
-      `/v1/krc20/address/${encodeURIComponent(normalizedAddress)}/token/${encodeURIComponent(normalizedTick)}`,
+      `/v1/krc20/address/${pathAddress}/token/${encodeURIComponent(normalizedTick)}`,
     );
     if (!res.ok) return 0;
     const data = (await res.json()) as {
@@ -84,12 +94,10 @@ export async function fetchKrc20BalanceOnNetwork(
     const raw = row?.balance ?? data.balance ?? data.amount ?? 0;
     const n = typeof raw === 'string' ? parseFloat(raw) : Number(raw);
     if (!Number.isFinite(n)) return 0;
-    // Kasplex usually returns human units already; if huge integer, treat as base units.
+    // Kasplex `/address/.../token/...` returns base units + `dec`.
     const dec = row?.dec != null ? Number(row.dec) : 8;
-    if (Number.isInteger(n) && Math.abs(n) >= 10 ** Math.min(dec, 12) && String(Math.trunc(n)).length > 10) {
-      return n / 10 ** (Number.isFinite(dec) ? dec : 8);
-    }
-    return n;
+    const decimals = Number.isFinite(dec) && dec >= 0 && dec <= 18 ? dec : 8;
+    return n / 10 ** decimals;
   } catch {
     return 0;
   }

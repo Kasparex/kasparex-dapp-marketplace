@@ -18,7 +18,7 @@ import { useDAppWidgetSection } from '@/lib/dapps/DAppWidgetTabContext';
 import { Krc20TickerSearchField } from '@/components/tokens/Krc20TickerSearchField';
 import type { Krc20TokenInfo } from '@/lib/tokens/krc20Lookup';
 import { HubMetadataStatGrid } from '@/components/hub/HubMetadataStatGrid';
-import { KX_INFO_DASHED, KX_DASHBOARD_TAB_BTN, KX_DASHBOARD_TAB_BTN_ACTIVE } from '@/lib/hub/shellTokens';
+import { KX_INFO_DASHED, KX_DASHBOARD_TAB_BTN, KX_DASHBOARD_TAB_BTN_ACTIVE, KX_SURFACE_NESTED } from '@/lib/hub/shellTokens';
 import {
   getKrexWrapPublicConfig,
   isWrapMintLiveForTick,
@@ -389,7 +389,7 @@ export function KrexWrapBridgeWidget() {
                 {row.depositTxHash ? (
                   <a
                     className="break-all text-xs text-[color:var(--hub-accent)] underline"
-                    href={getExplorerTxUrl(row.depositTxHash)}
+                    href={getExplorerTxUrl(row.depositTxHash, row.network === 'testnet-10' ? 'testnet-10' : 'mainnet')}
                     target="_blank"
                     rel="noreferrer"
                   >
@@ -420,133 +420,160 @@ export function KrexWrapBridgeWidget() {
   }
 
   return (
-    <DAppWidgetShell
-      title="Migrate"
-      heading="KCC20 Bridge"
-      description="Move any KRC-20 into matching KCC20 1:1. One-way for now. Use Testnet to practice with test tokens."
-    >
-      {networkToggle}
-
-      <div className={KX_INFO_DASHED}>
-        One-way migration. Pay a KAS bridge fee (KREX tiers discount it), then send the token to the vault
-        shown below. Exchange deposits still use KRC-20.
-      </div>
-
-      {!config.ready ? (
-        <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-4 text-sm text-zinc-600 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-400">
-          {network === 'testnet-10'
-            ? 'Testnet deposits are not open yet. You can still look up TN10 tokens and switch back to Mainnet when ready.'
-            : 'Mainnet deposits are not open yet. Check back soon, or try Testnet when it is available.'}
-        </div>
-      ) : null}
-
-      <HubMetadataStatGrid
-        stats={[
-          {
-            label: 'Network',
-            value: networkLabel(network),
-            tooltipTitle: 'Network',
-            tooltipDescription:
-              network === 'testnet-10'
-                ? 'Kaspa Testnet-10. Switch your wallet to testnet and use kaspatest: addresses.'
-                : 'Kaspa Mainnet. Use a mainnet kaspa: address.',
-            copyable: false,
-          },
-          {
-            label: 'Bridge fee',
-            value: `${feeKas} KAS`,
-            tooltipTitle: 'Bridge fee',
-            tooltipDescription: 'KAS fee paid to Hub treasury before the token deposit. Discounted by your KREX tier.',
-            copyable: false,
-          },
-        ]}
-      />
-
-      {!state.isConnected ? (
-        <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-6 text-center dark:border-zinc-700 dark:bg-zinc-950">
-          <p className="text-sm text-zinc-600 dark:text-zinc-400">
-            Connect KasWare, Kastle, or Kaspire from the site header to migrate a KRC-20.
-          </p>
-        </div>
-      ) : (
-        <>
-          <Krc20TickerSearchField
-            value={tickInput}
-            network={network}
-            onChange={(next) => {
-              setTickInput(next);
-              setSelectedToken(null);
-              setAmount('');
-            }}
-            onSelect={(info) => {
-              setSelectedToken(info);
-              if (info) setTickInput(info.ticker);
-            }}
-            selected={selectedToken}
-            disabled={isWorking}
-          />
-
-          {config.vaultAddress ? (
-            <CopyableAddress
-              label="Deposit vault"
-              value={config.vaultAddress}
-              explorerUrl={getKaspaExplorerAddressUrl(config.vaultAddress)}
-              truncate
-            />
-          ) : null}
-
-          <div>
-            <KxFormFieldLabel htmlFor="kcc20-bridge-amount">
-              Amount
-              {selectedToken
-                ? ` (${tick}${isLoadingBalance ? '' : ` · bal ${tokenBalance.toLocaleString()}`})`
-                : ''}
-            </KxFormFieldLabel>
-            <div className="mt-1.5 flex gap-2">
-              <input
-                id="kcc20-bridge-amount"
-                type="number"
-                min={0}
-                step="any"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                placeholder="0.0"
-                disabled={!selectedToken || isWorking}
-                className="k-control-input w-full"
-              />
-              <button
-                type="button"
-                className="k-control-btn shrink-0"
-                disabled={!selectedToken || isWorking || tokenBalance <= 0}
-                onClick={() => setAmount(tokenBalance > 0 ? String(tokenBalance) : '')}
-              >
-                Max
-              </button>
-            </div>
-          </div>
-        </>
-      )}
-
-      <div
-        role="note"
-        className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm leading-snug text-amber-950 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-100"
+    <div className="space-y-6">
+      <DAppWidgetShell
+        title="Migrate"
+        heading="KCC20 Bridge"
+        description="Move any KRC-20 into matching KCC20 1:1. One-way for now. Use Testnet to practice with test tokens."
       >
-        <p className="font-semibold">Migration risks</p>
-        <ul className="mt-2 list-disc space-y-1.5 pl-4">
+        {networkToggle}
+
+        <div className={KX_INFO_DASHED}>
+          One-way migration. Pay a KAS bridge fee (KREX tiers discount it), then send the token to the vault
+          shown below. Exchange deposits still use KRC-20.
+        </div>
+
+        {!config.ready ? (
+          <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-4 text-sm text-zinc-600 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-400">
+            {network === 'testnet-10'
+              ? 'Testnet deposits are not open yet. You can still look up TN10 tokens and switch back to Mainnet when ready.'
+              : 'Mainnet deposits are not open yet. Check back soon, or try Testnet when it is available.'}
+          </div>
+        ) : null}
+
+        <HubMetadataStatGrid
+          stats={[
+            {
+              label: 'Network',
+              value: networkLabel(network),
+              tooltipTitle: 'Network',
+              tooltipDescription:
+                network === 'testnet-10'
+                  ? 'Kaspa Testnet-10. Switch your wallet to testnet and use kaspatest: addresses.'
+                  : 'Kaspa Mainnet. Use a mainnet kaspa: address.',
+              copyable: false,
+            },
+            {
+              label: 'Bridge fee',
+              value: `${feeKas} KAS`,
+              tooltipTitle: 'Bridge fee',
+              tooltipDescription: 'KAS fee paid to Hub treasury before the token deposit. Discounted by your KREX tier.',
+              copyable: false,
+            },
+          ]}
+        />
+
+        {!state.isConnected ? (
+          <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-6 text-center dark:border-zinc-700 dark:bg-zinc-950">
+            <p className="text-sm text-zinc-600 dark:text-zinc-400">
+              Connect KasWare, Kastle, or Kaspire from the site header to migrate a KRC-20.
+            </p>
+          </div>
+        ) : (
+          <>
+            <Krc20TickerSearchField
+              value={tickInput}
+              network={network}
+              onChange={(next) => {
+                setTickInput(next);
+                setSelectedToken(null);
+                setAmount('');
+              }}
+              onSelect={(info) => {
+                setSelectedToken(info);
+                if (info) setTickInput(info.ticker);
+              }}
+              selected={selectedToken}
+              disabled={isWorking}
+            />
+
+            {config.vaultAddress ? (
+              <div className={`${KX_SURFACE_NESTED} p-4 sm:p-5`}>
+                <div className="flex items-start gap-3">
+                  <div
+                    className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-zinc-300/80 bg-white text-[color:var(--hub-accent)] dark:border-zinc-700 dark:bg-zinc-900/80"
+                    aria-hidden
+                  >
+                    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                      />
+                    </svg>
+                  </div>
+                  <div className="min-w-0 flex-1 space-y-1">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+                      Deposit vault
+                    </p>
+                    <p className="text-sm text-zinc-600 dark:text-zinc-300">
+                      Send only the selected KRC-20 ticker here after paying the bridge fee.
+                    </p>
+                    <CopyableAddress
+                      value={config.vaultAddress}
+                      explorerUrl={getKaspaExplorerAddressUrl(config.vaultAddress)}
+                      explorerLabel={network === 'testnet-10' ? 'View on TN10 explorer' : 'View in Explorer'}
+                      truncate={false}
+                      className="pt-1"
+                    />
+                  </div>
+                </div>
+              </div>
+            ) : null}
+
+            <div>
+              <KxFormFieldLabel htmlFor="kcc20-bridge-amount">
+                Amount
+                {selectedToken
+                  ? ` (${tick}${isLoadingBalance ? '' : ` · bal ${tokenBalance.toLocaleString()}`})`
+                  : ''}
+              </KxFormFieldLabel>
+              <div className="mt-1.5 flex gap-2">
+                <input
+                  id="kcc20-bridge-amount"
+                  type="number"
+                  min={0}
+                  step="any"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                  placeholder="0.0"
+                  disabled={!selectedToken || isWorking}
+                  className="k-control-input w-full"
+                />
+                <button
+                  type="button"
+                  className="k-control-btn shrink-0"
+                  disabled={!selectedToken || isWorking || tokenBalance <= 0}
+                  onClick={() => setAmount(tokenBalance > 0 ? String(tokenBalance) : '')}
+                >
+                  Max
+                </button>
+              </div>
+            </div>
+          </>
+        )}
+      </DAppWidgetShell>
+
+      <DAppWidgetShell
+        title="Risks"
+        heading="Migration risks"
+        description="Read before you migrate. This is not a fully trustless consensus bridge."
+      >
+        <ul className="list-disc space-y-2 pl-5 text-sm leading-snug text-zinc-700 dark:text-zinc-300">
           <li>This path is one-way for now. You cannot reverse back to KRC-20 from this dApp yet.</li>
           <li>
             Minting depends on Kasparex automation and KRC-20 indexers. It is not a fully trustless consensus
             bridge.
           </li>
           <li>
-            Only send the selected ticker to the vault address shown here. Tokens sent elsewhere may be lost.
+            Only send the selected ticker to the vault address shown above. Tokens sent elsewhere may be lost.
           </li>
           <li>
             Centralized exchanges still expect KRC-20. Keep exchange inventory unmigrated if you deposit there.
           </li>
           <li>Practice on Testnet before moving mainnet funds.</li>
         </ul>
-      </div>
-    </DAppWidgetShell>
+      </DAppWidgetShell>
+    </div>
   );
 }
