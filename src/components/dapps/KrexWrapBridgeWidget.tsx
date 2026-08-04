@@ -96,19 +96,33 @@ export function KrexWrapBridgeWidget() {
       tick,
       tier,
       krexBalance: krexBal ?? 0,
+      network,
+      treasuryAddress: config.treasuryAddress,
     });
-  }, [bridgeDApp, parsedAmount, tick, tier, krexBal, selectedToken]);
+  }, [bridgeDApp, parsedAmount, tick, tier, krexBal, selectedToken, network, config.treasuryAddress]);
 
   useSyncDAppWidgetQuote(feeKas > 0 ? feeKas : null, 'migrate');
   useSyncHubQuote(hubQuote, [hubQuote]);
 
   const refreshHistory = useCallback(() => {
-    setHistory(listKrexWrapHistory(state.address));
-  }, [state.address]);
+    setHistory(listKrexWrapHistory(state.address).filter((row) => !row.network || row.network === network));
+  }, [state.address, network]);
 
   useEffect(() => {
     refreshHistory();
   }, [refreshHistory]);
+
+  /** Keep bridge tab aligned with the connected L1 address HRP. */
+  useEffect(() => {
+    if (!state.address) return;
+    if (/^kaspatest:/i.test(state.address)) {
+      setNetwork((prev) => (prev === 'testnet-10' ? prev : 'testnet-10'));
+      return;
+    }
+    if (/^kaspa:/i.test(state.address)) {
+      setNetwork((prev) => (prev === 'mainnet' ? prev : 'mainnet'));
+    }
+  }, [state.address]);
 
   useEffect(() => {
     setSelectedToken(null);
@@ -143,6 +157,15 @@ export function KrexWrapBridgeWidget() {
         setTokenBalance(0);
         return;
       }
+      // Refuse cross-network balance reads (mainnet address on TN10 tab, etc.).
+      if (network === 'testnet-10' && !/^kaspatest:/i.test(state.address)) {
+        setTokenBalance(0);
+        return;
+      }
+      if (network === 'mainnet' && /^kaspatest:/i.test(state.address)) {
+        setTokenBalance(0);
+        return;
+      }
       setIsLoadingBalance(true);
       try {
         const bal = await fetchKrc20BalanceOnNetwork(state.address, selectedToken.ticker, network);
@@ -159,7 +182,45 @@ export function KrexWrapBridgeWidget() {
     };
   }, [selectedToken, state.address, network]);
 
-  // Network-aware balance is loaded above; ticker search uses `network` prop.
+  const connectedIsVault =
+    Boolean(config.vaultAddress) &&
+    Boolean(state.address) &&
+    state.address!.replace(/:/g, '').toLowerCase() ===
+      config.vaultAddress!.replace(/:/g, '').toLowerCase();
+
+  const networkBadge =
+    network === 'testnet-10' ? (
+      <span className="inline-flex items-center rounded-full border border-amber-400/40 bg-amber-500/15 px-2.5 py-1 text-[10px] font-black uppercase tracking-widest text-amber-800 dark:text-amber-200">
+        Testnet
+      </span>
+    ) : (
+      <span className="inline-flex items-center rounded-full border border-emerald-400/40 bg-emerald-500/15 px-2.5 py-1 text-[10px] font-black uppercase tracking-widest text-emerald-800 dark:text-emerald-200">
+        Mainnet
+      </span>
+    );
+
+  const migratePanelClass =
+    network === 'testnet-10'
+      ? 'border-amber-500/25 bg-gradient-to-br from-amber-500/[0.07] via-transparent to-yellow-500/[0.04] dark:from-amber-950/35 dark:via-zinc-900 dark:to-yellow-950/20'
+      : 'border-emerald-500/25 bg-gradient-to-br from-emerald-500/[0.07] via-transparent to-teal-500/[0.04] dark:from-emerald-950/35 dark:via-zinc-900 dark:to-teal-950/20';
+
+  const vaultPanelClass =
+    network === 'testnet-10'
+      ? 'border-amber-500/30 bg-gradient-to-br from-amber-500/10 via-amber-500/5 to-yellow-500/5 dark:from-amber-950/45 dark:via-amber-950/25 dark:to-yellow-950/20'
+      : 'border-emerald-500/30 bg-gradient-to-br from-emerald-500/10 via-teal-500/5 to-cyan-500/5 dark:from-emerald-950/45 dark:via-teal-950/30 dark:to-cyan-950/20';
+
+  const vaultAccentText =
+    network === 'testnet-10'
+      ? 'text-amber-700 dark:text-amber-300'
+      : 'text-emerald-700 dark:text-emerald-300';
+
+  const vaultGlow =
+    network === 'testnet-10' ? 'bg-amber-400/10' : 'bg-emerald-400/10';
+
+  const vaultIconWrap =
+    network === 'testnet-10'
+      ? 'bg-amber-500/15 text-amber-700 dark:text-amber-300'
+      : 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300';
 
   const handleMigrate = async () => {
     if (!state.isConnected || !state.provider || !state.address) {
@@ -429,6 +490,8 @@ export function KrexWrapBridgeWidget() {
         title="Migrate"
         heading="KCC20 Bridge"
         description="Move any KRC-20 into matching KCC20 1:1. One-way for now. Use Testnet to practice with test tokens."
+        headerAside={networkBadge}
+        className={migratePanelClass}
       >
         {networkToggle}
 
@@ -475,6 +538,63 @@ export function KrexWrapBridgeWidget() {
           </div>
         ) : (
           <>
+            {connectedIsVault ? (
+              <div className="rounded-xl border border-amber-300/50 bg-amber-50 p-3 text-sm text-amber-950 dark:border-amber-700 dark:bg-amber-950/40 dark:text-amber-100">
+                You are connected as the <span className="font-semibold">deposit vault</span> (bal 0 is expected).
+                Switch KasWare to your funded test wallet to migrate TKREX.
+              </div>
+            ) : null}
+
+            {config.vaultAddress ? (
+              <section
+                className={`${KX_PANEL} relative overflow-hidden p-4 sm:p-5 ${vaultPanelClass}`}
+                aria-label="Deposit vault"
+              >
+                <div
+                  className={`pointer-events-none absolute -right-6 -top-6 h-24 w-24 rounded-full blur-2xl ${vaultGlow}`}
+                  aria-hidden
+                />
+                <div className="relative">
+                  <div className="mb-4 flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className={`text-xs font-black uppercase tracking-widest ${vaultAccentText}`}>
+                        Deposit vault
+                      </p>
+                      <h3 className="mt-1 text-base font-black text-zinc-900 dark:text-zinc-100">
+                        Send {tick || 'KRC-20'} here
+                      </h3>
+                    </div>
+                    <div
+                      className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${vaultIconWrap}`}
+                      aria-hidden
+                    >
+                      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                        />
+                      </svg>
+                    </div>
+                  </div>
+
+                  <div className="rounded-xl border border-zinc-200/80 bg-white/70 p-3 dark:border-zinc-700/80 dark:bg-zinc-950/40">
+                    <p className="text-sm text-zinc-600 dark:text-zinc-300">
+                      Pay the bridge fee first, then transfer only the selected ticker to this address.
+                    </p>
+                    <CopyableAddress
+                      value={config.vaultAddress}
+                      explorerUrl={getKaspaExplorerAddressUrl(config.vaultAddress)}
+                      explorerLabel={network === 'testnet-10' ? 'View on TN10 explorer' : 'View in Explorer'}
+                      truncate
+                      plainActions
+                      className="mt-3"
+                    />
+                  </div>
+                </div>
+              </section>
+            ) : null}
+
             <Krc20TickerSearchField
               value={tickInput}
               network={network}
@@ -490,47 +610,6 @@ export function KrexWrapBridgeWidget() {
               selected={selectedToken}
               disabled={isWorking}
             />
-
-            {config.vaultAddress ? (
-              <div
-                className={`${KX_PANEL} relative overflow-hidden border-[color:var(--hub-accent)]/30 bg-gradient-to-br from-[color:var(--hub-accent)]/[0.08] via-teal-500/5 to-cyan-500/5 p-4 sm:p-5 dark:from-[color:var(--hub-accent)]/15 dark:via-teal-950/30 dark:to-cyan-950/20 transition-[box-shadow,border-color] hover:border-[color:var(--hub-accent)]/60 hover:shadow-[0_0_24px_-12px_var(--hub-accent-shadow,rgba(2,171,184,0.45))]`}
-              >
-                <div
-                  className="pointer-events-none absolute -right-6 -top-6 h-24 w-24 rounded-full bg-[color:var(--hub-accent)]/10 blur-2xl"
-                  aria-hidden
-                />
-                <div className="relative flex items-start gap-3">
-                  <div
-                    className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[color:var(--hub-accent)]/15 text-[color:var(--hub-accent)]"
-                    aria-hidden
-                  >
-                    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-                      />
-                    </svg>
-                  </div>
-                  <div className="min-w-0 flex-1 space-y-1">
-                    <p className="text-xs font-black uppercase tracking-widest text-[color:var(--hub-accent)]">
-                      Deposit vault
-                    </p>
-                    <p className="text-sm text-zinc-600 dark:text-zinc-300">
-                      Send only the selected KRC-20 ticker here after paying the bridge fee.
-                    </p>
-                    <CopyableAddress
-                      value={config.vaultAddress}
-                      explorerUrl={getKaspaExplorerAddressUrl(config.vaultAddress)}
-                      explorerLabel={network === 'testnet-10' ? 'View on TN10 explorer' : 'View in Explorer'}
-                      truncate
-                      plainActions
-                      className="pt-1"
-                    />
-                  </div>
-                </div>
-              </div>
-            ) : null}
 
             <div>
               <KxFormFieldLabel htmlFor="kcc20-bridge-amount">
@@ -569,6 +648,8 @@ export function KrexWrapBridgeWidget() {
         title="Risks"
         heading="Migration risks"
         description="Read before you migrate. This is not a fully trustless consensus bridge."
+        headerAside={networkBadge}
+        className={migratePanelClass}
       >
         <ul className="list-disc space-y-2 pl-5 text-sm leading-snug text-zinc-700 dark:text-zinc-300">
           <li>This path is one-way for now. You cannot reverse back to KRC-20 from this dApp yet.</li>

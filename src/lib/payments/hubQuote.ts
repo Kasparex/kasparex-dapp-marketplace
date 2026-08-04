@@ -39,6 +39,12 @@ export type HubQuoteDisplay = {
   tierLabel: string;
   hasKrexDiscount: boolean;
   authoritative?: boolean;
+  /** Optional overrides for PAYMENT OUTPUTS (e.g. TN10 bridge fee sink). */
+  platformFeeOverrides?: {
+    treasuryAddress?: string;
+    rewardsAddress?: string;
+    rewardsBps?: number;
+  };
 };
 
 const L1_NETWORK_BUFFER_KAS = 0.001;

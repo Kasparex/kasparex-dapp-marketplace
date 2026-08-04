@@ -18,6 +18,9 @@ export function buildKrexWrapHubQuote(args: {
   tier: KREXTier;
   krexBalance: number;
   baseFeeKas?: number;
+  /** Bridge network for fee sink preview (testnet skips mainnet rewards split). */
+  network?: 'mainnet' | 'testnet-10';
+  treasuryAddress?: string | null;
   /** @deprecated Use `amount`. */
   amountKrex?: number;
 }): HubQuoteDisplay | null {
@@ -36,6 +39,8 @@ export function buildKrexWrapHubQuote(args: {
     actionId: 'migrate',
     tier: args.tier,
   });
+
+  const isTestnet = args.network === 'testnet-10';
 
   return {
     lines: [
@@ -60,10 +65,19 @@ export function buildKrexWrapHubQuote(args: {
     currency: 'KAS',
     hubPoints,
     hubPointsDetail: formatHubPointsTierLabel(args.tier),
-    infoText:
-      'Pay the KAS bridge fee to Hub treasury, then send the KRC-20 to the vault. Matching KCC20 is 1:1 once mint confirms.',
+    infoText: isTestnet
+      ? 'Testnet: pay the KAS bridge fee to the TN10 treasury, then send the KRC-20 to the testnet vault.'
+      : 'Pay the KAS bridge fee to Hub treasury, then send the KRC-20 to the vault. Matching KCC20 is 1:1 once mint confirms.',
     tierLabel: KREX_TIERS[args.tier].label,
     hasKrexDiscount: discountKas > 0 && args.krexBalance >= KREX_TIERS.Tier1.minKREX,
     authoritative: true,
+    platformFeeOverrides: isTestnet
+      ? {
+          treasuryAddress: args.treasuryAddress ?? undefined,
+          rewardsBps: 0,
+        }
+      : args.treasuryAddress
+        ? { treasuryAddress: args.treasuryAddress }
+        : undefined,
   };
 }

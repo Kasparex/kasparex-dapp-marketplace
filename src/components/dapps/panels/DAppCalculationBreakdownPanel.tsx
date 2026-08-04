@@ -163,7 +163,9 @@ export const DAppCalculationBreakdownPanel = memo(function DAppCalculationBreakd
       if (isKasRail) {
         const legs = buildHubPlatformFeePlan({
           totalKas: quote.totalKas,
-          treasuryAddress: treasury,
+          treasuryAddress: quote.platformFeeOverrides?.treasuryAddress ?? treasury,
+          rewardsAddress: quote.platformFeeOverrides?.rewardsAddress,
+          rewardsBps: quote.platformFeeOverrides?.rewardsBps,
         }).legs;
         return legs.length > 0 ? legs : undefined;
       }
