@@ -29,6 +29,8 @@ export type HubTxNotifyOptions = {
   txHash: string;
   /** Kaspa L1 when omitted. Pass EVM chainId for L2 explorers. */
   chainId?: number;
+  /** Kaspa L1 network for explorer links (defaults mainnet). */
+  network?: 'mainnet' | 'testnet-10';
   linkLabel?: string;
   duration?: number;
   id?: string;
@@ -40,9 +42,13 @@ function shortenTx(txHash: string): string {
   return `${t.slice(0, 10)}…${t.slice(-6)}`;
 }
 
-function explorerForTx(txHash: string, chainId?: number): string {
+function explorerForTx(
+  txHash: string,
+  chainId?: number,
+  network?: 'mainnet' | 'testnet-10',
+): string {
   if (chainId != null && chainId > 0) return getExplorerTxUrlForChain(chainId, txHash);
-  return getExplorerTxUrl(txHash);
+  return getExplorerTxUrl(txHash, network);
 }
 
 function push(options: HubNotifyOptions): string {
@@ -98,7 +104,7 @@ export const hubNotify = {
     return push({ title, description, variant: 'loading', duration: 0, ...extra });
   },
   txSuccess(options: HubTxNotifyOptions): string {
-    const href = explorerForTx(options.txHash, options.chainId);
+    const href = explorerForTx(options.txHash, options.chainId, options.network);
     return push({
       id: options.id,
       title: options.title,
@@ -161,7 +167,7 @@ export function useHubNotify() {
       extra?: Omit<HubNotifyOptions, 'title' | 'description' | 'variant'>,
     ) => show({ title, description, variant: 'loading', duration: 0, ...extra }),
     txSuccess: (options: HubTxNotifyOptions) => {
-      const href = explorerForTx(options.txHash, options.chainId);
+      const href = explorerForTx(options.txHash, options.chainId, options.network);
       return show({
         id: options.id,
         title: options.title,

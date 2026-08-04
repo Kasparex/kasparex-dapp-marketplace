@@ -1,30 +1,51 @@
 /**
- * Extract transaction ID (TXID) from various formats
- * Handles both string TXIDs and JSON objects that might contain the TXID
+ * Extract transaction ID (TXID) from various formats.
+ * Never returns `[object Object]`; prefers revealId for KRC-20 commit/reveal.
  */
 export function extractTxId(txHash: string | unknown): string {
+  if (txHash == null) return '';
+
   if (typeof txHash === 'string') {
-    // If it's already a string, check if it's a JSON object string
-    try {
-      const parsed = JSON.parse(txHash);
-      if (typeof parsed === 'object' && parsed !== null) {
-        // Try common property names for transaction ID
-        return parsed.id || parsed.txHash || parsed.hash || parsed.txId || String(parsed);
+    const trimmed = txHash.trim();
+    if (!trimmed || trimmed === '[object Object]') return '';
+    if (/^[0-9a-fA-F]{64}$/.test(trimmed.replace(/^0x/i, ''))) {
+      return trimmed.replace(/^0x/i, '').toLowerCase();
+    }
+    if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
+      try {
+        return extractTxId(JSON.parse(trimmed) as unknown);
+      } catch {
+        return trimmed;
       }
-      return txHash;
-    } catch {
-      // Not JSON, return as-is
-      return txHash;
+    }
+    return trimmed;
+  }
+
+  if (typeof txHash === 'object') {
+    const obj = txHash as Record<string, unknown>;
+    const candidates = [
+      obj.revealId,
+      obj.reveal_id,
+      obj.revealTxId,
+      obj.reveal_tx_id,
+      obj.id,
+      obj.transactionId,
+      obj.transaction_id,
+      obj.txHash,
+      obj.hash,
+      obj.txId,
+      obj.commitId,
+      obj.commit_id,
+    ];
+    for (const c of candidates) {
+      if (typeof c === 'string' && c.trim() && c.trim() !== '[object Object]') {
+        const nested = extractTxId(c);
+        if (nested) return nested;
+      }
     }
   }
-  
-  if (typeof txHash === 'object' && txHash !== null) {
-    // Try common property names for transaction ID
-    const obj = txHash as Record<string, unknown>;
-    return String(obj.id || obj.txHash || obj.hash || obj.txId || txHash);
-  }
-  
-  return String(txHash);
+
+  return '';
 }
 
 const KASPA_EXPLORER_MAINNET = 'https://explorer.kaspa.org';
@@ -43,6 +64,7 @@ export function getExplorerTxUrl(
   network?: 'mainnet' | 'testnet-10',
 ): string {
   const txId = extractTxId(txHash);
+  if (!txId) return '#';
   const base = network === 'testnet-10' ? KASPA_EXPLORER_TESTNET_10 : KASPA_EXPLORER_MAINNET;
   return `${base}/transactions/${txId}`;
 }

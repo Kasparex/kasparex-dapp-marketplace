@@ -5,7 +5,7 @@ import { useKaspaWallet } from '@/lib/kaspa/context';
 import { signKrc20Transfer } from '@/lib/kaspa/l1WalletActions';
 import { normalizeKaspaAddress } from '@/lib/kaspa/sdk';
 import { KxFormFieldLabel } from '@/components/ui/KxFormFieldLabel';
-import { getExplorerTxUrl, getKaspaExplorerAddressUrl } from '@/lib/store/utils';
+import { getExplorerTxUrl, getKaspaExplorerAddressUrl, extractTxId } from '@/lib/store/utils';
 import { CopyableAddress } from '@/components/donations/CopyableAddress';
 import { hubNotify } from '@/lib/hub/notify';
 import { DAppWidgetShell } from '@/components/dapps/DAppWidgetShell';
@@ -301,13 +301,14 @@ export function KrexWrapBridgeWidget() {
         amt: amountInSmallestUnit.toString(),
         to: depositTo,
       };
-      const hash = await signKrc20Transfer(
+      const rawHash = await signKrc20Transfer(
         state.provider,
         JSON.stringify(inscribeJson),
         4,
         depositTo,
         0.001,
       );
+      const hash = extractTxId(rawHash) || (typeof rawHash === 'string' ? rawHash : '');
       updateKrexWrapStatus(wrapId, mintLive ? 'pending_mint' : 'deposited', {
         depositTxHash: hash,
         note: mintLive
@@ -352,6 +353,7 @@ export function KrexWrapBridgeWidget() {
         title: 'Migration submitted',
         description: successMsg,
         txHash: hash,
+        network,
       });
       setAmount('');
       refreshHistory();
@@ -458,7 +460,7 @@ export function KrexWrapBridgeWidget() {
                     target="_blank"
                     rel="noreferrer"
                   >
-                    Deposit {row.depositTxHash}
+                    Deposit {extractTxId(row.depositTxHash) || 'tx'}
                   </a>
                 ) : null}
                 {row.note ? <p className="text-xs text-zinc-500">{row.note}</p> : null}
