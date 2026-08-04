@@ -1,91 +1,232 @@
-# KCC20 Bridge (KRC-20 ↔ KCC20)
-
-Hub dApp: [`/dapps/kcc20-bridge`](../src/components/dapps/KrexWrapBridgeWidget.tsx)
-
-Old URL `/dapps/krex-wrap-bridge` redirects permanently to `/dapps/kcc20-bridge`.
-
-Migrate any KRC-20 into matching KCC20 1:1 via a shared Hub vault. KREX remains the default preselected tick. Users can switch **Mainnet** / **Testnet** in the Migrate tab.
-
-## Public UI rules
-
-- Never show env var names, “Pending ops”, or “Not configured” on the public Metadata tab.
-- Only show a vault address when it is actually set.
-- No borrowed featured images: omit `featuredImage` so `KxListingFeaturedPlaceholder` renders.
-
-## Configure vaults and bridge fee (ops)
-
-Set these in Vercel project env (Production), then redeploy:
-
-| Env | Purpose |
-|-----|---------|
-| `NEXT_PUBLIC_KCC20_BRIDGE_VAULT` | Mainnet Kaspa address that receives KRC-20 deposits |
-| `NEXT_PUBLIC_KCC20_BRIDGE_VAULT_TESTNET` | Testnet-10 `kaspatest:` vault (enables Testnet deposits) |
-| `NEXT_PUBLIC_KCC20_BRIDGE_TREASURY` | Optional; KAS fee destination (falls back to Store/ads treasury) |
-| `NEXT_PUBLIC_KCC20_BRIDGE_FEE_KAS` | Base fee in KAS (default **5**) |
-| `NEXT_PUBLIC_KCC20_BRIDGE_MIN_AMOUNT` | Min human amount per migrate (default 1) |
-| `NEXT_PUBLIC_KREX_KCC20_COVENANT_ID` | Wrapped KREX covenant (64-hex) when mint is live |
-| `NEXT_PUBLIC_KCC20_BRIDGE_COVENANTS` | JSON map `{"TICK":"<64hex>",...}` for more ticks |
-
-Legacy aliases still work: `NEXT_PUBLIC_KREX_WRAP_VAULT`, `NEXT_PUBLIC_KREX_WRAP_FEE_KAS`, etc.
-
-### Vault address checklist
-
-1. Create (or assign) a **dedicated** deposit address. Prefer keyless burn-in for one-way, or a Matze-style release vault if you plan reverse later.
-2. Fund it with a little KAS only if your watcher needs fees; users send **KRC-20**, not KAS, to this address for the deposit leg.
-3. Put the address in `NEXT_PUBLIC_KCC20_BRIDGE_VAULT` (mainnet) and/or `…_TESTNET`.
-4. Confirm the Migrate tab shows **Deposit vault** with that address (Metadata only shows vault when set).
-5. Run a **mint watcher** that: scans vault KRC-20 transfers by tick → mints matching KCC20 1:1 to the sender → is idempotent on tx id.
-
-Keep vault holdings per tick ≥ circulating wrapped KCC20 for that tick.
-
-## Testnet practice path (TN10)
-
-### A. Wallet
-
-1. Switch KasWare / Kastle / Kaspire to **Testnet-10**.
-2. Confirm address starts with `kaspatest:`.
-3. Get TN10 KAS from the faucet: https://faucet-tn10.kaspanet.io/
-
-### B. Deploy or pick a KRC-20 on TN10
-
-Use any existing TN10 KRC-20, or deploy one via Kasplex / your usual KRC-20 deploy flow against TN10.
-
-Indexer: `https://tn10api.kasplex.org/v1`  
-Token lookup: `GET /krc20/token/{TICK}`  
-Balance: `GET /krc20/address/{addr}/token/{TICK}`
-
-### C. (Optional) Deploy mint-controlled KCC20 on TN10
-
-Do **not** fair-launch a second free supply. Prefer mint-gated / capped KCC20 (same decimals), mint authority = your watcher only.
-
-Record the covenant id (64-hex). Add it to `NEXT_PUBLIC_KCC20_BRIDGE_COVENANTS` when mint should go live for that tick.
-
-### D. Hub Testnet vault
-
-1. Set `NEXT_PUBLIC_KCC20_BRIDGE_VAULT_TESTNET=kaspatest:…`
-2. Redeploy Vercel.
-3. Open `/dapps/kcc20-bridge` → **Testnet** → look up your ticker → enter amount → pay **5 KAS** fee (tier-discounted) → confirm KRC-20 send to the shown vault.
-4. Soft verify hits TN10 Kasplex via `/api/krex-wrap/verify` with `network: "testnet-10"`.
-5. When your watcher mints, balance appears as KCC20 for that covenant.
-
-Until the testnet vault env is set, Testnet mode still lets you look up TN10 tokens but deposits stay closed (user-facing “not open yet”, no env names).
-
-## Liquidity if you deploy on kascov first
-
-kascov is an **indexer / explorer / builder**, not a DEX. Deploying there does not by itself create a buy button.
-
-People buy after you:
-
-1. Add a market on a KCC20-capable DEX (KRON / Kcom / others when they list by covenant id), or
-2. Seed Hub Tokens listing + bridge so utility demand exists, then list the covenant id on DEX.
-
-## Trust model
-
-- Not fully on-chain / third-party-free.
-- KRC-20 recognition depends on indexers (mainnet `api.kasplex.org`, testnet `tn10api.kasplex.org`).
-- Mint/release depends on the watcher.
-
-## Multi-token registry
-
-Shared vault + per-tick KCC20 covenant map. KREX is the default pair.
-
+# KCC20 Bridge (KRC-20 ↔ KCC20)
+
+
+
+Hub dApp: [`/dapps/kcc20-bridge`](../src/components/dapps/KrexWrapBridgeWidget.tsx)
+
+
+
+Old URL `/dapps/krex-wrap-bridge` redirects permanently to `/dapps/kcc20-bridge`.
+
+
+
+Migrate any KRC-20 into matching KCC20 1:1 via a shared Hub vault. KREX remains the default preselected tick. Users can switch **Mainnet** / **Testnet** in the Migrate tab.
+
+
+
+## Public UI rules
+
+
+
+- Never show env var names, “Pending ops”, or “Not configured” on the public Metadata tab.
+
+- Only show a vault address when it is actually set.
+
+- No borrowed featured images: omit `featuredImage` so `KxListingFeaturedPlaceholder` renders.
+
+
+
+## Configure vaults and bridge fee (ops)
+
+Set these in Vercel project env (Production), then redeploy:
+
+| Env | Purpose |
+|-----|---------|
+| `NEXT_PUBLIC_KCC20_BRIDGE_VAULT` | Mainnet Kaspa address that receives KRC-20 deposits |
+| `NEXT_PUBLIC_KCC20_BRIDGE_VAULT_TESTNET` | Testnet-10 `kaspatest:` vault (enables Testnet deposits) |
+| `NEXT_PUBLIC_KCC20_BRIDGE_TREASURY` | Optional; KAS fee destination (falls back to Store/ads treasury) |
+| `NEXT_PUBLIC_KCC20_BRIDGE_FEE_KAS` | Base fee in KAS (default **5**) |
+| `NEXT_PUBLIC_KCC20_BRIDGE_MIN_AMOUNT` | Min human amount per migrate (default 1) |
+| `NEXT_PUBLIC_KREX_KCC20_COVENANT_ID` | Wrapped KREX covenant (64-hex) when mint is live |
+| `NEXT_PUBLIC_KCC20_BRIDGE_COVENANTS` | JSON map `{"TICK":"<64hex>",...}` for more ticks |
+
+Legacy aliases still work: `NEXT_PUBLIC_KREX_WRAP_VAULT`, `NEXT_PUBLIC_KREX_WRAP_FEE_KAS`, etc.
+
+### Kasparex bridge wallet roster (public addresses only)
+
+Never commit private keys or seeds. These are deposit / fee / ops **public** addresses.
+
+| Role | Mainnet | Testnet-10 |
+|------|---------|------------|
+| **1 Vault** (KRC-20 deposits) | `kaspa:qrwa6q8pk80dzpatgas9es2re0kusnja305wsnealy0hj480w452yw0a47fpf` | `kaspatest:qrwa6q8pk80dzpatgas9es2re0kusnja305wsnealy0hj480w452y0fmw3hsd` |
+| **2 Treasury** (KAS bridge fees) | `kaspa:qpgmnzeq5e59er2hkadaxd7s3yc8k69s4pqkxvw0zsktuk787e94wneakaxhm` | `kaspatest:qpgmnzeq5e59er2hkadaxd7s3yc8k69s4pqkxvw0zsktuk787e94wjlmdjcxl` |
+| **3 Mint / watcher signer** (KCC20 mint authority; keep seed offline / HSM) | `kaspa:qqn2344wcpyrp3w4jx8dc6zd0mn2ml4glgn84ufwv7em20udf2s9zx8pah5nq` | `kaspatest:qqn2344wcpyrp3w4jx8dc6zd0mn2ml4glgn84ufwv7em20udf2s9z8p8xc2zy` |
+| **4 Spare / future reverse vault** | `kaspa:qp7myp956kxnw94xtgan0jc4r5j2sfm7v0gvqtw59x2uq4sj2cqsge4frgz8w` | `kaspatest:qp7myp956kxnw94xtgan0jc4r5j2sfm7v0gvqtw59x2uq4sj2cqsgcn0c8uk2` |
+| **5 Spare / ops / emergency** | `kaspa:qp47tq6scx3acjz9ptrqx9ehxzse4q40fw0d6s0sfcz9jdsdf7ujyrx4pcz8x` | `kaspatest:qp47tq6scx3acjz9ptrqx9ehxzse4q40fw0d6s0sfcz9jdsdf7ujyzqn6hukz` |
+
+Suggested Vercel values when you go live:
+
+```bash
+NEXT_PUBLIC_KCC20_BRIDGE_VAULT=kaspa:qrwa6q8pk80dzpatgas9es2re0kusnja305wsnealy0hj480w452yw0a47fpf
+NEXT_PUBLIC_KCC20_BRIDGE_VAULT_TESTNET=kaspatest:qrwa6q8pk80dzpatgas9es2re0kusnja305wsnealy0hj480w452y0fmw3hsd
+NEXT_PUBLIC_KCC20_BRIDGE_TREASURY=kaspa:qpgmnzeq5e59er2hkadaxd7s3yc8k69s4pqkxvw0zsktuk787e94wneakaxhm
+NEXT_PUBLIC_KCC20_BRIDGE_FEE_KAS=5
+# After TKREX / wrapped KREX covenants exist:
+# NEXT_PUBLIC_KCC20_BRIDGE_COVENANTS={"TKREX":"<64hex>","KREX":"<64hex>"}
+```
+
+Note: Hub currently has one treasury env for fees (mainnet-oriented). Testnet fee sink can stay as wallet **2** `kaspatest:…` for manual TN10 fee checks until you add a dedicated testnet treasury env.
+
+### Vault address checklist
+
+1. Vault = wallet **1** (deposits only).
+2. Fund mint/watcher wallet **3** with a little KAS for mint fees when live.
+3. Users send **KRC-20**, not KAS, to the vault for the deposit leg.
+4. Confirm Migrate tab shows **Deposit vault**.
+5. Mint watcher: vault transfers by tick → mint KCC20 1:1 to sender (idempotent on tx id). Mint authority = wallet **3**.
+
+Keep vault holdings per tick ≥ circulating wrapped KCC20 for that tick.
+
+## KRC-20 KREX reference tokenomics (match on wrap side)
+
+From Kasplex mainnet (`/v1/krc20/token/KREX`):
+
+| Field | Value |
+|-------|--------|
+| Tick | `KREX` |
+| Decimals | `8` |
+| Max (raw) | `2100000000000000000` |
+| Max (human) | **21,000,000,000** KREX |
+| State | `finished` (fully minted on KRC-20) |
+
+For **test** wrapped asset use ticker **`TKREX`** (not `KREX`) so mainnet holders and indexers never confuse rails.
+
+## Deploy TKREX on KCC20 testnet-10 (step by step)
+
+**Yes: TKREX-only for tests is the right approach.** Same decimals + same max supply story as KREX; separate ticker; throwaway if you mess up mint rules.
+
+### Critical: do not use KRON fair-launch for the wrap token
+
+KRON `/launch/new` defaults to **full premint + mint renounced + AMM**. That creates a **second free supply**, which breaks the wrap model.
+
+For bridge wrapping you need:
+
+- **Mint-controlled / capped** KCC20  
+- **Max supply** = 21e9 (same as KREX), **8 decimals**  
+- **Mint authority** = watcher wallet (**3**), not open public mint  
+- **No** public fair-launch allocation
+
+### Steps
+
+1. **Wallet setup (TN10)**  
+   - Switch wallet to Testnet-10.  
+   - Prefer mint authority = wallet **3** `kaspatest:qqn2344wcpyrp3w4jx8dc6zd0mn2ml4glgn84ufwv7em20udf2s9z8p8xc2zy`.  
+   - Fund it from https://faucet-tn10.kaspanet.io/
+
+2. **Also need a KRC-20 TKREX on TN10** (deposit side of the bridge)  
+   - Deploy or mint a KRC-20 tick `TKREX` on TN10 via Kasplex / your usual KRC-20 deploy tools.  
+   - Match: **8 decimals**, max **21e9** if the deploy UI allows (or document whatever TN10 allows and keep KCC20 cap ≤ that).  
+   - Confirm: `https://tn10api.kasplex.org/v1/krc20/token/TKREX`
+
+3. **Deploy mint-gated KCC20 TKREX**  
+   Use a covenant token builder that supports **controlled mint** (not KRON fair-launch), for example:  
+   - [kascov builder / playground](https://kascov.io/#/playground) / lab on **testnet-10**, or  
+   - Any KCC20 template that sets: ticker `TKREX`, decimals `8`, max `2100000000000000000` (raw) or human 21e9, **mint key = wallet 3**.  
+   - Deploy on **testnet-10** only.  
+   - After deploy, copy the **64-hex covenant id**.
+
+4. **Verify on explorers**  
+   - [kascov tokens / explore](https://kascov.io/#/explore) on testnet-10  
+   - Confirm ticker, decimals, max, and that mint is not open to the public
+
+5. **Wire Hub (after you are ready)**  
+   ```bash
+   NEXT_PUBLIC_KCC20_BRIDGE_VAULT_TESTNET=kaspatest:qrwa6q8pk80dzpatgas9es2re0kusnja305wsnealy0hj480w452y0fmw3hsd
+   NEXT_PUBLIC_KCC20_BRIDGE_FEE_KAS=5
+   NEXT_PUBLIC_KCC20_BRIDGE_COVENANTS={"TKREX":"<your-64-hex-covenant-id>"}
+   ```  
+   Redeploy Vercel.
+
+6. **End-to-end bridge test**  
+   - Hub → `/dapps/kcc20-bridge` → **Testnet**  
+   - Select KRC-20 `TKREX` → amount → pay 5 KAS fee → send to vault **1**  
+   - Watcher (using wallet **3**) mints KCC20 TKREX 1:1 to your address  
+   - Confirm KCC20 balance via kascov / kcc20.info TN10
+
+7. **Only later: mainnet wrapped KREX**  
+   - Same pattern with ticker **KREX**, vault **1** mainnet, mint key **3** mainnet  
+   - Set `NEXT_PUBLIC_KREX_KCC20_COVENANT_ID` / covenants map  
+   - Never fair-launch a second free KREX on KCC20
+
+### What “same tokenomics” means for TKREX
+
+| Match KREX | TKREX test |
+|------------|------------|
+| Decimals 8 | Yes |
+| Max 21,000,000,000 | Yes (cap) |
+| No extra free float | Yes: mint only against vault deposits |
+| Ticker | **`TKREX`** (test only) |
+| Network | testnet-10 only |
+
+### Vault checklist (short)
+
+1. Vault = wallet **1** (deposits).  
+2. Treasury = wallet **2** (fees).  
+3. Mint authority = wallet **3**.  
+4. Keep **4** / **5** as spare (reverse vault or emergency).  
+5. Run mint watcher against vault **1** with mint key **3**.
+
+
+
+
+Record the covenant id (64-hex). Add it to `NEXT_PUBLIC_KCC20_BRIDGE_COVENANTS` when mint should go live for that tick.
+
+
+
+### D. Hub Testnet vault
+
+
+
+1. Set `NEXT_PUBLIC_KCC20_BRIDGE_VAULT_TESTNET=kaspatest:…`
+
+2. Redeploy Vercel.
+
+3. Open `/dapps/kcc20-bridge` → **Testnet** → look up your ticker → enter amount → pay **5 KAS** fee (tier-discounted) → confirm KRC-20 send to the shown vault.
+
+4. Soft verify hits TN10 Kasplex via `/api/krex-wrap/verify` with `network: "testnet-10"`.
+
+5. When your watcher mints, balance appears as KCC20 for that covenant.
+
+
+
+Until the testnet vault env is set, Testnet mode still lets you look up TN10 tokens but deposits stay closed (user-facing “not open yet”, no env names).
+
+
+
+## Liquidity if you deploy on kascov first
+
+
+
+kascov is an **indexer / explorer / builder**, not a DEX. Deploying there does not by itself create a buy button.
+
+
+
+People buy after you:
+
+
+
+1. Add a market on a KCC20-capable DEX (KRON / Kcom / others when they list by covenant id), or
+
+2. Seed Hub Tokens listing + bridge so utility demand exists, then list the covenant id on DEX.
+
+
+
+## Trust model
+
+
+
+- Not fully on-chain / third-party-free.
+
+- KRC-20 recognition depends on indexers (mainnet `api.kasplex.org`, testnet `tn10api.kasplex.org`).
+
+- Mint/release depends on the watcher.
+
+
+
+## Multi-token registry
+
+
+
+Shared vault + per-tick KCC20 covenant map. KREX is the default pair.
+
+
