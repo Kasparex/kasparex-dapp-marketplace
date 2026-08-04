@@ -4,7 +4,9 @@ Hub dApp: [`/dapps/kcc20-bridge`](../src/components/dapps/KrexWrapBridgeWidget.t
 
 Old URL `/dapps/krex-wrap-bridge` redirects permanently to `/dapps/kcc20-bridge`.
 
-Migrate any KRC-20 into matching KCC20 1:1 via a shared Hub vault. KREX remains the default preselected tick. Users can switch **Mainnet** / **Testnet** in the Migrate tab.
+Migrate any KRC-20 into matching KCC20 1:1 via a shared Hub vault. Default tick is **KREX** on Mainnet and **TKREX** on Testnet. Users can switch **Mainnet** / **Testnet** in the Migrate tab.
+
+Note: bridge env vars must be read via static `process.env.NEXT_PUBLIC_*` names (Next.js does not inline dynamic `process.env[key]` in the client bundle).
 
 ## Public UI rules
 
