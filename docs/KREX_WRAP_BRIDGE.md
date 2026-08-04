@@ -132,7 +132,9 @@ For bridge wrapping you need:
 6. **End-to-end bridge test**
    - Hub → `/dapps/kcc20-bridge` → **Testnet**
    - Select KRC-20 `TKREX` → amount → pay 5 KAS fee → send to vault **1**
-   - Watcher (using wallet **3**) mints KCC20 TKREX 1:1 to your address
+   - Mint (wallet **3**, OpenSilver sibling repo):  
+     `node scripts/broadcast-tkrex-mint.mjs --broadcast --key-file tkrex-deploy/wallet3.privkey`  
+     Defaults to 10 TKREX (`TKREX_MINT_AMOUNT_RAW=1000000000`) to wallet 3’s pubkey. Record deposit with `TKREX_DEPOSIT_TXID=…`.
    - Confirm KCC20 balance via kascov / kcc20.info TN10
 
 7. **Only later: mainnet wrapped KREX**
