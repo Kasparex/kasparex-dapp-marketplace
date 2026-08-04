@@ -122,7 +122,18 @@ export function isWrapMintLiveForTick(tick: string, network: Krc20BridgeNetwork 
   return Boolean(getBridgeVaultAddress(network) && getWrapCovenantIdForTick(tick));
 }
 
-export function getKrexWrapTreasuryAddress(): string {
+/** Ops TN10 fee sink (wallet 2). Override with NEXT_PUBLIC_KCC20_BRIDGE_TREASURY_TESTNET. */
+const DEFAULT_BRIDGE_TREASURY_TESTNET =
+  'kaspatest:qpgmnzeq5e59er2hkadaxd7s3yc8k69s4pqkxvw0zsktuk787e94wjlmdjcxl';
+
+export function getKrexWrapTreasuryAddress(network: Krc20BridgeNetwork = 'mainnet'): string {
+  if (network === 'testnet-10') {
+    return (
+      trimEnv(process.env.NEXT_PUBLIC_KCC20_BRIDGE_TREASURY_TESTNET) ||
+      trimEnv(process.env.NEXT_PUBLIC_KREX_WRAP_TREASURY_TESTNET) ||
+      DEFAULT_BRIDGE_TREASURY_TESTNET
+    );
+  }
   return (
     trimEnv(process.env.NEXT_PUBLIC_KCC20_BRIDGE_TREASURY) ||
     trimEnv(process.env.NEXT_PUBLIC_KREX_WRAP_TREASURY) ||
@@ -167,7 +178,7 @@ export function getKrexWrapPublicConfig(
   network: Krc20BridgeNetwork = 'mainnet',
 ): KrexWrapPublicConfig {
   const vaultAddress = getBridgeVaultAddress(network);
-  const treasuryAddress = getKrexWrapTreasuryAddress() || null;
+  const treasuryAddress = getKrexWrapTreasuryAddress(network) || null;
   const covenants = getKrc20WrapCovenantMap();
   const defaultTick = getKrexWrapTick(network);
   const kcc20CovenantId = getWrapCovenantIdForTick(defaultTick);

@@ -117,12 +117,17 @@ export async function payHubTokenListingFee(args: {
 export function buildHubKasListingPlan(args: {
   feeKas: number;
   treasuryAddress: string;
+  /** Override Hub rewards leg (e.g. disable / redirect on testnet). */
+  rewardsAddress?: string;
+  rewardsBps?: number;
   note?: string;
   payloadHex?: string;
 }): PaymentPlan {
   return buildHubPlatformFeePlan({
     totalKas: args.feeKas,
     treasuryAddress: args.treasuryAddress,
+    rewardsAddress: args.rewardsAddress,
+    rewardsBps: args.rewardsBps,
     note: args.note,
     payloadHex: args.payloadHex,
   });

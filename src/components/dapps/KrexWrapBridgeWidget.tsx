@@ -219,6 +219,8 @@ export function KrexWrapBridgeWidget() {
           feeKas,
           treasuryAddress: config.treasuryAddress,
           note: `kcc20-bridge:${network}:${tick}:${wrapId}`,
+          // TN10 must not pay mainnet `kaspa:` treasury/rewards legs.
+          ...(network === 'testnet-10' ? { rewardsBps: 0 } : {}),
         });
         const feeHash = await payHubKasPlan({
           provider: state.provider,
@@ -488,10 +490,12 @@ export function KrexWrapBridgeWidget() {
             />
 
             {config.vaultAddress ? (
-              <div className={`${KX_SURFACE_NESTED} p-4 sm:p-5`}>
+              <div
+                className={`${KX_SURFACE_NESTED} group p-4 sm:p-5 ring-1 ring-[color:var(--hub-accent)]/45 transition-[box-shadow,ring-color] hover:ring-2 hover:ring-[color:var(--hub-accent)] hover:shadow-[0_0_0_1px_var(--hub-accent-shadow,rgba(2,171,184,0.35))]`}
+              >
                 <div className="flex items-start gap-3">
                   <div
-                    className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-zinc-300/80 bg-white text-[color:var(--hub-accent)] dark:border-zinc-700 dark:bg-zinc-900/80"
+                    className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-[color:var(--hub-accent)]/35 bg-[color:var(--hub-accent)]/10 text-[color:var(--hub-accent)] dark:border-[color:var(--hub-accent)]/40 dark:bg-[color:var(--hub-accent)]/15"
                     aria-hidden
                   >
                     <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
@@ -503,7 +507,7 @@ export function KrexWrapBridgeWidget() {
                     </svg>
                   </div>
                   <div className="min-w-0 flex-1 space-y-1">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-[color:var(--hub-accent)]">
                       Deposit vault
                     </p>
                     <p className="text-sm text-zinc-600 dark:text-zinc-300">
@@ -513,7 +517,7 @@ export function KrexWrapBridgeWidget() {
                       value={config.vaultAddress}
                       explorerUrl={getKaspaExplorerAddressUrl(config.vaultAddress)}
                       explorerLabel={network === 'testnet-10' ? 'View on TN10 explorer' : 'View in Explorer'}
-                      truncate={false}
+                      truncate
                       className="pt-1"
                     />
                   </div>

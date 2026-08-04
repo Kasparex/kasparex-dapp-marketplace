@@ -17,7 +17,7 @@ export interface ToastData {
   title: string;
   description?: string;
   variant: ToastVariant;
-  /** Auto-dismiss ms. `0` stays until dismiss (default for loading). */
+  /** Auto-dismiss ms. `0` stays until the user clicks x (Hub default for all variants). */
   duration?: number;
   /** Shortened explorer / external link shown in accent color. */
   href?: string;
@@ -37,10 +37,10 @@ interface ToastContextValue {
 const ToastContext = createContext<ToastContextValue | null>(null);
 
 const DEFAULT_DURATION: Record<ToastVariant, number> = {
-  success: 5000,
-  error: 6500,
-  warning: 5500,
-  info: 5000,
+  success: 0,
+  error: 0,
+  warning: 0,
+  info: 0,
   loading: 0,
 };
 
