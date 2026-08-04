@@ -49,8 +49,8 @@ NEXT_PUBLIC_KCC20_BRIDGE_VAULT=kaspa:qrwa6q8pk80dzpatgas9es2re0kusnja305wsnealy0
 NEXT_PUBLIC_KCC20_BRIDGE_VAULT_TESTNET=kaspatest:qrwa6q8pk80dzpatgas9es2re0kusnja305wsnealy0hj480w452y0fmw3hsd
 NEXT_PUBLIC_KCC20_BRIDGE_TREASURY=kaspa:qpgmnzeq5e59er2hkadaxd7s3yc8k69s4pqkxvw0zsktuk787e94wneakaxhm
 NEXT_PUBLIC_KCC20_BRIDGE_FEE_KAS=5
-# After TKREX / wrapped KREX covenants exist:
-# NEXT_PUBLIC_KCC20_BRIDGE_COVENANTS={"TKREX":"<64hex>","KREX":"<64hex>"}
+# TN10 TKREX KCC20Capped asset (OpenSilver deploy, 2026-08-04):
+NEXT_PUBLIC_KCC20_BRIDGE_COVENANTS={"TKREX":"22e1c779871a1ed769e82df46927b146fc9edcc7be782a18b247e04c96300119"}
 ```
 
 Note: Hub currently has one treasury env for fees (mainnet-oriented). Testnet fee sink can stay as wallet **2** `kaspatest:…` for manual TN10 fee checks until you add a dedicated testnet treasury env.
@@ -121,9 +121,13 @@ For bridge wrapping you need:
    ```bash
    NEXT_PUBLIC_KCC20_BRIDGE_VAULT_TESTNET=kaspatest:qrwa6q8pk80dzpatgas9es2re0kusnja305wsnealy0hj480w452y0fmw3hsd
    NEXT_PUBLIC_KCC20_BRIDGE_FEE_KAS=5
-   NEXT_PUBLIC_KCC20_BRIDGE_COVENANTS={"TKREX":"<your-64-hex-covenant-id>"}
+   NEXT_PUBLIC_KCC20_BRIDGE_COVENANTS={"TKREX":"22e1c779871a1ed769e82df46927b146fc9edcc7be782a18b247e04c96300119"}
    ```
    Redeploy Vercel.
+
+   Genesis refs (TN10):
+   - Controller: `f1b0f27658814ef97a19fcad71f01e73132a067fb2fffaa2882f404d30a25286` (`244c12bc…`)
+   - Asset init: `0eb3b71813b38fbdd51f569e5e7f271c97f7e5f51405726a48d4d016b23c9ad9` (`22e1c779…`)
 
 6. **End-to-end bridge test**
    - Hub → `/dapps/kcc20-bridge` → **Testnet**
