@@ -49,8 +49,8 @@ NEXT_PUBLIC_KCC20_BRIDGE_VAULT=kaspa:qrwa6q8pk80dzpatgas9es2re0kusnja305wsnealy0
 NEXT_PUBLIC_KCC20_BRIDGE_VAULT_TESTNET=kaspatest:qrwa6q8pk80dzpatgas9es2re0kusnja305wsnealy0hj480w452y0fmw3hsd
 NEXT_PUBLIC_KCC20_BRIDGE_TREASURY=kaspa:qpgmnzeq5e59er2hkadaxd7s3yc8k69s4pqkxvw0zsktuk787e94wneakaxhm
 NEXT_PUBLIC_KCC20_BRIDGE_FEE_KAS=5
-# TN10 TKREX KCC20Capped asset (OpenSilver deploy, 2026-08-04):
-NEXT_PUBLIC_KCC20_BRIDGE_COVENANTS={"TKREX":"22e1c779871a1ed769e82df46927b146fc9edcc7be782a18b247e04c96300119"}
+# TN10 TKREX KCC20Capped asset (OpenSilver deploy; blake2b-256 template hash):
+NEXT_PUBLIC_KCC20_BRIDGE_COVENANTS={"TKREX":"c9d0799b9640c3b7d10e5d90fcc58f38fa99c947f30e2c4f44a85b7f394600ef"}
 ```
 
 Note: Hub currently has one treasury env for fees (mainnet-oriented). Testnet fee sink can stay as wallet **2** `kaspatest:…` for manual TN10 fee checks until you add a dedicated testnet treasury env.
@@ -121,13 +121,14 @@ For bridge wrapping you need:
    ```bash
    NEXT_PUBLIC_KCC20_BRIDGE_VAULT_TESTNET=kaspatest:qrwa6q8pk80dzpatgas9es2re0kusnja305wsnealy0hj480w452y0fmw3hsd
    NEXT_PUBLIC_KCC20_BRIDGE_FEE_KAS=5
-   NEXT_PUBLIC_KCC20_BRIDGE_COVENANTS={"TKREX":"22e1c779871a1ed769e82df46927b146fc9edcc7be782a18b247e04c96300119"}
+   NEXT_PUBLIC_KCC20_BRIDGE_COVENANTS={"TKREX":"c9d0799b9640c3b7d10e5d90fcc58f38fa99c947f30e2c4f44a85b7f394600ef"}
    ```
    Redeploy Vercel.
 
    Genesis refs (TN10):
-   - Controller: `f1b0f27658814ef97a19fcad71f01e73132a067fb2fffaa2882f404d30a25286` (`244c12bc…`)
-   - Asset init: `0eb3b71813b38fbdd51f569e5e7f271c97f7e5f51405726a48d4d016b23c9ad9` (`22e1c779…`)
+   - Controller: `fcebdc8c73b6bac5463702a65cc4086235c3726bb778e5d5190f59f365677871` (`493f9308…`)
+   - Asset init: `2bca00fc958635efd1cda696a9c7257f13b12e8a78a3326f39b3d17e7aa3fed6` (`c9d0799b…`)
+   - Template hash must be real blake2b-256 (not blake2b-512 truncated). Wrong hash allows genesis but blocks mint.
 
 6. **End-to-end bridge test**
    - Hub → `/dapps/kcc20-bridge` → **Testnet**
@@ -135,7 +136,9 @@ For bridge wrapping you need:
    - Mint (wallet **3**, OpenSilver sibling repo):  
      `node scripts/broadcast-tkrex-mint.mjs --broadcast --key-file tkrex-deploy/wallet3.privkey`  
      Defaults to 10 TKREX (`TKREX_MINT_AMOUNT_RAW=1000000000`) to wallet 3’s pubkey. Record deposit with `TKREX_DEPOSIT_TXID=…`.
+   - First live mint (10 TKREX): deposit `e6a3e009…`, mint `5ca47a8871e5d2dd50619e2147cb07b4180e08d20998b3a2b0e731d6a3a455e3` → recipient P2SH `kaspatest:pqv4shym…dqlr6`.
    - Confirm KCC20 balance via kascov / kcc20.info TN10
+   - Delete the local key file after mint.
 
 7. **Only later: mainnet wrapped KREX**
    - Same pattern with ticker **KREX**, vault **1** mainnet, mint key **3** mainnet
