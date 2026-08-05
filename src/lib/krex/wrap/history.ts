@@ -126,6 +126,35 @@ export function updateKrexWrapStatus(
   return updated;
 }
 
+/** Mark local history rows minted when a deposit matches a watcher receipt. */
+export function applyMintReceiptToHistory(input: {
+  depositTxHash: string;
+  mintTxHash: string;
+  note?: string;
+}): number {
+  const deposit = (input.depositTxHash || '').trim().toLowerCase();
+  const mint = (input.mintTxHash || '').trim().toLowerCase();
+  if (!/^[a-f0-9]{64}$/.test(deposit) || !/^[a-f0-9]{64}$/.test(mint)) return 0;
+  const all = readAll();
+  let changed = 0;
+  for (let i = 0; i < all.length; i++) {
+    const row = all[i];
+    const rowDeposit = (row.depositTxHash || '').trim().toLowerCase();
+    if (rowDeposit !== deposit) continue;
+    if (row.status === 'minted' && (row.mintTxHash || '').toLowerCase() === mint) continue;
+    all[i] = {
+      ...row,
+      status: 'minted',
+      mintTxHash: mint,
+      note: input.note || 'KCC20 minted on Kaspa L1.',
+      updatedAt: new Date().toISOString(),
+    };
+    changed += 1;
+  }
+  if (changed > 0) writeAll(all);
+  return changed;
+}
+
 export function newKrexWrapId(): string {
   if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
     return crypto.randomUUID();

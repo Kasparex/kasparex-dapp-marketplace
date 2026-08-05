@@ -130,20 +130,27 @@ For bridge wrapping you need:
    - Asset init: `2bca00fc958635efd1cda696a9c7257f13b12e8a78a3326f39b3d17e7aa3fed6` (`c9d0799b…`)
    - Template hash must be real blake2b-256 (not blake2b-512 truncated). Wrong hash allows genesis but blocks mint.
 
-6. **End-to-end bridge test**
-   - Hub → `/dapps/kcc20-bridge` → **Testnet**
-   - Select KRC-20 `TKREX` → amount → pay 5 KAS fee → send to vault **1**
-   - Mint (wallet **3**, OpenSilver sibling repo):  
-     `node scripts/broadcast-tkrex-mint.mjs --broadcast --key-file tkrex-deploy/wallet3.privkey`  
-     Defaults to 10 TKREX (`TKREX_MINT_AMOUNT_RAW=1000000000`) to wallet 3’s pubkey. Record deposit with `TKREX_DEPOSIT_TXID=…`.
-   - First live mint (10 TKREX): deposit `e6a3e009…`, mint `5ca47a8871e5d2dd50619e2147cb07b4180e08d20998b3a2b0e731d6a3a455e3` → recipient P2SH `kaspatest:pqv4shym…dqlr6`.
-   - Confirm KCC20 balance via kascov / kcc20.info TN10
-   - Delete the local key file after mint.
+6. **TN10 mint watcher (operator host)**
+   - Hub History stays `Pending mint` until a mint receipt exists for the deposit tx.
+   - Receipts live in `data/krex-wrap/mint-receipts-tn10.json` (GET `/api/krex-wrap/mint-receipts`).
+   - Run on a trusted machine with wallet **3** key (never in Vercel):
+     ```bash
+     set KREX_WRAP_HUB_URL=https://<your-hub>
+     set KCC20_BRIDGE_WATCHER_SECRET=<same as Vercel>
+     node scripts/tkrex-mint-watcher.mjs --once --key-file tkrex-deploy/wallet3.privkey.json
+     # or loop:
+     node scripts/tkrex-mint-watcher.mjs --key-file tkrex-deploy/wallet3.privkey.json
+     ```
+   - Watcher: Kasplex vault transfers → `broadcast-tkrex-mint.mjs` → POST receipt (needs `KCC20_BRIDGE_WATCHER_SECRET` + `GITHUB_TOKEN` on Hub for persist).
+   - Manual one-off still works: `TKREX_MINT_AMOUNT_RAW=… TKREX_DEPOSIT_TXID=… node scripts/broadcast-tkrex-mint.mjs --broadcast --key-file …`
+   - Known live mints: 10 TKREX `5ca47a88…`, 12 TKREX `faa27724…`. Older pre-test vault transfers are listed under `ignoredDepositTxHashes`.
+   - Confirm KCC20 on the mint explorer tx / recipient P2SH (not KasWare KRC-20 balances).
 
 7. **Only later: mainnet wrapped KREX**
    - Same pattern with ticker **KREX**, vault **1** mainnet, mint key **3** mainnet
    - Set `NEXT_PUBLIC_KREX_KCC20_COVENANT_ID` / covenants map
    - Never fair-launch a second free KREX on KCC20
+   - Do not enable the watcher on mainnet until key custody + idempotency are production-ready.
 
 ### What “same tokenomics” means for TKREX
 

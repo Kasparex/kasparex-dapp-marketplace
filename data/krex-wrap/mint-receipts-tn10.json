@@ -1,0 +1,36 @@
+{
+  "network": "testnet-10",
+  "tick": "TKREX",
+  "updatedAt": "2026-08-05T20:00:00.000Z",
+  "ignoredDepositTxHashes": [
+    "417ae1556a02c3c5eac10b70d30e14392168a72c200ed4cf53766924bfa88b63",
+    "fd7f08160f94f2c59c4fd25cfc6343b11c7ba8f0cb53a077b7963ff252fbcf22",
+    "09655009d24615e1385dda68a5db6b46a62e875cbbeba473068b8cd385e79986"
+  ],
+  "receipts": [
+    {
+      "depositTxHash": "e6a3e009bc59bf0f58a7ded2d0ec774eede2cf3652ee46688698cb0324368be3",
+      "mintTxHash": "5ca47a8871e5d2dd50619e2147cb07b4180e08d20998b3a2b0e731d6a3a455e3",
+      "amountRaw": "1000000000",
+      "amount": 10,
+      "from": "kaspatest:qqn2344wcpyrp3w4jx8dc6zd0mn2ml4glgn84ufwv7em20udf2s9z8p8xc2zy",
+      "recipientAddress": "kaspatest:pqv4shym43wdyjzp8jg3rw6jef4qw7j04v2uysshm0zuudx3uysj6236dqlr6",
+      "recipientPubkey": "26a8d6aec04830c5d5918edc684d7ee6adfea8fa267af12e67b3b53f8d4aa051",
+      "assetCovenantId": "c9d0799b9640c3b7d10e5d90fcc58f38fa99c947f30e2c4f44a85b7f394600ef",
+      "mintedAt": "2026-08-05T00:11:00.000Z",
+      "status": "minted"
+    },
+    {
+      "depositTxHash": "893669509ba1c6e05e9688fc8129b9c6b2141c68b3e4ee1fe34e141348362527",
+      "mintTxHash": "faa27724879d26ce47f04e91b481a507064011100550e5d70c22e6a3dc8af57f",
+      "amountRaw": "1200000000",
+      "amount": 12,
+      "from": "kaspatest:qqn2344wcpyrp3w4jx8dc6zd0mn2ml4glgn84ufwv7em20udf2s9z8p8xc2zy",
+      "recipientAddress": "kaspatest:pr3j3scpcarny66lyg7ddmjzgjmswqsjhklh05ks9mt2zlavvrt6qxdvusar4",
+      "recipientPubkey": "26a8d6aec04830c5d5918edc684d7ee6adfea8fa267af12e67b3b53f8d4aa051",
+      "assetCovenantId": "c9d0799b9640c3b7d10e5d90fcc58f38fa99c947f30e2c4f44a85b7f394600ef",
+      "mintedAt": "2026-08-05T00:49:00.000Z",
+      "status": "minted"
+    }
+  ]
+}

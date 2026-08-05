@@ -31,6 +31,7 @@ import {
   newKrexWrapId,
   upsertKrexWrapRecord,
   updateKrexWrapStatus,
+  applyMintReceiptToHistory,
 } from '@/lib/krex/wrap/history';
 import type { Krc20BridgeNetwork, KrexWrapRecord } from '@/lib/krex/wrap/types';
 import {
@@ -111,6 +112,52 @@ export function KrexWrapBridgeWidget() {
   useEffect(() => {
     refreshHistory();
   }, [refreshHistory]);
+
+  /** Poll watcher mint receipts so History flips Pending mint → Minted. */
+  useEffect(() => {
+    let cancelled = false;
+    const syncReceipts = async () => {
+      const pending = listKrexWrapHistory(state.address).filter(
+        (row) =>
+          (!row.network || row.network === network) &&
+          row.status === 'pending_mint' &&
+          row.depositTxHash,
+      );
+      if (pending.length === 0) return;
+      try {
+        const res = await fetch('/api/krex-wrap/mint-receipts', {
+          headers: { Accept: 'application/json' },
+          cache: 'no-store',
+        });
+        if (!res.ok || cancelled) return;
+        const json = (await res.json()) as {
+          ok?: boolean;
+          receipts?: Array<{ depositTxHash?: string; mintTxHash?: string }>;
+        };
+        if (!json.ok || !Array.isArray(json.receipts)) return;
+        let changed = 0;
+        for (const receipt of json.receipts) {
+          if (!receipt.depositTxHash || !receipt.mintTxHash) continue;
+          changed += applyMintReceiptToHistory({
+            depositTxHash: receipt.depositTxHash,
+            mintTxHash: receipt.mintTxHash,
+            note: 'KCC20 minted on Kaspa L1.',
+          });
+        }
+        if (changed > 0 && !cancelled) refreshHistory();
+      } catch {
+        // ignore transient receipt fetch errors
+      }
+    };
+    void syncReceipts();
+    const id = window.setInterval(() => {
+      void syncReceipts();
+    }, 20_000);
+    return () => {
+      cancelled = true;
+      window.clearInterval(id);
+    };
+  }, [state.address, network, refreshHistory, tab]);
 
   /** Keep bridge tab aligned with the connected L1 address HRP. */
   useEffect(() => {
@@ -432,7 +479,7 @@ export function KrexWrapBridgeWidget() {
       <DAppWidgetShell
         title="History"
         heading="Your migrations"
-        description="Local history for this browser. Deposits are on Kaspa L1."
+        description="Local history for this browser. Deposits are on Kaspa L1. Mint status syncs from watcher receipts."
       >
         {history.length === 0 ? (
           <p className="text-sm text-zinc-600 dark:text-zinc-400">No migrations recorded in this browser yet.</p>
@@ -461,6 +508,16 @@ export function KrexWrapBridgeWidget() {
                     rel="noreferrer"
                   >
                     Deposit {extractTxId(row.depositTxHash) || 'tx'}
+                  </a>
+                ) : null}
+                {row.mintTxHash ? (
+                  <a
+                    className="block break-all text-xs text-[color:var(--hub-accent)] underline"
+                    href={getExplorerTxUrl(row.mintTxHash, row.network === 'testnet-10' ? 'testnet-10' : 'mainnet')}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    Mint {extractTxId(row.mintTxHash) || 'tx'}
                   </a>
                 ) : null}
                 {row.note ? <p className="text-xs text-zinc-500">{row.note}</p> : null}
