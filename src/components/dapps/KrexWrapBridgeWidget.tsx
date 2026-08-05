@@ -19,9 +19,10 @@ import { useDAppWidgetSection } from '@/lib/dapps/DAppWidgetTabContext';
 import { Krc20TickerSearchField } from '@/components/tokens/Krc20TickerSearchField';
 import type { Krc20TokenInfo } from '@/lib/tokens/krc20Lookup';
 import { HubMetadataStatGrid } from '@/components/hub/HubMetadataStatGrid';
-import { KX_INFO_DASHED, KX_DASHBOARD_TAB_BTN, KX_DASHBOARD_TAB_BTN_ACTIVE, KX_PANEL } from '@/lib/hub/shellTokens';
+import { KX_INFO_DASHED, KX_DASHBOARD_TAB_BTN, KX_DASHBOARD_TAB_BTN_ACTIVE, KX_PANEL, KX_METADATA_STAT_VALUE_LINK } from '@/lib/hub/shellTokens';
 import {
   getKrexWrapPublicConfig,
+  getWrapCovenantIdForTick,
   isWrapMintLiveForTick,
 } from '@/lib/krex/wrap/config';
 import { fetchKrc20BalanceOnNetwork, fetchKrc20TokenInfoOnNetwork } from '@/lib/krex/wrap/networkFetch';
@@ -33,15 +34,17 @@ import {
   updateKrexWrapStatus,
   applyMintReceiptToHistory,
 } from '@/lib/krex/wrap/history';
-import type { Krc20BridgeNetwork, KrexWrapRecord } from '@/lib/krex/wrap/types';
+import type { Krc20BridgeNetwork, KrexWrapRecord, KrexWrapStatus } from '@/lib/krex/wrap/types';
 import {
   buildHubKasListingPlan,
   payHubKasPlan,
 } from '@/lib/payments/hubPayRail';
+import { KxBadge, type KxBadgeVariant } from '@/components/ui/KxBadge';
+import { Tooltip } from '@/components/ui/Tooltip';
 
 const BRIDGE_SLUG = 'kcc20-bridge';
 
-function statusLabel(status: KrexWrapRecord['status']): string {
+function statusLabel(status: KrexWrapStatus): string {
   switch (status) {
     case 'fee_paid':
       return 'Fee paid';
@@ -58,8 +61,59 @@ function statusLabel(status: KrexWrapRecord['status']): string {
   }
 }
 
+function statusBadgeVariant(status: KrexWrapStatus): KxBadgeVariant {
+  switch (status) {
+    case 'minted':
+      return 'emerald';
+    case 'pending_mint':
+      return 'amber';
+    case 'failed':
+      return 'rose';
+    case 'fee_paid':
+      return 'sky';
+    case 'deposited':
+      return 'zinc';
+    default:
+      return 'zinc';
+  }
+}
+
+function statusTooltip(status: KrexWrapStatus): string {
+  switch (status) {
+    case 'fee_paid':
+      return 'Bridge fee landed. Token deposit to the vault comes next.';
+    case 'deposited':
+      return 'KRC-20 is in the vault. KCC20 mint is not live for this ticker yet.';
+    case 'pending_mint':
+      return 'Deposit is on Kaspa L1. Kasparex runs a mint watcher (not on Vercel) that signs matching KCC20 1:1. History flips to Minted when that receipt lands.';
+    case 'minted':
+      return 'Matching KCC20 was minted on Kaspa L1. Open the Mint link for the covenant tx.';
+    case 'failed':
+      return 'This migration did not complete. Check the note or try again.';
+    default:
+      return 'Migration status for this browser history row.';
+  }
+}
+
 function networkLabel(network: Krc20BridgeNetwork): string {
   return network === 'testnet-10' ? 'Testnet' : 'Mainnet';
+}
+
+function kascovCovenantUrl(network: Krc20BridgeNetwork, covenantId: string): string {
+  const net = network === 'testnet-10' ? 'testnet-10' : 'mainnet';
+  return `https://kascov.io/#/${net}/c/${covenantId.toLowerCase()}`;
+}
+
+function WrapStatusBadge({ status }: { status: KrexWrapStatus }) {
+  return (
+    <Tooltip content={statusTooltip(status)}>
+      <span className="inline-flex cursor-help">
+        <KxBadge variant={statusBadgeVariant(status)} size="sm">
+          {statusLabel(status)}
+        </KxBadge>
+      </span>
+    </Tooltip>
+  );
 }
 
 export function KrexWrapBridgeWidget() {
@@ -359,7 +413,7 @@ export function KrexWrapBridgeWidget() {
       updateKrexWrapStatus(wrapId, mintLive ? 'pending_mint' : 'deposited', {
         depositTxHash: hash,
         note: mintLive
-          ? 'Deposit submitted. Waiting for KCC20 mint.'
+          ? 'Deposit on-chain. Waiting for Kasparex mint watcher to issue KCC20 1:1.'
           : 'Deposit submitted. KCC20 mint follows when this ticker is live.',
       });
 
@@ -392,12 +446,12 @@ export function KrexWrapBridgeWidget() {
       }
 
       const successMsg = mintLive
-        ? `Migrated ${parsedAmount} ${tick}. Matching KCC20 should arrive shortly.`
+        ? `Deposited ${parsedAmount} ${tick}. Mint is signed by the Kasparex watcher; History flips when the receipt lands.`
         : `Locked ${parsedAmount} ${tick} in the vault on ${networkLabel(network)}.`;
       setSuccess(successMsg);
       hubNotify.txSuccess({
         id: loadingId,
-        title: 'Migration submitted',
+        title: 'Deposit submitted',
         description: successMsg,
         txHash: hash,
         network,
@@ -479,8 +533,16 @@ export function KrexWrapBridgeWidget() {
       <DAppWidgetShell
         title="History"
         heading="Your migrations"
-        description="Local history for this browser. Deposits are on Kaspa L1. Mint status syncs from watcher receipts."
+        description="Saved in this browser. Deposits are on Kaspa L1. Mint status comes from Kasparex watcher receipts."
       >
+        <div className={KX_INFO_DASHED}>
+          <p className="font-semibold text-zinc-900 dark:text-zinc-100">How minting works</p>
+          <p className="mt-1">
+            1) You pay the fee and send KRC-20 to the vault. 2) Deposit is on-chain immediately. 3) A Kasparex mint
+            watcher (offline signer, not this website) issues matching KCC20 1:1. 4) This list flips to Minted when
+            that receipt syncs. Hover a badge for details.
+          </p>
+        </div>
         {history.length === 0 ? (
           <p className="text-sm text-zinc-600 dark:text-zinc-400">No migrations recorded in this browser yet.</p>
         ) : (
@@ -494,7 +556,7 @@ export function KrexWrapBridgeWidget() {
                   <span className="font-semibold text-zinc-900 dark:text-zinc-100">
                     {row.amount} {row.tick}
                   </span>
-                  <span className="text-xs text-zinc-500">{statusLabel(row.status)}</span>
+                  <WrapStatusBadge status={row.status} />
                 </div>
                 <div className="text-xs text-zinc-500">
                   {row.network ? `${networkLabel(row.network)} · ` : ''}
@@ -548,15 +610,19 @@ export function KrexWrapBridgeWidget() {
       <DAppWidgetShell
         title="Migrate"
         heading="KCC20 Bridge"
-        description="Move any KRC-20 into matching KCC20 1:1. One-way for now. Use Testnet to practice with test tokens."
+        description="Lock KRC-20 in the vault, then receive matching KCC20 1:1. Deposit is instant; mint is operated by Kasparex."
         headerAside={networkBadge}
         className={migratePanelClass}
       >
         {networkToggle}
 
         <div className={KX_INFO_DASHED}>
-          One-way migration. Pay a KAS bridge fee (KREX tiers discount it), then send the token to the vault
-          shown below. Exchange deposits still use KRC-20.
+          <p className="font-semibold text-zinc-900 dark:text-zinc-100">Honest flow</p>
+          <p className="mt-1">
+            Pay a KAS fee, send the ticker to the vault below. Your deposit is on Kaspa L1 right away. Matching KCC20
+            is minted 1:1 by a Kasparex watcher with the mint key (not this Hub page, not Vercel). No extra free supply:
+            vault holdings back what is minted. One-way for now.
+          </p>
         </div>
 
         {!config.ready ? (
@@ -586,6 +652,29 @@ export function KrexWrapBridgeWidget() {
               tooltipDescription: 'KAS fee paid to Hub treasury before the token deposit. Discounted by your KREX tier.',
               copyable: false,
             },
+            ...(mintLive && getWrapCovenantIdForTick(tick)
+              ? [
+                  {
+                    label: 'KCC20 on kascov',
+                    value: getWrapCovenantIdForTick(tick)!,
+                    valueNode: (
+                      <a
+                        href={kascovCovenantUrl(network, getWrapCovenantIdForTick(tick)!)}
+                        target="_blank"
+                        rel="noreferrer"
+                        className={KX_METADATA_STAT_VALUE_LINK}
+                      >
+                        Open {tick} covenant
+                      </a>
+                    ),
+                    tooltipTitle: 'Covenant explorer',
+                    tooltipDescription:
+                      'Live KCC20 on kascov. Ticker/logo there only come from genesis tx payload JSON. This TN10 TKREX birth did not include that, so kascov may show a generated name until a future named genesis.',
+                    copyable: true,
+                    mono: true,
+                  },
+                ]
+              : []),
           ]}
         />
 

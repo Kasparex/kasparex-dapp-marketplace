@@ -177,6 +177,21 @@ People buy after you:
 - KRC-20 recognition depends on indexers (mainnet `api.kasplex.org`, testnet `tn10api.kasplex.org`).
 - Mint/release depends on the watcher.
 
+## kascov ticker and logo
+
+Yes: TN10 TKREX KCC20 lives on kascov at the asset covenant id
+`c9d0799b9640c3b7d10e5d90fcc58f38fa99c947f30e2c4f44a85b7f394600ef`
+([coin page](https://kascov.io/#/testnet-10/c/c9d0799b9640c3b7d10e5d90fcc58f38fa99c947f30e2c4f44a85b7f394600ef)).
+
+kascov does **not** take ticker/logo from Hub env. It only shows a claimed name when the **genesis transaction payload** includes JSON such as:
+
+```json
+{"name": "Test KREX", "ticker": "TKREX", "image": "https://…/tkrex.png", "image_hash": "<sha256 of image bytes>"}
+```
+
+This live TN10 genesis did not include that payload, so kascov keeps its deterministic friendly name. To get a named badge + image link you must include the JSON on the **next** genesis (new covenant id), then update Hub `NEXT_PUBLIC_KCC20_BRIDGE_COVENANTS`. Prefer `image` + `image_hash` so kascov can verify the art.
+
 ## Multi-token registry
 
 Shared vault + per-tick KCC20 covenant map. KREX is the default pair on mainnet; **TKREX** is the TN10 test pair.
+
