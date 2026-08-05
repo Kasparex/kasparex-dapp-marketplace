@@ -179,9 +179,13 @@ People buy after you:
 
 ## kascov ticker and logo
 
-Yes: TN10 TKREX KCC20 lives on kascov at the asset covenant id
+Yes: TN10 TKREX KCC20 lives on kascov as asset covenant
 `c9d0799b9640c3b7d10e5d90fcc58f38fa99c947f30e2c4f44a85b7f394600ef`
-([coin page](https://kascov.io/#/testnet-10/c/c9d0799b9640c3b7d10e5d90fcc58f38fa99c947f30e2c4f44a85b7f394600ef)).
+(kascov name: **rapid-indigo-yak**). Prefer the path URL:
+
+`https://kascov.io/testnet-10/c/c9d0799b9640c3b7d10e5d90fcc58f38fa99c947f30e2c4f44a85b7f394600ef`
+
+(Hash routes `#/testnet-10/c/…` sometimes fail to load the coin page even when the JSON API is fine.)
 
 kascov does **not** take ticker/logo from Hub env. It only shows a claimed name when the **genesis transaction payload** includes JSON such as:
 

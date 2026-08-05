@@ -85,7 +85,7 @@ function statusTooltip(status: KrexWrapStatus): string {
     case 'deposited':
       return 'KRC-20 is in the vault. KCC20 mint is not live for this ticker yet.';
     case 'pending_mint':
-      return 'Deposit is on Kaspa L1. Kasparex runs a mint watcher (not on Vercel) that signs matching KCC20 1:1. History flips to Minted when that receipt lands.';
+      return 'Your deposit is on Kaspa L1. Kasparex still needs to mint matching KCC20 1:1. This list flips to Minted when that mint receipt syncs.';
     case 'minted':
       return 'Matching KCC20 was minted on Kaspa L1. Open the Mint link for the covenant tx.';
     case 'failed':
@@ -99,9 +99,10 @@ function networkLabel(network: Krc20BridgeNetwork): string {
   return network === 'testnet-10' ? 'Testnet' : 'Mainnet';
 }
 
+/** Path form is what kascov documents; hash routes sometimes fail to load the coin page. */
 function kascovCovenantUrl(network: Krc20BridgeNetwork, covenantId: string): string {
   const net = network === 'testnet-10' ? 'testnet-10' : 'mainnet';
-  return `https://kascov.io/#/${net}/c/${covenantId.toLowerCase()}`;
+  return `https://kascov.io/${net}/c/${covenantId.toLowerCase()}`;
 }
 
 function WrapStatusBadge({ status }: { status: KrexWrapStatus }) {
@@ -413,7 +414,7 @@ export function KrexWrapBridgeWidget() {
       updateKrexWrapStatus(wrapId, mintLive ? 'pending_mint' : 'deposited', {
         depositTxHash: hash,
         note: mintLive
-          ? 'Deposit on-chain. Waiting for Kasparex mint watcher to issue KCC20 1:1.'
+          ? 'Deposit on-chain. Waiting for Kasparex to mint matching KCC20 1:1.'
           : 'Deposit submitted. KCC20 mint follows when this ticker is live.',
       });
 
@@ -446,7 +447,7 @@ export function KrexWrapBridgeWidget() {
       }
 
       const successMsg = mintLive
-        ? `Deposited ${parsedAmount} ${tick}. Mint is signed by the Kasparex watcher; History flips when the receipt lands.`
+        ? `Deposited ${parsedAmount} ${tick}. Kasparex mints matching KCC20 next; History flips when the receipt lands.`
         : `Locked ${parsedAmount} ${tick} in the vault on ${networkLabel(network)}.`;
       setSuccess(successMsg);
       hubNotify.txSuccess({
@@ -537,11 +538,12 @@ export function KrexWrapBridgeWidget() {
       >
         <div className={KX_INFO_DASHED}>
           <p className="font-semibold text-zinc-900 dark:text-zinc-100">How minting works</p>
-          <p className="mt-1">
-            1) You pay the fee and send KRC-20 to the vault. 2) Deposit is on-chain immediately. 3) A Kasparex mint
-            watcher (offline signer, not this website) issues matching KCC20 1:1. 4) This list flips to Minted when
-            that receipt syncs. Hover a badge for details.
-          </p>
+          <ol className="mt-2 list-decimal space-y-1.5 pl-5 text-sm leading-snug text-zinc-700 dark:text-zinc-300">
+            <li>Pay the fee and send KRC-20 to the vault.</li>
+            <li>The deposit is on Kaspa L1 immediately.</li>
+            <li>Kasparex mints matching KCC20 1:1 against that deposit.</li>
+            <li>This list flips to Minted when the mint receipt syncs. Hover a badge for details.</li>
+          </ol>
         </div>
         {history.length === 0 ? (
           <p className="text-sm text-zinc-600 dark:text-zinc-400">No migrations recorded in this browser yet.</p>
@@ -610,20 +612,11 @@ export function KrexWrapBridgeWidget() {
       <DAppWidgetShell
         title="Migrate"
         heading="KCC20 Bridge"
-        description="Lock KRC-20 in the vault, then receive matching KCC20 1:1. Deposit is instant; mint is operated by Kasparex."
+        description="Lock KRC-20 in the vault, then receive matching KCC20 1:1. Deposit is on-chain right away; Kasparex completes the mint."
         headerAside={networkBadge}
         className={migratePanelClass}
       >
         {networkToggle}
-
-        <div className={KX_INFO_DASHED}>
-          <p className="font-semibold text-zinc-900 dark:text-zinc-100">Honest flow</p>
-          <p className="mt-1">
-            Pay a KAS fee, send the ticker to the vault below. Your deposit is on Kaspa L1 right away. Matching KCC20
-            is minted 1:1 by a Kasparex watcher with the mint key (not this Hub page, not Vercel). No extra free supply:
-            vault holdings back what is minted. One-way for now.
-          </p>
-        </div>
 
         {!config.ready ? (
           <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-4 text-sm text-zinc-600 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-400">
@@ -669,7 +662,7 @@ export function KrexWrapBridgeWidget() {
                     ),
                     tooltipTitle: 'Covenant explorer',
                     tooltipDescription:
-                      'Live KCC20 on kascov. Ticker/logo there only come from genesis tx payload JSON. This TN10 TKREX birth did not include that, so kascov may show a generated name until a future named genesis.',
+                      'TN10 TKREX asset covenant on kascov (rapid-indigo-yak). Use this path URL. Ticker/logo need genesis payload JSON; this birth did not include that.',
                     copyable: true,
                     mono: true,
                   },
@@ -795,22 +788,22 @@ export function KrexWrapBridgeWidget() {
       <DAppWidgetShell
         title="Risks"
         heading="Migration risks"
-        description="Read before you migrate. This is not a fully trustless consensus bridge."
+        description="Read before you migrate. Short version of how this bridge actually works."
         headerAside={networkBadge}
         className={migratePanelClass}
       >
         <ul className="list-disc space-y-2 pl-5 text-sm leading-snug text-zinc-700 dark:text-zinc-300">
-          <li>This path is one-way for now. You cannot reverse back to KRC-20 from this dApp yet.</li>
           <li>
-            Minting depends on Kasparex automation and KRC-20 indexers. It is not a fully trustless consensus
-            bridge.
+            Deposit is on Kaspa L1 immediately. Matching KCC20 is minted 1:1 by Kasparex after the vault receives the
+            token. Hub shows status from those mint receipts.
           </li>
+          <li>No extra free supply: minted KCC20 is backed by vault-held KRC-20. One-way for now (no reverse yet).</li>
           <li>
-            Only send the selected ticker to the vault address shown above. Tokens sent elsewhere may be lost.
+            This is an operator mint path, not a fully trustless consensus bridge. Minting depends on Kasparex and
+            KRC-20 indexers.
           </li>
-          <li>
-            Centralized exchanges still expect KRC-20. Keep exchange inventory unmigrated if you deposit there.
-          </li>
+          <li>Only send the selected ticker to the vault address shown above. Tokens sent elsewhere may be lost.</li>
+          <li>Centralized exchanges still expect KRC-20. Keep exchange inventory unmigrated if you deposit there.</li>
           <li>Practice on Testnet before moving mainnet funds.</li>
         </ul>
       </DAppWidgetShell>
