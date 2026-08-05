@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1785962696-17e3ab3",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: chore(bridge): upsert TN10 TKREX mint receipt (2026-08-05T20:44:39.558Z) (by Kasparex)",
+      "date": "2026-08-05T22:44:39+02:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1785607080-8099c61",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Sync hub content: 2026-08-01T17:57:44.902Z (by Kasparex)",
