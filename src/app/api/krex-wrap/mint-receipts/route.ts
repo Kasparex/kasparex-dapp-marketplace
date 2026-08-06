@@ -8,7 +8,9 @@ import {
 import {
   findAttestation,
   loadAttestationStore,
+  loadMigrateMintTip,
   loadMintReceiptStore,
+  persistMigrateMintTip,
   persistMintReceiptStore,
   upsertAttestation,
 } from '@/lib/krex/wrap/mintReceiptStore';
@@ -119,10 +121,59 @@ async function postAttestation(req: NextRequest, body: Record<string, unknown>) 
   return NextResponse.json({ ok: true, mode: 'attest', attestation, persist });
 }
 
-/** Public: mint receipts, or migrate attestations when ?mode=attest. */
+async function getMintTip() {
+  const tip = await loadMigrateMintTip();
+  return NextResponse.json({
+    ok: true,
+    mode: 'mint-tip',
+    network: 'testnet-10',
+    found: Boolean(tip),
+    tip,
+  });
+}
+
+async function postMintTip(req: NextRequest, body: Record<string, unknown>) {
+  if (!watcherSecretExpected()) {
+    return NextResponse.json(
+      { ok: false, error: 'Watcher/attestor secret is not configured on this deployment' },
+      { status: 503 },
+    );
+  }
+  if (!watcherAuthorized(req)) {
+    return NextResponse.json({ ok: false, error: 'Unauthorized' }, { status: 401 });
+  }
+  const tipBody =
+    body.tip && typeof body.tip === 'object'
+      ? (body.tip as Record<string, unknown>)
+      : body;
+  const persisted = await persistMigrateMintTip(tipBody);
+  if (!persisted.ok || !persisted.tip) {
+    return NextResponse.json(
+      {
+        ok: false,
+        mode: 'mint-tip',
+        error: persisted.error || 'Failed to persist migrate mint tip',
+        via: persisted.via,
+      },
+      { status: persisted.error?.startsWith('Invalid') ? 400 : 502 },
+    );
+  }
+  return NextResponse.json({
+    ok: true,
+    mode: 'mint-tip',
+    tip: persisted.tip,
+    persist: { ok: true, via: persisted.via },
+  });
+}
+
+/** Public: mint receipts, migrate attestations (?mode=attest), or mint tip (?mode=mint-tip). */
 export async function GET(req: NextRequest) {
-  if (req.nextUrl.searchParams.get('mode') === 'attest') {
+  const mode = req.nextUrl.searchParams.get('mode');
+  if (mode === 'attest') {
     return getAttestations(req);
+  }
+  if (mode === 'mint-tip') {
+    return getMintTip();
   }
 
   const deposit = normalizeTxHash(req.nextUrl.searchParams.get('depositTxHash'));
@@ -169,6 +220,9 @@ export async function POST(req: NextRequest) {
 
   if (mode === 'attest') {
     return postAttestation(req, body);
+  }
+  if (mode === 'mint-tip') {
+    return postMintTip(req, body);
   }
 
   if (!watcherAuthorized(req)) {
