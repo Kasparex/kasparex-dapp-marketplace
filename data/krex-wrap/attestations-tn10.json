@@ -1,7 +1,21 @@
 {
   "network": "testnet-10",
-  "updatedAt": "2026-08-06T17:04:14.901Z",
+  "updatedAt": "2026-08-06T17:22:19.978Z",
   "attestations": [
+    {
+      "network": "testnet-10",
+      "tick": "TKREX",
+      "burnTxHash": "85399455588aa0e554b16765579c8d46b1343563b54f6dc74b37955ffa5b7334",
+      "amountRaw": "700000000",
+      "amount": 7,
+      "from": "kaspatest:qqn2344wcpyrp3w4jx8dc6zd0mn2ml4glgn84ufwv7em20udf2s9z8p8xc2zy",
+      "sinkAddress": "kaspatest:pqw2y985nkrstxa7x30rkckq6y8papu48tv688vak9eyew2fc9r9vdf0hcw87",
+      "claimantAddress": "kaspatest:qqn2344wcpyrp3w4jx8dc6zd0mn2ml4glgn84ufwv7em20udf2s9z8p8xc2zy",
+      "ticketId": "85399455588aa0e554b16765579c8d46b1343563b54f6dc74b37955ffa5b7334",
+      "status": "attested",
+      "attestedAt": "2026-08-06T17:22:19.881Z",
+      "note": "TN10 N=1 attestor observation (mechanism soak)"
+    },
     {
       "network": "testnet-10",
       "tick": "TKREX",
