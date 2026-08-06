@@ -385,7 +385,7 @@ async function fetchTipGithubFile(): Promise<{ tip: MigrateMintTip | null; sha?:
 /** Prefer GitHub (live after attestor mint), else deployment file. */
 export async function loadMigrateMintTip(): Promise<MigrateMintTip | null> {
   const fromGh = await fetchTipGithubFile();
-  if (fromGh) return fromGh.tip;
+  if (fromGh?.tip) return fromGh.tip;
   return readTipLocalFile();
 }
 
