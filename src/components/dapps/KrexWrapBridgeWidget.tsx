@@ -42,6 +42,7 @@ import {
 } from '@/lib/payments/hubPayRail';
 import { KxBadge, type KxBadgeVariant } from '@/components/ui/KxBadge';
 import { Tooltip } from '@/components/ui/Tooltip';
+import { KrexWrapMigrateProgress } from '@/components/dapps/KrexWrapMigrateProgress';
 
 const BRIDGE_SLUG = 'kcc20-bridge';
 
@@ -627,7 +628,10 @@ export function KrexWrapBridgeWidget() {
                 <li>Pay the fee and burn KRC-20 to the keyless sink (no spend key).</li>
                 <li>Attestors observe an accepted burn (opAccept), not a prediction.</li>
                 <li>Matching KCC20 is minted 1:1 against that burn ticket.</li>
-                <li>This list flips to Minted when the claim lands. Hover a badge for details.</li>
+                <li>
+                  During TN10 soak, attest + mint run on the Kasparex host (not inside your browser). Each row
+                  shows where you are and what is next.
+                </li>
               </>
             ) : (
               <>
@@ -681,6 +685,7 @@ export function KrexWrapBridgeWidget() {
                     Mint {extractTxId(row.mintTxHash) || 'tx'}
                   </a>
                 ) : null}
+                <KrexWrapMigrateProgress row={row} migrateV2={migrateV2} />
                 {row.note ? <p className="text-xs text-zinc-500">{row.note}</p> : null}
               </li>
             ))}
