@@ -1,8 +1,8 @@
 {
   "name": "Test KREX",
   "ticker": "TKREX",
-  "image": "https://hub.kasparex.com/brand/tkrex.png",
+  "image": "https://i.imgur.com/FKIdlm9.png",
   "image_hash": "b1bc81036057d6e831e369b75a12178426a046991921c6d6113d3bca5c62472e",
   "decimals": 8,
-  "note": "KCC-0021-style genesis payload for kascov. image_hash is SHA-256 of public/brand/tkrex.png."
+  "note": "KCC-0021 genesis payload for TN10 soak. image_hash is SHA-256 of the imgur PNG bytes."
 }

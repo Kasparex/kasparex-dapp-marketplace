@@ -1,4 +1,4 @@
-﻿# KCC20 Bridge (KRC-20 â†” KCC20)
+# KCC20 Bridge (KRC-20 â†” KCC20)
 
 Hub dApp: [`/dapps/kcc20-bridge`](../src/components/dapps/KrexWrapBridgeWidget.tsx)
 
@@ -192,10 +192,10 @@ Yes: TN10 TKREX KCC20 lives on kascov as asset covenant
 kascov does **not** take ticker/logo from Hub env. It only shows a claimed name when the **genesis transaction payload** includes JSON such as:
 
 ```json
-{"name": "Test KREX", "ticker": "TKREX", "image": "https://hub.kasparex.com/brand/tkrex.png", "image_hash": "b1bc81036057d6e831e369b75a12178426a046991921c6d6113d3bca5c62472e"}
+{"name": "Test KREX", "ticker": "TKREX", "image": "https://i.imgur.com/FKIdlm9.png", "image_hash": "b1bc81036057d6e831e369b75a12178426a046991921c6d6113d3bca5c62472e"}
 ```
 
-Hub hosts the art at `/brand/tkrex.png` (source file committed under `public/brand/`). Canonical metadata: `data/krex-wrap/tkrex-kascov-metadata.json`.
+Canonical metadata: `data/krex-wrap/tkrex-kascov-metadata.json`. TN10 soak uses the imgur logo URL (no Hub branding required yet).
 
 The live capped TN10 genesis (`c9d0799bâ€¦`) did **not** include that payload, so kascov keeps its deterministic friendly name. The next **KCC20Migrate** genesis (OpenSilver `tkrex-migrate-deploy/` + `broadcast-tkrex-migrate-asset-genesis.mjs`) must include the JSON payload, then update Hub `NEXT_PUBLIC_KCC20_BRIDGE_COVENANTS`. Prefer `image` + `image_hash` so kascov can verify the art.
 
