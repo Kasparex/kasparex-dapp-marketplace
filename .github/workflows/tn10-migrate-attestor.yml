@@ -1,0 +1,75 @@
+# TN10 keyless migrate: attest sink burns + AUTO_MINT (KCC20Migrate).
+# Uses Hub-owned tools/tn10-migrate bundle (OpenSilver script/artifact subset).
+#
+# Secrets (Kasparex/kasparex-dapp-marketplace → Actions):
+#   KCC20_BRIDGE_WATCHER_SECRET  same as Vercel
+#   TKREX_WALLET3_PRIVKEY        64-hex TN10 soak key
+#   KREX_WRAP_HUB_URL            optional (default https://hub.kasparex.com)
+name: TN10 migrate attestor
+
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: tn10-migrate-attestor
+  cancel-in-progress: false
+
+jobs:
+  attest-and-mint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    defaults:
+      run:
+        working-directory: tools/tn10-migrate
+    steps:
+      - name: Checkout Hub
+        uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: |
+            tools/tn10-migrate/upstream/silverscript -> target
+
+      - name: Bootstrap pinned silverc
+        run: bash scripts/bootstrap-silverc.sh
+
+      - name: Prefetch Hub mint tip
+        env:
+          KREX_WRAP_HUB_URL: ${{ secrets.KREX_WRAP_HUB_URL }}
+        run: |
+          HUB_URL="${KREX_WRAP_HUB_URL:-https://hub.kasparex.com}"
+          mkdir -p tkrex-migrate-deploy
+          curl -fsSL "$HUB_URL/api/krex-wrap/mint-receipts?mode=mint-tip" -o /tmp/mint-tip.json || true
+          node -e "
+            const fs=require('fs');
+            try {
+              const j=JSON.parse(fs.readFileSync('/tmp/mint-tip.json','utf8'));
+              if (j && j.tip) {
+                fs.writeFileSync('tkrex-migrate-deploy/MINT_TIP.json', JSON.stringify(j.tip,null,2)+'\n');
+                console.log('Wrote tip remainingAllowance=', j.tip.remainingAllowance);
+              } else console.log('No Hub tip yet; using bundled tip if present');
+            } catch (e) { console.log('Tip prefetch skipped:', e.message); }
+          "
+
+      - name: Attest + AUTO_MINT once
+        env:
+          KREX_WRAP_HUB_URL: ${{ secrets.KREX_WRAP_HUB_URL }}
+          KCC20_BRIDGE_WATCHER_SECRET: ${{ secrets.KCC20_BRIDGE_WATCHER_SECRET }}
+          KCC20_MIGRATE_AUTO_MINT: '1'
+          TKREX_WALLET3_PRIVKEY: ${{ secrets.TKREX_WALLET3_PRIVKEY }}
+          TKREX_HUB_ROOT: ${{ github.workspace }}
+        run: |
+          export KREX_WRAP_HUB_URL="${KREX_WRAP_HUB_URL:-https://hub.kasparex.com}"
+          if [ -z "$KCC20_BRIDGE_WATCHER_SECRET" ] || [ -z "$TKREX_WALLET3_PRIVKEY" ]; then
+            echo "Missing KCC20_BRIDGE_WATCHER_SECRET or TKREX_WALLET3_PRIVKEY secrets"
+            exit 1
+          fi
+          node scripts/tkrex-migrate-attestor.mjs --once

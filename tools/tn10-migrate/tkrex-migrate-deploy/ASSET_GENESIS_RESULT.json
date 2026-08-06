@@ -1,0 +1,27 @@
+{
+  "network": "testnet-10",
+  "stage": "migrate-asset-genesis-init",
+  "controllerKind": "migrate",
+  "controllerTxId": "92cdcf5b567eb05d81e30ea7c95a3a3b1bd6e569a7d72457d24c610026365283",
+  "controllerCovenantId": "ebdcd301fa71fab9710a113a16002220b6947b58666a322c76162ec7f4da25fe",
+  "assetCovenantId": "83b999756e613d2749b8ff9549de4bdd0cb864f3d5d2dc606d92f3aa740ee91a",
+  "assetAddress": "kaspatest:pzl9g673gdnhwpvj0h0cu32u2h4ty43qm5fvm7ulfwcgyy8lg5fv6y5ctfst3",
+  "postInitAddress": "kaspatest:pq77ucnd7r90v3370rkhxgp88cnddg08ng8hvtlfrm2mawxftqq97gj8zur7z",
+  "assetUtxoSompi": "10000000",
+  "controllerChangeSompi": "88000000",
+  "priorityFeeSompi": "2000000",
+  "computeBudget": 50,
+  "kascovPayload": {
+    "name": "Test KREX",
+    "ticker": "TKREX",
+    "image": "https://i.imgur.com/FKIdlm9.png",
+    "image_hash": "b1bc81036057d6e831e369b75a12178426a046991921c6d6113d3bca5c62472e"
+  },
+  "kascovPayloadJson": "{\"name\":\"Test KREX\",\"ticker\":\"TKREX\",\"image\":\"https://i.imgur.com/FKIdlm9.png\",\"image_hash\":\"b1bc81036057d6e831e369b75a12178426a046991921c6d6113d3bca5c62472e\"}",
+  "unsignedTxId": "b27412f8f44b4a90b71a87b47069599f83b3146702f1f0104cca3c3fcfd11de2",
+  "hubEnvHint": "NEXT_PUBLIC_KCC20_BRIDGE_COVENANTS={\"TKREX\":\"83b999756e613d2749b8ff9549de4bdd0cb864f3d5d2dc606d92f3aa740ee91a\"}",
+  "broadcast": true,
+  "submittedTxId": "b27412f8f44b4a90b71a87b47069599f83b3146702f1f0104cca3c3fcfd11de2",
+  "explorer": "https://tn10.kaspa.stream/transactions/b27412f8f44b4a90b71a87b47069599f83b3146702f1f0104cca3c3fcfd11de2",
+  "kascovUrl": "https://kascov.io/testnet-10/c/83b999756e613d2749b8ff9549de4bdd0cb864f3d5d2dc606d92f3aa740ee91a"
+}

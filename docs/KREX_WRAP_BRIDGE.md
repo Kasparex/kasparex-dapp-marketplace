@@ -214,6 +214,6 @@ Shared vault + per-tick KCC20 covenant map. KREX is the default pair on mainnet;
 - kascov: https://kascov.io/testnet-10/c/83b999756e613d2749b8ff9549de4bdd0cb864f3d5d2dc606d92f3aa740ee91a
 - Payload: name `Test KREX`, ticker `TKREX`, image `https://i.imgur.com/FKIdlm9.png`
 
-**Always-on soak host:** OpenSilver GitHub Actions cron (`tn10-migrate-attestor.yml`) runs attest + `AUTO_MINT` about every 10 minutes. It is not browser-local. Mint tip chains via Hub `GET/POST /api/krex-wrap/mint-receipts?mode=mint-tip` (`data/krex-wrap/migrate-mint-tip-tn10.json`). Secrets live on the OpenSilver repo (`KCC20_BRIDGE_WATCHER_SECRET`, `TKREX_WALLET3_PRIVKEY`).
+**Always-on soak host:** Hub GitHub Actions cron ([`.github/workflows/tn10-migrate-attestor.yml`](../.github/workflows/tn10-migrate-attestor.yml)) runs from the Hub-owned [`tools/tn10-migrate`](../tools/tn10-migrate) OpenSilver subset (attest + `AUTO_MINT` about every 10 minutes). It is not browser-local. Mint tip chains via Hub `GET/POST /api/krex-wrap/mint-receipts?mode=mint-tip` (`data/krex-wrap/migrate-mint-tip-tn10.json`). Set Actions secrets `KCC20_BRIDGE_WATCHER_SECRET` and `TKREX_WALLET3_PRIVKEY` on **Kasparex/kasparex-dapp-marketplace**.
 
 Legacy capped asset `c9d0799b…` remains historical (admin mint path).

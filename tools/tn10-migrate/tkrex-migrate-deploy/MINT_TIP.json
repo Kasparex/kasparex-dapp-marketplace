@@ -1,0 +1,12 @@
+{
+  "minterTxId": "5d15e6382481c010126a39a77489f561a3629d1018805bc36dcb32433a976ed9",
+  "minterIndex": 0,
+  "minterAddress": "kaspatest:pzl9g673gdnhwpvj0h0cu32u2h4ty43qm5fvm7ulfwcgyy8lg5fv6y5ctfst3",
+  "controllerTxId": "5d15e6382481c010126a39a77489f561a3629d1018805bc36dcb32433a976ed9",
+  "controllerIndex": 2,
+  "controllerAddress": "kaspatest:pz3wnq40svdj53p487gqxw4pstanwehf37kn9zk042ajj29zezj7skz4az8t3",
+  "remainingAllowance": "99998700000000",
+  "assetCovenantId": "83b999756e613d2749b8ff9549de4bdd0cb864f3d5d2dc606d92f3aa740ee91a",
+  "controllerCovenantId": "ebdcd301fa71fab9710a113a16002220b6947b58666a322c76162ec7f4da25fe",
+  "lastBurnTxId": "85399455588aa0e554b16765579c8d46b1343563b54f6dc74b37955ffa5b7334"
+}
