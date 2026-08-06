@@ -192,10 +192,12 @@ Yes: TN10 TKREX KCC20 lives on kascov as asset covenant
 kascov does **not** take ticker/logo from Hub env. It only shows a claimed name when the **genesis transaction payload** includes JSON such as:
 
 ```json
-{"name": "Test KREX", "ticker": "TKREX", "image": "https://…/tkrex.png", "image_hash": "<sha256 of image bytes>"}
+{"name": "Test KREX", "ticker": "TKREX", "image": "https://hub.kasparex.com/tokens/tkrex.png", "image_hash": "b1bc81036057d6e831e369b75a12178426a046991921c6d6113d3bca5c62472e"}
 ```
 
-This live TN10 genesis did not include that payload, so kascov keeps its deterministic friendly name. To get a named badge + image link you must include the JSON on the **next** genesis (new covenant id), then update Hub `NEXT_PUBLIC_KCC20_BRIDGE_COVENANTS`. Prefer `image` + `image_hash` so kascov can verify the art.
+Hub hosts the art at `/tokens/tkrex.png` (source file committed under `public/tokens/`). Canonical metadata: `data/krex-wrap/tkrex-kascov-metadata.json`.
+
+The live capped TN10 genesis (`c9d0799b…`) did **not** include that payload, so kascov keeps its deterministic friendly name. The next **KCC20Migrate** genesis (OpenSilver `tkrex-migrate-deploy/` + `broadcast-tkrex-migrate-asset-genesis.mjs`) must include the JSON payload, then update Hub `NEXT_PUBLIC_KCC20_BRIDGE_COVENANTS`. Prefer `image` + `image_hash` so kascov can verify the art.
 
 ## Multi-token registry
 
