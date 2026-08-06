@@ -16,10 +16,16 @@ import type { MigrateAttestation } from '@/lib/krex/wrap/migrateV2';
 
 export const runtime = 'nodejs';
 
-function watcherAuthorized(req: NextRequest): boolean {
-  const expected =
+function watcherSecretExpected(): string {
+  return (
     process.env.KCC20_MIGRATE_ATTESTOR_SECRET?.trim() ||
-    process.env.KCC20_BRIDGE_WATCHER_SECRET?.trim();
+    process.env.KCC20_BRIDGE_WATCHER_SECRET?.trim() ||
+    ''
+  );
+}
+
+function watcherAuthorized(req: NextRequest): boolean {
+  const expected = watcherSecretExpected();
   if (!expected) return false;
   const auth = req.headers.get('authorization') || '';
   const bearer = auth.toLowerCase().startsWith('bearer ') ? auth.slice(7).trim() : '';
@@ -51,10 +57,17 @@ async function getAttestations(req: NextRequest) {
     network: store.network,
     updatedAt: store.updatedAt,
     attestations: store.attestations,
+    watcherSecretConfigured: Boolean(watcherSecretExpected()),
   });
 }
 
 async function postAttestation(req: NextRequest, body: Record<string, unknown>) {
+  if (!watcherSecretExpected()) {
+    return NextResponse.json(
+      { ok: false, error: 'Watcher/attestor secret is not configured on this deployment' },
+      { status: 503 },
+    );
+  }
   if (!watcherAuthorized(req)) {
     return NextResponse.json({ ok: false, error: 'Unauthorized' }, { status: 401 });
   }
