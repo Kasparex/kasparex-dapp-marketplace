@@ -1,6 +1,6 @@
 {
   "network": "testnet-10",
-  "updatedAt": "2026-08-06T19:08:54.626Z",
+  "updatedAt": "2026-08-06T19:08:58.386Z",
   "attestations": [
     {
       "network": "testnet-10",
@@ -12,9 +12,11 @@
       "sinkAddress": "kaspatest:pqw2y985nkrstxa7x30rkckq6y8papu48tv688vak9eyew2fc9r9vdf0hcw87",
       "claimantAddress": "kaspatest:qrwa6q8pk80dzpatgas9es2re0kusnja305wsnealy0hj480w452y0fmw3hsd",
       "ticketId": "e6895bf1f0cc369b85906f23cca9847af0c2a63b16008ce8cb50428e6f3d337c",
-      "status": "attested",
+      "status": "claimed",
       "attestedAt": "2026-08-06T19:08:54.506Z",
-      "note": "TN10 N=1 attestor observation (mechanism soak)"
+      "note": "Claimed via attestor-assisted KCC20Migrate mint (soak)",
+      "mintTxHash": "f225d4b697f421807bbc1c35299cbdc890d8037be1a74a38f6efadb3b72890ee",
+      "assetCovenantId": "83b999756e613d2749b8ff9549de4bdd0cb864f3d5d2dc606d92f3aa740ee91a"
     },
     {
       "network": "testnet-10",
