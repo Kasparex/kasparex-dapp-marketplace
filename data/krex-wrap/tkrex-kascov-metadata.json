@@ -1,8 +1,8 @@
 {
-  "name": "Test KREX",
-  "ticker": "TKREX",
-  "image": "https://hub.kasparex.com/tokens/tkrex.png",
-  "image_hash": "b1bc81036057d6e831e369b75a12178426a046991921c6d6113d3bca5c62472e",
-  "decimals": 8,
-  "note": "KCC-0021-style genesis payload for kascov. image_hash is SHA-256 of /tokens/tkrex.png."
+    "name":  "Test KREX",
+    "ticker":  "TKREX",
+    "image":  "https://hub.kasparex.com/tokens/tkrex.png",
+    "image_hash":  "b1bc81036057d6e831e369b75a12178426a046991921c6d6113d3bca5c62472e",
+    "decimals":  8,
+    "note":  "KCC-0021-style genesis payload for kascov. image_hash is SHA-256 of /tokens/tkrex.png."
 }
