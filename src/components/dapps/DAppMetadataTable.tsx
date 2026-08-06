@@ -62,7 +62,9 @@ export function DAppMetadataTable({
         label: 'Direction',
         value: 'One-way',
         tooltipTitle: 'Direction',
-        tooltipDescription: 'KRC-20 → vault → KCC20. Reverse migration comes later.',
+        tooltipDescription: bridge.migrateV2Enabled
+          ? 'KRC-20 burn to keyless sink → attested claim → KCC20. No reverse path.'
+          : 'KRC-20 → vault → KCC20. Reverse migration comes later.',
         copyable: false,
       },
       {
@@ -73,7 +75,16 @@ export function DAppMetadataTable({
         copyable: false,
       },
     );
-    if (bridge.vaultAddress) {
+    if (bridge.migrateV2Enabled && bridge.sinkAddress) {
+      stats.push({
+        label: 'Burn sink',
+        value: bridge.sinkAddress,
+        tooltipTitle: 'Keyless burn sink',
+        tooltipDescription: 'Unspendable P2SH sink. Send only the selected KRC-20 here from the Migrate tab.',
+        mono: true,
+        copyable: true,
+      });
+    } else if (bridge.vaultAddress) {
       stats.push({
         label: 'Vault',
         value: bridge.vaultAddress,

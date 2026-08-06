@@ -1,5 +1,6 @@
 import { getAdsTreasuryL1Address } from '@/lib/ads/config';
 import type { Krc20WrapCovenantMap, KrexWrapPublicConfig, Krc20BridgeNetwork } from './types';
+import { defaultMigrateSinkAddress } from './migrateV2';
 
 const DEFAULT_BASE_FEE_KAS = 5;
 const DEFAULT_MIN_WRAP = 1;
@@ -57,7 +58,7 @@ export function getKrexWrapDecimals(): number {
   return Number.isFinite(n) && n >= 0 && n <= 18 ? Math.floor(n) : DEFAULT_DECIMALS;
 }
 
-/** Shared deposit vault for mainnet KRC-20 → KCC20. */
+/** Shared deposit vault for mainnet KRC-20 → KCC20 (v1). */
 export function getKrexWrapVaultAddress(): string | null {
   return (
     trimEnv(process.env.NEXT_PUBLIC_KCC20_BRIDGE_VAULT) ||
@@ -66,7 +67,7 @@ export function getKrexWrapVaultAddress(): string | null {
   );
 }
 
-/** Testnet-10 deposit vault (optional; enables Testnet deposits in the UI). */
+/** Testnet-10 deposit vault (v1). */
 export function getKcc20BridgeVaultTestnet(): string | null {
   return (
     trimEnv(process.env.NEXT_PUBLIC_KCC20_BRIDGE_VAULT_TESTNET) ||
@@ -76,6 +77,34 @@ export function getKcc20BridgeVaultTestnet(): string | null {
 
 export function getBridgeVaultAddress(network: Krc20BridgeNetwork): string | null {
   return network === 'testnet-10' ? getKcc20BridgeVaultTestnet() : getKrexWrapVaultAddress();
+}
+
+/** Keyless burn sink for v2 migrate. Env override or published sink v1. */
+export function getMigrateSinkAddress(network: Krc20BridgeNetwork): string | null {
+  if (network === 'testnet-10') {
+    return (
+      trimEnv(process.env.NEXT_PUBLIC_KCC20_MIGRATE_SINK_TESTNET) ||
+      trimEnv(process.env.NEXT_PUBLIC_KCC20_MIGRATE_SINK) ||
+      defaultMigrateSinkAddress('testnet-10')
+    );
+  }
+  return (
+    trimEnv(process.env.NEXT_PUBLIC_KCC20_MIGRATE_SINK) ||
+    trimEnv(process.env.NEXT_PUBLIC_KCC20_MIGRATE_SINK_MAINNET) ||
+    defaultMigrateSinkAddress('mainnet')
+  );
+}
+
+/**
+ * v2 keyless migrate UI. Default ON (Hub is a testing ground).
+ * Set NEXT_PUBLIC_KCC20_MIGRATE_V2=0 to force legacy vault path.
+ */
+export function isKrexMigrateV2Enabled(): boolean {
+  const raw =
+    trimEnv(process.env.NEXT_PUBLIC_KCC20_MIGRATE_V2) ||
+    trimEnv(process.env.NEXT_PUBLIC_KCC20_BRIDGE_MIGRATE_V2);
+  if (raw === '0' || raw === 'false' || raw === 'off') return false;
+  return true;
 }
 
 /** Wrapped KREX KCC20 covenant id (legacy env). */
@@ -119,7 +148,10 @@ export function getWrapCovenantIdForTick(tick: string): string | null {
 }
 
 export function isWrapMintLiveForTick(tick: string, network: Krc20BridgeNetwork = 'mainnet'): boolean {
-  return Boolean(getBridgeVaultAddress(network) && getWrapCovenantIdForTick(tick));
+  const covenant = getWrapCovenantIdForTick(tick);
+  if (!covenant) return false;
+  if (isKrexMigrateV2Enabled()) return Boolean(getMigrateSinkAddress(network));
+  return Boolean(getBridgeVaultAddress(network));
 }
 
 /** Ops TN10 fee sink (wallet 2). Override with NEXT_PUBLIC_KCC20_BRIDGE_TREASURY_TESTNET. */
@@ -177,16 +209,21 @@ export function isKrexWrapMintLive(): boolean {
 export function getKrexWrapPublicConfig(
   network: Krc20BridgeNetwork = 'mainnet',
 ): KrexWrapPublicConfig {
+  const migrateV2Enabled = isKrexMigrateV2Enabled();
   const vaultAddress = getBridgeVaultAddress(network);
+  const sinkAddress = getMigrateSinkAddress(network);
   const treasuryAddress = getKrexWrapTreasuryAddress(network) || null;
   const covenants = getKrc20WrapCovenantMap();
   const defaultTick = getKrexWrapTick(network);
   const kcc20CovenantId = getWrapCovenantIdForTick(defaultTick);
   const minWrapAmount = getKrexWrapMinAmount();
   const testnetVaultConfigured = Boolean(getKcc20BridgeVaultTestnet());
+  const testnetSinkConfigured = Boolean(getMigrateSinkAddress('testnet-10'));
+  const depositReady = migrateV2Enabled ? Boolean(sinkAddress) : Boolean(vaultAddress);
   return {
     network,
     vaultAddress,
+    sinkAddress,
     treasuryAddress,
     kcc20CovenantId,
     covenants,
@@ -196,8 +233,9 @@ export function getKrexWrapPublicConfig(
     minWrapAmount,
     minWrapKrex: minWrapAmount,
     unwrapEnabled: isKrexUnwrapEnabled(),
-    mintLive: Boolean(vaultAddress && kcc20CovenantId),
-    ready: Boolean(vaultAddress && treasuryAddress),
-    testnetAvailable: testnetVaultConfigured,
+    migrateV2Enabled,
+    mintLive: Boolean(depositReady && kcc20CovenantId),
+    ready: Boolean(depositReady && treasuryAddress),
+    testnetAvailable: migrateV2Enabled ? testnetSinkConfigured : testnetVaultConfigured,
   };
 }

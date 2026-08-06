@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import {
   getBridgeVaultAddress,
   getKrexWrapTick,
+  getMigrateSinkAddress,
+  isKrexMigrateV2Enabled,
   kasplexApiBaseForNetwork,
 } from '@/lib/krex/wrap/config';
 import { stripKaspaAddressHrp } from '@/lib/kaspa/sdk';
@@ -17,6 +19,8 @@ type Body = {
   amount?: number;
   /** @deprecated Prefer `amount`. */
   amountKrex?: number;
+  /** `sink` for v2 keyless burn; `vault` for v1. */
+  mode?: 'sink' | 'vault';
 };
 
 function parseNetwork(raw: unknown): Krc20BridgeNetwork {
@@ -24,8 +28,8 @@ function parseNetwork(raw: unknown): Krc20BridgeNetwork {
 }
 
 /**
- * Soft-verify a bridge deposit against Kasplex KRC-20 ops for the vault address.
- * Does not mint; operators / watcher use this as an eligibility check.
+ * Soft-verify a bridge burn/deposit against Kasplex KRC-20 ops.
+ * Does not mint; attestor / operators use this as an eligibility check.
  */
 export async function POST(req: NextRequest) {
   let body: Body;
@@ -36,9 +40,13 @@ export async function POST(req: NextRequest) {
   }
 
   const network = parseNetwork(body.network);
-  const vault = getBridgeVaultAddress(network);
-  if (!vault) {
-    return NextResponse.json({ ok: false, error: 'Bridge vault is not available on this network' }, { status: 503 });
+  const preferSink = body.mode === 'sink' || (body.mode !== 'vault' && isKrexMigrateV2Enabled());
+  const target = preferSink ? getMigrateSinkAddress(network) : getBridgeVaultAddress(network);
+  if (!target) {
+    return NextResponse.json(
+      { ok: false, error: preferSink ? 'Bridge sink is not available on this network' : 'Bridge vault is not available on this network' },
+      { status: 503 },
+    );
   }
 
   const txHash = body.depositTxHash?.trim().toLowerCase();
@@ -51,7 +59,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: false, error: 'tick must be a 4–6 character KRC-20 ticker' }, { status: 400 });
   }
 
-  const vaultNorm = stripKaspaAddressHrp(vault).toLowerCase();
+  const targetNorm = stripKaspaAddressHrp(target).toLowerCase();
   const walletNorm = body.wallet ? stripKaspaAddressHrp(body.wallet).toLowerCase() : null;
   const apiBase = kasplexApiBaseForNetwork(network);
 
@@ -76,6 +84,8 @@ export async function POST(req: NextRequest) {
         from?: string;
         txId?: string;
         hashRev?: string;
+        opAccept?: string | number | boolean;
+        txAccept?: string | number | boolean;
       }>;
     };
     const ops = Array.isArray(json.result) ? json.result : [];
@@ -84,9 +94,9 @@ export async function POST(req: NextRequest) {
       const to = stripKaspaAddressHrp(op.to || '').toLowerCase();
       const from = stripKaspaAddressHrp(op.from || '').toLowerCase();
       const isTransfer = (op.op || '').toLowerCase() === 'transfer';
-      const toVault = to === vaultNorm;
+      const toTarget = to === targetNorm;
       const fromWallet = !walletNorm || from === walletNorm;
-      return isTransfer && opTick === tick && toVault && fromWallet;
+      return isTransfer && opTick === tick && toTarget && fromWallet;
     });
 
     if (!match) {
@@ -96,7 +106,9 @@ export async function POST(req: NextRequest) {
         txHash,
         tick,
         network,
-        error: 'No matching KRC-20 transfer to the bridge vault found for this tx yet',
+        error: preferSink
+          ? 'No matching KRC-20 transfer to the keyless sink found for this tx yet'
+          : 'No matching KRC-20 transfer to the bridge vault found for this tx yet',
       });
     }
 
@@ -110,15 +122,22 @@ export async function POST(req: NextRequest) {
       txHash,
       tick,
       network,
-      vault,
+      mode: preferSink ? 'sink' : 'vault',
+      target,
+      vault: preferSink ? undefined : target,
+      sink: preferSink ? target : undefined,
       from: match.from,
       to: match.to,
       amountRaw: match.amt,
       amount: amountHuman,
       amountKrex: amountHuman,
       claimedAmount: claimed,
-      status: 'pending_mint',
-      note: 'Deposit verified. KCC20 mint is fulfilled when mint is live for this tick.',
+      opAccept: match.opAccept ?? null,
+      txAccept: match.txAccept ?? null,
+      status: preferSink ? 'burned' : 'pending_mint',
+      note: preferSink
+        ? 'Burn verified toward keyless sink. Attestor must require opAccept before mint.'
+        : 'Deposit verified. KCC20 mint is fulfilled when mint is live for this tick.',
     });
   } catch (err) {
     return NextResponse.json(

@@ -33,6 +33,7 @@ function normalizeRecord(raw: Partial<KrexWrapRecord> & { id?: string }): KrexWr
     mintTxHash: raw.mintTxHash,
     status: (raw.status as KrexWrapStatus) || 'draft',
     note: raw.note,
+    migrateVersion: raw.migrateVersion === 2 ? 2 : raw.migrateVersion === 1 ? 1 : undefined,
   };
 }
 
@@ -147,6 +148,34 @@ export function applyMintReceiptToHistory(input: {
       status: 'minted',
       mintTxHash: mint,
       note: input.note || 'KCC20 minted on Kaspa L1.',
+      updatedAt: new Date().toISOString(),
+    };
+    changed += 1;
+  }
+  if (changed > 0) writeAll(all);
+  return changed;
+}
+
+/** Soft-update status for a burn/deposit hash without requiring the local wrap id. */
+export function updateKrexWrapStatusByBurn(
+  burnTxHash: string,
+  status: KrexWrapStatus,
+  patch?: Partial<KrexWrapRecord>,
+): number {
+  const burn = (burnTxHash || '').trim().toLowerCase();
+  if (!/^[a-f0-9]{64}$/.test(burn)) return 0;
+  const all = readAll();
+  let changed = 0;
+  for (let i = 0; i < all.length; i++) {
+    const row = all[i];
+    const rowDeposit = (row.depositTxHash || '').trim().toLowerCase();
+    if (rowDeposit !== burn) continue;
+    if (row.status === 'minted') continue;
+    if (row.status === status && !patch) continue;
+    all[i] = {
+      ...row,
+      ...patch,
+      status,
       updatedAt: new Date().toISOString(),
     };
     changed += 1;

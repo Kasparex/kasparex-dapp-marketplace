@@ -5,9 +5,9 @@ Hub dApp: [`/dapps/kcc20-bridge`](../src/components/dapps/KrexWrapBridgeWidget.t
 Old URL `/dapps/krex-wrap-bridge` redirects permanently to `/dapps/kcc20-bridge`.
 
 **v2 target (keyless one-way migrate):** [KCC20_BRIDGE_KEYLESS_ARCHITECTURE.md](./KCC20_BRIDGE_KEYLESS_ARCHITECTURE.md).  
-This file documents **v1** (vault + watcher). Hub is a testing ground; v1 is transitional only. Do not treat vault mint authority as the fairness model for real tokens.
+Hub Migrate UI defaults to **v2** (burn to keyless sink). Set `NEXT_PUBLIC_KCC20_MIGRATE_V2=0` for legacy vault path. This file still documents **v1** ops (vault + watcher).
 
-Migrate any KRC-20 into matching KCC20 1:1 via a shared Hub vault (v1). Default tick is **KREX** on Mainnet and **TKREX** on Testnet. Users can switch **Mainnet** / **Testnet** in the Migrate tab.
+Migrate any KRC-20 into matching KCC20 1:1. Default tick is **KREX** on Mainnet and **TKREX** on Testnet. Users can switch **Mainnet** / **Testnet** in the Migrate tab.
 
 Note: bridge env vars must be read via static `process.env.NEXT_PUBLIC_*` names (Next.js does not inline dynamic `process.env[key]` in the client bundle).
 

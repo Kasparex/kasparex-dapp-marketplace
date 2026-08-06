@@ -7,6 +7,27 @@ Companion ops doc (current v1 vault+watcher): [KREX_WRAP_BRIDGE.md](./KREX_WRAP_
 Reference demo (Kascov / Knitser, TN10, 2026-08-06):  
 https://x.com/0xKnitser/status/2085226857759465824
 
+## Implementation status (2026-08-06)
+
+Shipped in Hub + OpenSilver (TN10 soak, N=1 attestor honesty):
+
+| Piece | Status |
+|-------|--------|
+| Architecture invariants | Locked in this doc |
+| Keyless sink v1 (P2SH OP_RETURN) | `data/krex-wrap/migrate-sink-v1.json` + default Hub config |
+| Hub Migrate UI Burn → Attest → Minted | `/dapps/kcc20-bridge` with `migrateV2Enabled` default ON (`NEXT_PUBLIC_KCC20_MIGRATE_V2=0` to force v1) |
+| Attestation API + nullifier store | `/api/krex-wrap/attestations`, `data/krex-wrap/attestations-tn10.json` |
+| OpenSilver `KCC20Migrate` | `contracts/tokens/kcc20-migrate.sil` (attestor mint, handover, burnTxId, controller continues) |
+| Compile + runtime tests | `tests/tokens/kcc20-migrate-compile.test.ts`, `kcc20_migrate_handover_and_attestor_mint_continues_controller` |
+| Attestor script | OpenSilver `scripts/tkrex-migrate-attestor.mjs` |
+
+Still open before calling it fair for real funds:
+
+- Deploy fresh TN10 migrate covenants (do not reuse admin-minted `c9d0799b…` as the fairness asset)
+- Ticket UTXO consensus replay (today: attestor nullifier)
+- User-signed claim txs (today: optional attestor-assisted mint via `KCC20_MIGRATE_AUTO_MINT=1`)
+- N-of-M independent attestors + dual indexers + soak
+
 ## Goal
 
 Migrate KRC-20 → matching KCC20 **1:1**, as **automatic**, **fair**, and **operator-free** as Kaspa L1 allows today.

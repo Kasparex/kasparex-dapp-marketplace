@@ -10,10 +10,12 @@ export async function GET() {
     ok: true,
     ...config,
     directions: {
-      wrap: 'KRC-20 KREX → vault deposit → KCC20 mint (1:1)',
+      wrap: config.migrateV2Enabled
+        ? 'KRC-20 → keyless sink burn → attestor observe → KCC20 mint (1:1, one-way)'
+        : 'KRC-20 → vault deposit → KCC20 mint (1:1)',
       unwrap: config.unwrapEnabled
         ? 'KCC20 burn → KRC-20 release from vault'
-        : 'Disabled until two-way vault release is production-ready',
+        : 'Disabled. v2 migrate is one-way by construction.',
     },
   });
 }

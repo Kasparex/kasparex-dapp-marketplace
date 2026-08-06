@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "tag": "kasparex-kcc20-migrate-sink-v1",
+  "tagHash": "cdc5d0288ef0f7cc83f2f7697ee5329069216eaeb0859b0f4e278688bb629cfb",
+  "redeemScriptHex": "6a20cdc5d0288ef0f7cc83f2f7697ee5329069216eaeb0859b0f4e278688bb629cfb",
+  "explanation": "P2SH(OP_RETURN <sha256(tag)>). No private key; redeem script is unspendable by construction.",
+  "addresses": {
+    "testnet-10": "kaspatest:pqw2y985nkrstxa7x30rkckq6y8papu48tv688vak9eyew2fc9r9vdf0hcw87",
+    "mainnet": "kaspa:pqw2y985nkrstxa7x30rkckq6y8papu48tv688vak9eyew2fc9r9vv0fvhsk6"
+  }
+}

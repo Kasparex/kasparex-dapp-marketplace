@@ -33,6 +33,7 @@ import {
   upsertKrexWrapRecord,
   updateKrexWrapStatus,
   applyMintReceiptToHistory,
+  updateKrexWrapStatusByBurn,
 } from '@/lib/krex/wrap/history';
 import type { Krc20BridgeNetwork, KrexWrapRecord, KrexWrapStatus } from '@/lib/krex/wrap/types';
 import {
@@ -50,6 +51,10 @@ function statusLabel(status: KrexWrapStatus): string {
       return 'Fee paid';
     case 'deposited':
       return 'Deposited';
+    case 'burned':
+      return 'Burned';
+    case 'awaiting_attest':
+      return 'Awaiting attest';
     case 'pending_mint':
       return 'Pending mint';
     case 'minted':
@@ -66,6 +71,8 @@ function statusBadgeVariant(status: KrexWrapStatus): KxBadgeVariant {
     case 'minted':
       return 'emerald';
     case 'pending_mint':
+    case 'awaiting_attest':
+    case 'burned':
       return 'amber';
     case 'failed':
       return 'rose';
@@ -81,11 +88,15 @@ function statusBadgeVariant(status: KrexWrapStatus): KxBadgeVariant {
 function statusTooltip(status: KrexWrapStatus): string {
   switch (status) {
     case 'fee_paid':
-      return 'Bridge fee landed. Token deposit to the vault comes next.';
+      return 'Bridge fee landed. Token burn to the keyless sink comes next.';
     case 'deposited':
-      return 'KRC-20 is in the vault. KCC20 mint is not live for this ticker yet.';
+      return 'KRC-20 is in the vault (v1). KCC20 mint is not live for this ticker yet.';
+    case 'burned':
+      return 'KRC-20 burned to the keyless sink. Waiting for attestor observation (opAccept).';
+    case 'awaiting_attest':
+      return 'Burn attested. Matching KCC20 mint/claim is in progress.';
     case 'pending_mint':
-      return 'Your deposit is on Kaspa L1. Kasparex still needs to mint matching KCC20 1:1. This list flips to Minted when that mint receipt syncs.';
+      return 'Your deposit is on Kaspa L1. Matching KCC20 mint is still pending.';
     case 'minted':
       return 'Matching KCC20 was minted on Kaspa L1. Open the Mint link for the covenant tx.';
     case 'failed':
@@ -168,36 +179,73 @@ export function KrexWrapBridgeWidget() {
     refreshHistory();
   }, [refreshHistory]);
 
-  /** Poll watcher mint receipts so History flips Pending mint → Minted. */
+  /** Poll v2 attestations + v1 mint receipts so History flips to Minted. */
   useEffect(() => {
     let cancelled = false;
     const syncReceipts = async () => {
-      const pending = listKrexWrapHistory(state.address).filter(
+      const rows = listKrexWrapHistory(state.address).filter(
         (row) =>
           (!row.network || row.network === network) &&
-          row.status === 'pending_mint' &&
-          row.depositTxHash,
+          row.depositTxHash &&
+          (row.status === 'pending_mint' ||
+            row.status === 'burned' ||
+            row.status === 'awaiting_attest'),
       );
-      if (pending.length === 0) return;
+      if (rows.length === 0) return;
       try {
-        const res = await fetch('/api/krex-wrap/mint-receipts', {
-          headers: { Accept: 'application/json' },
-          cache: 'no-store',
-        });
-        if (!res.ok || cancelled) return;
-        const json = (await res.json()) as {
-          ok?: boolean;
-          receipts?: Array<{ depositTxHash?: string; mintTxHash?: string }>;
-        };
-        if (!json.ok || !Array.isArray(json.receipts)) return;
+        const [attestRes, mintRes] = await Promise.all([
+          fetch('/api/krex-wrap/attestations', {
+            headers: { Accept: 'application/json' },
+            cache: 'no-store',
+          }),
+          fetch('/api/krex-wrap/mint-receipts', {
+            headers: { Accept: 'application/json' },
+            cache: 'no-store',
+          }),
+        ]);
         let changed = 0;
-        for (const receipt of json.receipts) {
-          if (!receipt.depositTxHash || !receipt.mintTxHash) continue;
-          changed += applyMintReceiptToHistory({
-            depositTxHash: receipt.depositTxHash,
-            mintTxHash: receipt.mintTxHash,
-            note: 'KCC20 minted on Kaspa L1.',
-          });
+        if (attestRes.ok && !cancelled) {
+          const json = (await attestRes.json()) as {
+            ok?: boolean;
+            attestations?: Array<{
+              burnTxHash?: string;
+              mintTxHash?: string;
+              status?: string;
+            }>;
+          };
+          if (json.ok && Array.isArray(json.attestations)) {
+            for (const a of json.attestations) {
+              if (!a.burnTxHash) continue;
+              if (a.status === 'attested' || a.status === 'pending') {
+                changed += updateKrexWrapStatusByBurn(a.burnTxHash, 'awaiting_attest', {
+                  note: 'Burn attested. Mint/claim in progress.',
+                });
+              }
+              if (a.mintTxHash && (a.status === 'claimed' || a.mintTxHash)) {
+                changed += applyMintReceiptToHistory({
+                  depositTxHash: a.burnTxHash,
+                  mintTxHash: a.mintTxHash,
+                  note: 'KCC20 minted against attested burn.',
+                });
+              }
+            }
+          }
+        }
+        if (mintRes.ok && !cancelled) {
+          const json = (await mintRes.json()) as {
+            ok?: boolean;
+            receipts?: Array<{ depositTxHash?: string; mintTxHash?: string }>;
+          };
+          if (json.ok && Array.isArray(json.receipts)) {
+            for (const receipt of json.receipts) {
+              if (!receipt.depositTxHash || !receipt.mintTxHash) continue;
+              changed += applyMintReceiptToHistory({
+                depositTxHash: receipt.depositTxHash,
+                mintTxHash: receipt.mintTxHash,
+                note: 'KCC20 minted on Kaspa L1.',
+              });
+            }
+          }
         }
         if (changed > 0 && !cancelled) refreshHistory();
       } catch {
@@ -284,11 +332,14 @@ export function KrexWrapBridgeWidget() {
     };
   }, [selectedToken, state.address, network]);
 
-  const connectedIsVault =
-    Boolean(config.vaultAddress) &&
+  const migrateV2 = config.migrateV2Enabled;
+  const depositTarget = migrateV2 ? config.sinkAddress : config.vaultAddress;
+
+  const connectedIsDepositTarget =
+    Boolean(depositTarget) &&
     Boolean(state.address) &&
     state.address!.replace(/:/g, '').toLowerCase() ===
-      config.vaultAddress!.replace(/:/g, '').toLowerCase();
+      depositTarget!.replace(/:/g, '').toLowerCase();
 
   const networkBadge =
     network === 'testnet-10' ? (
@@ -341,8 +392,8 @@ export function KrexWrapBridgeWidget() {
       hubNotify.warning('Switch wallet network', 'Use a mainnet (kaspa:) address for Mainnet mode');
       return;
     }
-    if (!config.ready || !config.vaultAddress || !config.treasuryAddress) {
-      hubNotify.error('Bridge unavailable', 'This network is not open for deposits yet.');
+    if (!config.ready || !depositTarget || !config.treasuryAddress) {
+      hubNotify.error('Bridge unavailable', 'This network is not open for migrations yet.');
       return;
     }
     if (!selectedToken) {
@@ -364,7 +415,10 @@ export function KrexWrapBridgeWidget() {
 
     setIsWorking(true);
     setSuccess(null);
-    const loadingId = hubNotify.loading('Migrating…', 'Confirm fee and deposit in your wallet');
+    const loadingId = hubNotify.loading(
+      migrateV2 ? 'Burning to sink…' : 'Migrating…',
+      migrateV2 ? 'Confirm fee and burn in your wallet' : 'Confirm fee and deposit in your wallet',
+    );
 
     const wrapId = newKrexWrapId();
     upsertKrexWrapRecord({
@@ -375,6 +429,7 @@ export function KrexWrapBridgeWidget() {
       amount: parsedAmount,
       feeKas,
       status: 'draft',
+      migrateVersion: migrateV2 ? 2 : 1,
     });
 
     try {
@@ -394,7 +449,7 @@ export function KrexWrapBridgeWidget() {
         updateKrexWrapStatus(wrapId, 'fee_paid', { feeTxHash: feeHash });
       }
 
-      const depositTo = normalizeKaspaAddress(config.vaultAddress);
+      const depositTo = normalizeKaspaAddress(depositTarget);
       const amountInSmallestUnit = Math.floor(parsedAmount * Math.pow(10, decimals));
       const inscribeJson = {
         p: 'KRC-20',
@@ -411,11 +466,23 @@ export function KrexWrapBridgeWidget() {
         0.001,
       );
       const hash = extractTxId(rawHash) || (typeof rawHash === 'string' ? rawHash : '');
-      updateKrexWrapStatus(wrapId, mintLive ? 'pending_mint' : 'deposited', {
+      const nextStatus = migrateV2
+        ? mintLive
+          ? 'burned'
+          : 'burned'
+        : mintLive
+          ? 'pending_mint'
+          : 'deposited';
+      updateKrexWrapStatus(wrapId, nextStatus, {
         depositTxHash: hash,
-        note: mintLive
-          ? 'Deposit on-chain. Waiting for Kasparex to mint matching KCC20 1:1.'
-          : 'Deposit submitted. KCC20 mint follows when this ticker is live.',
+        migrateVersion: migrateV2 ? 2 : 1,
+        note: migrateV2
+          ? mintLive
+            ? 'Burned to keyless sink. Waiting for attestor (opAccept), then covenant mint.'
+            : 'Burned to keyless sink. KCC20 mint follows when this ticker covenant is live.'
+          : mintLive
+            ? 'Deposit on-chain. Waiting for Kasparex to mint matching KCC20 1:1.'
+            : 'Deposit submitted. KCC20 mint follows when this ticker is live.',
       });
 
       try {
@@ -428,6 +495,7 @@ export function KrexWrapBridgeWidget() {
             tick,
             amount: parsedAmount,
             network,
+            mode: migrateV2 ? 'sink' : 'vault',
           }),
         });
       } catch {
@@ -446,13 +514,17 @@ export function KrexWrapBridgeWidget() {
         });
       }
 
-      const successMsg = mintLive
-        ? `Deposited ${parsedAmount} ${tick}. Kasparex mints matching KCC20 next; History flips when the receipt lands.`
-        : `Locked ${parsedAmount} ${tick} in the vault on ${networkLabel(network)}.`;
+      const successMsg = migrateV2
+        ? mintLive
+          ? `Burned ${parsedAmount} ${tick} to the keyless sink. Attestor + mint come next; History flips when claimed.`
+          : `Burned ${parsedAmount} ${tick} to the keyless sink on ${networkLabel(network)}.`
+        : mintLive
+          ? `Deposited ${parsedAmount} ${tick}. Kasparex mints matching KCC20 next; History flips when the receipt lands.`
+          : `Locked ${parsedAmount} ${tick} in the vault on ${networkLabel(network)}.`;
       setSuccess(successMsg);
       hubNotify.txSuccess({
         id: loadingId,
-        title: 'Deposit submitted',
+        title: migrateV2 ? 'Burn submitted' : 'Deposit submitted',
         description: successMsg,
         txHash: hash,
         network,
@@ -492,9 +564,13 @@ export function KrexWrapBridgeWidget() {
         className="w-full k-control-btn !border-[color:var(--hub-accent)] !bg-[color:var(--hub-accent)] !text-white hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
       >
         {isWorking
-          ? 'Migrating…'
+          ? migrateV2
+            ? 'Burning…'
+            : 'Migrating…'
           : selectedToken
-            ? `Migrate ${tick} → KCC20`
+            ? migrateV2
+              ? `Burn ${tick} → claim KCC20`
+              : `Migrate ${tick} → KCC20`
             : 'Select a token'}
       </button>
     ) : null;
@@ -508,6 +584,7 @@ export function KrexWrapBridgeWidget() {
     selectedToken,
     config.ready,
     network,
+    migrateV2,
   ]);
   useRegisterHubFlowProgress('hubPay', { busy: isWorking, complete: Boolean(success) }, [
     isWorking,
@@ -534,15 +611,32 @@ export function KrexWrapBridgeWidget() {
       <DAppWidgetShell
         title="History"
         heading="Your migrations"
-        description="Saved in this browser. Deposits are on Kaspa L1. Mint status comes from Kasparex watcher receipts."
+        description={
+          migrateV2
+            ? 'Saved in this browser. Burns are on Kaspa L1. Status comes from attestor tickets and mint receipts.'
+            : 'Saved in this browser. Deposits are on Kaspa L1. Mint status comes from Kasparex watcher receipts.'
+        }
       >
         <div className={KX_INFO_DASHED}>
-          <p className="font-semibold text-zinc-900 dark:text-zinc-100">How minting works</p>
+          <p className="font-semibold text-zinc-900 dark:text-zinc-100">
+            {migrateV2 ? 'How keyless migrate works' : 'How minting works'}
+          </p>
           <ol className="mt-2 list-decimal space-y-1.5 pl-5 text-sm leading-snug text-zinc-700 dark:text-zinc-300">
-            <li>Pay the fee and send KRC-20 to the vault.</li>
-            <li>The deposit is on Kaspa L1 immediately.</li>
-            <li>Kasparex mints matching KCC20 1:1 against that deposit.</li>
-            <li>This list flips to Minted when the mint receipt syncs. Hover a badge for details.</li>
+            {migrateV2 ? (
+              <>
+                <li>Pay the fee and burn KRC-20 to the keyless sink (no spend key).</li>
+                <li>Attestors observe an accepted burn (opAccept), not a prediction.</li>
+                <li>Matching KCC20 is minted 1:1 against that burn ticket.</li>
+                <li>This list flips to Minted when the claim lands. Hover a badge for details.</li>
+              </>
+            ) : (
+              <>
+                <li>Pay the fee and send KRC-20 to the vault.</li>
+                <li>The deposit is on Kaspa L1 immediately.</li>
+                <li>Kasparex mints matching KCC20 1:1 against that deposit.</li>
+                <li>This list flips to Minted when the mint receipt syncs. Hover a badge for details.</li>
+              </>
+            )}
           </ol>
         </div>
         {history.length === 0 ? (
@@ -571,7 +665,10 @@ export function KrexWrapBridgeWidget() {
                     target="_blank"
                     rel="noreferrer"
                   >
-                    Deposit {extractTxId(row.depositTxHash) || 'tx'}
+                    {row.migrateVersion === 2 || row.status === 'burned' || row.status === 'awaiting_attest'
+                      ? 'Burn'
+                      : 'Deposit'}{' '}
+                    {extractTxId(row.depositTxHash) || 'tx'}
                   </a>
                 ) : null}
                 {row.mintTxHash ? (
@@ -612,7 +709,11 @@ export function KrexWrapBridgeWidget() {
       <DAppWidgetShell
         title="Migrate"
         heading="KCC20 Bridge"
-        description="Lock KRC-20 in the vault, then receive matching KCC20 1:1. Deposit is on-chain right away; Kasparex completes the mint."
+        description={
+          migrateV2
+            ? 'Burn KRC-20 to a keyless sink, then receive matching KCC20 1:1 against that burn. One-way by construction.'
+            : 'Lock KRC-20 in the vault, then receive matching KCC20 1:1. Deposit is on-chain right away; Kasparex completes the mint.'
+        }
         headerAside={networkBadge}
         className={migratePanelClass}
       >
@@ -679,17 +780,19 @@ export function KrexWrapBridgeWidget() {
           </div>
         ) : (
           <>
-            {connectedIsVault ? (
+            {connectedIsDepositTarget ? (
               <div className="rounded-xl border border-amber-300/50 bg-amber-50 p-3 text-sm text-amber-950 dark:border-amber-700 dark:bg-amber-950/40 dark:text-amber-100">
-                You are connected as the <span className="font-semibold">deposit vault</span> (bal 0 is expected).
-                Switch KasWare to your funded test wallet to migrate TKREX.
+                You are connected as the{' '}
+                <span className="font-semibold">{migrateV2 ? 'burn sink' : 'deposit vault'}</span>
+                {migrateV2 ? ' (unspendable; wrong wallet).' : ' (bal 0 is expected).'} Switch KasWare to
+                your funded test wallet to migrate {tick || 'tokens'}.
               </div>
             ) : null}
 
-            {config.vaultAddress ? (
+            {depositTarget ? (
               <section
                 className={`${KX_PANEL} relative overflow-hidden p-4 sm:p-5 ${vaultPanelClass}`}
-                aria-label="Deposit vault"
+                aria-label={migrateV2 ? 'Keyless burn sink' : 'Deposit vault'}
               >
                 <div
                   className={`pointer-events-none absolute -right-6 -top-6 h-24 w-24 rounded-full blur-2xl ${vaultGlow}`}
@@ -699,10 +802,12 @@ export function KrexWrapBridgeWidget() {
                   <div className="mb-4 flex items-start justify-between gap-3">
                     <div className="min-w-0">
                       <p className={`text-xs font-black uppercase tracking-widest ${vaultAccentText}`}>
-                        Deposit vault
+                        {migrateV2 ? 'Keyless burn sink' : 'Deposit vault'}
                       </p>
                       <h3 className="mt-1 text-base font-black text-zinc-900 dark:text-zinc-100">
-                        Send {tick || 'KRC-20'} here
+                        {migrateV2
+                          ? `Burn ${tick || 'KRC-20'} here`
+                          : `Send ${tick || 'KRC-20'} here`}
                       </h3>
                     </div>
                     <div
@@ -721,11 +826,13 @@ export function KrexWrapBridgeWidget() {
 
                   <div className="rounded-xl border border-zinc-200/80 bg-white/70 p-3 dark:border-zinc-700/80 dark:bg-zinc-950/40">
                     <p className="text-sm text-zinc-600 dark:text-zinc-300">
-                      Pay the bridge fee first, then transfer only the selected ticker to this address.
+                      {migrateV2
+                        ? 'Pay the bridge fee first, then transfer only the selected ticker to this unspendable sink. No key can recover it.'
+                        : 'Pay the bridge fee first, then transfer only the selected ticker to this address.'}
                     </p>
                     <CopyableAddress
-                      value={config.vaultAddress}
-                      explorerUrl={getKaspaExplorerAddressUrl(config.vaultAddress)}
+                      value={depositTarget}
+                      explorerUrl={getKaspaExplorerAddressUrl(depositTarget)}
                       explorerLabel={network === 'testnet-10' ? 'View on TN10 explorer' : 'View in Explorer'}
                       truncate
                       plainActions
@@ -793,18 +900,39 @@ export function KrexWrapBridgeWidget() {
         className={migratePanelClass}
       >
         <ul className="list-disc space-y-2 pl-5 text-sm leading-snug text-zinc-700 dark:text-zinc-300">
-          <li>
-            Deposit is on Kaspa L1 immediately. Matching KCC20 is minted 1:1 by Kasparex after the vault receives the
-            token. Hub shows status from those mint receipts.
-          </li>
-          <li>No extra free supply: minted KCC20 is backed by vault-held KRC-20. One-way for now (no reverse yet).</li>
-          <li>
-            This is an operator mint path, not a fully trustless consensus bridge. Minting depends on Kasparex and
-            KRC-20 indexers.
-          </li>
-          <li>Only send the selected ticker to the vault address shown above. Tokens sent elsewhere may be lost.</li>
-          <li>Centralized exchanges still expect KRC-20. Keep exchange inventory unmigrated if you deposit there.</li>
-          <li>Practice on Testnet before moving mainnet funds.</li>
+          {migrateV2 ? (
+            <>
+              <li>
+                Burn is permanent: the sink has no private key. Matching KCC20 is minted 1:1 only against an accepted
+                burn observation.
+              </li>
+              <li>
+                One-way by construction. No reverse path. Circulating KCC20 cannot exceed burned KRC-20 for that tick.
+              </li>
+              <li>
+                KRC-20 burns still need indexers + attestors (opAccept). After covenant handover, deploy keys cannot
+                mint. TN10 may still use a 1-of-1 attestor while the mechanism soaks.
+              </li>
+              <li>Only send the selected ticker to the sink address shown above. Tokens sent elsewhere may be lost.</li>
+              <li>Centralized exchanges still expect KRC-20. Keep exchange inventory unmigrated if you deposit there.</li>
+              <li>Practice on Testnet before moving mainnet funds.</li>
+            </>
+          ) : (
+            <>
+              <li>
+                Deposit is on Kaspa L1 immediately. Matching KCC20 is minted 1:1 by Kasparex after the vault receives the
+                token. Hub shows status from those mint receipts.
+              </li>
+              <li>No extra free supply: minted KCC20 is backed by vault-held KRC-20. One-way for now (no reverse yet).</li>
+              <li>
+                This is an operator mint path, not a fully trustless consensus bridge. Minting depends on Kasparex and
+                KRC-20 indexers.
+              </li>
+              <li>Only send the selected ticker to the vault address shown above. Tokens sent elsewhere may be lost.</li>
+              <li>Centralized exchanges still expect KRC-20. Keep exchange inventory unmigrated if you deposit there.</li>
+              <li>Practice on Testnet before moving mainnet funds.</li>
+            </>
+          )}
         </ul>
       </DAppWidgetShell>
     </div>
