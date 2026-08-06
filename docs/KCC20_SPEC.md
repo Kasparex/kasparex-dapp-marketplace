@@ -134,7 +134,7 @@ See also:
 | Tier checks via `queryL1KREXBalance` | Tier checks via Reader UTXO set for owner (**also:** wrapped KCC20 via `queryKcc20KrexBalance` in Hub total) |
 | No on-chain composability with Hub covenants | Atomic KCC20 + covenant flows (e.g. lock KREX in lockbox, crowdfund in KCC20) |
 
-Wrap / migrate path: [KREX_WRAP_BRIDGE.md](./KREX_WRAP_BRIDGE.md) (`/dapps/kcc20-bridge`, KCC20 Bridge).
+Wrap / migrate path: [KREX_WRAP_BRIDGE.md](./KREX_WRAP_BRIDGE.md) (v1 vault+watcher) and [KCC20_BRIDGE_KEYLESS_ARCHITECTURE.md](./KCC20_BRIDGE_KEYLESS_ARCHITECTURE.md) (v2 keyless one-way target). Hub: `/dapps/kcc20-bridge`.
 
 ### Architecture alignment
 
