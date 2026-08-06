@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import type { MigrateAttestation } from '@/lib/krex/wrap/migrateV2';
 import {
   findAttestation,
-  readAttestationStore,
+  loadAttestationStore,
   upsertAttestation,
 } from '@/lib/krex/wrap/attestationStore';
 
@@ -27,10 +27,10 @@ function normalizeTx(raw: string): string | null {
   return /^[a-f0-9]{64}$/.test(v) ? v : null;
 }
 
-/** Public: list attestations or look up one burn. */
+/** Public: list migrate burn attestations or look up one burn. */
 export async function GET(req: NextRequest) {
   const burn = normalizeTx(req.nextUrl.searchParams.get('burnTxHash') || '');
-  const store = await readAttestationStore();
+  const store = await loadAttestationStore();
   if (burn) {
     const row = await findAttestation(burn);
     return NextResponse.json({
@@ -78,6 +78,14 @@ export async function POST(req: NextRequest) {
     ? (statusRaw as MigrateAttestation['status'])
     : 'attested';
 
+  // Nullifier: once claimed, never reopen for a second mint.
+  if (existing?.status === 'claimed' && status !== 'claimed') {
+    return NextResponse.json(
+      { ok: false, error: 'Burn already claimed; nullifier active', attestation: existing },
+      { status: 409 },
+    );
+  }
+
   const row: MigrateAttestation = {
     network: 'testnet-10',
     tick: String(body.tick || existing?.tick || 'TKREX').trim().toUpperCase(),
@@ -87,13 +95,12 @@ export async function POST(req: NextRequest) {
     from: String(body.from || existing?.from || ''),
     sinkAddress: String(body.sinkAddress || existing?.sinkAddress || ''),
     claimantAddress:
-      typeof body.claimantAddress === 'string'
-        ? body.claimantAddress
-        : existing?.claimantAddress,
+      typeof body.claimantAddress === 'string' ? body.claimantAddress : existing?.claimantAddress,
     attestorPubkey:
       typeof body.attestorPubkey === 'string' ? body.attestorPubkey : existing?.attestorPubkey,
     ticketId: typeof body.ticketId === 'string' ? body.ticketId : existing?.ticketId,
-    mintTxHash: normalizeTx(typeof body.mintTxHash === 'string' ? body.mintTxHash : '') || existing?.mintTxHash,
+    mintTxHash:
+      normalizeTx(typeof body.mintTxHash === 'string' ? body.mintTxHash : '') || existing?.mintTxHash,
     assetCovenantId:
       typeof body.assetCovenantId === 'string' ? body.assetCovenantId : existing?.assetCovenantId,
     status,
@@ -101,14 +108,6 @@ export async function POST(req: NextRequest) {
     note: typeof body.note === 'string' ? body.note : existing?.note,
   };
 
-  // Nullifier: once claimed, never reopen to attested for a second mint.
-  if (existing?.status === 'claimed' && status !== 'claimed') {
-    return NextResponse.json(
-      { ok: false, error: 'Burn already claimed; nullifier active', attestation: existing },
-      { status: 409 },
-    );
-  }
-
-  const saved = await upsertAttestation(row);
-  return NextResponse.json({ ok: true, attestation: saved });
+  const { attestation, persist } = await upsertAttestation(row);
+  return NextResponse.json({ ok: true, attestation, persist });
 }

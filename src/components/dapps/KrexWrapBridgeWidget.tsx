@@ -194,7 +194,7 @@ export function KrexWrapBridgeWidget() {
       if (rows.length === 0) return;
       try {
         const [attestRes, mintRes] = await Promise.all([
-          fetch('/api/krex-wrap/attestations', {
+          fetch('/api/krex-wrap/migrate-attest', {
             headers: { Accept: 'application/json' },
             cache: 'no-store',
           }),

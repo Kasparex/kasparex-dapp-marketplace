@@ -1,5 +1,20 @@
 {
   "network": "testnet-10",
-  "updatedAt": "2026-08-06T00:00:00.000Z",
-  "attestations": []
+  "updatedAt": "2026-08-06T13:02:00.000Z",
+  "attestations": [
+    {
+      "network": "testnet-10",
+      "tick": "TKREX",
+      "burnTxHash": "397f399e5f07ad386e5f27a5ea94784439a7ee655286ab1e3f4dce1a4e5c1b4f",
+      "amountRaw": "600000000",
+      "amount": 6,
+      "from": "kaspatest:qrwa6q8pk80dzpatgas9es2re0kusnja305wsnealy0hj480w452y0fmw3hsd",
+      "sinkAddress": "kaspatest:pqw2y985nkrstxa7x30rkckq6y8papu48tv688vak9eyew2fc9r9vdf0hcw87",
+      "claimantAddress": "kaspatest:qrwa6q8pk80dzpatgas9es2re0kusnja305wsnealy0hj480w452y0fmw3hsd",
+      "ticketId": "397f399e5f07ad386e5f27a5ea94784439a7ee655286ab1e3f4dce1a4e5c1b4f",
+      "status": "attested",
+      "attestedAt": "2026-08-06T13:02:00.000Z",
+      "note": "TN10 N=1 attestor: Kasplex opAccept=1 for 6 TKREX burn to keyless sink"
+    }
+  ]
 }
