@@ -5,13 +5,14 @@ import {
   upsertMintReceipt,
   type KrexWrapMintReceipt,
 } from '@/lib/krex/wrap/mintReceipts';
-import { loadMintReceiptStore, persistMintReceiptStore } from '@/lib/krex/wrap/mintReceiptStore';
-import type { MigrateAttestation } from '@/lib/krex/wrap/migrateV2';
 import {
   findAttestation,
   loadAttestationStore,
+  loadMintReceiptStore,
+  persistMintReceiptStore,
   upsertAttestation,
-} from '@/lib/krex/wrap/attestationStore';
+} from '@/lib/krex/wrap/mintReceiptStore';
+import type { MigrateAttestation } from '@/lib/krex/wrap/migrateV2';
 
 export const runtime = 'nodejs';
 
