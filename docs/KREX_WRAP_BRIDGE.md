@@ -1,4 +1,4 @@
-# KCC20 Bridge (KRC-20 â†” KCC20)
+# KCC20 Bridge (KRC-20 Ă˘â€ â€ť KCC20)
 
 Hub dApp: [`/dapps/kcc20-bridge`](../src/components/dapps/KrexWrapBridgeWidget.tsx)
 
@@ -13,7 +13,7 @@ Note: bridge env vars must be read via static `process.env.NEXT_PUBLIC_*` names 
 
 ## Public UI rules
 
-- Never show env var names, â€śPending opsâ€ť, or â€śNot configuredâ€ť on the public Metadata tab.
+- Never show env var names, Ă˘â‚¬Ĺ›Pending opsĂ˘â‚¬ĹĄ, or Ă˘â‚¬Ĺ›Not configuredĂ˘â‚¬ĹĄ on the public Metadata tab.
 - Only show a vault address when it is actually set.
 - No borrowed featured images: omit `featuredImage` so `KxListingFeaturedPlaceholder` renders.
 
@@ -53,10 +53,10 @@ NEXT_PUBLIC_KCC20_BRIDGE_VAULT_TESTNET=kaspatest:qrwa6q8pk80dzpatgas9es2re0kusnj
 NEXT_PUBLIC_KCC20_BRIDGE_TREASURY=kaspa:qpgmnzeq5e59er2hkadaxd7s3yc8k69s4pqkxvw0zsktuk787e94wneakaxhm
 NEXT_PUBLIC_KCC20_BRIDGE_FEE_KAS=5
 # TN10 TKREX KCC20Capped asset (OpenSilver deploy; blake2b-256 template hash):
-NEXT_PUBLIC_KCC20_BRIDGE_COVENANTS={"TKREX":"c9d0799b9640c3b7d10e5d90fcc58f38fa99c947f30e2c4f44a85b7f394600ef"}
+NEXT_PUBLIC_KCC20_BRIDGE_COVENANTS={"TKREX":"83b999756e613d2749b8ff9549de4bdd0cb864f3d5d2dc606d92f3aa740ee91a"}
 ```
 
-Note: Hub currently has one treasury env for fees (mainnet-oriented). Testnet fee sink can stay as wallet **2** `kaspatest:â€¦` for manual TN10 fee checks until you add a dedicated testnet treasury env.
+Note: Hub currently has one treasury env for fees (mainnet-oriented). Testnet fee sink can stay as wallet **2** `kaspatest:Ă˘â‚¬Â¦` for manual TN10 fee checks until you add a dedicated testnet treasury env.
 
 ### Vault address checklist
 
@@ -64,9 +64,9 @@ Note: Hub currently has one treasury env for fees (mainnet-oriented). Testnet fe
 2. Fund mint/watcher wallet **3** with a little KAS for mint fees when live.
 3. Users send **KRC-20**, not KAS, to the vault for the deposit leg.
 4. Confirm Migrate tab shows **Deposit vault**.
-5. Mint watcher: vault transfers by tick â†’ mint KCC20 1:1 to sender (idempotent on tx id). Mint authority = wallet **3**.
+5. Mint watcher: vault transfers by tick Ă˘â€ â€™ mint KCC20 1:1 to sender (idempotent on tx id). Mint authority = wallet **3**.
 
-Keep vault holdings per tick â‰Ą circulating wrapped KCC20 for that tick.
+Keep vault holdings per tick Ă˘â€°Ä„ circulating wrapped KCC20 for that tick.
 
 ## KRC-20 KREX reference tokenomics (match on wrap side)
 
@@ -106,7 +106,7 @@ For bridge wrapping you need:
 
 2. **Also need a KRC-20 TKREX on TN10** (deposit side of the bridge)
    - Deploy or mint a KRC-20 tick `TKREX` on TN10 via Kasplex / your usual KRC-20 deploy tools.
-   - Match: **8 decimals**, max **21e9** if the deploy UI allows (or document whatever TN10 allows and keep KCC20 cap â‰¤ that).
+   - Match: **8 decimals**, max **21e9** if the deploy UI allows (or document whatever TN10 allows and keep KCC20 cap Ă˘â€°Â¤ that).
    - Confirm: `https://tn10api.kasplex.org/v1/krc20/token/TKREX`
 
 3. **Deploy mint-gated KCC20 TKREX**
@@ -124,13 +124,13 @@ For bridge wrapping you need:
    ```bash
    NEXT_PUBLIC_KCC20_BRIDGE_VAULT_TESTNET=kaspatest:qrwa6q8pk80dzpatgas9es2re0kusnja305wsnealy0hj480w452y0fmw3hsd
    NEXT_PUBLIC_KCC20_BRIDGE_FEE_KAS=5
-   NEXT_PUBLIC_KCC20_BRIDGE_COVENANTS={"TKREX":"c9d0799b9640c3b7d10e5d90fcc58f38fa99c947f30e2c4f44a85b7f394600ef"}
+   NEXT_PUBLIC_KCC20_BRIDGE_COVENANTS={"TKREX":"83b999756e613d2749b8ff9549de4bdd0cb864f3d5d2dc606d92f3aa740ee91a"}
    ```
    Redeploy Vercel.
 
    Genesis refs (TN10):
-   - Controller: `fcebdc8c73b6bac5463702a65cc4086235c3726bb778e5d5190f59f365677871` (`493f9308â€¦`)
-   - Asset init: `2bca00fc958635efd1cda696a9c7257f13b12e8a78a3326f39b3d17e7aa3fed6` (`c9d0799bâ€¦`)
+   - Controller: `fcebdc8c73b6bac5463702a65cc4086235c3726bb778e5d5190f59f365677871` (`493f9308Ă˘â‚¬Â¦`)
+   - Asset init: `2bca00fc958635efd1cda696a9c7257f13b12e8a78a3326f39b3d17e7aa3fed6` (`c9d0799bĂ˘â‚¬Â¦`)
    - Template hash must be real blake2b-256 (not blake2b-512 truncated). Wrong hash allows genesis but blocks mint.
 
 6. **TN10 mint watcher (operator host)**
@@ -144,9 +144,9 @@ For bridge wrapping you need:
      # or loop:
      node scripts/tkrex-mint-watcher.mjs --key-file tkrex-deploy/wallet3.privkey.json
      ```
-   - Watcher: Kasplex vault transfers â†’ `broadcast-tkrex-mint.mjs` â†’ POST receipt (needs `KCC20_BRIDGE_WATCHER_SECRET` + `GITHUB_TOKEN` on Hub for persist).
-   - Manual one-off still works: `TKREX_MINT_AMOUNT_RAW=â€¦ TKREX_DEPOSIT_TXID=â€¦ node scripts/broadcast-tkrex-mint.mjs --broadcast --key-file â€¦`
-   - Known live mints: 10 TKREX `5ca47a88â€¦`, 12 TKREX `faa27724â€¦`. Older pre-test vault transfers are listed under `ignoredDepositTxHashes`.
+   - Watcher: Kasplex vault transfers Ă˘â€ â€™ `broadcast-tkrex-mint.mjs` Ă˘â€ â€™ POST receipt (needs `KCC20_BRIDGE_WATCHER_SECRET` + `GITHUB_TOKEN` on Hub for persist).
+   - Manual one-off still works: `TKREX_MINT_AMOUNT_RAW=Ă˘â‚¬Â¦ TKREX_DEPOSIT_TXID=Ă˘â‚¬Â¦ node scripts/broadcast-tkrex-mint.mjs --broadcast --key-file Ă˘â‚¬Â¦`
+   - Known live mints: 10 TKREX `5ca47a88Ă˘â‚¬Â¦`, 12 TKREX `faa27724Ă˘â‚¬Â¦`. Older pre-test vault transfers are listed under `ignoredDepositTxHashes`.
    - Confirm KCC20 on the mint explorer tx / recipient P2SH (not KasWare KRC-20 balances).
 
 7. **Only later: mainnet wrapped KREX**
@@ -155,7 +155,7 @@ For bridge wrapping you need:
    - Never fair-launch a second free KREX on KCC20
    - Do not enable the watcher on mainnet until key custody + idempotency are production-ready.
 
-### What â€śsame tokenomicsâ€ť means for TKREX
+### What Ă˘â‚¬Ĺ›same tokenomicsĂ˘â‚¬ĹĄ means for TKREX
 
 | Match KREX | TKREX test |
 |------------|------------|
@@ -187,7 +187,7 @@ Yes: TN10 TKREX KCC20 lives on kascov as asset covenant
 
 `https://kascov.io/testnet-10/c/c9d0799b9640c3b7d10e5d90fcc58f38fa99c947f30e2c4f44a85b7f394600ef`
 
-(Hash routes `#/testnet-10/c/â€¦` sometimes fail to load the coin page even when the JSON API is fine.)
+(Hash routes `#/testnet-10/c/Ă˘â‚¬Â¦` sometimes fail to load the coin page even when the JSON API is fine.)
 
 kascov does **not** take ticker/logo from Hub env. It only shows a claimed name when the **genesis transaction payload** includes JSON such as:
 
@@ -197,10 +197,21 @@ kascov does **not** take ticker/logo from Hub env. It only shows a claimed name 
 
 Canonical metadata: `data/krex-wrap/tkrex-kascov-metadata.json`. TN10 soak uses the imgur logo URL (no Hub branding required yet).
 
-The live capped TN10 genesis (`c9d0799bâ€¦`) did **not** include that payload, so kascov keeps its deterministic friendly name. The next **KCC20Migrate** genesis (OpenSilver `tkrex-migrate-deploy/` + `broadcast-tkrex-migrate-asset-genesis.mjs`) must include the JSON payload, then update Hub `NEXT_PUBLIC_KCC20_BRIDGE_COVENANTS`. Prefer `image` + `image_hash` so kascov can verify the art.
+The live capped TN10 genesis (`c9d0799bĂ˘â‚¬Â¦`) did **not** include that payload, so kascov keeps its deterministic friendly name. The next **KCC20Migrate** genesis (OpenSilver `tkrex-migrate-deploy/` + `broadcast-tkrex-migrate-asset-genesis.mjs`) must include the JSON payload, then update Hub `NEXT_PUBLIC_KCC20_BRIDGE_COVENANTS`. Prefer `image` + `image_hash` so kascov can verify the art.
 
 ## Multi-token registry
 
 Shared vault + per-tick KCC20 covenant map. KREX is the default pair on mainnet; **TKREX** is the TN10 test pair.
 
 
+
+## Live KCC20Migrate TN10 (keyless soak)
+
+- Asset: `83b999756e613d2749b8ff9549de4bdd0cb864f3d5d2dc606d92f3aa740ee91a`
+- Controller: `ebdcd301fa71fab9710a113a16002220b6947b58666a322c76162ec7f4da25fe`
+- Asset genesis: `b27412f8f44b4a90b71a87b47069599f83b3146702f1f0104cca3c3fcfd11de2`
+- Controller genesis: `92cdcf5b567eb05d81e30ea7c95a3a3b1bd6e569a7d72457d24c610026365283`
+- kascov: https://kascov.io/testnet-10/c/83b999756e613d2749b8ff9549de4bdd0cb864f3d5d2dc606d92f3aa740ee91a
+- Payload: name `Test KREX`, ticker `TKREX`, image `https://i.imgur.com/FKIdlm9.png`
+
+Legacy capped asset `c9d0799b…` remains historical (admin mint path).
