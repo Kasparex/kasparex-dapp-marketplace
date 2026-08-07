@@ -1,6 +1,6 @@
 {
   "network": "testnet-10",
-  "updatedAt": "2026-08-07T20:39:50.698Z",
+  "updatedAt": "2026-08-07T20:42:23.936Z",
   "attestations": [
     {
       "network": "testnet-10",
@@ -160,4 +160,4 @@
       "assetCovenantId": "83b999756e613d2749b8ff9549de4bdd0cb864f3d5d2dc606d92f3aa740ee91a"
     }
   ]
-}\n
+}
