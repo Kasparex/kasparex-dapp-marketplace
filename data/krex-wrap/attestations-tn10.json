@@ -1,7 +1,21 @@
 {
   "network": "testnet-10",
-  "updatedAt": "2026-08-07T09:13:25.455Z",
+  "updatedAt": "2026-08-07T11:03:28.002Z",
   "attestations": [
+    {
+      "network": "testnet-10",
+      "tick": "TKREX",
+      "burnTxHash": "32649f8e8b4815b2b2d49ebb9bdc085fbd5d791d63a61e25459709f42c8480aa",
+      "amountRaw": "500000000",
+      "amount": 5,
+      "from": "kaspatest:qrwa6q8pk80dzpatgas9es2re0kusnja305wsnealy0hj480w452y0fmw3hsd",
+      "sinkAddress": "kaspatest:pqw2y985nkrstxa7x30rkckq6y8papu48tv688vak9eyew2fc9r9vdf0hcw87",
+      "claimantAddress": "kaspatest:qrwa6q8pk80dzpatgas9es2re0kusnja305wsnealy0hj480w452y0fmw3hsd",
+      "migrateVersion": 3,
+      "status": "attested",
+      "attestedAt": "2026-08-07T11:03:27.875Z",
+      "note": "TN10 v3: attested; ticket issue pending (Command failed: C:\\Program Files\\nodejs\\node.exe C:\\Users\\Marcin\\Documents\\KASPA\\KREX\\DAPPS\\kasparex-connect-wallet\\tools\\tn10-migrate\\scripts\\broadcast-tkrex-migrate-ticket-issue.mjs --broadcast\nfile:///C:/Users/Marcin/Documents/KASPA/KREX/DAPPS/kasparex-connect-wallet/tools/tn10-migrate/scripts/lib/migrate-v3-ctor.mjs:105\r\n    throw new Error(`silverc failed (${label}): ${stderr}`);\r\n          ^\r\n\r\nError: silverc failed (ticket-issue): spawnSync C:\\Users\\Marcin\\Documents\\KASPA\\KREX\\DAPPS\\kasparex-connect-wallet\\tools\\tn10-migrate\\upstream\\silverscript\\target\\debug\\silverc.exe ENOENT\r\n    at compileWithExprs (file:///C:/Users/Marcin/Documents/KASPA/KREX/DAPPS/kasparex-connect-wallet/tools/tn10-migrate/scripts/lib/migrate-v3-ctor.mjs:105:11)\r\n    at file:///C:/Users/Marcin/Documents/KASPA/KREX/DAPPS/kasparex-connect-wallet/tools/tn10-migrate/scripts/broadcast-tkrex-migrate-ticket-issue.mjs:106:24\r\n    at ModuleJob.run (node:internal/modules/esm/module_job:329:25)\r\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:644:26)\r\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)\r\n\r\nNode.js v22.17.0\r\n)"
+    },
     {
       "network": "testnet-10",
       "tick": "TKREX",
