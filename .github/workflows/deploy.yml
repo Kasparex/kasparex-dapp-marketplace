@@ -1,23 +1,13 @@
 name: Deploy to Vercel
 
+# Legacy duplicate of vercel-deploy.yml. Keep disabled so attestation
+# upserts and Track Deployments do not flood the Actions queue.
 on:
-  push:
-    branches:
-      - main
+  workflow_dispatch:
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18'
-      - name: Install dependencies
-        run: npm install
-      - name: Build
-        run: npm run build
-        env:
-          NEXT_PUBLIC_TEMPLATE_CLIENT_ID: ${{ secrets.NEXT_PUBLIC_TEMPLATE_CLIENT_ID }}
-
+      - name: Skip
+        run: echo "Use workflow Vercel Deploy (vercel-deploy.yml) instead."

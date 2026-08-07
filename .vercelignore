@@ -1,0 +1,15 @@
+# Keep Vercel uploads small. Hub runtime does not need local migrate toolchains.
+tools/tn10-migrate/
+tools/
+.tools/
+.agents/
+upstream/
+**/target/
+**/*.exe
+**/*.privkey
+**/*.privkey.json
+.cutover-watcher-secret.tmp
+node_modules
+.next
+out
+.git

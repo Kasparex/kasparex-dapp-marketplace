@@ -2,11 +2,23 @@ name: Vercel Deploy
 
 on:
   push:
-    # Run on pushes to any branch (ensures Vercel preview/branch deploys)
     branches: ['**']
+    paths-ignore:
+      - 'data/krex-wrap/**'
+      - 'data/updates.json'
+      - 'docs/**'
+      - '**/*.md'
   pull_request:
-    # Also trigger on pull request events
     branches: ['**']
+    paths-ignore:
+      - 'data/krex-wrap/**'
+      - 'data/updates.json'
+      - 'docs/**'
+      - '**/*.md'
+
+concurrency:
+  group: vercel-deploy-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   deploy:
@@ -33,8 +45,6 @@ jobs:
           vercel-token: ${{ secrets.VERCEL_TOKEN }}
           vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
           vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-          # Deploy previews for branch pushes; production deploys still occur when
-          # push is to the production branch configured in Vercel (typically main).
           prod: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' }}
 
       - name: Print deployment info

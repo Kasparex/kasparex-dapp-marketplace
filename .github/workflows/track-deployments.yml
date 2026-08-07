@@ -4,13 +4,22 @@ on:
   push:
     branches:
       - main
+    paths-ignore:
+      - 'data/krex-wrap/**'
+      - 'data/updates.json'
+      - 'docs/**'
+      - '**/*.md'
+
+concurrency:
+  group: track-deployments-main
+  cancel-in-progress: true
 
 jobs:
   track-deployment:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -31,7 +40,7 @@ jobs:
           COMMIT_AUTHOR=$(git log -1 --pretty=%an)
           COMMIT_DATE=$(git log -1 --pretty=%cI)
           BRANCH=$(git rev-parse --abbrev-ref HEAD)
-          
+
           echo "sha=$COMMIT_SHA" >> $GITHUB_OUTPUT
           echo "message<<EOF" >> $GITHUB_OUTPUT
           echo "$COMMIT_MESSAGE" >> $GITHUB_OUTPUT
@@ -42,24 +51,19 @@ jobs:
 
       - name: Update timeline
         run: |
-          # Read current updates.json
           if [ -f "data/updates.json" ]; then
             cat data/updates.json > updates_backup.json
           else
             echo '{"updates":[],"tasks":[],"ideas":[],"bugFixes":[]}' > updates_backup.json
           fi
-          
-          # Generate new entry
+
           COMMIT_SHA="${{ steps.commit-info.outputs.sha }}"
           COMMIT_MESSAGE="${{ steps.commit-info.outputs.message }}"
           COMMIT_AUTHOR="${{ steps.commit-info.outputs.author }}"
           COMMIT_DATE="${{ steps.commit-info.outputs.date }}"
           BRANCH="${{ steps.commit-info.outputs.branch }}"
-          
-          # Create unique ID
           ENTRY_ID="deploy-$(date +%s)-${COMMIT_SHA:0:7}"
-          
-          # Create new entry JSON
+
           NEW_ENTRY=$(cat <<EOF
           {
             "id": "$ENTRY_ID",
@@ -70,40 +74,27 @@ jobs:
           }
           EOF
           )
-          
-          # Use Node.js to properly merge JSON
+
           node <<NODE_SCRIPT
           const fs = require('fs');
-          
-          // Read existing data
           let data;
           try {
             data = JSON.parse(fs.readFileSync('data/updates.json', 'utf8'));
           } catch (e) {
             data = { updates: [], tasks: [], ideas: [], bugFixes: [] };
           }
-          
-          // Parse new entry
           const newEntry = JSON.parse(\`$NEW_ENTRY\`);
-          
-          // Check if entry with this commit SHA already exists
           const existingIndex = data.updates.findIndex(e => e.id && e.id.includes('${COMMIT_SHA:0:7}'));
           if (existingIndex === -1) {
-            // Add new entry at the beginning
             data.updates.unshift(newEntry);
           } else {
-            // Update existing entry
             data.updates[existingIndex] = newEntry;
           }
-          
-          // Ensure directory exists
           const path = require('path');
           const dir = path.dirname('data/updates.json');
           if (!fs.existsSync(dir)) {
             fs.mkdirSync(dir, { recursive: true });
           }
-          
-          // Write updated data
           fs.writeFileSync('data/updates.json', JSON.stringify(data, null, 2));
           console.log('Timeline updated successfully');
           NODE_SCRIPT
@@ -112,7 +103,7 @@ jobs:
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          
+
           if [ -n "$(git status --porcelain data/updates.json)" ]; then
             git add data/updates.json
             git commit -m "Auto-update: Track deployment from commit ${{ steps.commit-info.outputs.sha }}"
@@ -120,4 +111,3 @@ jobs:
           else
             echo "No changes to commit"
           fi
-
