@@ -1,7 +1,22 @@
 {
   "network": "testnet-10",
-  "updatedAt": "2026-08-06T19:08:58.386Z",
+  "updatedAt": "2026-08-07T09:13:20.087Z",
   "attestations": [
+    {
+      "network": "testnet-10",
+      "tick": "TKREX",
+      "burnTxHash": "6f92fd30b9355ecedcf46a76d411e5bf6244648ccf1536eee43efa057d420252",
+      "amountRaw": "200000000",
+      "amount": 2,
+      "from": "kaspatest:qrwa6q8pk80dzpatgas9es2re0kusnja305wsnealy0hj480w452y0fmw3hsd",
+      "sinkAddress": "kaspatest:pqw2y985nkrstxa7x30rkckq6y8papu48tv688vak9eyew2fc9r9vdf0hcw87",
+      "claimantAddress": "kaspatest:qrwa6q8pk80dzpatgas9es2re0kusnja305wsnealy0hj480w452y0fmw3hsd",
+      "ticketId": "6f92fd30b9355ecedcf46a76d411e5bf6244648ccf1536eee43efa057d420252",
+      "migrateVersion": 2,
+      "status": "attested",
+      "attestedAt": "2026-08-07T09:13:19.969Z",
+      "note": "TN10 soak: attested; AUTO_MINT claims against live tip until v3 ticket deploy"
+    },
     {
       "network": "testnet-10",
       "tick": "TKREX",
