@@ -1,7 +1,7 @@
 'use client';
 
 import type { KrexWrapRecord, KrexWrapStatus } from '@/lib/krex/wrap/types';
-import { KX_SURFACE_NESTED, KX_SURFACE_ROW } from '@/lib/hub/shellTokens';
+import { KX_SURFACE_NESTED } from '@/lib/hub/shellTokens';
 import { Tooltip } from '@/components/ui/Tooltip';
 
 type StepState = 'done' | 'current' | 'upcoming' | 'failed';
@@ -57,9 +57,9 @@ function v2Steps(status: KrexWrapStatus): FlowStep[] {
       id: 'attest',
       label: 'Confirm',
       doneDetail: 'Burn confirmed',
-      currentDetail: 'Waiting for burn confirmation',
+      currentDetail: 'Please wait… confirming burn',
       nextDetail: 'Attestors confirm burn',
-      tip: 'Attestors check Kasplex opAccept, then open a one-time claim ticket.',
+      tip: 'Kasplex opAccept, then a one-time claim ticket. Usually under 2 minutes.',
     },
     {
       id: 'mint',
@@ -67,7 +67,7 @@ function v2Steps(status: KrexWrapStatus): FlowStep[] {
       doneDetail: 'KCC20 received 1:1',
       currentDetail: 'Sign Claim in KasWare',
       nextDetail: 'Claim matching KCC20',
-      tip: 'You sign the claim. KCC20 appears as a covenant coin on Kaspa L1 (see kascov).',
+      tip: 'You sign the claim. KCC20 is a covenant coin on Kaspa L1 (see kascov).',
     },
   ];
 
@@ -123,7 +123,7 @@ function v1Steps(status: KrexWrapStatus): FlowStep[] {
       id: 'mint',
       label: 'Mint',
       done: 'KCC20 minted 1:1',
-      cur: 'Waiting for mint receipt',
+      cur: 'Please wait… mint pending',
       next: 'Matching KCC20 mint',
     },
   ];
@@ -144,19 +144,19 @@ function nextHint(steps: FlowStep[], migrateV2: boolean): string {
   if (failed) return 'This migration did not complete. Start a new one from Migrate.';
   if (!current) {
     return migrateV2
-      ? 'Done. Your KCC20 is on Kaspa L1 (covenant coin). Open Claim tx or kascov.'
+      ? 'Done. Your KCC20 is on Kaspa L1. Open Claim tx or kascov.'
       : 'Done. Your KCC20 is on Kaspa L1.';
   }
   if (current.id === 'attest') {
-    return 'Next: confirming burn on Kasplex, then a claim ticket (usually under 2 minutes).';
+    return 'Please wait while the burn is confirmed and a claim ticket is issued.';
   }
   if (current.id === 'mint') {
-    return 'Next: tap Claim KCC20 when the button enables, then sign in KasWare.';
+    return 'Tap Claim KCC20 when the button enables, then sign in KasWare.';
   }
   return `Next: ${current.detail}.`;
 }
 
-function StepDot({ state }: { state: StepState }) {
+function StepIcon({ state }: { state: StepState }) {
   if (state === 'done') {
     return (
       <span
@@ -170,10 +170,14 @@ function StepDot({ state }: { state: StepState }) {
   if (state === 'current') {
     return (
       <span
-        className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 border-[color:var(--hub-accent)] bg-white dark:bg-zinc-900"
-        aria-hidden
+        className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center"
+        role="status"
+        aria-label="In progress"
       >
-        <span className="h-2 w-2 rounded-full bg-[color:var(--hub-accent)]" />
+        <span
+          className="h-4 w-4 animate-spin rounded-full border-2 border-[color:var(--hub-accent)] border-t-transparent"
+          aria-hidden
+        />
       </span>
     );
   }
@@ -189,7 +193,7 @@ function StepDot({ state }: { state: StepState }) {
   }
   return (
     <span
-      className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-zinc-300 bg-zinc-50 dark:border-zinc-600 dark:bg-zinc-900"
+      className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-zinc-300 dark:border-zinc-600"
       aria-hidden
     />
   );
@@ -210,8 +214,8 @@ export function KrexWrapMigrateProgress({
   const hint = nextHint(steps, useV2);
 
   return (
-    <div className={`${KX_SURFACE_NESTED} p-3 space-y-3`} aria-label="Migration progress">
-      <div className="flex items-center justify-between gap-2">
+    <div className={`${KX_SURFACE_NESTED} p-3.5`} aria-label="Migration progress">
+      <div className="mb-3 flex items-center justify-between gap-2">
         <p className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
           Progress
         </p>
@@ -219,15 +223,10 @@ export function KrexWrapMigrateProgress({
           {steps.filter((s) => s.state === 'done').length}/{steps.length}
         </p>
       </div>
-      <ol className="space-y-2">
+      <ol className="divide-y divide-zinc-200/80 dark:divide-zinc-700/80">
         {steps.map((step) => (
-          <li
-            key={step.id}
-            className={`${KX_SURFACE_ROW} flex items-start gap-2.5 !p-2.5 ${
-              step.state === 'current' ? 'border-[color:var(--hub-accent)]/40' : ''
-            }`}
-          >
-            <StepDot state={step.state} />
+          <li key={step.id} className="flex items-start gap-2.5 py-2.5 first:pt-0 last:pb-0">
+            <StepIcon state={step.state} />
             <div className="min-w-0 flex-1">
               <div className="flex items-baseline justify-between gap-2">
                 {step.tip ? (
@@ -253,13 +252,23 @@ export function KrexWrapMigrateProgress({
                     {step.label}
                   </span>
                 )}
-                <span className="shrink-0 text-[10px] uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+                <span
+                  className={`shrink-0 text-[10px] uppercase tracking-wide ${
+                    step.state === 'current'
+                      ? 'font-semibold text-[color:var(--hub-accent)]'
+                      : 'text-zinc-500 dark:text-zinc-400'
+                  }`}
+                >
                   {step.state === 'done'
                     ? 'Done'
-                    : step.state === 'current'
-                      ? 'Now'
-                      : step.state === 'failed'
-                        ? 'Failed'
+                    : step.state === 'failed'
+                      ? 'Failed'
+                      : step.state === 'current'
+                        ? step.id === 'attest'
+                          ? 'Please wait'
+                          : step.id === 'mint'
+                            ? 'Sign'
+                            : 'Confirm'
                         : 'Next'}
                 </span>
               </div>
@@ -276,7 +285,9 @@ export function KrexWrapMigrateProgress({
           </li>
         ))}
       </ol>
-      <p className="text-[11px] leading-snug text-zinc-600 dark:text-zinc-400">{hint}</p>
+      <p className="mt-3 border-t border-zinc-200/80 pt-3 text-[11px] leading-snug text-zinc-600 dark:border-zinc-700/80 dark:text-zinc-400">
+        {hint}
+      </p>
     </div>
   );
 }

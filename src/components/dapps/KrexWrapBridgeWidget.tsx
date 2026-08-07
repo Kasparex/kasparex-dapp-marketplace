@@ -155,6 +155,13 @@ async function observeBurnOnHub(input: {
   }
 }
 
+function shortTxId(txHash: string | undefined | null): string {
+  const id = extractTxId(txHash || '') || String(txHash || '').trim();
+  if (!id) return 'tx';
+  if (id.length <= 16) return id;
+  return `${id.slice(0, 8)}…${id.slice(-6)}`;
+}
+
 function historyBadgeLabel(row: KrexWrapRecord, attestation?: MigrateAttestation): string {
   if (row.status === 'minted' || row.mintTxHash) return 'Complete';
   const ready = evaluateMigrateClaimReady(attestation);
@@ -179,13 +186,18 @@ function ClaimTicketButton({
   const ready = evaluateMigrateClaimReady(attestation);
   const [busy, setBusy] = useState(false);
   if (!ready.ready && !forceShowWaiting && !attestation) return null;
+  const enabled = ready.ready && !busy && Boolean(provider) && Boolean(fundingAddress);
   return (
     <Tooltip content={ready.ready ? 'Sign the claim in KasWare' : ready.reason || 'Waiting…'}>
-      <span className="inline-flex">
+      <span className="inline-flex w-full sm:w-auto">
         <button
           type="button"
-          className="k-control-btn mt-1 text-xs"
-          disabled={!ready.ready || busy || !provider || !fundingAddress}
+          className={`mt-0 inline-flex w-full items-center justify-center rounded-lg px-3 py-2 text-xs font-semibold transition sm:w-auto ${
+            enabled
+              ? 'bg-white text-zinc-900 shadow-sm ring-1 ring-white/20 hover:bg-zinc-100 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-white'
+              : 'cursor-not-allowed bg-zinc-700/80 text-zinc-300 ring-1 ring-zinc-600/80'
+          }`}
+          disabled={!enabled}
           onClick={() => {
             void (async () => {
               const plan = ready.plan || (attestation ? buildMigrateClaimPlan(attestation) : null);
@@ -933,110 +945,108 @@ export function KrexWrapBridgeWidget() {
               const claimReady = evaluateMigrateClaimReady(attestation);
               const covenantId =
                 getWrapCovenantIdForTick(row.tick) || attestation?.assetCovenantId || null;
+              const net = row.network === 'testnet-10' ? 'testnet-10' : 'mainnet';
               return (
                 <li
                   key={row.id}
-                  className="rounded-xl border border-zinc-200 p-4 space-y-2 text-sm dark:border-zinc-700"
+                  className="rounded-xl border border-zinc-200 p-4 space-y-3 text-sm dark:border-zinc-700"
                 >
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="font-semibold text-zinc-900 dark:text-zinc-100">
-                      {row.amount} {row.tick}
-                    </span>
-                  <WrapStatusBadge
-                    status={row.status}
-                    label={historyBadgeLabel(row, attestation)}
-                  />
-                </div>
-                <div className="text-xs text-zinc-500">
-                  {row.network ? `${networkLabel(row.network)} · ` : ''}
-                  Fee {row.feeKas} KAS · {new Date(row.createdAt).toLocaleString()}
-                </div>
-                {row.depositTxHash ? (
-                  <a
-                    className="break-all text-xs text-[color:var(--hub-accent)] underline"
-                    href={getExplorerTxUrl(
-                      row.depositTxHash,
-                      row.network === 'testnet-10' ? 'testnet-10' : 'mainnet',
-                    )}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    {row.migrateVersion === 2 ||
-                    row.status === 'burned' ||
-                    row.status === 'awaiting_attest' ||
-                    row.status === 'minted'
-                      ? 'Burn'
-                      : 'Deposit'}{' '}
-                    {extractTxId(row.depositTxHash) || 'tx'}
-                  </a>
-                ) : null}
-                {row.mintTxHash ? (
-                  <div className="flex flex-wrap gap-x-3 gap-y-1">
-                    <a
-                      className="break-all text-xs text-[color:var(--hub-accent)] underline"
-                      href={getExplorerTxUrl(
-                        row.mintTxHash,
-                        row.network === 'testnet-10' ? 'testnet-10' : 'mainnet',
-                      )}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      Claim {extractTxId(row.mintTxHash) || 'tx'}
-                    </a>
-                    <a
-                      className="text-xs text-[color:var(--hub-accent)] underline"
-                      href={kascovTxUrl(
-                        row.network === 'testnet-10' ? 'testnet-10' : 'mainnet',
-                        row.mintTxHash,
-                      )}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      View on kascov
-                    </a>
-                    {covenantId ? (
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0 space-y-1">
+                      <p className="font-semibold text-zinc-900 dark:text-zinc-100">
+                        {row.amount} {row.tick}
+                      </p>
+                      <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                        {row.network ? `${networkLabel(row.network)} · ` : ''}
+                        Fee {row.feeKas} KAS · {new Date(row.createdAt).toLocaleString()}
+                      </p>
+                    </div>
+                    <WrapStatusBadge status={row.status} label={historyBadgeLabel(row, attestation)} />
+                  </div>
+
+                  <div className="flex flex-wrap gap-2">
+                    {row.depositTxHash ? (
                       <a
-                        className="text-xs text-[color:var(--hub-accent)] underline"
-                        href={kascovCovenantUrl(
-                          row.network === 'testnet-10' ? 'testnet-10' : 'mainnet',
-                          covenantId,
-                        )}
+                        className="inline-flex items-center rounded-md bg-zinc-100 px-2.5 py-1 text-[11px] font-medium text-zinc-800 ring-1 ring-zinc-200 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-100 dark:ring-zinc-600 dark:hover:bg-zinc-700"
+                        href={getExplorerTxUrl(row.depositTxHash, net)}
                         target="_blank"
                         rel="noreferrer"
+                        title={extractTxId(row.depositTxHash) || undefined}
                       >
-                        TKREX covenant
+                        {row.migrateVersion === 2 ||
+                        row.status === 'burned' ||
+                        row.status === 'awaiting_attest' ||
+                        row.status === 'minted'
+                          ? 'Burn'
+                          : 'Deposit'}{' '}
+                        {shortTxId(row.depositTxHash)}
                       </a>
                     ) : null}
+                    {row.mintTxHash ? (
+                      <>
+                        <a
+                          className="inline-flex items-center rounded-md bg-zinc-100 px-2.5 py-1 text-[11px] font-medium text-zinc-800 ring-1 ring-zinc-200 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-100 dark:ring-zinc-600 dark:hover:bg-zinc-700"
+                          href={getExplorerTxUrl(row.mintTxHash, net)}
+                          target="_blank"
+                          rel="noreferrer"
+                          title={extractTxId(row.mintTxHash) || undefined}
+                        >
+                          Claim {shortTxId(row.mintTxHash)}
+                        </a>
+                        <a
+                          className="inline-flex items-center rounded-md bg-zinc-100 px-2.5 py-1 text-[11px] font-medium text-zinc-800 ring-1 ring-zinc-200 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-100 dark:ring-zinc-600 dark:hover:bg-zinc-700"
+                          href={kascovTxUrl(net, row.mintTxHash)}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          View on kascov
+                        </a>
+                        {covenantId ? (
+                          <a
+                            className="inline-flex items-center rounded-md bg-zinc-100 px-2.5 py-1 text-[11px] font-medium text-zinc-800 ring-1 ring-zinc-200 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-100 dark:ring-zinc-600 dark:hover:bg-zinc-700"
+                            href={kascovCovenantUrl(net, covenantId)}
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            TKREX covenant
+                          </a>
+                        ) : null}
+                      </>
+                    ) : null}
                   </div>
-                ) : null}
-                <KrexWrapMigrateProgress row={row} migrateV2={migrateV2} />
-                {migrateV2 &&
-                row.depositTxHash &&
-                !row.mintTxHash &&
-                (row.status === 'burned' || row.status === 'awaiting_attest') ? (
-                  <ClaimTicketButton
-                    attestation={attestation}
-                    provider={state.provider}
-                    fundingAddress={state.address}
-                    forceShowWaiting
-                    onClaimed={() => {
-                      refreshHistory();
-                      setSyncNonce((n) => n + 1);
-                    }}
-                  />
-                ) : null}
-                {row.note ? <p className="text-xs text-zinc-500">{row.note}</p> : null}
-                {!claimReady.ready &&
-                (row.status === 'burned' || row.status === 'awaiting_attest') &&
-                !row.mintTxHash ? (
-                  <p className="text-[11px] leading-snug text-zinc-500 dark:text-zinc-400">
-                    {claimReady.reason || 'Waiting for confirmation…'} Auto-checks every few seconds.
-                  </p>
-                ) : null}
+
+                  <KrexWrapMigrateProgress row={row} migrateV2={migrateV2} />
+
+                  {migrateV2 &&
+                  row.depositTxHash &&
+                  !row.mintTxHash &&
+                  (row.status === 'burned' || row.status === 'awaiting_attest') ? (
+                    <ClaimTicketButton
+                      attestation={attestation}
+                      provider={state.provider}
+                      fundingAddress={state.address}
+                      forceShowWaiting
+                      onClaimed={() => {
+                        refreshHistory();
+                        setSyncNonce((n) => n + 1);
+                      }}
+                    />
+                  ) : null}
+
+                  {row.note ? (
+                    <p className="text-xs leading-snug text-zinc-500 dark:text-zinc-400">{row.note}</p>
+                  ) : null}
+                  {!claimReady.ready &&
+                  (row.status === 'burned' || row.status === 'awaiting_attest') &&
+                  !row.mintTxHash ? (
+                    <p className="text-[11px] leading-snug text-zinc-500 dark:text-zinc-400">
+                      {claimReady.reason || 'Waiting for confirmation…'} Auto-checks every few seconds.
+                    </p>
+                  ) : null}
                   {row.status === 'minted' ? (
                     <p className="text-[11px] leading-snug text-zinc-500 dark:text-zinc-400">
                       Your {row.amount} {row.tick} KCC20 is a covenant UTXO from the Claim tx. KasWare shows KAS /
-                      KRC-20 only. Use kascov links above to inspect the coin.
+                      KRC-20 only. Use the links above to inspect the coin.
                     </p>
                   ) : null}
                 </li>
