@@ -2,6 +2,7 @@
 
 import type { KrexWrapRecord, KrexWrapStatus } from '@/lib/krex/wrap/types';
 import { KX_SURFACE_NESTED, KX_SURFACE_ROW } from '@/lib/hub/shellTokens';
+import { Tooltip } from '@/components/ui/Tooltip';
 
 type StepState = 'done' | 'current' | 'upcoming' | 'failed';
 
@@ -9,6 +10,7 @@ type FlowStep = {
   id: string;
   label: string;
   detail: string;
+  tip?: string;
   state: StepState;
 };
 
@@ -17,57 +19,84 @@ function v2Steps(status: KrexWrapStatus): FlowStep[] {
     return [
       { id: 'fee', label: 'Fee', detail: 'Bridge fee', state: 'done' },
       { id: 'burn', label: 'Burn', detail: 'Stopped or rejected', state: 'failed' },
-      { id: 'attest', label: 'Attest', detail: 'Not started', state: 'upcoming' },
-      { id: 'mint', label: 'Mint', detail: 'KCC20 not issued', state: 'upcoming' },
+      { id: 'attest', label: 'Confirm', detail: 'Not started', state: 'upcoming' },
+      { id: 'mint', label: 'Claim', detail: 'KCC20 not issued', state: 'upcoming' },
     ];
   }
 
-  // Map intermediate statuses onto the rail.
   const normalized: KrexWrapStatus =
     status === 'pending_mint' ? 'awaiting_attest' : status === 'deposited' ? 'burned' : status;
-  // current = first incomplete step index
   const currentIdx =
     normalized === 'minted' ? 4 : normalized === 'fee_paid' ? 1 : normalized === 'burned' ? 2 : 3;
 
-  const labels: Array<{ id: string; label: string; doneDetail: string; currentDetail: string; nextDetail: string }> = [
+  const labels: Array<{
+    id: string;
+    label: string;
+    doneDetail: string;
+    currentDetail: string;
+    nextDetail: string;
+    tip: string;
+  }> = [
     {
       id: 'fee',
       label: 'Fee',
       doneDetail: 'KAS fee paid',
       currentDetail: 'Confirm fee in wallet',
       nextDetail: 'Pay bridge fee',
+      tip: 'Small KAS fee to Hub treasury before the burn.',
     },
     {
       id: 'burn',
       label: 'Burn',
-      doneDetail: 'KRC-20 at keyless sink',
+      doneDetail: 'KRC-20 sent to sink',
       currentDetail: 'Confirm burn in wallet',
       nextDetail: 'Burn to sink',
+      tip: 'Tokens go to an address with no private key. This cannot be undone.',
     },
     {
       id: 'attest',
-      label: 'Attest',
-      doneDetail: 'Burn ticket observed',
-      currentDetail: 'Waiting for opAccept + attestor',
-      nextDetail: 'Attestor observes burn',
+      label: 'Confirm',
+      doneDetail: 'Burn confirmed',
+      currentDetail: 'Waiting for burn confirmation',
+      nextDetail: 'Attestors confirm burn',
+      tip: 'Attestors check Kasplex opAccept, then open a one-time claim ticket.',
     },
     {
       id: 'mint',
       label: 'Claim',
-      doneDetail: 'KCC20 claimed 1:1',
-      currentDetail: 'Attestor mint / user claim in progress',
-      nextDetail: 'Matching KCC20 claim',
+      doneDetail: 'KCC20 received 1:1',
+      currentDetail: 'Sign Claim in KasWare',
+      nextDetail: 'Claim matching KCC20',
+      tip: 'You sign the claim. KCC20 appears as a covenant coin on Kaspa L1 (see kascov).',
     },
   ];
 
   return labels.map((step, i) => {
     if (normalized === 'minted' || i < currentIdx) {
-      return { id: step.id, label: step.label, detail: step.doneDetail, state: 'done' as const };
+      return {
+        id: step.id,
+        label: step.label,
+        detail: step.doneDetail,
+        tip: step.tip,
+        state: 'done' as const,
+      };
     }
     if (i === currentIdx) {
-      return { id: step.id, label: step.label, detail: step.currentDetail, state: 'current' as const };
+      return {
+        id: step.id,
+        label: step.label,
+        detail: step.currentDetail,
+        tip: step.tip,
+        state: 'current' as const,
+      };
     }
-    return { id: step.id, label: step.label, detail: step.nextDetail, state: 'upcoming' as const };
+    return {
+      id: step.id,
+      label: step.label,
+      detail: step.nextDetail,
+      tip: step.tip,
+      state: 'upcoming' as const,
+    };
   });
 }
 
@@ -113,12 +142,16 @@ function nextHint(steps: FlowStep[], migrateV2: boolean): string {
   const current = steps.find((s) => s.state === 'current');
   const failed = steps.find((s) => s.state === 'failed');
   if (failed) return 'This migration did not complete. Start a new one from Migrate.';
-  if (!current) return migrateV2 ? 'Done. Your KCC20 is on Kaspa L1.' : 'Done. Your KCC20 is on Kaspa L1.';
+  if (!current) {
+    return migrateV2
+      ? 'Done. Your KCC20 is on Kaspa L1 (covenant coin). Open Claim tx or kascov.'
+      : 'Done. Your KCC20 is on Kaspa L1.';
+  }
   if (current.id === 'attest') {
-    return 'Next: soak attestor observes opAccept, then posts a burn ticket. Not instant on-device.';
+    return 'Next: burn confirmation and claim ticket. This can take a few minutes.';
   }
   if (current.id === 'mint') {
-    return 'Next: matching KCC20 is minted against that ticket. History flips when the claim lands.';
+    return 'Next: tap Claim KCC20 and sign in KasWare. History becomes Complete after the claim tx.';
   }
   return `Next: ${current.detail}.`;
 }
@@ -163,8 +196,7 @@ function StepDot({ state }: { state: StepState }) {
 }
 
 /**
- * Compact Fee → Burn/Deposit → Attest → Mint rail for History rows.
- * Visual language matches calculation breakdown nested blocks.
+ * Compact Fee → Burn → Confirm → Claim rail for History rows.
  */
 export function KrexWrapMigrateProgress({
   row,
@@ -198,15 +230,29 @@ export function KrexWrapMigrateProgress({
             <StepDot state={step.state} />
             <div className="min-w-0 flex-1">
               <div className="flex items-baseline justify-between gap-2">
-                <span
-                  className={`text-xs font-semibold ${
-                    step.state === 'upcoming'
-                      ? 'text-zinc-500 dark:text-zinc-400'
-                      : 'text-zinc-900 dark:text-zinc-100'
-                  }`}
-                >
-                  {step.label}
-                </span>
+                {step.tip ? (
+                  <Tooltip content={step.tip}>
+                    <span
+                      className={`cursor-help text-xs font-semibold underline decoration-dotted underline-offset-2 ${
+                        step.state === 'upcoming'
+                          ? 'text-zinc-500 dark:text-zinc-400'
+                          : 'text-zinc-900 dark:text-zinc-100'
+                      }`}
+                    >
+                      {step.label}
+                    </span>
+                  </Tooltip>
+                ) : (
+                  <span
+                    className={`text-xs font-semibold ${
+                      step.state === 'upcoming'
+                        ? 'text-zinc-500 dark:text-zinc-400'
+                        : 'text-zinc-900 dark:text-zinc-100'
+                    }`}
+                  >
+                    {step.label}
+                  </span>
+                )}
                 <span className="shrink-0 text-[10px] uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
                   {step.state === 'done'
                     ? 'Done'

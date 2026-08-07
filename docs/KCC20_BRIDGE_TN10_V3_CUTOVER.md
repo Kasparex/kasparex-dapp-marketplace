@@ -12,9 +12,11 @@ Ops runbook for greenfield ticket-gated TKREX migrate (leave soak asset `83b999â
 | `migrateVersion` | 3 |
 | `adminRenounced` | true |
 
-Hub tip file: `data/krex-wrap/migrate-mint-tip-tn10.json` (includes claim templates).
+| Hub tip file: `data/krex-wrap/migrate-mint-tip-tn10.json` (includes claim templates).
 
-Kascov: https://kascov.io/testnet-10/c/4c1b883883cc816442bac6bd23621c7b1157a25f5c5ac61caf098ae0004d8106
+Kascov: https://kascov.io/#/testnet-10/c/4c1b883883cc816442bac6bd23621c7b1157a25f5c5ac61caf098ae0004d8106
+
+KCC20 balances are covenant UTXOs (not KasWare KRC-20). After Claim, open the Claim tx on kascov / kaspa.stream; the holder coin is a scripthash output under the asset covenant id.
 
 ## Prerequisites
 

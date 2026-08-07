@@ -390,6 +390,87 @@ async function issuePendingTickets(state) {
   return n;
 }
 
+async function fetchTn10Tx(txid) {
+  const res = await fetch(`https://api-tn10.kaspa.org/transactions/${txid}`);
+  if (!res.ok) return null;
+  return res.json();
+}
+
+async function fetchTn10Utxos(address) {
+  const res = await fetch(
+    `https://api-tn10.kaspa.org/addresses/${encodeURIComponent(address)}/utxos`,
+  );
+  if (!res.ok) return [];
+  const raw = await res.json();
+  const list = Array.isArray(raw) ? raw : raw.utxos || raw.result || [];
+  return list
+    .map((u) => {
+      const op = u.outpoint || u.previousOutpoint || {};
+      return {
+        txId: String(op.transactionId || op.transaction_id || '')
+          .trim()
+          .toLowerCase(),
+        index: Number(op.index ?? op.outpointIndex ?? 0),
+      };
+    })
+    .filter((x) => /^[a-f0-9]{64}$/.test(x.txId));
+}
+
+function parseTicketId(ticketId) {
+  const m = /^([a-f0-9]{64}):(\d+)$/.exec(String(ticketId || '').trim().toLowerCase());
+  if (!m) return null;
+  return { txId: m[1], index: Number(m[2]) };
+}
+
+/** Mark Hub claimed + advance tip when user already spent the ticket. */
+async function reconcileSpentTickets(state, tip) {
+  if (!tip?.minterAddress) return 0;
+  let n = 0;
+  const live = await fetchTn10Utxos(tip.minterAddress);
+  const candidates = new Set(live.map((u) => u.txId));
+  for (const [burnTxHash, entry] of Object.entries(state.nullifiers)) {
+    if (entry.status === 'claimed' && entry.mintTxHash) continue;
+    const ticket = parseTicketId(entry.ticketId);
+    if (!ticket) continue;
+    let mintTxHash = null;
+    for (const txId of candidates) {
+      const tx = await fetchTn10Tx(txId);
+      const spends = (tx?.inputs || []).some((inp) => {
+        const prev = String(inp.previous_outpoint_hash || '')
+          .trim()
+          .toLowerCase();
+        const idx = Number(inp.previous_outpoint_index ?? -1);
+        return prev === ticket.txId && idx === ticket.index;
+      });
+      if (spends) {
+        mintTxHash = txId;
+        break;
+      }
+    }
+    if (!mintTxHash) continue;
+    console.log(`Reconcile spent ticket → claim ${burnTxHash} mint=${mintTxHash}`);
+    const report = await fetch(`${HUB_URL}/api/krex-wrap/mint-receipts?mode=claim-report`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify({ burnTxHash, mintTxHash }),
+    });
+    const json = await report.json().catch(() => ({}));
+    if (!report.ok || !json.ok) {
+      console.error('claim-report failed', report.status, json);
+      continue;
+    }
+    state.nullifiers[burnTxHash] = {
+      ...entry,
+      status: 'claimed',
+      mintTxHash,
+      claimedAt: new Date().toISOString(),
+    };
+    saveState(state);
+    n += 1;
+  }
+  return n;
+}
+
 async function scanOnce() {
   let state = loadState();
   state = await hydrateNullifiersFromHub(state);
@@ -493,7 +574,8 @@ async function scanOnce() {
 
   const ticketsIssued = useV3 ? await issuePendingTickets(state) : 0;
   const pendingMinted = await mintPendingAttested(state, useV3);
-  return { attested, pendingMinted, ticketsIssued };
+  const claimsReconciled = useV3 ? await reconcileSpentTickets(state, tip) : 0;
+  return { attested, pendingMinted, ticketsIssued, claimsReconciled };
 }
 
 async function main() {
@@ -519,7 +601,7 @@ async function main() {
   if (WANT_ONCE) {
     const n = await scanOnce();
     console.log(
-      `Done. attestedNow=${n.attested} pendingMinted=${n.pendingMinted} ticketsIssued=${n.ticketsIssued}`,
+      `Done. attestedNow=${n.attested} pendingMinted=${n.pendingMinted} ticketsIssued=${n.ticketsIssued} claimsReconciled=${n.claimsReconciled || 0}`,
     );
     return;
   }

@@ -15,6 +15,7 @@ import {
   upsertAttestation,
 } from '@/lib/krex/wrap/mintReceiptStore';
 import type { MigrateAttestation } from '@/lib/krex/wrap/migrateV2';
+import { verifyMigrateClaimOnChain, discoverClaimMintForAttestation } from '@/lib/krex/wrap/claimReport';
 
 export const runtime = 'nodejs';
 
@@ -40,9 +41,52 @@ function watcherAuthorized(req: NextRequest): boolean {
 
 async function getAttestations(req: NextRequest) {
   const burn = normalizeTxHash(req.nextUrl.searchParams.get('burnTxHash'));
+  const discover = req.nextUrl.searchParams.get('discover') === '1';
   const store = await loadAttestationStore();
   if (burn) {
-    const row = await findAttestation(burn);
+    let row = await findAttestation(burn);
+    let discovered: { mintTxHash: string } | null = null;
+    if (
+      discover &&
+      row &&
+      row.status === 'attested' &&
+      !row.mintTxHash &&
+      row.ticketId
+    ) {
+      const tip = await loadMigrateMintTip();
+      if (tip) {
+        const found = await discoverClaimMintForAttestation({ attestation: row, tip });
+        if (found?.mintTxHash) {
+          discovered = { mintTxHash: found.mintTxHash };
+          const verified = await verifyMigrateClaimOnChain({
+            attestation: row,
+            mintTxHash: found.mintTxHash,
+            tip,
+          });
+          if (verified.ok && verified.mintTxHash) {
+            const updated: MigrateAttestation = {
+              ...row,
+              status: 'claimed',
+              mintTxHash: verified.mintTxHash,
+              note: 'User claimed KCC20 on Kaspa L1 (ticket spent).',
+            };
+            const upserted = await upsertAttestation(updated);
+            row = upserted.attestation;
+            if (verified.tipPatch) {
+              await persistMigrateMintTip({
+                ...tip,
+                ...verified.tipPatch,
+                adminRenounced: tip.adminRenounced,
+                migrateVersion: tip.migrateVersion,
+                assetTemplate: tip.assetTemplate,
+                ticketTemplate: tip.ticketTemplate,
+                controllerTemplate: tip.controllerTemplate,
+              });
+            }
+          }
+        }
+      }
+    }
     return NextResponse.json({
       ok: true,
       mode: 'attest',
@@ -51,6 +95,7 @@ async function getAttestations(req: NextRequest) {
       found: Boolean(row),
       attestation: row,
       attestations: row ? [row] : [],
+      ...(discovered ? { discovered } : {}),
     });
   }
   return NextResponse.json({
@@ -208,6 +253,78 @@ async function postMintTip(req: NextRequest, body: Record<string, unknown>) {
   });
 }
 
+/**
+ * Public claim report: mintTx must spend the attestation ticket on TN10.
+ * Marks Hub attestation claimed and advances the migrate tip when possible.
+ */
+async function postClaimReport(body: Record<string, unknown>) {
+  const burnTxHash = normalizeTxHash(typeof body.burnTxHash === 'string' ? body.burnTxHash : '');
+  const mintTxHash = normalizeTxHash(typeof body.mintTxHash === 'string' ? body.mintTxHash : '');
+  if (!burnTxHash || !mintTxHash) {
+    return NextResponse.json(
+      { ok: false, error: 'burnTxHash and mintTxHash must be 64-char hex' },
+      { status: 400 },
+    );
+  }
+
+  const existing = await findAttestation(burnTxHash);
+  if (!existing) {
+    return NextResponse.json({ ok: false, error: 'No attestation for this burn' }, { status: 404 });
+  }
+  if (existing.status === 'claimed' && existing.mintTxHash === mintTxHash) {
+    return NextResponse.json({
+      ok: true,
+      mode: 'claim-report',
+      already: true,
+      attestation: existing,
+    });
+  }
+
+  const tip = await loadMigrateMintTip();
+  const verified = await verifyMigrateClaimOnChain({
+    attestation: existing,
+    mintTxHash,
+    tip,
+  });
+  if (!verified.ok || !verified.mintTxHash) {
+    return NextResponse.json(
+      { ok: false, mode: 'claim-report', error: verified.error || 'Claim verification failed' },
+      { status: 400 },
+    );
+  }
+
+  const row: MigrateAttestation = {
+    ...existing,
+    status: 'claimed',
+    mintTxHash: verified.mintTxHash,
+    note: 'User claimed KCC20 on Kaspa L1 (ticket spent).',
+  };
+  const { attestation, persist } = await upsertAttestation(row);
+
+  let tipPersist: { ok: boolean; via?: string; error?: string } | undefined;
+  if (tip && verified.tipPatch) {
+    const nextTip = await persistMigrateMintTip({
+      ...tip,
+      ...verified.tipPatch,
+      adminRenounced: tip.adminRenounced,
+      migrateVersion: tip.migrateVersion,
+      assetTemplate: tip.assetTemplate,
+      ticketTemplate: tip.ticketTemplate,
+      controllerTemplate: tip.controllerTemplate,
+    });
+    tipPersist = { ok: nextTip.ok, via: nextTip.via, error: nextTip.error };
+  }
+
+  return NextResponse.json({
+    ok: true,
+    mode: 'claim-report',
+    attestation,
+    persist,
+    tipPersist,
+    mintTxHash: verified.mintTxHash,
+  });
+}
+
 /** Public: mint receipts, migrate attestations (?mode=attest), or mint tip (?mode=mint-tip). */
 export async function GET(req: NextRequest) {
   const mode = req.nextUrl.searchParams.get('mode');
@@ -265,6 +382,9 @@ export async function POST(req: NextRequest) {
   }
   if (mode === 'mint-tip') {
     return postMintTip(req, body);
+  }
+  if (mode === 'claim-report') {
+    return postClaimReport(body);
   }
 
   if (!watcherAuthorized(req)) {

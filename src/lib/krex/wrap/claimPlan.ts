@@ -42,7 +42,7 @@ export function evaluateMigrateClaimReady(attestation: MigrateAttestation | null
 export function claimButtonLabel(ready: MigrateClaimReady): string {
   if (ready.ready) return 'Claim KCC20';
   if (ready.reason?.includes('Ticket')) return 'Waiting for ticket…';
-  if (ready.reason?.includes('attestor')) return 'Waiting for attest…';
-  if (ready.reason?.includes('Already')) return 'Claimed';
+  if (ready.reason?.includes('attestor')) return 'Waiting for confirm…';
+  if (ready.reason?.includes('Already')) return 'Already claimed';
   return 'Claim unavailable';
 }
