@@ -6,7 +6,7 @@ import {
   normalizeMintReceiptStore,
   type KrexWrapMintReceiptStore,
 } from './mintReceipts';
-import type { MigrateAttestation } from './migrateV2';
+import { attestationHasTicket, type MigrateAttestation } from './migrateV2';
 
 const githubPath = MINT_RECEIPTS_TN10_PATH;
 const attestationsPath = 'data/krex-wrap/attestations-tn10.json';
