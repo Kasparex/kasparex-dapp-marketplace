@@ -81,12 +81,11 @@ function utxoDaa(u: Record<string, unknown>): bigint {
 
 function utxoScriptHex(u: Record<string, unknown>): string {
   const entry = (u.utxoEntry || u.entry || u) as Record<string, unknown>;
-  const spkRaw =
-    (entry.scriptPublicKey as { scriptPublicKey?: string; script?: string } | string | undefined) ||
-    u.scriptPublicKey;
+  const spkRaw = (entry.scriptPublicKey ?? u.scriptPublicKey) as unknown;
   if (typeof spkRaw === 'string') return spkRaw.replace(/^0x/i, '');
   if (spkRaw && typeof spkRaw === 'object') {
-    const s = spkRaw.scriptPublicKey || spkRaw.script || '';
+    const o = spkRaw as { scriptPublicKey?: unknown; script?: unknown };
+    const s = o.scriptPublicKey ?? o.script ?? '';
     return String(s).replace(/^0x/i, '');
   }
   return '';
