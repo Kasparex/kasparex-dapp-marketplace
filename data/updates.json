@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1786120995-37745d7",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: chore(bridge): upsert TN10 migrate mint tip (2026-08-07T16:42:59.384Z) (by Kasparex)",
+      "date": "2026-08-07T18:42:59+02:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1786120587-314da58",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: chore(bridge): upsert TN10 migrate attestation (2026-08-07T16:36:06.338Z) (by Kasparex)",
