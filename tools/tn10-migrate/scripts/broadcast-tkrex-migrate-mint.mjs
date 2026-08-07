@@ -580,7 +580,8 @@ const fundSigHex = createInputSignature(unsigned, fundingInputIdx, privKey);
 unsigned.inputs[fundingInputIdx].signatureScript = fundSigHex;
 
 if (ticketEntry) {
-  // Terminal redeem: claimantPk + claimantSig (entrypoint; no selector).
+  // Terminal redeem ABI: claimantPk + claimantSig + selector (redeem=1; issue auth=0).
+  const TICKET_REDEEM_SELECTOR = 1n;
   const claimPrivHex =
     (process.env.TKREX_CLAIMANT_PRIVKEY || '').trim().replace(/^0x/i, '') || PRIV;
   const claimKey = new PrivateKey(claimPrivHex);
@@ -589,6 +590,7 @@ if (ticketEntry) {
   const ticketPrefix = new ScriptBuilder();
   ticketPrefix.addData(hexToBytes(pubkey));
   ticketPrefix.addData(claimSig);
+  ticketPrefix.addI64(TICKET_REDEEM_SELECTOR);
   const ticketPrefixHex = ticketPrefix.drain();
   unsigned.inputs[TICKET_INPUT_IDX].signatureScript = ScriptBuilder.fromScript(
     Uint8Array.from(ticketSpendScript),

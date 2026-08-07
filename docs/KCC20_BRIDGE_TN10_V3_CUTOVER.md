@@ -36,12 +36,25 @@ Kascov: https://kascov.io/testnet-10/c/4c1b883883cc816442bac6bd23621c7b1157a25f5
 
 Workflow: `.github/workflows/tn10-migrate-attestor.yml` (cron `*/10`).
 
-Required repo secrets (must match Vercel watcher secret after any regen):
+### Set secrets (GitHub UI)
 
-- `KCC20_BRIDGE_WATCHER_SECRET` / `KCC20_MIGRATE_ATTESTOR_SECRET`
-- `KREX_WRAP_HUB_URL` (`https://hub.kasparex.com`)
-- `TKREX_WALLET3_PRIVKEY`
-- `TKREX_ATTESTOR1_PRIVKEY` / `TKREX_ATTESTOR2_PRIVKEY` / `TKREX_ATTESTOR3_PRIVKEY`
+1. Open the Hub repo on GitHub → **Settings** → **Secrets and variables** → **Actions**
+2. **New repository secret** for each name below (values from local cutover files; do not commit them)
+3. After regenerating the Vercel watcher secret, paste the **same** value into `KCC20_BRIDGE_WATCHER_SECRET` and `KCC20_MIGRATE_ATTESTOR_SECRET`
+
+| Secret | Source |
+|--------|--------|
+| `KCC20_BRIDGE_WATCHER_SECRET` | Vercel / `.cutover-watcher-secret.tmp` |
+| `KCC20_MIGRATE_ATTESTOR_SECRET` | same as watcher |
+| `KREX_WRAP_HUB_URL` | `https://hub.kasparex.com` |
+| `TKREX_WALLET3_PRIVKEY` | 64-hex from `wallet3.privkey` |
+| `TKREX_ATTESTOR1_PRIVKEY` | `.attestor1.privkey` (wallet3 after cutover) |
+| `TKREX_ATTESTOR2_PRIVKEY` | `.attestor2.privkey` |
+| `TKREX_ATTESTOR3_PRIVKEY` | `.attestor3.privkey` |
+
+Or CLI (after `gh auth login`): `gh secret set NAME` then paste value.
+
+Then **Actions** → **TN10 migrate attestor** → **Run workflow** once to verify.
 
 Ticket issue uses tx `version=1` with `sigOpCount=0` (same as handover). Optional resume: `TKREX_TICKET_GENESIS_TXID` + `TKREX_TICKET_COVENANT_ID` (do not use P2SH script hash as covenant id).
 

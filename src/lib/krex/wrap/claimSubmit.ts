@@ -14,8 +14,11 @@ import {
 import { bytesToHex, hexToBytes, spliceTemplateScript, encodeMigrateTicketState } from './migrateStateEncode';
 import type { MigrateAttestation } from './migrateV2';
 import { buildMigrateClaimPlan } from './migrateV2';
+import { extractSchnorrSigFromSignatureScript } from '@/lib/covenant/builder/abi-sigscript';
 
 const ATTESTOR_THRESHOLD = 2;
+/** MigrateTicket ABI: [0]=issue auth entrypoint, [1]=redeem (without_selector=false). */
+const TICKET_REDEEM_SELECTOR = 1n;
 
 async function resolveClaimantXOnly(
   kaspa: Awaited<ReturnType<typeof loadKaspaWasm>>,
@@ -32,18 +35,6 @@ async function resolveClaimantXOnly(
   if (!XOnly || !Address) throw new Error('Kaspa WASM missing XOnlyPublicKey.fromAddress');
   const x = XOnly.fromAddress(new Address(address));
   return String(x).replace(/^0x/i, '').toLowerCase();
-}
-
-function extractSchnorrFromSigScript(sigScriptHex: string): Uint8Array {
-  const bytes = hexToBytes(sigScriptHex.replace(/^0x/i, ''));
-  // Common shapes: raw 65, or push+65, or longer P2SH wrap: take last 65 with sighash.
-  if (bytes.length === 65) return bytes;
-  if (bytes.length >= 65) {
-    const slice = bytes.slice(bytes.length - 65);
-    if (slice[64] === 0x01 || slice[64] === 0x00) return slice;
-  }
-  if (bytes.length >= 66 && bytes[0] === 65) return bytes.slice(1, 66);
-  throw new Error('Could not extract Schnorr signature from wallet signatureScript');
 }
 
 export async function submitMigrateClaim(input: {
@@ -117,10 +108,13 @@ export async function submitMigrateClaim(input: {
   if (!rawSigScript) {
     return { ok: false, error: 'Wallet did not sign ticket input' };
   }
-  const claimSig = extractSchnorrFromSigScript(rawSigScript);
+  const claimSig = extractSchnorrSigFromSignatureScript(rawSigScript);
+  // ABI order: claimantPk, claimantSig, selector=1 (redeem). Missing selector made the
+  // 65-byte sig get parsed as an int ("Number too big ... exceeds max allowed of 8").
   const ticketPrefix = new kaspa.ScriptBuilder();
   ticketPrefix.addData(hexToBytes(claimantXOnly));
   ticketPrefix.addData(claimSig);
+  ticketPrefix.addI64(TICKET_REDEEM_SELECTOR);
   const ticketUnlock = kaspa.ScriptBuilder.fromScript(ticketScript, {
     flags: { covenantsEnabled: true },
   }).encodePayToScriptHashSignatureScript(ticketPrefix.drain());
