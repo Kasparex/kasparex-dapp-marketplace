@@ -124,7 +124,7 @@ export async function observeSinkBurn(input: {
     ticketIndex: existing?.ticketIndex,
     mintTxHash: existing?.mintTxHash,
     note: opOk
-      ? 'Burn accepted on Kasplex. Waiting for MigrateTicket from attestor…'
+      ? 'Burn accepted. Waiting for claim ticket (may take a few minutes)…'
       : 'Burn seen on Kasplex. Waiting for opAccept…',
   };
 

@@ -34,7 +34,7 @@ export function evaluateMigrateClaimReady(attestation: MigrateAttestation | null
   if (!attestationHasTicket(attestation)) {
     return {
       ready: false,
-      reason: 'Waiting for claim ticket…',
+      reason: 'Waiting for claim ticket (may take a few minutes)…',
     };
   }
   const plan = buildMigrateClaimPlan(attestation);

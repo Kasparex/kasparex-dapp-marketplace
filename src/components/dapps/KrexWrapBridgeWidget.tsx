@@ -162,6 +162,22 @@ function shortTxId(txHash: string | undefined | null): string {
   return `${id.slice(0, 8)}…${id.slice(-6)}`;
 }
 
+function ExternalTabIcon({ className = 'h-3 w-3' }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden>
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+      />
+    </svg>
+  );
+}
+
+const TX_CHIP_CLASS =
+  'inline-flex items-center gap-1.5 rounded-md bg-zinc-100 px-2.5 py-1 text-[11px] font-medium text-zinc-800 ring-1 ring-zinc-200 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-100 dark:ring-zinc-600 dark:hover:bg-zinc-700';
+
 function historyBadgeLabel(row: KrexWrapRecord, attestation?: MigrateAttestation): string {
   if (row.status === 'minted' || row.mintTxHash) return 'Complete';
   const ready = evaluateMigrateClaimReady(attestation);
@@ -194,7 +210,7 @@ function ClaimTicketButton({
           type="button"
           className={`mt-0 inline-flex w-full items-center justify-center rounded-lg px-3 py-2 text-xs font-semibold transition sm:w-auto ${
             enabled
-              ? 'bg-white text-zinc-900 shadow-sm ring-1 ring-white/20 hover:bg-zinc-100 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-white'
+              ? 'bg-[color:var(--hub-accent)] text-white shadow-sm hover:opacity-90'
               : 'cursor-not-allowed bg-zinc-700/80 text-zinc-300 ring-1 ring-zinc-600/80'
           }`}
           disabled={!enabled}
@@ -967,7 +983,7 @@ export function KrexWrapBridgeWidget() {
                   <div className="flex flex-wrap gap-2">
                     {row.depositTxHash ? (
                       <a
-                        className="inline-flex items-center rounded-md bg-zinc-100 px-2.5 py-1 text-[11px] font-medium text-zinc-800 ring-1 ring-zinc-200 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-100 dark:ring-zinc-600 dark:hover:bg-zinc-700"
+                        className={TX_CHIP_CLASS}
                         href={getExplorerTxUrl(row.depositTxHash, net)}
                         target="_blank"
                         rel="noreferrer"
@@ -980,42 +996,50 @@ export function KrexWrapBridgeWidget() {
                           ? 'Burn'
                           : 'Deposit'}{' '}
                         {shortTxId(row.depositTxHash)}
+                        <ExternalTabIcon />
                       </a>
                     ) : null}
                     {row.mintTxHash ? (
                       <>
                         <a
-                          className="inline-flex items-center rounded-md bg-zinc-100 px-2.5 py-1 text-[11px] font-medium text-zinc-800 ring-1 ring-zinc-200 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-100 dark:ring-zinc-600 dark:hover:bg-zinc-700"
+                          className={TX_CHIP_CLASS}
                           href={getExplorerTxUrl(row.mintTxHash, net)}
                           target="_blank"
                           rel="noreferrer"
                           title={extractTxId(row.mintTxHash) || undefined}
                         >
                           Claim {shortTxId(row.mintTxHash)}
+                          <ExternalTabIcon />
                         </a>
                         <a
-                          className="inline-flex items-center rounded-md bg-zinc-100 px-2.5 py-1 text-[11px] font-medium text-zinc-800 ring-1 ring-zinc-200 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-100 dark:ring-zinc-600 dark:hover:bg-zinc-700"
+                          className={TX_CHIP_CLASS}
                           href={kascovTxUrl(net, row.mintTxHash)}
                           target="_blank"
                           rel="noreferrer"
                         >
                           View on kascov
+                          <ExternalTabIcon />
                         </a>
                         {covenantId ? (
                           <a
-                            className="inline-flex items-center rounded-md bg-zinc-100 px-2.5 py-1 text-[11px] font-medium text-zinc-800 ring-1 ring-zinc-200 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-100 dark:ring-zinc-600 dark:hover:bg-zinc-700"
+                            className={TX_CHIP_CLASS}
                             href={kascovCovenantUrl(net, covenantId)}
                             target="_blank"
                             rel="noreferrer"
                           >
                             TKREX covenant
+                            <ExternalTabIcon />
                           </a>
                         ) : null}
                       </>
                     ) : null}
                   </div>
 
-                  <KrexWrapMigrateProgress row={row} migrateV2={migrateV2} />
+                  <KrexWrapMigrateProgress
+                    row={row}
+                    migrateV2={migrateV2}
+                    ticketReady={claimReady.ready}
+                  />
 
                   {migrateV2 &&
                   row.depositTxHash &&
@@ -1033,20 +1057,9 @@ export function KrexWrapBridgeWidget() {
                     />
                   ) : null}
 
-                  {row.note ? (
-                    <p className="text-xs leading-snug text-zinc-500 dark:text-zinc-400">{row.note}</p>
-                  ) : null}
-                  {!claimReady.ready &&
-                  (row.status === 'burned' || row.status === 'awaiting_attest') &&
-                  !row.mintTxHash ? (
-                    <p className="text-[11px] leading-snug text-zinc-500 dark:text-zinc-400">
-                      {claimReady.reason || 'Waiting for confirmation…'} Auto-checks every few seconds.
-                    </p>
-                  ) : null}
                   {row.status === 'minted' ? (
                     <p className="text-[11px] leading-snug text-zinc-500 dark:text-zinc-400">
-                      Your {row.amount} {row.tick} KCC20 is a covenant UTXO from the Claim tx. KasWare shows KAS /
-                      KRC-20 only. Use the links above to inspect the coin.
+                      KCC20 is a covenant coin (kascov). KasWare lists KAS / KRC-20 only.
                     </p>
                   ) : null}
                 </li>

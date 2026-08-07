@@ -14,7 +14,7 @@ type FlowStep = {
   state: StepState;
 };
 
-function v2Steps(status: KrexWrapStatus): FlowStep[] {
+function v2Steps(status: KrexWrapStatus, ticketReady: boolean): FlowStep[] {
   if (status === 'failed') {
     return [
       { id: 'fee', label: 'Fee', detail: 'Bridge fee', state: 'done' },
@@ -26,8 +26,13 @@ function v2Steps(status: KrexWrapStatus): FlowStep[] {
 
   const normalized: KrexWrapStatus =
     status === 'pending_mint' ? 'awaiting_attest' : status === 'deposited' ? 'burned' : status;
-  const currentIdx =
-    normalized === 'minted' ? 4 : normalized === 'fee_paid' ? 1 : normalized === 'burned' ? 2 : 3;
+
+  // Stay on Confirm until the claim ticket exists. Do not jump to Claim early.
+  let currentIdx = 1;
+  if (normalized === 'minted') currentIdx = 4;
+  else if (normalized === 'fee_paid') currentIdx = 1;
+  else if (normalized === 'burned') currentIdx = 2;
+  else if (normalized === 'awaiting_attest') currentIdx = ticketReady ? 3 : 2;
 
   const labels: Array<{
     id: string;
@@ -57,9 +62,11 @@ function v2Steps(status: KrexWrapStatus): FlowStep[] {
       id: 'attest',
       label: 'Confirm',
       doneDetail: 'Burn confirmed',
-      currentDetail: 'Please wait… confirming burn',
+      currentDetail: ticketReady
+        ? 'Ticket ready'
+        : 'Please wait… claim ticket (may take a few minutes)',
       nextDetail: 'Attestors confirm burn',
-      tip: 'Kasplex opAccept, then a one-time claim ticket. Usually under 2 minutes.',
+      tip: 'Kasplex opAccept, then a one-time claim ticket. Often under 2 minutes; can take a few.',
     },
     {
       id: 'mint',
@@ -148,10 +155,10 @@ function nextHint(steps: FlowStep[], migrateV2: boolean): string {
       : 'Done. Your KCC20 is on Kaspa L1.';
   }
   if (current.id === 'attest') {
-    return 'Please wait while the burn is confirmed and a claim ticket is issued.';
+    return 'Waiting for claim ticket. Usually under 2 minutes; can take a few. Auto-checks every few seconds.';
   }
   if (current.id === 'mint') {
-    return 'Tap Claim KCC20 when the button enables, then sign in KasWare.';
+    return 'Tap Claim KCC20, then sign in KasWare.';
   }
   return `Next: ${current.detail}.`;
 }
@@ -160,7 +167,7 @@ function StepIcon({ state }: { state: StepState }) {
   if (state === 'done') {
     return (
       <span
-        className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[color:var(--hub-accent)] text-[10px] font-bold text-white"
+        className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-500 text-[10px] font-bold text-white"
         aria-hidden
       >
         ✓
@@ -205,12 +212,15 @@ function StepIcon({ state }: { state: StepState }) {
 export function KrexWrapMigrateProgress({
   row,
   migrateV2,
+  ticketReady = false,
 }: {
   row: KrexWrapRecord;
   migrateV2: boolean;
+  /** True when MigrateTicket is on the Hub attestation and Claim can be signed. */
+  ticketReady?: boolean;
 }) {
   const useV2 = migrateV2 || row.migrateVersion === 2 || row.status === 'burned' || row.status === 'awaiting_attest';
-  const steps = useV2 ? v2Steps(row.status) : v1Steps(row.status);
+  const steps = useV2 ? v2Steps(row.status, ticketReady) : v1Steps(row.status);
   const hint = nextHint(steps, useV2);
 
   return (
