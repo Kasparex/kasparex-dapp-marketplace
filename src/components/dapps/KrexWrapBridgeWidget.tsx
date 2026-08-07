@@ -253,7 +253,19 @@ function ClaimTicketButton({
                 });
                 if (!result.ok || !result.txHash) {
                   const err = result.error || 'Unknown error';
-                  if (/Minter UTXO not found/i.test(err) || /Ticket UTXO .* not found/i.test(err)) {
+                  // Stale Hub tip after a prior Claim (tip persist often needs GITHUB_TOKEN).
+                  if (/Minter UTXO not found/i.test(err) || /Controller UTXO not found/i.test(err)) {
+                    hubNotify.update(loadingId, {
+                      variant: 'warning',
+                      title: 'Migrate tip updating',
+                      description:
+                        'A previous Claim moved the tip. Wait a few seconds, refresh History, then Claim again.',
+                    });
+                    onClaimed?.('');
+                    return;
+                  }
+                  // Only the ticket outpoint missing means this migrate was already claimed.
+                  if (/Ticket UTXO .* not found/i.test(err)) {
                     hubNotify.update(loadingId, {
                       variant: 'info',
                       title: 'Already claimed?',

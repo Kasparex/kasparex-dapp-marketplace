@@ -15,7 +15,11 @@ import {
   upsertAttestation,
 } from '@/lib/krex/wrap/mintReceiptStore';
 import type { MigrateAttestation } from '@/lib/krex/wrap/migrateV2';
-import { verifyMigrateClaimOnChain, discoverClaimMintForAttestation } from '@/lib/krex/wrap/claimReport';
+import {
+  verifyMigrateClaimOnChain,
+  discoverClaimMintForAttestation,
+  healMigrateTipFromChain,
+} from '@/lib/krex/wrap/claimReport';
 import { observeSinkBurn } from '@/lib/krex/wrap/observeBurn';
 import type { Krc20BridgeNetwork } from '@/lib/krex/wrap/types';
 
@@ -212,12 +216,44 @@ async function postAttestation(req: NextRequest, body: Record<string, unknown>) 
 
 async function getMintTip() {
   const tip = await loadMigrateMintTip();
+  if (!tip) {
+    return NextResponse.json({
+      ok: true,
+      mode: 'mint-tip',
+      network: 'testnet-10',
+      found: false,
+      tip: null,
+    });
+  }
+
+  // If claim-report could not persist tip (no GITHUB_TOKEN), heal from chain for Claim.
+  const store = await loadAttestationStore();
+  const healed = await healMigrateTipFromChain({
+    tip,
+    attestations: store.attestations || [],
+  });
+  if (healed.healed) {
+    void persistMigrateMintTip(healed.tip);
+    for (const c of healed.claimed) {
+      const row = store.attestations.find((a) => a.burnTxHash === c.burnTxHash);
+      if (!row || (row.status === 'claimed' && row.mintTxHash === c.mintTxHash)) continue;
+      void upsertAttestation({
+        ...row,
+        status: 'claimed',
+        mintTxHash: c.mintTxHash,
+        note: 'User claimed KCC20 on Kaspa L1 (ticket spent).',
+      });
+    }
+  }
+
   return NextResponse.json({
     ok: true,
     mode: 'mint-tip',
     network: 'testnet-10',
-    found: Boolean(tip),
-    tip,
+    found: true,
+    tip: healed.tip,
+    tipHealed: healed.healed,
+    tipHealedBurns: healed.claimed.map((c) => c.burnTxHash),
   });
 }
 

@@ -190,3 +190,67 @@ export async function discoverClaimMintForAttestation(input: {
   }
   return null;
 }
+
+async function tipMinterUtxoLive(tip: MigrateMintTip): Promise<boolean> {
+  const utxos = await fetchAddressUtxos(tip.minterAddress);
+  return utxos.some(
+    (u) => u.txId === tip.minterTxId.toLowerCase() && u.index === Number(tip.minterIndex),
+  );
+}
+
+/**
+ * When claim-report could not persist (missing GITHUB_TOKEN), Hub tip JSON goes stale.
+ * Walk attested→claimed discoveries that spend the stored tip, and return an in-memory tip
+ * that matches live TN10 minter/controller UTXOs so the next Claim can assemble.
+ */
+export async function healMigrateTipFromChain(input: {
+  tip: MigrateMintTip;
+  attestations: MigrateAttestation[];
+}): Promise<{
+  tip: MigrateMintTip;
+  healed: boolean;
+  claimed: Array<{ burnTxHash: string; mintTxHash: string }>;
+}> {
+  let tip = input.tip;
+  const claimed: Array<{ burnTxHash: string; mintTxHash: string }> = [];
+  if (await tipMinterUtxoLive(tip)) {
+    return { tip, healed: false, claimed };
+  }
+
+  // Prefer oldest attested first so chained claims advance tip in order.
+  const pending = [...input.attestations]
+    .filter((a) => a.ticketId && (a.status === 'attested' || a.status === 'claimed'))
+    .sort((a, b) => String(a.attestedAt || '').localeCompare(String(b.attestedAt || '')));
+
+  for (let guard = 0; guard < 8; guard++) {
+    if (await tipMinterUtxoLive(tip)) break;
+    let advanced = false;
+    for (const row of pending) {
+      if (claimed.some((c) => c.burnTxHash === row.burnTxHash)) continue;
+      const found = await discoverClaimMintForAttestation({ attestation: row, tip });
+      if (!found?.tipPatch) continue;
+      const mintTx = await fetchTx(found.mintTxHash);
+      if (!mintTx) continue;
+      // Only advance along the tip chain (mint must spend current tip minter).
+      if (!txSpendsTicket(mintTx, tip.minterTxId.toLowerCase(), Number(tip.minterIndex))) {
+        continue;
+      }
+      tip = {
+        ...tip,
+        ...found.tipPatch,
+        updatedAt: new Date().toISOString(),
+        adminRenounced: tip.adminRenounced,
+        migrateVersion: tip.migrateVersion,
+        assetTemplate: tip.assetTemplate,
+        ticketTemplate: tip.ticketTemplate,
+        controllerTemplate: tip.controllerTemplate,
+      };
+      claimed.push({ burnTxHash: row.burnTxHash, mintTxHash: found.mintTxHash });
+      advanced = true;
+      break;
+    }
+    if (!advanced) break;
+  }
+
+  return { tip, healed: claimed.length > 0, claimed };
+}
