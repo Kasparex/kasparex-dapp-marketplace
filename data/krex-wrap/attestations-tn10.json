@@ -1,6 +1,6 @@
 {
   "network": "testnet-10",
-  "updatedAt": "2026-08-07T20:28:18.753Z",
+  "updatedAt": "2026-08-07T20:28:21.895Z",
   "attestations": [
     {
       "network": "testnet-10",
@@ -15,7 +15,7 @@
       "migrateVersion": 3,
       "status": "attested",
       "attestedAt": "2026-08-07T20:14:42.433Z",
-      "note": "TN10 v3: attested; ticket issue pending (Cannot resolve claimant x-only pubkey from kaspatest:qrwa6q8pk80dzpatgas9es2re0kusnja305wsnealy0hj480w452y0fmw3hsd)"
+      "note": "Burn accepted. Waiting for claim ticket (may take a few minutes)…"
     },
     {
       "network": "testnet-10",
