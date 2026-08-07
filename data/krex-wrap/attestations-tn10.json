@@ -1,6 +1,6 @@
 {
   "network": "testnet-10",
-  "updatedAt": "2026-08-07T20:39:39.592Z",
+  "updatedAt": "2026-08-07T20:39:50.698Z",
   "attestations": [
     {
       "network": "testnet-10",
@@ -15,7 +15,10 @@
       "migrateVersion": 3,
       "status": "attested",
       "attestedAt": "2026-08-07T20:14:42.433Z",
-      "note": "Burn accepted. Waiting for claim ticket (may take a few minutes)…"
+      "note": "TN10 v3: MigrateTicket issued; user Claims in Hub",
+      "ticketId": "f4c6a38fcf5d5c67ffcc096fdd1fe502dacc12615fc65ef5c4333e77c4c4c318:0",
+      "ticketTxId": "f4c6a38fcf5d5c67ffcc096fdd1fe502dacc12615fc65ef5c4333e77c4c4c318",
+      "ticketIndex": 0
     },
     {
       "network": "testnet-10",
@@ -157,4 +160,4 @@
       "assetCovenantId": "83b999756e613d2749b8ff9549de4bdd0cb864f3d5d2dc606d92f3aa740ee91a"
     }
   ]
-}
+}\n
