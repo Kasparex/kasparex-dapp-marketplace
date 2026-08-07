@@ -15,6 +15,7 @@ import { attestationHasTicket, type MigrateAttestation } from './migrateV2';
 import { stripKaspaAddressHrp } from '@/lib/kaspa/sdk';
 import type { Krc20BridgeNetwork } from './types';
 import { wakeMigrateAttestor } from './wakeAttestor';
+import { canIssueTicketsOnHub, issueMigrateTicket } from './issueTicket';
 
 type KasplexOp = {
   op?: string;
@@ -30,6 +31,45 @@ type KasplexOp = {
 
 function accepted(v: unknown): boolean {
   return v === true || v === 1 || v === '1' || v === 'true';
+}
+
+/**
+ * Try to issue the claim ticket directly from Hub (no GHA) when attestor/wallet3
+ * privkeys are configured on this deployment. Falls back to waking the GHA
+ * workflow when secrets are missing or issuance fails, so the old path still works.
+ */
+async function tryAutoIssueTicket(
+  reasonTag: string,
+  row: MigrateAttestation,
+): Promise<MigrateAttestation> {
+  if (attestationHasTicket(row)) return row;
+  if (!canIssueTicketsOnHub()) {
+    void wakeMigrateAttestor(reasonTag);
+    return row;
+  }
+  try {
+    const issued = await issueMigrateTicket({
+      burnTxHash: row.burnTxHash,
+      amountRaw: row.amountRaw,
+      claimantAddress: row.claimantAddress || row.from,
+    });
+    if (issued.ok && issued.ticketTxId && issued.ticketIndex != null) {
+      const updated: MigrateAttestation = {
+        ...row,
+        ticketId: issued.ticketId,
+        ticketTxId: issued.ticketTxId,
+        ticketIndex: issued.ticketIndex,
+        note: 'Burn accepted. Ticket issued automatically; Claim is ready.',
+      };
+      const { attestation } = await upsertAttestation(updated);
+      return attestation;
+    }
+    console.warn('[krex-wrap] auto ticket issue failed', issued.error);
+  } catch (err) {
+    console.warn('[krex-wrap] auto ticket issue error', err instanceof Error ? err.message : err);
+  }
+  void wakeMigrateAttestor(reasonTag);
+  return row;
 }
 
 export async function observeSinkBurn(input: {
@@ -104,13 +144,13 @@ export async function observeSinkBurn(input: {
   const opOk = accepted(match.opAccept);
   // Already attested and waiting for ticket: do not re-persist (GitHub spam + tip races).
   if (existing?.status === 'attested' && opOk) {
-    if (!attestationHasTicket(existing)) {
-      void wakeMigrateAttestor(`observe-burn:${burnTxHash.slice(0, 12)}`);
-    }
+    const attestation = attestationHasTicket(existing)
+      ? existing
+      : await tryAutoIssueTicket(`observe-burn:${burnTxHash.slice(0, 12)}`, existing);
     return {
       ok: true,
       verified: true,
-      attestation: existing,
+      attestation,
       opAccept: true,
       created: false,
     };
@@ -143,10 +183,11 @@ export async function observeSinkBurn(input: {
       : 'Burn seen on Kasplex. Waiting for opAccept…',
   };
 
-  const { attestation } = await upsertAttestation(row);
-  if (opOk && attestation && !attestationHasTicket(attestation)) {
-    void wakeMigrateAttestor(`observe-burn:${burnTxHash.slice(0, 12)}`);
-  }
+  const { attestation: upserted } = await upsertAttestation(row);
+  const attestation =
+    opOk && upserted && !attestationHasTicket(upserted)
+      ? await tryAutoIssueTicket(`observe-burn:${burnTxHash.slice(0, 12)}`, upserted)
+      : upserted;
   return {
     ok: true,
     verified: true,

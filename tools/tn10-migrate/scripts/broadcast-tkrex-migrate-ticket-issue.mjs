@@ -108,20 +108,29 @@ function loadAttestorPriv(id) {
   ]);
 }
 
-const ticketArtifact = compileWithExprs(
-  openSilverRoot,
-  silvercBin,
-  'contracts/tokens/migrate-ticket.sil',
-  ticketCtorExprs(attestors, ATTESTOR_THRESHOLD),
-  'ticket-issue',
-);
-const layout = ticketArtifact.state_layout || ticketArtifact.stateLayout;
-if (!layout) throw new Error('ticket artifact missing state_layout');
-
 const ticketTemplatePath = join(outDir, 'ticket-template-parts.json');
+const ticketTemplateEnvRaw = (process.env.TKREX_TICKET_TEMPLATE_JSON || '').trim();
 const ticketTemplate = existsSync(ticketTemplatePath)
   ? JSON.parse(readFileSync(ticketTemplatePath, 'utf8'))
-  : null;
+  : ticketTemplateEnvRaw
+    ? JSON.parse(ticketTemplateEnvRaw)
+    : null;
+
+// When a ticket template is already known (from a prior compile or the Hub tip),
+// skip silverc entirely: spliceTemplateScript only needs templatePrefix/Suffix.
+let ticketArtifact = null;
+let layout = null;
+if (!ticketTemplate) {
+  ticketArtifact = compileWithExprs(
+    openSilverRoot,
+    silvercBin,
+    'contracts/tokens/migrate-ticket.sil',
+    ticketCtorExprs(attestors, ATTESTOR_THRESHOLD),
+    'ticket-issue',
+  );
+  layout = ticketArtifact.state_layout || ticketArtifact.stateLayout;
+  if (!layout) throw new Error('ticket artifact missing state_layout');
+}
 
 const inactiveState = encodeInactiveTicketState(ATTESTOR_THRESHOLD);
 const activeState = encodeMigrateTicketState({
@@ -147,7 +156,7 @@ if (ticketTemplate) {
   ]);
 }
 
-if (inactiveState.length !== Number(layout.len) || activeState.length !== Number(layout.len)) {
+if (layout && (inactiveState.length !== Number(layout.len) || activeState.length !== Number(layout.len))) {
   throw new Error(
     `Ticket state len mismatch: layout=${layout.len} inactive=${inactiveState.length} active=${activeState.length}`,
   );
@@ -171,7 +180,9 @@ const dry = {
   updatedAt: new Date().toISOString(),
 };
 writeFileSync(join(outDir, 'TICKET_ISSUE_DRY_RUN.json'), `${JSON.stringify(dry, null, 2)}\n`);
-writeFileSync(join(outDir, 'ticket-issue-artifact.json'), JSON.stringify(ticketArtifact, null, 2));
+if (ticketArtifact) {
+  writeFileSync(join(outDir, 'ticket-issue-artifact.json'), JSON.stringify(ticketArtifact, null, 2));
+}
 console.log(JSON.stringify(dry, null, 2));
 
 if (!WANT_BROADCAST) {

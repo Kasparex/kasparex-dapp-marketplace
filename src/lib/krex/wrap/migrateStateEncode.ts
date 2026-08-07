@@ -94,6 +94,17 @@ export function encodeMigrateTicketState(input: {
   );
 }
 
+/** Inactive genesis ticket state (zeros + active=false). */
+export function encodeInactiveTicketState(threshold: number): Uint8Array {
+  return encodeMigrateTicketState({
+    threshold,
+    burnTxId: '00'.repeat(32),
+    amountRaw: 0n,
+    claimantXOnly: '00'.repeat(32),
+    active: false,
+  });
+}
+
 export function encodeKcc20State(input: {
   ownerIdentifier: string;
   identifierType: number;

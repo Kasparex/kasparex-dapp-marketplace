@@ -14,13 +14,14 @@ import {
   persistMintReceiptStore,
   upsertAttestation,
 } from '@/lib/krex/wrap/mintReceiptStore';
-import type { MigrateAttestation } from '@/lib/krex/wrap/migrateV2';
+import { attestationHasTicket, type MigrateAttestation } from '@/lib/krex/wrap/migrateV2';
 import {
   verifyMigrateClaimOnChain,
   discoverClaimMintForAttestation,
   healMigrateTipFromChain,
 } from '@/lib/krex/wrap/claimReport';
 import { observeSinkBurn } from '@/lib/krex/wrap/observeBurn';
+import { canIssueTicketsOnHub, issueMigrateTicket } from '@/lib/krex/wrap/issueTicket';
 import type { Krc20BridgeNetwork } from '@/lib/krex/wrap/types';
 
 export const runtime = 'nodejs';
@@ -292,6 +293,68 @@ async function postMintTip(req: NextRequest, body: Record<string, unknown>) {
 }
 
 /**
+ * Watcher/ops POST: force-issue a claim ticket for an accepted burn without
+ * waiting for the GHA attestor. Requires TKREX_WALLET3_PRIVKEY + >=2 attestor
+ * privkeys configured on this deployment (see canIssueTicketsOnHub).
+ */
+async function postIssueTicket(req: NextRequest, body: Record<string, unknown>) {
+  if (!watcherSecretExpected()) {
+    return NextResponse.json(
+      { ok: false, error: 'Watcher/attestor secret is not configured on this deployment' },
+      { status: 503 },
+    );
+  }
+  if (!watcherAuthorized(req)) {
+    return NextResponse.json({ ok: false, error: 'Unauthorized' }, { status: 401 });
+  }
+
+  const burnTxHash = normalizeTxHash(typeof body.burnTxHash === 'string' ? body.burnTxHash : '');
+  if (!burnTxHash) {
+    return NextResponse.json({ ok: false, error: 'burnTxHash must be 64-char hex' }, { status: 400 });
+  }
+
+  const existing = await findAttestation(burnTxHash);
+  if (!existing) {
+    return NextResponse.json({ ok: false, error: 'No attestation for this burn' }, { status: 404 });
+  }
+  if (attestationHasTicket(existing)) {
+    return NextResponse.json({ ok: true, mode: 'issue-ticket', already: true, attestation: existing });
+  }
+  if (!canIssueTicketsOnHub()) {
+    return NextResponse.json(
+      {
+        ok: false,
+        mode: 'issue-ticket',
+        error: 'Attestor/wallet3 privkeys are not configured on this deployment',
+      },
+      { status: 503 },
+    );
+  }
+
+  const issued = await issueMigrateTicket({
+    burnTxHash,
+    amountRaw: existing.amountRaw,
+    claimantAddress: existing.claimantAddress || existing.from,
+  });
+  if (!issued.ok) {
+    return NextResponse.json(
+      { ok: false, mode: 'issue-ticket', error: issued.error || 'Ticket issue failed' },
+      { status: 502 },
+    );
+  }
+
+  const row: MigrateAttestation = {
+    ...existing,
+    ticketId: issued.ticketId,
+    ticketTxId: issued.ticketTxId,
+    ticketIndex: issued.ticketIndex,
+    note: 'Burn accepted. Ticket issued automatically; Claim is ready.',
+  };
+  const { attestation, persist } = await upsertAttestation(row);
+  return NextResponse.json({ ok: true, mode: 'issue-ticket', attestation, persist, issued });
+}
+
+/**
  * Public claim report: mintTx must spend the attestation ticket on TN10.
  * Marks Hub attestation claimed and advances the migrate tip when possible.
  */
@@ -339,8 +402,13 @@ async function postClaimReport(body: Record<string, unknown>) {
   };
   const { attestation, persist } = await upsertAttestation(row);
 
+  // Tip already points at this mint (e.g. a prior claim-report already advanced it,
+  // or a chained Claim landed first): skip re-persisting to avoid a redundant write
+  // and a double-subtracted remainingAllowance.
+  const tipAlreadyAtMint = Boolean(tip && normalizeTxHash(tip.minterTxId) === verified.mintTxHash);
+
   let tipPersist: { ok: boolean; via?: string; error?: string } | undefined;
-  if (tip && verified.tipPatch) {
+  if (tip && verified.tipPatch && !tipAlreadyAtMint) {
     const nextTip = await persistMigrateMintTip({
       ...tip,
       ...verified.tipPatch,
@@ -423,6 +491,9 @@ export async function POST(req: NextRequest) {
   }
   if (mode === 'claim-report') {
     return postClaimReport(body);
+  }
+  if (mode === 'issue-ticket') {
+    return postIssueTicket(req, body);
   }
   if (mode === 'observe-burn') {
     const observed = await observeSinkBurn({

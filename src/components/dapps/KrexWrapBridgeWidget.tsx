@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { signKrc20Transfer } from '@/lib/kaspa/l1WalletActions';
 import { normalizeKaspaAddress } from '@/lib/kaspa/sdk';
@@ -368,6 +368,15 @@ export function KrexWrapBridgeWidget() {
   const [attestByBurn, setAttestByBurn] = useState<Record<string, MigrateAttestation>>({});
   const [syncNonce, setSyncNonce] = useState(0);
   const [syncing, setSyncing] = useState(false);
+  const notifiedTicketReadyRef = useRef<Set<string>>(new Set());
+
+  const maybeNotifyTicketReady = useCallback((a: MigrateAttestation) => {
+    const key = a.burnTxHash?.toLowerCase();
+    if (!key || notifiedTicketReadyRef.current.has(key)) return;
+    if (!evaluateMigrateClaimReady(a).ready) return;
+    notifiedTicketReadyRef.current.add(key);
+    hubNotify.success('Ticket ready', 'Claim KCC20 below.');
+  }, []);
 
   const tick = (selectedToken?.ticker || tickInput || config.defaultTick).trim().toUpperCase();
   const decimals =
@@ -431,6 +440,7 @@ export function KrexWrapBridgeWidget() {
             });
             if (!a || cancelled) return;
             setAttestByBurn((prev) => ({ ...prev, [a.burnTxHash.toLowerCase()]: a }));
+            maybeNotifyTicketReady(a);
             if (a.status === 'attested' || a.status === 'pending') {
               updateKrexWrapStatusByBurn(a.burnTxHash, 'awaiting_attest', {
                 note: evaluateMigrateClaimReady(a).ready
@@ -473,6 +483,7 @@ export function KrexWrapBridgeWidget() {
                   extractTxId(r.depositTxHash || '')?.toLowerCase() === a.burnTxHash.toLowerCase(),
               );
               if (!isPendingRow) continue;
+              maybeNotifyTicketReady(a);
               if (a.status === 'attested' || a.status === 'pending') {
                 const ready = evaluateMigrateClaimReady(a);
                 updateKrexWrapStatusByBurn(a.burnTxHash, 'awaiting_attest', {
@@ -524,14 +535,15 @@ export function KrexWrapBridgeWidget() {
           row.status === 'burned' ||
           row.status === 'awaiting_attest'),
     );
+    // Waiting for a claim ticket: poll fast (2s) so Claim appears the moment it lands.
     const id = window.setInterval(() => {
       void syncReceipts();
-    }, hasPending ? 3_000 : 15_000);
+    }, hasPending ? 2_000 : 15_000);
     return () => {
       cancelled = true;
       window.clearInterval(id);
     };
-  }, [state.address, network, refreshHistory, tab, syncNonce]);
+  }, [state.address, network, refreshHistory, tab, syncNonce, maybeNotifyTicketReady]);
 
   /** Keep bridge tab aligned with the connected L1 address HRP. */
   useEffect(() => {

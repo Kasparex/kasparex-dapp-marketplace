@@ -20,6 +20,12 @@ const nextConfig = {
   },
 
   serverExternalPackages: ["pino-pretty"],
+
+  // Bundle the Kaspa WASM SDK with the migrate ticket-issue API route so it can
+  // sign/broadcast on the server (Vercel) without needing GitHub Actions.
+  outputFileTracingIncludes: {
+    '/api/krex-wrap/mint-receipts': ['./public/kaspa-sdk/**/*'],
+  },
   
   // Enable image optimization for Vercel
   images: {
