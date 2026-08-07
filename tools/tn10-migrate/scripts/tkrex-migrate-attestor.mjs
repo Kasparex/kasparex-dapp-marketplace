@@ -71,7 +71,10 @@ function readMintTip() {
   for (const tipPath of [join(migrateOutDir, 'MINT_TIP.json'), join(outDir, 'MINT_TIP.json')]) {
     try {
       if (!existsSync(tipPath)) continue;
-      return JSON.parse(readFileSync(tipPath, 'utf8'));
+      const raw = JSON.parse(readFileSync(tipPath, 'utf8'));
+      // Accept Hub API envelope `{ ok, tip }` or bare tip JSON.
+      const tip = raw && typeof raw === 'object' && raw.tip && typeof raw.tip === 'object' ? raw.tip : raw;
+      if (tip && (tip.migrateVersion != null || tip.assetCovenantId)) return tip;
     } catch {
       // continue
     }
@@ -79,11 +82,35 @@ function readMintTip() {
   return null;
 }
 
+async function ensureMintTip() {
+  let tip = readMintTip();
+  if (tipIsV3TicketMode(tip)) return tip;
+  try {
+    const res = await fetch(`${HUB_URL}/api/krex-wrap/mint-receipts?mode=mint-tip`, {
+      headers: { Accept: 'application/json' },
+      cache: 'no-store',
+    });
+    if (!res.ok) return tip;
+    const json = await res.json();
+    const remote = json && typeof json === 'object' ? json.tip || json : null;
+    if (remote && (remote.migrateVersion != null || remote.assetCovenantId)) {
+      mkdirSync(migrateOutDir, { recursive: true });
+      writeFileSync(join(migrateOutDir, 'MINT_TIP.json'), `${JSON.stringify(remote, null, 2)}\n`);
+      return remote;
+    }
+  } catch (err) {
+    console.warn('Hub tip fetch failed:', err instanceof Error ? err.message : err);
+  }
+  return tip;
+}
+
 function tipIsV3TicketMode(tip) {
   if (!tip) return false;
   if (tip.legacyNote) return false;
   if (Number(tip.migrateVersion || 0) >= 3) return true;
   const asset = String(tip.assetCovenantId || '').toLowerCase();
+  // Live v3 cutover asset (ticket-gated).
+  if (asset === '4c1b883883cc816442bac6bd23621c7b1157a25f5c5ac61caf098ae0004d8106') return true;
   // Historical soak asset stays on v2 AUTO_MINT path.
   if (asset === '83b999756e613d2749b8ff9549de4bdd0cb864f3d5d2dc606d92f3aa740ee91a') return false;
   return false;
@@ -581,7 +608,7 @@ async function scanOnce() {
 async function main() {
   mkdirSync(outDir, { recursive: true });
   mkdirSync(migrateOutDir, { recursive: true });
-  const tip = readMintTip();
+  const tip = await ensureMintTip();
   console.log({
     HUB_URL,
     TICK,

@@ -17,7 +17,7 @@ on:
 
 concurrency:
   group: tn10-migrate-attestor
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   attest-and-mint:

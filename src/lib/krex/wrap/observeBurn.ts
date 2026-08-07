@@ -11,9 +11,10 @@ import {
 } from './config';
 import { findAttestation, upsertAttestation } from './mintReceiptStore';
 import { normalizeTxHash } from './mintReceipts';
-import type { MigrateAttestation } from './migrateV2';
+import { attestationHasTicket, type MigrateAttestation } from './migrateV2';
 import { stripKaspaAddressHrp } from '@/lib/kaspa/sdk';
 import type { Krc20BridgeNetwork } from './types';
+import { wakeMigrateAttestor } from './wakeAttestor';
 
 type KasplexOp = {
   op?: string;
@@ -129,6 +130,9 @@ export async function observeSinkBurn(input: {
   };
 
   const { attestation } = await upsertAttestation(row);
+  if (opOk && attestation && !attestationHasTicket(attestation)) {
+    void wakeMigrateAttestor(`observe-burn:${burnTxHash.slice(0, 12)}`);
+  }
   return {
     ok: true,
     verified: true,
