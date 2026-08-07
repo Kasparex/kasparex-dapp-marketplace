@@ -1,6 +1,6 @@
 {
   "network": "testnet-10",
-  "updatedAt": "2026-08-07T18:02:08.540Z",
+  "updatedAt": "2026-08-07T18:02:09.842Z",
   "attestations": [
     {
       "network": "testnet-10",
@@ -21,7 +21,7 @@
       "network": "testnet-10",
       "tick": "TKREX",
       "burnTxHash": "201439832927ccdb50fcd7405d5564fa1b30c88dcf7f8422f028f147dd96c0ea",
-      "amountRaw": "250000000",
+      "amountRaw": "320000000",
       "amount": 2.5,
       "from": "kaspatest:qrwa6q8pk80dzpatgas9es2re0kusnja305wsnealy0hj480w452y0fmw3hsd",
       "sinkAddress": "kaspatest:pqw2y985nkrstxa7x30rkckq6y8papu48tv688vak9eyew2fc9r9vdf0hcw87",
