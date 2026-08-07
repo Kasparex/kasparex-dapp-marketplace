@@ -1,6 +1,6 @@
 {
   "network": "testnet-10",
-  "updatedAt": "2026-08-07T17:53:52.305Z",
+  "updatedAt": "2026-08-07T17:53:55.399Z",
   "attestations": [
     {
       "network": "testnet-10",
@@ -15,7 +15,7 @@
       "migrateVersion": 3,
       "status": "attested",
       "attestedAt": "2026-08-07T17:17:26.254Z",
-      "note": "Burn accepted on Kasplex. Waiting for MigrateTicket from attestor…"
+      "note": "Burn accepted. Waiting for claim ticket (may take a few minutes)…"
     },
     {
       "network": "testnet-10",
