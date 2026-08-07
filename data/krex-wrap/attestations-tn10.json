@@ -1,6 +1,6 @@
 {
   "network": "testnet-10",
-  "updatedAt": "2026-08-07T11:19:28.072Z",
+  "updatedAt": "2026-08-07T16:04:32.896Z",
   "attestations": [
     {
       "network": "testnet-10",
@@ -12,12 +12,13 @@
       "sinkAddress": "kaspatest:pqw2y985nkrstxa7x30rkckq6y8papu48tv688vak9eyew2fc9r9vdf0hcw87",
       "claimantAddress": "kaspatest:qrwa6q8pk80dzpatgas9es2re0kusnja305wsnealy0hj480w452y0fmw3hsd",
       "migrateVersion": 3,
-      "status": "attested",
+      "status": "claimed",
       "attestedAt": "2026-08-07T11:03:27.875Z",
-      "note": "TN10 v3: MigrateTicket issued; user Claims in Hub",
+      "note": "User claimed KCC20 on Kaspa L1 (ops backfill)",
       "ticketId": "bee784abdfb7fbf2b9f2f2cb6388ec63ac6d0efbb7c6f8ebfe9feda790dd7671:0",
       "ticketTxId": "bee784abdfb7fbf2b9f2f2cb6388ec63ac6d0efbb7c6f8ebfe9feda790dd7671",
-      "ticketIndex": 0
+      "ticketIndex": 0,
+      "mintTxHash": "ab55634d9f733b72e36d718f8618143de78c8fa54f9bb5715a26858fc7f62979"
     },
     {
       "network": "testnet-10",
