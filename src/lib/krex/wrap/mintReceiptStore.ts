@@ -403,8 +403,23 @@ export async function upsertAttestation(row: MigrateAttestation): Promise<{
   const burn = row.burnTxHash.trim().toLowerCase();
   const normalized: MigrateAttestation = { ...row, burnTxHash: burn };
   const idx = store.attestations.findIndex((a) => a.burnTxHash?.toLowerCase() === burn);
-  if (idx >= 0) store.attestations[idx] = { ...store.attestations[idx], ...normalized };
-  else store.attestations.unshift(normalized);
+  if (idx >= 0) {
+    const prev = store.attestations[idx];
+    const merged: MigrateAttestation = { ...prev, ...normalized };
+    // Never drop a real ticket outpoint because a stale observe poll lacked it.
+    if (attestationHasTicket(prev) && !attestationHasTicket(normalized)) {
+      merged.ticketId = prev.ticketId;
+      merged.ticketTxId = prev.ticketTxId;
+      merged.ticketIndex = prev.ticketIndex;
+      if (prev.note && (!merged.note || /waiting for claim ticket/i.test(merged.note))) {
+        merged.note = prev.note;
+      }
+    }
+    store.attestations[idx] = merged;
+    const persist = await persistAttestationStore(store);
+    return { attestation: merged, persist };
+  }
+  store.attestations.unshift(normalized);
   const persist = await persistAttestationStore(store);
   return { attestation: normalized, persist };
 }
