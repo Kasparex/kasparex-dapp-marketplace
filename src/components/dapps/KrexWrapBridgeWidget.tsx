@@ -15,7 +15,7 @@ import { useSyncDAppWidgetQuote, useSyncHubQuote } from '@/lib/dapps/PaymentAmou
 import { placeholderDApps } from '@/lib/dapps';
 import { awardDAppHubPoints } from '@/lib/rewards/awardDAppHubPoints';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
-import { useDAppWidgetSection } from '@/lib/dapps/DAppWidgetTabContext';
+import { useDAppWidgetSection, useNavigateDAppWidgetTab } from '@/lib/dapps/DAppWidgetTabContext';
 import { Krc20TickerSearchField } from '@/components/tokens/Krc20TickerSearchField';
 import type { Krc20TokenInfo } from '@/lib/tokens/krc20Lookup';
 import { HubMetadataStatGrid } from '@/components/hub/HubMetadataStatGrid';
@@ -64,7 +64,7 @@ function statusLabel(status: KrexWrapStatus): string {
     case 'burned':
       return 'Burned';
     case 'awaiting_attest':
-      return 'Ready to claim';
+      return 'Confirming';
     case 'pending_mint':
       return 'Pending mint';
     case 'minted':
@@ -102,9 +102,9 @@ function statusTooltip(status: KrexWrapStatus): string {
     case 'deposited':
       return 'Token is in the vault. Matching KCC20 mint is not live for this ticker yet.';
     case 'burned':
-      return 'KRC-20 burned. Waiting for attestors to confirm the burn on Kasplex.';
+      return 'Burn submitted. Confirming on Kasplex, then a claim ticket is issued (usually under 2 minutes).';
     case 'awaiting_attest':
-      return 'Burn confirmed and a claim ticket is ready. Tap Claim KCC20 and sign in KasWare.';
+      return 'Confirming burn / waiting for claim ticket. Claim appears as soon as the ticket is ready.';
     case 'pending_mint':
       return 'Deposit is on Kaspa L1. Matching KCC20 mint is still pending.';
     case 'minted':
@@ -128,104 +128,146 @@ async function reportClaimToHub(burnTxHash: string, mintTxHash: string): Promise
   }
 }
 
+async function observeBurnOnHub(input: {
+  burnTxHash: string;
+  network: Krc20BridgeNetwork;
+  tick: string;
+  wallet?: string | null;
+  amount?: number;
+}): Promise<MigrateAttestation | null> {
+  try {
+    const res = await fetch('/api/krex-wrap/mint-receipts?mode=observe-burn', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify({
+        burnTxHash: input.burnTxHash,
+        network: input.network,
+        tick: input.tick,
+        wallet: input.wallet || undefined,
+        amount: input.amount,
+      }),
+    });
+    if (!res.ok) return null;
+    const json = (await res.json()) as { attestation?: MigrateAttestation };
+    return json.attestation || null;
+  } catch {
+    return null;
+  }
+}
+
+function historyBadgeLabel(row: KrexWrapRecord, attestation?: MigrateAttestation): string {
+  if (row.status === 'minted' || row.mintTxHash) return 'Complete';
+  const ready = evaluateMigrateClaimReady(attestation);
+  if (ready.ready) return 'Ready to claim';
+  if (row.status === 'burned' || row.status === 'awaiting_attest') return 'Confirming';
+  return statusLabel(row.status);
+}
+
 function ClaimTicketButton({
   attestation,
   provider,
   fundingAddress,
   onClaimed,
+  forceShowWaiting,
 }: {
   attestation?: MigrateAttestation;
   provider?: KaspaWalletProvider | null;
   fundingAddress?: string | null;
   onClaimed?: (mintTxHash: string) => void;
+  forceShowWaiting?: boolean;
 }) {
   const ready = evaluateMigrateClaimReady(attestation);
   const [busy, setBusy] = useState(false);
+  if (!ready.ready && !forceShowWaiting && !attestation) return null;
   return (
-    <button
-      type="button"
-      className="k-control-btn mt-1 text-xs"
-      disabled={!ready.ready || busy || !provider || !fundingAddress}
-      onClick={() => {
-        void (async () => {
-          const plan = ready.plan || (attestation ? buildMigrateClaimPlan(attestation) : null);
-          if (!plan || !attestation || !provider || !fundingAddress) {
-            hubNotify.info('Claim not ready', ready.reason || 'Waiting for ticket');
-            return;
-          }
-          setBusy(true);
-          const loadingId = hubNotify.loading('Building claim…', 'Confirm in KasWare when prompted');
-          try {
-            const tipRes = await fetch('/api/krex-wrap/mint-receipts?mode=mint-tip', {
-              headers: { Accept: 'application/json' },
-              cache: 'no-store',
-            });
-            const tipJson = (await tipRes.json()) as { ok?: boolean; tip?: MigrateClaimTip };
-            const tip = tipJson.tip;
-            if (!tip) {
-              hubNotify.update(loadingId, {
-                variant: 'error',
-                title: 'Claim unavailable',
-                description: 'Migrate tip not loaded',
-              });
-              return;
-            }
-            const wallet = getWalletProvider(provider);
-            const publicKeyHex =
-              typeof wallet?.getPublicKey === 'function' ? await wallet.getPublicKey() : null;
-            const result = await submitMigrateClaim({
-              provider,
-              attestation,
-              tip,
-              fundingAddress,
-              publicKeyHex,
-            });
-            if (!result.ok || !result.txHash) {
-              const err = result.error || 'Unknown error';
-              if (/Minter UTXO not found/i.test(err) || /Ticket UTXO .* not found/i.test(err)) {
-                hubNotify.update(loadingId, {
-                  variant: 'info',
-                  title: 'Already claimed?',
-                  description:
-                    'This ticket looks spent. Refreshing History. If Complete does not appear, open your earlier Claim toast.',
-                });
-                onClaimed?.('');
+    <Tooltip content={ready.ready ? 'Sign the claim in KasWare' : ready.reason || 'Waiting…'}>
+      <span className="inline-flex">
+        <button
+          type="button"
+          className="k-control-btn mt-1 text-xs"
+          disabled={!ready.ready || busy || !provider || !fundingAddress}
+          onClick={() => {
+            void (async () => {
+              const plan = ready.plan || (attestation ? buildMigrateClaimPlan(attestation) : null);
+              if (!plan || !attestation || !provider || !fundingAddress) {
+                hubNotify.info('Claim not ready', ready.reason || 'Waiting for ticket');
                 return;
               }
-              hubNotify.update(loadingId, {
-                variant: 'error',
-                title: 'Claim failed',
-                description: err,
-              });
-              return;
-            }
-            applyMintReceiptToHistory({
-              depositTxHash: attestation.burnTxHash,
-              mintTxHash: result.txHash,
-              note: 'KCC20 claimed on Kaspa L1. Open Claim tx or kascov to see the covenant coin.',
-            });
-            void reportClaimToHub(attestation.burnTxHash, result.txHash);
-            onClaimed?.(result.txHash);
-            hubNotify.txSuccess({
-              id: loadingId,
-              title: 'KCC20 claimed',
-              txHash: result.txHash,
-              network: 'testnet-10',
-            });
-          } catch (err) {
-            hubNotify.update(loadingId, {
-              variant: 'error',
-              title: 'Claim failed',
-              description: err instanceof Error ? err.message : String(err),
-            });
-          } finally {
-            setBusy(false);
-          }
-        })();
-      }}
-    >
-      {busy ? 'Claiming…' : claimButtonLabel(ready)}
-    </button>
+              setBusy(true);
+              const loadingId = hubNotify.loading('Building claim…', 'Confirm in KasWare when prompted');
+              try {
+                const tipRes = await fetch('/api/krex-wrap/mint-receipts?mode=mint-tip', {
+                  headers: { Accept: 'application/json' },
+                  cache: 'no-store',
+                });
+                const tipJson = (await tipRes.json()) as { ok?: boolean; tip?: MigrateClaimTip };
+                const tip = tipJson.tip;
+                if (!tip) {
+                  hubNotify.update(loadingId, {
+                    variant: 'error',
+                    title: 'Claim unavailable',
+                    description: 'Migrate tip not loaded',
+                  });
+                  return;
+                }
+                const wallet = getWalletProvider(provider);
+                const publicKeyHex =
+                  typeof wallet?.getPublicKey === 'function' ? await wallet.getPublicKey() : null;
+                const result = await submitMigrateClaim({
+                  provider,
+                  attestation,
+                  tip,
+                  fundingAddress,
+                  publicKeyHex,
+                });
+                if (!result.ok || !result.txHash) {
+                  const err = result.error || 'Unknown error';
+                  if (/Minter UTXO not found/i.test(err) || /Ticket UTXO .* not found/i.test(err)) {
+                    hubNotify.update(loadingId, {
+                      variant: 'info',
+                      title: 'Already claimed?',
+                      description:
+                        'This ticket looks spent. Refreshing History. If Complete does not appear, open your earlier Claim toast.',
+                    });
+                    onClaimed?.('');
+                    return;
+                  }
+                  hubNotify.update(loadingId, {
+                    variant: 'error',
+                    title: 'Claim failed',
+                    description: err,
+                  });
+                  return;
+                }
+                applyMintReceiptToHistory({
+                  depositTxHash: attestation.burnTxHash,
+                  mintTxHash: result.txHash,
+                  note: 'KCC20 claimed on Kaspa L1. Open Claim tx or kascov to see the covenant coin.',
+                });
+                void reportClaimToHub(attestation.burnTxHash, result.txHash);
+                onClaimed?.(result.txHash);
+                hubNotify.txSuccess({
+                  id: loadingId,
+                  title: 'KCC20 claimed',
+                  txHash: result.txHash,
+                  network: 'testnet-10',
+                });
+              } catch (err) {
+                hubNotify.update(loadingId, {
+                  variant: 'error',
+                  title: 'Claim failed',
+                  description: err instanceof Error ? err.message : String(err),
+                });
+              } finally {
+                setBusy(false);
+              }
+            })();
+          }}
+        >
+          {busy ? 'Claiming…' : claimButtonLabel(ready)}
+        </button>
+      </span>
+    </Tooltip>
   );
 }
 
@@ -245,12 +287,18 @@ function kascovTxUrl(network: Krc20BridgeNetwork, txId: string): string {
   return `https://kascov.io/#/${net}/tx/${id.toLowerCase()}`;
 }
 
-function WrapStatusBadge({ status }: { status: KrexWrapStatus }) {
+function WrapStatusBadge({
+  status,
+  label,
+}: {
+  status: KrexWrapStatus;
+  label?: string;
+}) {
   return (
     <Tooltip content={statusTooltip(status)}>
       <span className="inline-flex cursor-help">
         <KxBadge variant={statusBadgeVariant(status)} size="sm">
-          {statusLabel(status)}
+          {label || statusLabel(status)}
         </KxBadge>
       </span>
     </Tooltip>
@@ -260,6 +308,7 @@ function WrapStatusBadge({ status }: { status: KrexWrapStatus }) {
 export function KrexWrapBridgeWidget() {
   const { state } = useKaspaWallet();
   const tab = useDAppWidgetSection('migrate');
+  const navigateTab = useNavigateDAppWidgetTab();
   const { tier, balance: krexBal, refetch } = useKREXBalance();
   const bridgeDApp = placeholderDApps.find((d) => d.slug === BRIDGE_SLUG);
   const [network, setNetwork] = useState<Krc20BridgeNetwork>('mainnet');
@@ -274,6 +323,8 @@ export function KrexWrapBridgeWidget() {
   const [success, setSuccess] = useState<string | null>(null);
   const [history, setHistory] = useState<KrexWrapRecord[]>([]);
   const [attestByBurn, setAttestByBurn] = useState<Record<string, MigrateAttestation>>({});
+  const [syncNonce, setSyncNonce] = useState(0);
+  const [syncing, setSyncing] = useState(false);
 
   const tick = (selectedToken?.ticker || tickInput || config.defaultTick).trim().toUpperCase();
   const decimals =
@@ -309,11 +360,11 @@ export function KrexWrapBridgeWidget() {
     refreshHistory();
   }, [refreshHistory]);
 
-  /** Poll attestations + mint receipts so History flips to Complete after Claim. */
+  /** Fast poll: observe burns on Kasplex + pull Hub attestations (Claim within seconds of ticket). */
   useEffect(() => {
     let cancelled = false;
     const syncReceipts = async () => {
-      const rows = listKrexWrapHistory(state.address).filter(
+      const pending = listKrexWrapHistory(state.address).filter(
         (row) =>
           (!row.network || row.network === network) &&
           row.depositTxHash &&
@@ -321,8 +372,39 @@ export function KrexWrapBridgeWidget() {
             row.status === 'burned' ||
             row.status === 'awaiting_attest'),
       );
-      if (rows.length === 0) return;
+      if (pending.length === 0 && tab !== 'history') return;
+      setSyncing(true);
       try {
+        await Promise.all(
+          pending.slice(0, 6).map(async (row) => {
+            const burn = extractTxId(row.depositTxHash || '');
+            if (!burn) return;
+            const a = await observeBurnOnHub({
+              burnTxHash: burn,
+              network,
+              tick: row.tick,
+              wallet: state.address,
+              amount: row.amount,
+            });
+            if (!a || cancelled) return;
+            setAttestByBurn((prev) => ({ ...prev, [a.burnTxHash.toLowerCase()]: a }));
+            if (a.status === 'attested' || a.status === 'pending') {
+              updateKrexWrapStatusByBurn(a.burnTxHash, 'awaiting_attest', {
+                note: evaluateMigrateClaimReady(a).ready
+                  ? 'Ticket ready. Claim KCC20 below.'
+                  : a.note || 'Burn seen. Waiting for claim ticket…',
+              });
+            }
+            if (a.mintTxHash) {
+              applyMintReceiptToHistory({
+                depositTxHash: a.burnTxHash,
+                mintTxHash: a.mintTxHash,
+                note: 'KCC20 claimed on Kaspa L1.',
+              });
+            }
+          }),
+        );
+
         const [attestRes, mintRes] = await Promise.all([
           fetch('/api/krex-wrap/mint-receipts?mode=attest', {
             headers: { Accept: 'application/json' },
@@ -333,7 +415,6 @@ export function KrexWrapBridgeWidget() {
             cache: 'no-store',
           }),
         ]);
-        let changed = 0;
         if (attestRes.ok && !cancelled) {
           const json = (await attestRes.json()) as {
             ok?: boolean;
@@ -343,43 +424,24 @@ export function KrexWrapBridgeWidget() {
             const nextMap: Record<string, MigrateAttestation> = {};
             for (const a of json.attestations) {
               if (!a.burnTxHash) continue;
-              let row = a;
-              // Server-side discover when Hub still says attested after a spent ticket.
-              if (
-                network === 'testnet-10' &&
-                a.status === 'attested' &&
-                !a.mintTxHash &&
-                rows.some(
-                  (r) =>
-                    extractTxId(r.depositTxHash || '')?.toLowerCase() === a.burnTxHash.toLowerCase(),
-                )
-              ) {
-                try {
-                  const dRes = await fetch(
-                    `/api/krex-wrap/mint-receipts?mode=attest&burnTxHash=${a.burnTxHash}&discover=1`,
-                    { headers: { Accept: 'application/json' }, cache: 'no-store' },
-                  );
-                  if (dRes.ok) {
-                    const dJson = (await dRes.json()) as { attestation?: MigrateAttestation };
-                    if (dJson.attestation) row = dJson.attestation;
-                  }
-                } catch {
-                  /* ignore */
-                }
-              }
-              nextMap[row.burnTxHash.toLowerCase()] = row;
-              if (row.status === 'attested' || row.status === 'pending') {
-                const ready = evaluateMigrateClaimReady(row);
-                changed += updateKrexWrapStatusByBurn(row.burnTxHash, 'awaiting_attest', {
+              nextMap[a.burnTxHash.toLowerCase()] = a;
+              const isPendingRow = pending.some(
+                (r) =>
+                  extractTxId(r.depositTxHash || '')?.toLowerCase() === a.burnTxHash.toLowerCase(),
+              );
+              if (!isPendingRow) continue;
+              if (a.status === 'attested' || a.status === 'pending') {
+                const ready = evaluateMigrateClaimReady(a);
+                updateKrexWrapStatusByBurn(a.burnTxHash, 'awaiting_attest', {
                   note: ready.ready
                     ? 'Ticket ready. Claim KCC20 below (you sign in KasWare).'
-                    : 'Burn confirmed. Waiting for claim ticket…',
+                    : a.note || 'Burn confirmed. Waiting for claim ticket…',
                 });
               }
-              if (row.mintTxHash && (row.status === 'claimed' || row.mintTxHash)) {
-                changed += applyMintReceiptToHistory({
-                  depositTxHash: row.burnTxHash,
-                  mintTxHash: row.mintTxHash,
+              if (a.mintTxHash) {
+                applyMintReceiptToHistory({
+                  depositTxHash: a.burnTxHash,
+                  mintTxHash: a.mintTxHash,
                   note: 'KCC20 claimed on Kaspa L1.',
                 });
               }
@@ -395,7 +457,7 @@ export function KrexWrapBridgeWidget() {
           if (json.ok && Array.isArray(json.receipts)) {
             for (const receipt of json.receipts) {
               if (!receipt.depositTxHash || !receipt.mintTxHash) continue;
-              changed += applyMintReceiptToHistory({
+              applyMintReceiptToHistory({
                 depositTxHash: receipt.depositTxHash,
                 mintTxHash: receipt.mintTxHash,
                 note: 'KCC20 minted on Kaspa L1.',
@@ -403,20 +465,30 @@ export function KrexWrapBridgeWidget() {
             }
           }
         }
-        if (changed > 0 && !cancelled) refreshHistory();
+        if (!cancelled) refreshHistory();
       } catch {
         // ignore transient receipt fetch errors
+      } finally {
+        if (!cancelled) setSyncing(false);
       }
     };
     void syncReceipts();
+    const hasPending = listKrexWrapHistory(state.address).some(
+      (row) =>
+        (!row.network || row.network === network) &&
+        row.depositTxHash &&
+        (row.status === 'pending_mint' ||
+          row.status === 'burned' ||
+          row.status === 'awaiting_attest'),
+    );
     const id = window.setInterval(() => {
       void syncReceipts();
-    }, 20_000);
+    }, hasPending ? 3_000 : 15_000);
     return () => {
       cancelled = true;
       window.clearInterval(id);
     };
-  }, [state.address, network, refreshHistory, tab]);
+  }, [state.address, network, refreshHistory, tab, syncNonce]);
 
   /** Keep bridge tab aligned with the connected L1 address HRP. */
   useEffect(() => {
@@ -672,7 +744,7 @@ export function KrexWrapBridgeWidget() {
 
       const successMsg = migrateV2
         ? mintLive
-          ? `Burned ${parsedAmount} ${tick} to the keyless sink. Attestor + mint come next; History flips when claimed.`
+          ? `Burned ${parsedAmount} ${tick}. Opening History. Claim appears after confirmation (usually under 2 min).`
           : `Burned ${parsedAmount} ${tick} to the keyless sink on ${networkLabel(network)}.`
         : mintLive
           ? `Deposited ${parsedAmount} ${tick}. Kasparex mints matching KCC20 next; History flips when the receipt lands.`
@@ -687,6 +759,17 @@ export function KrexWrapBridgeWidget() {
       });
       setAmount('');
       refreshHistory();
+      if (migrateV2 && hash) {
+        void observeBurnOnHub({
+          burnTxHash: hash,
+          network,
+          tick,
+          wallet: state.address,
+          amount: parsedAmount,
+        }).then(() => setSyncNonce((n) => n + 1));
+        navigateTab('history');
+        setSyncNonce((n) => n + 1);
+      }
       void refetch();
       if (state.address && selectedToken) {
         setTokenBalance(await fetchKrc20BalanceOnNetwork(state.address, selectedToken.ticker, network));
@@ -769,10 +852,23 @@ export function KrexWrapBridgeWidget() {
         heading="Your migrations"
         description={
           migrateV2
-            ? 'Saved in this browser. After Claim, status becomes Complete. KCC20 lives as a covenant coin on Kaspa L1 (not a KasWare KRC-20 row).'
+            ? 'Saved in this browser. After burn we confirm on Kasplex, issue a claim ticket, then you Claim. Status updates every few seconds.'
             : 'Saved in this browser. Deposits are on Kaspa L1. Mint status comes from Kasparex watcher receipts.'
         }
       >
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            className="k-control-btn text-xs"
+            disabled={syncing}
+            onClick={() => setSyncNonce((n) => n + 1)}
+          >
+            {syncing ? 'Checking…' : 'Refresh status'}
+          </button>
+          {syncing ? (
+            <span className="text-[11px] text-zinc-500">Updating from Kasplex / Hub…</span>
+          ) : null}
+        </div>
         <div className={KX_INFO_DASHED}>
           <p className="font-semibold text-zinc-900 dark:text-zinc-100">
             {migrateV2 ? 'Simple path' : 'How minting works'}
@@ -835,12 +931,6 @@ export function KrexWrapBridgeWidget() {
               const burnKey = extractTxId(row.depositTxHash || '')?.toLowerCase() || '';
               const attestation = burnKey ? attestByBurn[burnKey] : undefined;
               const claimReady = evaluateMigrateClaimReady(attestation);
-              const showClaim =
-                migrateV2 &&
-                Boolean(row.depositTxHash) &&
-                row.status === 'awaiting_attest' &&
-                !row.mintTxHash &&
-                claimReady.ready;
               const covenantId =
                 getWrapCovenantIdForTick(row.tick) || attestation?.assetCovenantId || null;
               return (
@@ -852,83 +942,97 @@ export function KrexWrapBridgeWidget() {
                     <span className="font-semibold text-zinc-900 dark:text-zinc-100">
                       {row.amount} {row.tick}
                     </span>
-                    <WrapStatusBadge status={row.status} />
-                  </div>
-                  <div className="text-xs text-zinc-500">
-                    {row.network ? `${networkLabel(row.network)} · ` : ''}
-                    Fee {row.feeKas} KAS · {new Date(row.createdAt).toLocaleString()}
-                  </div>
-                  {row.depositTxHash ? (
+                  <WrapStatusBadge
+                    status={row.status}
+                    label={historyBadgeLabel(row, attestation)}
+                  />
+                </div>
+                <div className="text-xs text-zinc-500">
+                  {row.network ? `${networkLabel(row.network)} · ` : ''}
+                  Fee {row.feeKas} KAS · {new Date(row.createdAt).toLocaleString()}
+                </div>
+                {row.depositTxHash ? (
+                  <a
+                    className="break-all text-xs text-[color:var(--hub-accent)] underline"
+                    href={getExplorerTxUrl(
+                      row.depositTxHash,
+                      row.network === 'testnet-10' ? 'testnet-10' : 'mainnet',
+                    )}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    {row.migrateVersion === 2 ||
+                    row.status === 'burned' ||
+                    row.status === 'awaiting_attest' ||
+                    row.status === 'minted'
+                      ? 'Burn'
+                      : 'Deposit'}{' '}
+                    {extractTxId(row.depositTxHash) || 'tx'}
+                  </a>
+                ) : null}
+                {row.mintTxHash ? (
+                  <div className="flex flex-wrap gap-x-3 gap-y-1">
                     <a
                       className="break-all text-xs text-[color:var(--hub-accent)] underline"
                       href={getExplorerTxUrl(
-                        row.depositTxHash,
+                        row.mintTxHash,
                         row.network === 'testnet-10' ? 'testnet-10' : 'mainnet',
                       )}
                       target="_blank"
                       rel="noreferrer"
                     >
-                      {row.migrateVersion === 2 ||
-                      row.status === 'burned' ||
-                      row.status === 'awaiting_attest' ||
-                      row.status === 'minted'
-                        ? 'Burn'
-                        : 'Deposit'}{' '}
-                      {extractTxId(row.depositTxHash) || 'tx'}
+                      Claim {extractTxId(row.mintTxHash) || 'tx'}
                     </a>
-                  ) : null}
-                  {row.mintTxHash ? (
-                    <div className="flex flex-wrap gap-x-3 gap-y-1">
-                      <a
-                        className="break-all text-xs text-[color:var(--hub-accent)] underline"
-                        href={getExplorerTxUrl(
-                          row.mintTxHash,
-                          row.network === 'testnet-10' ? 'testnet-10' : 'mainnet',
-                        )}
-                        target="_blank"
-                        rel="noreferrer"
-                      >
-                        Claim {extractTxId(row.mintTxHash) || 'tx'}
-                      </a>
+                    <a
+                      className="text-xs text-[color:var(--hub-accent)] underline"
+                      href={kascovTxUrl(
+                        row.network === 'testnet-10' ? 'testnet-10' : 'mainnet',
+                        row.mintTxHash,
+                      )}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      View on kascov
+                    </a>
+                    {covenantId ? (
                       <a
                         className="text-xs text-[color:var(--hub-accent)] underline"
-                        href={kascovTxUrl(
+                        href={kascovCovenantUrl(
                           row.network === 'testnet-10' ? 'testnet-10' : 'mainnet',
-                          row.mintTxHash,
+                          covenantId,
                         )}
                         target="_blank"
                         rel="noreferrer"
                       >
-                        View on kascov
+                        TKREX covenant
                       </a>
-                      {covenantId ? (
-                        <a
-                          className="text-xs text-[color:var(--hub-accent)] underline"
-                          href={kascovCovenantUrl(
-                            row.network === 'testnet-10' ? 'testnet-10' : 'mainnet',
-                            covenantId,
-                          )}
-                          target="_blank"
-                          rel="noreferrer"
-                        >
-                          TKREX covenant
-                        </a>
-                      ) : null}
-                    </div>
-                  ) : null}
-                  <KrexWrapMigrateProgress row={row} migrateV2={migrateV2} />
-                  {showClaim ? (
-                    <ClaimTicketButton
-                      attestation={attestation}
-                      provider={state.provider}
-                      fundingAddress={state.address}
-                      onClaimed={() => refreshHistory()}
-                    />
-                  ) : null}
-                  {row.status === 'awaiting_attest' && !showClaim && attestation?.status === 'claimed' ? (
-                    <p className="text-xs text-zinc-500">Claim recorded. Refreshing…</p>
-                  ) : null}
-                  {row.note ? <p className="text-xs text-zinc-500">{row.note}</p> : null}
+                    ) : null}
+                  </div>
+                ) : null}
+                <KrexWrapMigrateProgress row={row} migrateV2={migrateV2} />
+                {migrateV2 &&
+                row.depositTxHash &&
+                !row.mintTxHash &&
+                (row.status === 'burned' || row.status === 'awaiting_attest') ? (
+                  <ClaimTicketButton
+                    attestation={attestation}
+                    provider={state.provider}
+                    fundingAddress={state.address}
+                    forceShowWaiting
+                    onClaimed={() => {
+                      refreshHistory();
+                      setSyncNonce((n) => n + 1);
+                    }}
+                  />
+                ) : null}
+                {row.note ? <p className="text-xs text-zinc-500">{row.note}</p> : null}
+                {!claimReady.ready &&
+                (row.status === 'burned' || row.status === 'awaiting_attest') &&
+                !row.mintTxHash ? (
+                  <p className="text-[11px] leading-snug text-zinc-500 dark:text-zinc-400">
+                    {claimReady.reason || 'Waiting for confirmation…'} Auto-checks every few seconds.
+                  </p>
+                ) : null}
                   {row.status === 'minted' ? (
                     <p className="text-[11px] leading-snug text-zinc-500 dark:text-zinc-400">
                       Your {row.amount} {row.tick} KCC20 is a covenant UTXO from the Claim tx. KasWare shows KAS /

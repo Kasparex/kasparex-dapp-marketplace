@@ -148,10 +148,10 @@ function nextHint(steps: FlowStep[], migrateV2: boolean): string {
       : 'Done. Your KCC20 is on Kaspa L1.';
   }
   if (current.id === 'attest') {
-    return 'Next: burn confirmation and claim ticket. This can take a few minutes.';
+    return 'Next: confirming burn on Kasplex, then a claim ticket (usually under 2 minutes).';
   }
   if (current.id === 'mint') {
-    return 'Next: tap Claim KCC20 and sign in KasWare. History becomes Complete after the claim tx.';
+    return 'Next: tap Claim KCC20 when the button enables, then sign in KasWare.';
   }
   return `Next: ${current.detail}.`;
 }

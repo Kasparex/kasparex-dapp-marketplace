@@ -16,6 +16,8 @@ import {
 } from '@/lib/krex/wrap/mintReceiptStore';
 import type { MigrateAttestation } from '@/lib/krex/wrap/migrateV2';
 import { verifyMigrateClaimOnChain, discoverClaimMintForAttestation } from '@/lib/krex/wrap/claimReport';
+import { observeSinkBurn } from '@/lib/krex/wrap/observeBurn';
+import type { Krc20BridgeNetwork } from '@/lib/krex/wrap/types';
 
 export const runtime = 'nodejs';
 
@@ -385,6 +387,22 @@ export async function POST(req: NextRequest) {
   }
   if (mode === 'claim-report') {
     return postClaimReport(body);
+  }
+  if (mode === 'observe-burn') {
+    const observed = await observeSinkBurn({
+      burnTxHash: typeof body.burnTxHash === 'string' ? body.burnTxHash : '',
+      network: (body.network === 'mainnet' ? 'mainnet' : 'testnet-10') as Krc20BridgeNetwork,
+      tick: typeof body.tick === 'string' ? body.tick : undefined,
+      wallet: typeof body.wallet === 'string' ? body.wallet : undefined,
+      amount: typeof body.amount === 'number' ? body.amount : undefined,
+    });
+    if (!observed.ok) {
+      return NextResponse.json(
+        { ok: false, mode: 'observe-burn', error: observed.error },
+        { status: 400 },
+      );
+    }
+    return NextResponse.json({ ok: true, mode: 'observe-burn', ...observed });
   }
 
   if (!watcherAuthorized(req)) {

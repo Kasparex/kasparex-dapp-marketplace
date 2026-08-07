@@ -18,20 +18,23 @@ export type MigrateClaimReady = {
 };
 
 export function evaluateMigrateClaimReady(attestation: MigrateAttestation | null | undefined): MigrateClaimReady {
-  if (!attestation) return { ready: false, reason: 'No attestation yet' };
+  if (!attestation) return { ready: false, reason: 'Waiting for burn confirmation…' };
   if (attestation.status === 'claimed') {
     return { ready: false, reason: 'Already claimed' };
   }
   if (attestation.status === 'rejected') {
     return { ready: false, reason: 'Attestation rejected' };
   }
+  if (attestation.status === 'pending') {
+    return { ready: false, reason: 'Waiting for Kasplex opAccept…' };
+  }
   if (attestation.status !== 'attested') {
-    return { ready: false, reason: 'Waiting for attestor' };
+    return { ready: false, reason: 'Waiting for burn confirmation…' };
   }
   if (!attestationHasTicket(attestation)) {
     return {
       ready: false,
-      reason: 'Ticket UTXO not issued yet (attestor will post ticketId as txid:index)',
+      reason: 'Waiting for claim ticket…',
     };
   }
   const plan = buildMigrateClaimPlan(attestation);
@@ -41,8 +44,10 @@ export function evaluateMigrateClaimReady(attestation: MigrateAttestation | null
 
 export function claimButtonLabel(ready: MigrateClaimReady): string {
   if (ready.ready) return 'Claim KCC20';
-  if (ready.reason?.includes('Ticket')) return 'Waiting for ticket…';
-  if (ready.reason?.includes('attestor')) return 'Waiting for confirm…';
+  if (ready.reason?.includes('ticket')) return 'Waiting for ticket…';
+  if (ready.reason?.includes('opAccept') || ready.reason?.includes('Kasplex')) {
+    return 'Confirming burn…';
+  }
   if (ready.reason?.includes('Already')) return 'Already claimed';
-  return 'Claim unavailable';
+  return 'Waiting…';
 }
