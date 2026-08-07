@@ -1,6 +1,6 @@
 {
   "network": "testnet-10",
-  "updatedAt": "2026-08-07T21:08:02.555Z",
+  "updatedAt": "2026-08-07T21:08:40.253Z",
   "attestations": [
     {
       "network": "testnet-10",
@@ -15,7 +15,7 @@
       "migrateVersion": 3,
       "status": "attested",
       "attestedAt": "2026-08-07T20:58:32.233Z",
-      "note": "TN10 v3: attested; ticket issue pending (Command failed: C:\\Program Files\\nodejs\\node.exe C:\\Users\\Marcin\\Documents\\KASPA\\KREX\\DAPPS\\kasparex-connect-wallet\\tools\\tn10-migrate\\scripts\\broadcast-tkrex-migrate-ticket-issue.mjs --broadcast\nfile:///C:/Users/Marcin/Documents/KASPA/KREX/DAPPS/kasparex-connect-wallet/tools/tn10-migrate/scripts/lib/migrate-v3-ctor.mjs:105\r\n    throw new Error(`silverc failed (${label}): ${stderr}`);\r\n          ^\r\n\r\nError: silverc failed (ticket-issue): spawnSync C:\\Users\\Marcin\\Documents\\KASPA\\KREX\\DAPPS\\kasparex-connect-wallet\\tools\\tn10-migrate\\upstream\\silverscript\\target\\debug\\silverc.exe ENOENT\r\n    at compileWithExprs (file:///C:/Users/Marcin/Documents/KASPA/KREX/DAPPS/kasparex-connect-wallet/tools/tn10-migrate/scripts/lib/migrate-v3-ctor.mjs:105:11)\r\n    at file:///C:/Users/Marcin/Documents/KASPA/KREX/DAPPS/kasparex-connect-wallet/tools/tn10-migrate/scripts/broadcast-tkrex-migrate-ticket-issue.mjs:111:24\r\n    at ModuleJob.run (node:internal/modules/esm/module_job:329:25)\r\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:644:26)\r\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)\r\n\r\nNode.js v22.17.0\r\n)"
+      "note": "Burn accepted. Waiting for claim ticket (may take a few minutes)…"
     },
     {
       "network": "testnet-10",
