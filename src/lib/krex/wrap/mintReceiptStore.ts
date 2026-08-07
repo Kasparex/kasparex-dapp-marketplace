@@ -12,6 +12,15 @@ const githubPath = MINT_RECEIPTS_TN10_PATH;
 const attestationsPath = 'data/krex-wrap/attestations-tn10.json';
 export const MIGRATE_MINT_TIP_TN10_PATH = 'data/krex-wrap/migrate-mint-tip-tn10.json';
 
+/** Template parts for claim assembly (state splice without silverc). */
+export type MigrateTipTemplateParts = {
+  prefixLength: number;
+  suffixLength: number;
+  expectedTemplateHash: string;
+  templatePrefix: string;
+  templateSuffix: string;
+};
+
 /** Live KCC20Migrate tip for chaining claims (TN10). */
 export type MigrateMintTip = {
   network?: 'testnet-10';
@@ -28,6 +37,10 @@ export type MigrateMintTip = {
   lastBurnTxId?: string;
   adminRenounced?: boolean;
   migrateVersion?: number;
+  legacyNote?: string;
+  assetTemplate?: MigrateTipTemplateParts;
+  ticketTemplate?: MigrateTipTemplateParts;
+  controllerTemplate?: MigrateTipTemplateParts;
 };
 
 function normalizeMigrateMintTip(raw: unknown): MigrateMintTip | null {
@@ -62,6 +75,27 @@ function normalizeMigrateMintTip(raw: unknown): MigrateMintTip | null {
   }
   const lastBurn =
     typeof o.lastBurnTxId === 'string' ? o.lastBurnTxId.trim().toLowerCase() : undefined;
+  const asTemplate = (raw: unknown): MigrateTipTemplateParts | undefined => {
+    const t = raw && typeof raw === 'object' ? (raw as Partial<MigrateTipTemplateParts>) : null;
+    if (!t) return undefined;
+    if (
+      typeof t.prefixLength !== 'number' ||
+      typeof t.suffixLength !== 'number' ||
+      typeof t.expectedTemplateHash !== 'string' ||
+      typeof t.templatePrefix !== 'string' ||
+      typeof t.templateSuffix !== 'string'
+    ) {
+      return undefined;
+    }
+    return {
+      prefixLength: t.prefixLength,
+      suffixLength: t.suffixLength,
+      expectedTemplateHash: t.expectedTemplateHash.trim().toLowerCase(),
+      templatePrefix: t.templatePrefix.trim().toLowerCase().replace(/^0x/i, ''),
+      templateSuffix: t.templateSuffix.trim().toLowerCase().replace(/^0x/i, ''),
+    };
+  };
+
   return {
     network: 'testnet-10',
     updatedAt: typeof o.updatedAt === 'string' ? o.updatedAt : new Date().toISOString(),
@@ -77,6 +111,14 @@ function normalizeMigrateMintTip(raw: unknown): MigrateMintTip | null {
     ...(lastBurn && /^[a-f0-9]{64}$/.test(lastBurn) ? { lastBurnTxId: lastBurn } : {}),
     ...(typeof o.adminRenounced === 'boolean' ? { adminRenounced: o.adminRenounced } : {}),
     ...(typeof o.migrateVersion === 'number' ? { migrateVersion: o.migrateVersion } : {}),
+    ...(typeof o.legacyNote === 'string' && o.legacyNote.trim()
+      ? { legacyNote: o.legacyNote.trim() }
+      : {}),
+    ...(asTemplate(o.assetTemplate) ? { assetTemplate: asTemplate(o.assetTemplate) } : {}),
+    ...(asTemplate(o.ticketTemplate) ? { ticketTemplate: asTemplate(o.ticketTemplate) } : {}),
+    ...(asTemplate(o.controllerTemplate)
+      ? { controllerTemplate: asTemplate(o.controllerTemplate) }
+      : {}),
   };
 }
 

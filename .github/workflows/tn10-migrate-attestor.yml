@@ -1,11 +1,13 @@
 # TN10 keyless migrate: attest sink burns + AUTO_MINT against live soak tip.
 # While tip is pre-ticket (83b999 / migrateVersion 2), attestor mints for the user.
-# After v3 ticket deploy + handover, set tip.migrateVersion=3 and use ticket+Claim path.
+# After v3 ticket deploy + handover, tip.migrateVersion=3 → attestor issues tickets;
+# user Claims in Hub. Optional secrets: TKREX_ATTESTOR{1,2,3}_PRIVKEY for ticket issue.
 #
 # Secrets:
 #   KCC20_BRIDGE_WATCHER_SECRET
 #   TKREX_WALLET3_PRIVKEY
 #   KREX_WRAP_HUB_URL
+#   TKREX_ATTESTOR1_PRIVKEY / TKREX_ATTESTOR2_PRIVKEY / TKREX_ATTESTOR3_PRIVKEY (v3 tickets)
 name: TN10 migrate attestor
 
 on:
@@ -60,12 +62,30 @@ jobs:
             } catch (e) { console.log('Tip prefetch skipped:', e.message); }
           "
 
-      - name: Attest + AUTO_MINT once
+      - name: Materialize attestor keys (v3 ticket issue)
+        env:
+          TKREX_ATTESTOR1_PRIVKEY: ${{ secrets.TKREX_ATTESTOR1_PRIVKEY }}
+          TKREX_ATTESTOR2_PRIVKEY: ${{ secrets.TKREX_ATTESTOR2_PRIVKEY }}
+          TKREX_ATTESTOR3_PRIVKEY: ${{ secrets.TKREX_ATTESTOR3_PRIVKEY }}
+        run: |
+          mkdir -p tkrex-migrate-deploy
+          for i in 1 2 3; do
+            eval "k=\$TKREX_ATTESTOR${i}_PRIVKEY"
+            if [ -n "$k" ]; then
+              printf '%s\n' "$k" > "tkrex-migrate-deploy/.attestor${i}.privkey"
+              echo "Wrote .attestor${i}.privkey"
+            fi
+          done
+
+      - name: Attest + AUTO_MINT / ticket-issue once
         env:
           KREX_WRAP_HUB_URL: ${{ secrets.KREX_WRAP_HUB_URL }}
           KCC20_BRIDGE_WATCHER_SECRET: ${{ secrets.KCC20_BRIDGE_WATCHER_SECRET }}
           KCC20_MIGRATE_AUTO_MINT: '1'
           TKREX_WALLET3_PRIVKEY: ${{ secrets.TKREX_WALLET3_PRIVKEY }}
+          TKREX_ATTESTOR1_PRIVKEY: ${{ secrets.TKREX_ATTESTOR1_PRIVKEY }}
+          TKREX_ATTESTOR2_PRIVKEY: ${{ secrets.TKREX_ATTESTOR2_PRIVKEY }}
+          TKREX_ATTESTOR3_PRIVKEY: ${{ secrets.TKREX_ATTESTOR3_PRIVKEY }}
           TKREX_HUB_ROOT: ${{ github.workspace }}
         run: |
           export KREX_WRAP_HUB_URL="${KREX_WRAP_HUB_URL:-https://hub.kasparex.com}"

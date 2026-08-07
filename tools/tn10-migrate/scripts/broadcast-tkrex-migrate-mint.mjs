@@ -34,6 +34,10 @@ import {
   migrateControllerExprs,
   resolveSilvercBin,
 } from './lib/migrate-v3-ctor.mjs';
+import {
+  encodeMigrateTicketState,
+  spliceTemplateScript,
+} from './lib/migrate-state-encode.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const openSilverRoot = resolve(__dirname, '..');
@@ -372,6 +376,29 @@ const controllerAmount = BigInt(controllerLive.utxoEntry?.amount || controllerLi
 const assetDaa = BigInt(assetLive.utxoEntry?.blockDaaScore || assetLive.utxoEntry?.block_daa_score || 0);
 const controllerDaa = BigInt(controllerLive.utxoEntry?.blockDaaScore || controllerLive.utxoEntry?.block_daa_score || 0);
 
+let ticketLive = null;
+let ticketAmount = 0n;
+let ticketDaa = 0n;
+let ticketAddress = '';
+let ticketSpendScript = null;
+const TICKET_INPUT_IDX = LEGACY_MINT ? -1 : Number(process.env.TKREX_TICKET_INPUT_IDX || '2');
+if (!LEGACY_MINT) {
+  // Rebuild active ticket redeem script from template + known issued state.
+  const activeTicketState = encodeMigrateTicketState({
+    threshold: ATTESTOR_THRESHOLD,
+    burnTxId: BURN_TXID,
+    amountRaw: MINT_AMOUNT,
+    claimantXOnly: pubkey,
+    active: true,
+  });
+  ticketSpendScript = spliceTemplateScript(ticketTemplate, activeTicketState);
+  const ticketSpkProbe = payToScriptHashScript(Uint8Array.from(ticketSpendScript));
+  ticketAddress = addressFromScriptPublicKey(ticketSpkProbe, 'testnet-10').toString();
+  ticketLive = await fetchUtxo(ticketAddress, TICKET_TXID, TICKET_INDEX);
+  ticketAmount = BigInt(ticketLive.utxoEntry?.amount || ticketLive.utxoEntry?.Amount || 0);
+  ticketDaa = BigInt(ticketLive.utxoEntry?.blockDaaScore || ticketLive.utxoEntry?.block_daa_score || 0);
+}
+
 const fundRes = await fetch(`https://api-tn10.kaspa.org/addresses/${encodeURIComponent(WALLET3)}/utxos`);
 if (!fundRes.ok) throw new Error(`Wallet3 UTXO fetch failed: ${fundRes.status}`);
 const fundRaw = await fundRes.json();
@@ -410,8 +437,9 @@ const fundAmount = fundUtxo.amount;
 const fundDaa = fundUtxo.blockDaaScore;
 const fundOutpoint = fundUtxo.outpoint;
 
-const totalIn = assetAmount + controllerAmount + fundAmount;
-const changeSompi = totalIn - BRANCH_UTXO_SOMPI - BRANCH_UTXO_SOMPI - CONTROLLER_KEEP_SOMPI - PRIORITY_FEE_SOMPI;
+const totalIn = assetAmount + controllerAmount + ticketAmount + fundAmount;
+const changeSompi =
+  totalIn - BRANCH_UTXO_SOMPI - BRANCH_UTXO_SOMPI - CONTROLLER_KEEP_SOMPI - PRIORITY_FEE_SOMPI;
 if (changeSompi < 0n) {
   throw new Error(
     `Not enough KAS for mint outputs+fee. in=${totalIn} keep=${CONTROLLER_KEEP_SOMPI} fee=${PRIORITY_FEE_SOMPI}`,
@@ -450,8 +478,25 @@ const fundingEntry = {
   isCoinbase: fundUtxo.isCoinbase,
 };
 
+const ticketEntry =
+  !LEGACY_MINT && ticketLive
+    ? {
+        address: new Address(ticketAddress),
+        outpoint: { transactionId: TICKET_TXID, index: TICKET_INDEX },
+        amount: ticketAmount,
+        scriptPublicKey: payToScriptHashScript(Uint8Array.from(ticketSpendScript)),
+        blockDaaScore: ticketDaa,
+        isCoinbase: false,
+      }
+    : null;
+
+const inputEntries = ticketEntry
+  ? [assetEntry, controllerEntry, ticketEntry, fundingEntry]
+  : [assetEntry, controllerEntry, fundingEntry];
+const fundingInputIdx = ticketEntry ? 3 : 2;
+
 const unsigned = createTransaction(
-  [assetEntry, controllerEntry, fundingEntry],
+  inputEntries,
   [
     { address: minterAddress, amount: BRANCH_UTXO_SOMPI },
     { address: recipientAddress, amount: BRANCH_UTXO_SOMPI },
@@ -518,13 +563,38 @@ if (derived !== WALLET3) {
   process.exit(1);
 }
 
-console.log('Signing controller input (index 1) and funding input (index 2)...');
+console.log(
+  `Signing controller input (index 1) and funding input (index ${fundingInputIdx})...`,
+);
 const rawSig = createInputSignature(unsigned, 1, privKey);
-const authoritySig = normalizeSchnorrSignature(rawSig);
+const authoritySig = adminRenounced
+  ? (() => {
+      const d = new Uint8Array(65);
+      d[64] = 0x01;
+      return d;
+    })()
+  : normalizeSchnorrSignature(rawSig);
 const authoritySigHex = bytesToHex(authoritySig);
 
-const fundSigHex = createInputSignature(unsigned, 2, privKey);
-unsigned.inputs[2].signatureScript = fundSigHex;
+const fundSigHex = createInputSignature(unsigned, fundingInputIdx, privKey);
+unsigned.inputs[fundingInputIdx].signatureScript = fundSigHex;
+
+if (ticketEntry) {
+  // Terminal redeem: claimantPk + claimantSig (entrypoint; no selector).
+  const claimPrivHex =
+    (process.env.TKREX_CLAIMANT_PRIVKEY || '').trim().replace(/^0x/i, '') || PRIV;
+  const claimKey = new PrivateKey(claimPrivHex);
+  const claimRaw = createInputSignature(unsigned, TICKET_INPUT_IDX, claimKey, inputEntries);
+  const claimSig = normalizeSchnorrSignature(claimRaw);
+  const ticketPrefix = new ScriptBuilder();
+  ticketPrefix.addData(hexToBytes(pubkey));
+  ticketPrefix.addData(claimSig);
+  const ticketPrefixHex = ticketPrefix.drain();
+  unsigned.inputs[TICKET_INPUT_IDX].signatureScript = ScriptBuilder.fromScript(
+    Uint8Array.from(ticketSpendScript),
+    { flags: { covenantsEnabled: true } },
+  ).encodePayToScriptHashSignatureScript(ticketPrefixHex);
+}
 
 // Asset leader transfer unlock (input 0)
 const assetPrefix = new ScriptBuilder();
@@ -547,7 +617,7 @@ ctrlPrefix.addI64(1n); // initialized
 ctrlPrefix.addI64(adminRenounced ? 1n : 0n); // adminRenounced
 ctrlPrefix.addData(authoritySig);
 ctrlPrefix.addData(hexToBytes(BURN_TXID));
-ctrlPrefix.addI64(BigInt(Number(process.env.TKREX_TICKET_INPUT_IDX || '2'))); // ticketInputIdx in claim tx
+ctrlPrefix.addI64(BigInt(TICKET_INPUT_IDX >= 0 ? TICKET_INPUT_IDX : 2)); // ticketInputIdx in claim tx
 // minter KCC20State
 ctrlPrefix.addData(hexToBytes(CONTROLLER_COV_ID));
 ctrlPrefix.addData(Uint8Array.from([IDENTIFIER_COVENANT_ID]));
@@ -614,6 +684,19 @@ try {
     migrateVersion: 3,
     network: 'testnet-10',
     updatedAt: new Date().toISOString(),
+    ...(existsSync(join(outDir, 'template-parts.json'))
+      ? { assetTemplate: JSON.parse(readFileSync(join(outDir, 'template-parts.json'), 'utf8')) }
+      : {}),
+    ...(existsSync(join(outDir, 'ticket-template-parts.json'))
+      ? { ticketTemplate: JSON.parse(readFileSync(join(outDir, 'ticket-template-parts.json'), 'utf8')) }
+      : {}),
+    ...(existsSync(join(outDir, 'controller-template-parts.json'))
+      ? {
+          controllerTemplate: JSON.parse(
+            readFileSync(join(outDir, 'controller-template-parts.json'), 'utf8'),
+          ),
+        }
+      : {}),
   };
   writeFileSync(join(outDir, 'MINT_TIP.json'), JSON.stringify(nextTip, null, 2));
   const tipPost = await postHubMintTip(nextTip);

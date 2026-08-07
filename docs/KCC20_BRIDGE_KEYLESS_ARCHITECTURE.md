@@ -19,18 +19,20 @@ Shipped in Hub + OpenSilver (TN10 soak, **v3** ticket-gated + 2-of-3 roster):
 | Attestation API + nullifier store | `/api/krex-wrap/mint-receipts?mode=attest` + ticket outpoint fields |
 | OpenSilver `MigrateTicket` | `contracts/tokens/migrate-ticket.sil` (2-of-3 `issue`, claimant `redeem`) |
 | OpenSilver `KCC20Migrate` v3 | Ticket-gated `mint` + 3 attestors + `handover` |
+| Ticket genesis + 2-of-3 issue broadcast | `broadcast-tkrex-migrate-ticket-issue.mjs` |
+| KasWare Claim assembler | `claimAssemble.ts` + `claimSubmit.ts` (needs post-handover tip + templates) |
 | Compile tests | `tests/tokens/migrate-ticket-compile.test.ts`, `kcc20-migrate-compile.test.ts` |
-| Attestor | Ticket path; **`KCC20_MIGRATE_AUTO_MINT` off** by default |
+| Attestor | v2 soak AUTO_MINT; v3 tip → issue ticket + POST `txid:index` |
 | Handover script | `broadcast-tkrex-migrate-handover.mjs` |
 | Roster | `generate-tn10-attestor-roster.mjs` → `ATTESTOR_ROSTER.json` (2-of-3) |
+| Cutover runbook | [KCC20_BRIDGE_TN10_V3_CUTOVER.md](./KCC20_BRIDGE_TN10_V3_CUTOVER.md) |
 
 **Legacy soak asset** `83b999756e613d2749b8ff9549de4bdd0cb864f3d5d2dc606d92f3aa740ee91a` is **historical** (pre-ticket). Fresh greenfield deploy required for v3 covenants.
 
 Still open / ops before mainnet fairness:
 
-- Broadcast fresh TN10 v3 controller + asset + **handover** on chain; point Hub env at new ids
-- Complete on-chain ticket genesis+issue broadcast funding path (scaffold in `broadcast-tkrex-migrate-ticket-issue.mjs`)
-- Full KasWare claim assembler (Hub shows Claim when `ticketId` is `txid:index`)
+- Broadcast fresh TN10 v3 controller + asset + **handover** on chain; POST Hub tip with templates
+- GHA secrets for attestor2/attestor3 privkeys (ticket issue quorum)
 - Independent attestors (not three Kasparex-held soak keys) + dual indexers
 
 ### Mainnet holder-class annex (policy; not enforced on TN10)

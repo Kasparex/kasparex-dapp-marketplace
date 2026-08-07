@@ -1,11 +1,12 @@
 /**
  * TN10 keyless migrate attestor.
  *
- * Default: AUTO_MINT on against live soak tip (v2 contract / 83b999) so burns complete.
- * When Hub tip has migrateVersion >= 3, uses ticket-gated mint script instead.
+ * Default: AUTO_MINT on against live soak tip (v2 / 83b999) so burns complete.
+ * When Hub tip has migrateVersion >= 3 (and no legacyNote), issues a MigrateTicket
+ * and POSTs real ticketId (txid:index). User Claims in Hub; AUTO_MINT stays off for v3.
  *
  *   node scripts/tkrex-migrate-attestor.mjs --once
- *   KCC20_MIGRATE_AUTO_MINT=0 to attest-only
+ *   KCC20_MIGRATE_AUTO_MINT=0 to attest-only (even on v2 soak)
  */
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
@@ -18,10 +19,13 @@ const hubRoot = resolve(
   process.env.TKREX_HUB_ROOT?.trim() || join(openSilverRoot, '../DAPPS/kasparex-connect-wallet'),
 );
 const outDir = join(openSilverRoot, 'tkrex-deploy');
+const migrateOutDir = join(openSilverRoot, 'tkrex-migrate-deploy');
 const statePath = join(outDir, 'migrate-attestor-state.json');
 const mintScript = join(openSilverRoot, 'scripts/broadcast-tkrex-migrate-mint-v2-soak.mjs');
 const mintScriptV3 = join(openSilverRoot, 'scripts/broadcast-tkrex-migrate-mint.mjs');
-const mintResultPath = join(openSilverRoot, 'tkrex-migrate-deploy/MINT_RESULT.json');
+const ticketIssueScript = join(openSilverRoot, 'scripts/broadcast-tkrex-migrate-ticket-issue.mjs');
+const mintResultPath = join(migrateOutDir, 'MINT_RESULT.json');
+const ticketResultPath = join(migrateOutDir, 'TICKET_ISSUE_RESULT.json');
 
 const HUB_URL = (process.env.KREX_WRAP_HUB_URL || 'http://127.0.0.1:3000').replace(/\/$/, '');
 const SECRET =
@@ -63,6 +67,28 @@ function saveState(state) {
   );
 }
 
+function readMintTip() {
+  for (const tipPath of [join(migrateOutDir, 'MINT_TIP.json'), join(outDir, 'MINT_TIP.json')]) {
+    try {
+      if (!existsSync(tipPath)) continue;
+      return JSON.parse(readFileSync(tipPath, 'utf8'));
+    } catch {
+      // continue
+    }
+  }
+  return null;
+}
+
+function tipIsV3TicketMode(tip) {
+  if (!tip) return false;
+  if (tip.legacyNote) return false;
+  if (Number(tip.migrateVersion || 0) >= 3) return true;
+  const asset = String(tip.assetCovenantId || '').toLowerCase();
+  // Historical soak asset stays on v2 AUTO_MINT path.
+  if (asset === '83b999756e613d2749b8ff9549de4bdd0cb864f3d5d2dc606d92f3aa740ee91a') return false;
+  return false;
+}
+
 /** Hydrate local nullifiers from Hub so ephemeral GHA runners do not remint. */
 async function hydrateNullifiersFromHub(state) {
   try {
@@ -89,10 +115,15 @@ async function hydrateNullifiersFromHub(state) {
           attestedAt: a.attestedAt || prev?.attestedAt || new Date().toISOString(),
           status,
           ...(a.mintTxHash ? { mintTxHash: String(a.mintTxHash).toLowerCase() } : {}),
+          ...(a.ticketId ? { ticketId: String(a.ticketId) } : {}),
         };
         changed += 1;
       } else if (prev.status !== 'claimed' && status === 'attested') {
-        state.nullifiers[burnTxHash] = { ...prev, status: 'attested' };
+        state.nullifiers[burnTxHash] = {
+          ...prev,
+          status: 'attested',
+          ...(a.ticketId ? { ticketId: String(a.ticketId) } : {}),
+        };
       }
     }
     if (changed > 0) {
@@ -122,14 +153,8 @@ async function fetchSinkTransfers() {
 }
 
 function tipMigrateVersionHint() {
-  try {
-    const tipPath = join(outDir, 'MINT_TIP.json');
-    if (!existsSync(tipPath)) return 2;
-    const tip = JSON.parse(readFileSync(tipPath, 'utf8'));
-    return Number(tip.migrateVersion || 2);
-  } catch {
-    return 2;
-  }
+  const tip = readMintTip();
+  return Number(tip?.migrateVersion || 2);
 }
 
 async function postAttestation(body) {
@@ -165,17 +190,45 @@ async function resolveRecipientPubkey(fromAddress) {
   return '';
 }
 
-function tryMint({ amountRaw, burnTxHash, recipientPubkey, recipientAddress }) {
-  const tipPath = join(outDir, 'MINT_TIP.json');
-  let useV3 = false;
-  try {
-    if (existsSync(tipPath)) {
-      const tip = JSON.parse(readFileSync(tipPath, 'utf8'));
-      useV3 = Number(tip.migrateVersion || 0) >= 3 && !tip.legacyNote;
+function tryIssueTicket({ amountRaw, burnTxHash, claimantPubkey }) {
+  mkdirSync(migrateOutDir, { recursive: true });
+  if (existsSync(ticketResultPath)) {
+    try {
+      const prev = JSON.parse(readFileSync(ticketResultPath, 'utf8'));
+      if (String(prev.burnTxId || '').toLowerCase() === burnTxHash && prev.ticketId) {
+        console.log('Reusing prior TICKET_ISSUE_RESULT for burn', burnTxHash);
+        return prev;
+      }
+    } catch {
+      // continue
     }
-  } catch {
-    useV3 = false;
   }
+  const env = {
+    ...process.env,
+    TKREX_MINT_AMOUNT_RAW: String(amountRaw),
+    TKREX_BURN_TXID: burnTxHash,
+    TKREX_CLAIMANT_PUBKEY: claimantPubkey,
+    TKREX_HUB_ROOT: hubRoot,
+    KREX_WRAP_HUB_URL: HUB_URL,
+  };
+  if (SECRET) {
+    env.KCC20_BRIDGE_WATCHER_SECRET = SECRET;
+    env.KCC20_MIGRATE_ATTESTOR_SECRET = SECRET;
+  }
+  const result = execFileSync(process.execPath, [ticketIssueScript, '--broadcast'], {
+    cwd: openSilverRoot,
+    env,
+    encoding: 'utf8',
+    stdio: ['ignore', 'pipe', 'pipe'],
+  });
+  console.log(result);
+  if (!existsSync(ticketResultPath)) throw new Error('TICKET_ISSUE_RESULT.json missing');
+  return JSON.parse(readFileSync(ticketResultPath, 'utf8'));
+}
+
+function tryMint({ amountRaw, burnTxHash, recipientPubkey, recipientAddress, ticketId }) {
+  const tip = readMintTip();
+  const useV3 = tipIsV3TicketMode(tip);
   const script = useV3 ? mintScriptV3 : mintScript;
   console.log(`Mint via ${useV3 ? 'v3 ticket path' : 'v2-soak AUTO_MINT path'}`);
   const env = {
@@ -192,6 +245,11 @@ function tryMint({ amountRaw, burnTxHash, recipientPubkey, recipientAddress }) {
   }
   if (recipientPubkey) env.TKREX_RECIPIENT_PUBKEY = recipientPubkey;
   if (recipientAddress) env.TKREX_RECIPIENT_ADDRESS = recipientAddress;
+  if (useV3 && ticketId) {
+    const [txid, idx] = String(ticketId).split(':');
+    env.TKREX_TICKET_TXID = txid;
+    env.TKREX_TICKET_INDEX = String(idx || '0');
+  }
   const result = execFileSync(process.execPath, [script, '--broadcast'], {
     cwd: openSilverRoot,
     env,
@@ -201,6 +259,49 @@ function tryMint({ amountRaw, burnTxHash, recipientPubkey, recipientAddress }) {
   console.log(result);
   if (!existsSync(mintResultPath)) throw new Error('tkrex-migrate-deploy/MINT_RESULT.json missing');
   return JSON.parse(readFileSync(mintResultPath, 'utf8'));
+}
+
+async function issueTicketForBurn(state, burnTxHash, entry) {
+  if (entry.ticketId && /^[a-f0-9]{64}:\d+$/.test(entry.ticketId)) {
+    console.log('Ticket already issued', entry.ticketId);
+    return entry;
+  }
+  const claimantPubkey = await resolveRecipientPubkey(entry.from);
+  if (!/^[0-9a-f]{64}$/.test(claimantPubkey)) {
+    throw new Error(`Cannot resolve claimant x-only pubkey from ${entry.from}`);
+  }
+  const ticket = tryIssueTicket({
+    amountRaw: entry.amountRaw,
+    burnTxHash,
+    claimantPubkey,
+  });
+  const ticketId = String(ticket.ticketId || `${ticket.ticketTxId}:0`);
+  state.nullifiers[burnTxHash] = {
+    ...entry,
+    status: 'attested',
+    ticketId,
+    ticketTxId: ticket.ticketTxId,
+    ticketIndex: Number(ticket.ticketIndex ?? 0),
+    claimantPubkey,
+  };
+  saveState(state);
+  await postAttestation({
+    burnTxHash,
+    tick: TICK,
+    amountRaw: entry.amountRaw,
+    amount: Number(entry.amountRaw) / 1e8,
+    from: entry.from,
+    sinkAddress: SINK,
+    claimantAddress: entry.from,
+    status: 'attested',
+    ticketId,
+    ticketTxId: ticket.ticketTxId,
+    ticketIndex: Number(ticket.ticketIndex ?? 0),
+    note: 'TN10 v3: MigrateTicket issued; user Claims in Hub',
+    migrateVersion: 3,
+  });
+  console.log('Ticket issued', ticketId);
+  return state.nullifiers[burnTxHash];
 }
 
 async function claimMint(state, burnTxHash, entry) {
@@ -214,6 +315,7 @@ async function claimMint(state, burnTxHash, entry) {
     burnTxHash,
     recipientPubkey,
     recipientAddress: entry.from,
+    ticketId: entry.ticketId,
   });
   const mintTxHash = String(mint.submittedTxId || mint.unsignedTxId || '')
     .trim()
@@ -236,6 +338,7 @@ async function claimMint(state, burnTxHash, entry) {
     status: 'claimed',
     mintTxHash,
     assetCovenantId: mint.assetCovenantId,
+    ticketId: entry.ticketId,
     note: 'Claimed via attestor-assisted KCC20Migrate mint (soak)',
   });
   console.log('Minted', mintTxHash);
@@ -250,9 +353,9 @@ async function mintExistingBurn(burnTxHash) {
   return claimMint(state, burnTxHash, entry);
 }
 
-/** Mint any attested-but-unclaimed burns (crash recovery / prior attest-only runs). */
-async function mintPendingAttested(state) {
-  if (!AUTO_MINT) return 0;
+/** Mint any attested-but-unclaimed burns (v2 soak only). */
+async function mintPendingAttested(state, useV3) {
+  if (!AUTO_MINT || useV3) return 0;
   let minted = 0;
   for (const [burnTxHash, entry] of Object.entries(state.nullifiers)) {
     if (entry.status !== 'attested') continue;
@@ -269,12 +372,32 @@ async function mintPendingAttested(state) {
   return minted;
 }
 
+/** Issue tickets for attested burns missing ticketId (v3). */
+async function issuePendingTickets(state) {
+  let n = 0;
+  for (const [burnTxHash, entry] of Object.entries(state.nullifiers)) {
+    if (entry.status !== 'attested') continue;
+    if (entry.ticketId && /^[a-f0-9]{64}:\d+$/.test(entry.ticketId)) continue;
+    console.log(`Pending ticket issue for attested burn ${burnTxHash}`);
+    try {
+      await issueTicketForBurn(state, burnTxHash, entry);
+      n += 1;
+    } catch (err) {
+      console.error('Ticket issue failed', err instanceof Error ? err.message : err);
+      break;
+    }
+  }
+  return n;
+}
+
 async function scanOnce() {
   let state = loadState();
   state = await hydrateNullifiersFromHub(state);
+  const tip = readMintTip();
+  const useV3 = tipIsV3TicketMode(tip);
   const transfers = await fetchSinkTransfers();
   console.log(
-    `Attestor scan: ${transfers.length} sink transfers, nullifiers=${Object.keys(state.nullifiers).length}`,
+    `Attestor scan: ${transfers.length} sink transfers, nullifiers=${Object.keys(state.nullifiers).length}, mode=${useV3 ? 'v3-ticket' : 'v2-soak'}`,
   );
 
   let attested = 0;
@@ -286,7 +409,7 @@ async function scanOnce() {
 
     const existing = state.nullifiers[burnTxHash];
     if (existing?.status === 'claimed') continue;
-    if (existing?.status === 'attested') continue;
+    if (existing?.status === 'attested' && (!useV3 || existing.ticketId)) continue;
 
     const amountRaw = String(op.amt || '0');
     const amount = Number(amountRaw) / 1e8;
@@ -294,65 +417,89 @@ async function scanOnce() {
 
     console.log(`Attest burn ${burnTxHash} amountRaw=${amountRaw} from=${from}`);
 
-    // Nullifier FIRST so a crash mid-mint cannot double-attest.
+    // Nullifier FIRST so a crash mid-path cannot double-attest.
     state.nullifiers[burnTxHash] = {
       amountRaw,
       from,
       attestedAt: new Date().toISOString(),
       status: 'attested',
+      ...(existing?.ticketId ? { ticketId: existing.ticketId } : {}),
     };
     saveState(state);
 
-    const posted = await postAttestation({
-      burnTxHash,
-      tick: TICK,
-      amountRaw,
-      amount,
-      from,
-      sinkAddress: SINK,
-      claimantAddress: from,
-      status: 'attested',
-      ticketId: burnTxHash,
-      note: 'TN10 soak: attested; AUTO_MINT claims against live tip until v3 ticket deploy',
-      migrateVersion: tipMigrateVersionHint(),
-    });
-
-    if (!posted.ok && posted.status === 409) {
-      const hubRow = posted.json?.attestation;
-      console.log('Attestation POST 409 (adopt Hub)', hubRow?.status || posted);
-      if (hubRow?.status === 'claimed') {
-        state.nullifiers[burnTxHash] = {
-          amountRaw: String(hubRow.amountRaw || amountRaw),
-          from: String(hubRow.from || from),
-          attestedAt: hubRow.attestedAt || new Date().toISOString(),
-          status: 'claimed',
-          mintTxHash: hubRow.mintTxHash ? String(hubRow.mintTxHash).toLowerCase() : undefined,
-        };
-        saveState(state);
-        continue;
-      }
-      // Already attested on Hub: keep local attested and let AUTO_MINT claim below.
-    } else {
-      console.log('Attestation POST', posted.ok ? 'ok' : posted);
-    }
-
-    if (AUTO_MINT && state.nullifiers[burnTxHash]?.status === 'attested') {
+    if (useV3) {
       try {
-        await claimMint(state, burnTxHash, state.nullifiers[burnTxHash]);
+        await issueTicketForBurn(state, burnTxHash, state.nullifiers[burnTxHash]);
       } catch (err) {
-        console.error('Auto-mint failed', err instanceof Error ? err.message : err);
+        // Still post burn attestation without ticket so Hub shows Attested.
+        await postAttestation({
+          burnTxHash,
+          tick: TICK,
+          amountRaw,
+          amount,
+          from,
+          sinkAddress: SINK,
+          claimantAddress: from,
+          status: 'attested',
+          note: `TN10 v3: attested; ticket issue pending (${err instanceof Error ? err.message : err})`,
+          migrateVersion: 3,
+        });
+        console.error('Ticket issue failed', err instanceof Error ? err.message : err);
+      }
+    } else {
+      const posted = await postAttestation({
+        burnTxHash,
+        tick: TICK,
+        amountRaw,
+        amount,
+        from,
+        sinkAddress: SINK,
+        claimantAddress: from,
+        status: 'attested',
+        ticketId: burnTxHash,
+        note: 'TN10 soak: attested; AUTO_MINT claims against live tip until v3 ticket deploy',
+        migrateVersion: tipMigrateVersionHint(),
+      });
+
+      if (!posted.ok && posted.status === 409) {
+        const hubRow = posted.json?.attestation;
+        console.log('Attestation POST 409 (adopt Hub)', hubRow?.status || posted);
+        if (hubRow?.status === 'claimed') {
+          state.nullifiers[burnTxHash] = {
+            amountRaw: String(hubRow.amountRaw || amountRaw),
+            from: String(hubRow.from || from),
+            attestedAt: hubRow.attestedAt || new Date().toISOString(),
+            status: 'claimed',
+            mintTxHash: hubRow.mintTxHash ? String(hubRow.mintTxHash).toLowerCase() : undefined,
+          };
+          saveState(state);
+          continue;
+        }
+      } else {
+        console.log('Attestation POST', posted.ok ? 'ok' : posted);
+      }
+
+      if (AUTO_MINT && state.nullifiers[burnTxHash]?.status === 'attested') {
+        try {
+          await claimMint(state, burnTxHash, state.nullifiers[burnTxHash]);
+        } catch (err) {
+          console.error('Auto-mint failed', err instanceof Error ? err.message : err);
+        }
       }
     }
 
     attested += 1;
   }
 
-  const pendingMinted = await mintPendingAttested(state);
-  return { attested, pendingMinted };
+  const ticketsIssued = useV3 ? await issuePendingTickets(state) : 0;
+  const pendingMinted = await mintPendingAttested(state, useV3);
+  return { attested, pendingMinted, ticketsIssued };
 }
 
 async function main() {
   mkdirSync(outDir, { recursive: true });
+  mkdirSync(migrateOutDir, { recursive: true });
+  const tip = readMintTip();
   console.log({
     HUB_URL,
     TICK,
@@ -361,6 +508,8 @@ async function main() {
     hasSecret: Boolean(SECRET),
     hubRoot,
     MINT_BURN: MINT_BURN || null,
+    tipMode: tipIsV3TicketMode(tip) ? 'v3-ticket' : 'v2-soak',
+    tipMigrateVersion: tip?.migrateVersion ?? null,
   });
   if (MINT_BURN) {
     if (!/^[a-f0-9]{64}$/.test(MINT_BURN)) throw new Error('--mint-burn expects 64 hex txid');
@@ -369,7 +518,9 @@ async function main() {
   }
   if (WANT_ONCE) {
     const n = await scanOnce();
-    console.log(`Done. attestedNow=${n.attested} pendingMinted=${n.pendingMinted}`);
+    console.log(
+      `Done. attestedNow=${n.attested} pendingMinted=${n.pendingMinted} ticketsIssued=${n.ticketsIssued}`,
+    );
     return;
   }
   if (WANT_LOOP) {

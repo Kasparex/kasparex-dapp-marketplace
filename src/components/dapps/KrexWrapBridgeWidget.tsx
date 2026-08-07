@@ -41,6 +41,10 @@ import {
   type MigrateAttestation,
 } from '@/lib/krex/wrap/migrateV2';
 import { claimButtonLabel, evaluateMigrateClaimReady } from '@/lib/krex/wrap/claimPlan';
+import { submitMigrateClaim } from '@/lib/krex/wrap/claimSubmit';
+import type { MigrateClaimTip } from '@/lib/krex/wrap/claimAssemble';
+import type { KaspaWalletProvider } from '@/lib/kaspa/types';
+import { getWalletProvider } from '@/lib/kaspa/wallet';
 import {
   buildHubKasListingPlan,
   payHubKasPlan,
@@ -112,26 +116,83 @@ function statusTooltip(status: KrexWrapStatus): string {
   }
 }
 
-function ClaimTicketButton({ attestation }: { attestation?: MigrateAttestation }) {
+function ClaimTicketButton({
+  attestation,
+  provider,
+  fundingAddress,
+}: {
+  attestation?: MigrateAttestation;
+  provider?: KaspaWalletProvider | null;
+  fundingAddress?: string | null;
+}) {
   const ready = evaluateMigrateClaimReady(attestation);
+  const [busy, setBusy] = useState(false);
   return (
     <button
       type="button"
       className="k-control-btn mt-1 text-xs"
-      disabled={!ready.ready}
+      disabled={!ready.ready || busy || !provider || !fundingAddress}
       onClick={() => {
-        const plan = ready.plan || (attestation ? buildMigrateClaimPlan(attestation) : null);
-        if (!plan) {
-          hubNotify.info('Claim not ready', ready.reason || 'Waiting for ticket');
-          return;
-        }
-        hubNotify.success(
-          'Ticket ready to claim',
-          `Spend ticket ${plan.ticketId} in your wallet claim tx (amount ${plan.amountRaw} raw). Full KasWare claim assembler uses this outpoint + migrate tip.`,
-        );
+        void (async () => {
+          const plan = ready.plan || (attestation ? buildMigrateClaimPlan(attestation) : null);
+          if (!plan || !attestation || !provider || !fundingAddress) {
+            hubNotify.info('Claim not ready', ready.reason || 'Waiting for ticket');
+            return;
+          }
+          setBusy(true);
+          const loadingId = hubNotify.loading('Building claim…', 'Confirm ticket + funding in wallet');
+          try {
+            const tipRes = await fetch('/api/krex-wrap/mint-receipts?mode=mint-tip', {
+              headers: { Accept: 'application/json' },
+              cache: 'no-store',
+            });
+            const tipJson = (await tipRes.json()) as { ok?: boolean; tip?: MigrateClaimTip };
+            const tip = tipJson.tip;
+            if (!tip) {
+              hubNotify.update(loadingId, {
+                variant: 'error',
+                title: 'Claim unavailable',
+                description: 'Migrate tip not loaded',
+              });
+              return;
+            }
+            const wallet = getWalletProvider(provider);
+            const publicKeyHex =
+              typeof wallet?.getPublicKey === 'function' ? await wallet.getPublicKey() : null;
+            const result = await submitMigrateClaim({
+              provider,
+              attestation,
+              tip,
+              fundingAddress,
+              publicKeyHex,
+            });
+            if (!result.ok || !result.txHash) {
+              hubNotify.update(loadingId, {
+                variant: 'error',
+                title: 'Claim failed',
+                description: result.error || 'Unknown error',
+              });
+              return;
+            }
+            hubNotify.txSuccess({
+              id: loadingId,
+              title: 'KCC20 claimed',
+              txHash: result.txHash,
+              network: 'testnet-10',
+            });
+          } catch (err) {
+            hubNotify.update(loadingId, {
+              variant: 'error',
+              title: 'Claim failed',
+              description: err instanceof Error ? err.message : String(err),
+            });
+          } finally {
+            setBusy(false);
+          }
+        })();
       }}
     >
-      {claimButtonLabel(ready)}
+      {busy ? 'Claiming…' : claimButtonLabel(ready)}
     </button>
   );
 }
@@ -721,6 +782,8 @@ export function KrexWrapBridgeWidget() {
                 {migrateV2 && row.depositTxHash && row.status === 'awaiting_attest' ? (
                   <ClaimTicketButton
                     attestation={attestByBurn[extractTxId(row.depositTxHash)?.toLowerCase() || '']}
+                    provider={state.provider}
+                    fundingAddress={state.address}
                   />
                 ) : null}
                 {row.note ? <p className="text-xs text-zinc-500">{row.note}</p> : null}

@@ -93,6 +93,8 @@ function main() {
     preInitExprs,
     'controller',
   );
+  const controllerTemplate = templateFromCompiledArtifact(repoRoot, outDir, controllerArtifact);
+  writeFileSync(join(outDir, 'controller-template-parts.json'), JSON.stringify(controllerTemplate, null, 2));
 
   const summary = {
     network: 'testnet-10',
@@ -111,14 +113,15 @@ function main() {
     kascovMetadata: kascov,
     template: assetTemplate,
     ticketTemplate,
+    controllerTemplate,
     controllerPreInitCtor: preInitExprs,
     next: [
       '1) Fund wallet 3 with TN10 KAS',
       '2) node scripts/broadcast-tkrex-migrate-controller-genesis.mjs --broadcast --key-file tkrex-migrate-deploy/wallet3.privkey',
       '3) node scripts/broadcast-tkrex-migrate-asset-genesis.mjs --broadcast --key-file tkrex-migrate-deploy/wallet3.privkey',
       '4) node scripts/broadcast-tkrex-migrate-handover.mjs --broadcast --key-file tkrex-migrate-deploy/wallet3.privkey',
-      '5) Point Hub at new asset id; attestor issues tickets (KCC20_MIGRATE_AUTO_MINT unset)',
-      '6) User Claim in Hub spends ticket + mints',
+      '5) POST Hub mint-tip with migrateVersion=3, adminRenounced, templates',
+      '6) Attestor issues tickets; user Claim in Hub',
     ],
   };
 

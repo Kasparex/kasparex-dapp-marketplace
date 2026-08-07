@@ -190,6 +190,11 @@ const result = {
   minterTxId: tip?.minterTxId || genesis.submittedTxId,
   minterIndex: Number(tip?.minterIndex ?? 0),
   minterAddress: tip?.minterAddress || genesis.assetAddress,
+  assetTemplate: template,
+  ticketTemplate,
+  controllerTemplate: existsSync(join(outDir, 'controller-template-parts.json'))
+    ? JSON.parse(readFileSync(join(outDir, 'controller-template-parts.json'), 'utf8'))
+    : undefined,
 };
 
 if (!WANT_BROADCAST) {
