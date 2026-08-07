@@ -55,8 +55,8 @@ function v2Steps(status: KrexWrapStatus): FlowStep[] {
       id: 'mint',
       label: 'Claim',
       doneDetail: 'KCC20 claimed 1:1',
-      currentDetail: 'Sign claim in wallet (spend ticket)',
-      nextDetail: 'User-signed ticket claim',
+      currentDetail: 'Attestor mint / user claim in progress',
+      nextDetail: 'Matching KCC20 claim',
     },
   ];
 

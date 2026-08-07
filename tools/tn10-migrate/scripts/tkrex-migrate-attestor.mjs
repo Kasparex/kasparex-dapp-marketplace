@@ -1,18 +1,11 @@
 /**
- * TN10 keyless migrate attestor (v3: ticket issue, no AUTO_MINT by default).
+ * TN10 keyless migrate attestor.
  *
- * Watches Kasplex for KRC-20 transfers into the published keyless sink,
- * refuses double-attest (nullifier), posts Hub attestations with Schnorr
- * message signatures, and optionally compiles/issues MigrateTicket UTXOs.
+ * Default: AUTO_MINT on against live soak tip (v2 contract / 83b999) so burns complete.
+ * When Hub tip has migrateVersion >= 3, uses ticket-gated mint script instead.
  *
  *   node scripts/tkrex-migrate-attestor.mjs --once
- *   node scripts/tkrex-migrate-attestor.mjs --loop
- *
- * Env:
- *   KREX_WRAP_HUB_URL
- *   KCC20_MIGRATE_ATTESTOR_SECRET (or KCC20_BRIDGE_WATCHER_SECRET)
- *   KCC20_MIGRATE_SINK / KCC20_MIGRATE_TICK
- *   KCC20_MIGRATE_AUTO_MINT=1  legacy only (discouraged; prefer user Claim)
+ *   KCC20_MIGRATE_AUTO_MINT=0 to attest-only
  */
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
@@ -26,7 +19,8 @@ const hubRoot = resolve(
 );
 const outDir = join(openSilverRoot, 'tkrex-deploy');
 const statePath = join(outDir, 'migrate-attestor-state.json');
-const mintScript = join(openSilverRoot, 'scripts/broadcast-tkrex-migrate-mint.mjs');
+const mintScript = join(openSilverRoot, 'scripts/broadcast-tkrex-migrate-mint-v2-soak.mjs');
+const mintScriptV3 = join(openSilverRoot, 'scripts/broadcast-tkrex-migrate-mint.mjs');
 const mintResultPath = join(openSilverRoot, 'tkrex-migrate-deploy/MINT_RESULT.json');
 
 const HUB_URL = (process.env.KREX_WRAP_HUB_URL || 'http://127.0.0.1:3000').replace(/\/$/, '');
@@ -38,7 +32,7 @@ const TICK = (process.env.KCC20_MIGRATE_TICK || 'TKREX').trim().toUpperCase();
 const SINK =
   process.env.KCC20_MIGRATE_SINK?.trim() ||
   'kaspatest:pqw2y985nkrstxa7x30rkckq6y8papu48tv688vak9eyew2fc9r9vdf0hcw87';
-const AUTO_MINT = process.env.KCC20_MIGRATE_AUTO_MINT === '1';
+const AUTO_MINT = process.env.KCC20_MIGRATE_AUTO_MINT !== '0';
 const KASPLEX = 'https://tn10api.kasplex.org';
 const WANT_ONCE = process.argv.includes('--once');
 const mintBurnIdx = process.argv.indexOf('--mint-burn');
@@ -127,6 +121,17 @@ async function fetchSinkTransfers() {
   });
 }
 
+function tipMigrateVersionHint() {
+  try {
+    const tipPath = join(outDir, 'MINT_TIP.json');
+    if (!existsSync(tipPath)) return 2;
+    const tip = JSON.parse(readFileSync(tipPath, 'utf8'));
+    return Number(tip.migrateVersion || 2);
+  } catch {
+    return 2;
+  }
+}
+
 async function postAttestation(body) {
   if (!SECRET) {
     console.warn('No attestor secret; writing local attestation only');
@@ -161,6 +166,18 @@ async function resolveRecipientPubkey(fromAddress) {
 }
 
 function tryMint({ amountRaw, burnTxHash, recipientPubkey, recipientAddress }) {
+  const tipPath = join(outDir, 'MINT_TIP.json');
+  let useV3 = false;
+  try {
+    if (existsSync(tipPath)) {
+      const tip = JSON.parse(readFileSync(tipPath, 'utf8'));
+      useV3 = Number(tip.migrateVersion || 0) >= 3 && !tip.legacyNote;
+    }
+  } catch {
+    useV3 = false;
+  }
+  const script = useV3 ? mintScriptV3 : mintScript;
+  console.log(`Mint via ${useV3 ? 'v3 ticket path' : 'v2-soak AUTO_MINT path'}`);
   const env = {
     ...process.env,
     TKREX_MINT_AMOUNT_RAW: String(amountRaw),
@@ -175,7 +192,7 @@ function tryMint({ amountRaw, burnTxHash, recipientPubkey, recipientAddress }) {
   }
   if (recipientPubkey) env.TKREX_RECIPIENT_PUBKEY = recipientPubkey;
   if (recipientAddress) env.TKREX_RECIPIENT_ADDRESS = recipientAddress;
-  const result = execFileSync(process.execPath, [mintScript, '--broadcast'], {
+  const result = execFileSync(process.execPath, [script, '--broadcast'], {
     cwd: openSilverRoot,
     env,
     encoding: 'utf8',
@@ -296,8 +313,8 @@ async function scanOnce() {
       claimantAddress: from,
       status: 'attested',
       ticketId: burnTxHash,
-      note: 'TN10 v3 attestor observation (ticket issue / user claim; AUTO_MINT off by default)',
-      migrateVersion: 3,
+      note: 'TN10 soak: attested; AUTO_MINT claims against live tip until v3 ticket deploy',
+      migrateVersion: tipMigrateVersionHint(),
     });
 
     if (!posted.ok && posted.status === 409) {

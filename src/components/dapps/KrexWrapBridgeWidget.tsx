@@ -658,11 +658,12 @@ export function KrexWrapBridgeWidget() {
             {migrateV2 ? (
               <>
                 <li>Pay the fee and burn KRC-20 to the keyless sink (no spend key).</li>
-                <li>Attestors (2-of-3) observe opAccept and issue a one-shot burn ticket UTXO.</li>
-                <li>You Claim in Hub: spend the ticket and mint matching KCC20 1:1 (you sign; no server AUTO_MINT).</li>
+                <li>Attestors observe opAccept and post a burn attestation (ticket when v3 tip is live).</li>
                 <li>
-                  After covenant handover, deploy admin cannot mint. Ticket spend is the consensus replay lock.
+                  Matching KCC20 is minted 1:1. On TN10 soak (current tip), the host AUTO_MINTs after attest. After v3
+                  ticket deploy + handover, you Claim in Hub with a wallet signature.
                 </li>
+                <li>History flips to Minted when the mint receipt syncs. Not instant on-device.</li>
               </>
             ) : (
               <>

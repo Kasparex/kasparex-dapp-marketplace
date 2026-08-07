@@ -1,0 +1,165 @@
+pragma silverscript ^0.1.0;
+
+// KCC20Migrate — burn-ticket / attestor-gated capped controller (Kasparex keyless migrate).
+//
+// Same mint shape as KCC20Capped (1 KCC20 in → continued minter + recipient, singleton
+// controller always continues). Differences:
+// - `init` still requires deploy admin.
+// - `handover` renounces admin mint power forever (`adminRenounced = true`).
+// - `mint` requires attestor signature (never admin after handover; before handover
+//   either admin OR attestor may sign so TN10 soak can switch cleanly).
+// - `mint` binds `burnTxId` into the call so explorers can map mint → burn.
+//
+// Consensus replay protection for a given burn is completed off-chain by consuming a
+// one-shot attestation ticket (attestor refuses to re-sign) and, in a later revision,
+// by spending a ticket UTXO created for that burn. The controller always returns so a
+// valid claim cannot brick remaining supply (Kascov lesson).
+
+contract KCC20Migrate(
+    pubkey admin,
+    pubkey attestor,
+    int initTotalCap,
+    int initRemainingAllowance,
+    byte[32] initKCC20Covid,
+    bool initInitialized,
+    bool initAdminRenounced,
+    int templatePrefixLen,
+    int templateSuffixLen,
+    byte[32] expectedTemplateHash,
+    byte[] templatePrefix,
+    byte[] templateSuffix
+) {
+    byte[32] kcc20Covid = initKCC20Covid;
+    int totalCap = initTotalCap;
+    int remainingAllowance = initRemainingAllowance;
+    bool initialized = initInitialized;
+    bool adminRenounced = initAdminRenounced;
+
+    struct KCC20State {
+        byte[32] ownerIdentifier;
+        byte identifierType;
+        int amount;
+        bool isMinter;
+    }
+
+    byte constant IDENTIFIER_COVENANT_ID = 0x02;
+
+    function requireAdmin(sig adminSig) {
+        require(checkSig(adminSig, admin));
+    }
+
+    function requireAttestor(sig attestorSig) {
+        require(checkSig(attestorSig, attestor));
+    }
+
+    function requireValidCap(State prevState) {
+        require(prevState.totalCap >= 0);
+        require(prevState.remainingAllowance >= 0);
+        require(prevState.totalCap >= prevState.remainingAllowance);
+    }
+
+    function calcInAmount() : int {
+        KCC20State kcc20PrevState = readInputStateWithTemplate(
+            OpCovInputIdx(kcc20Covid, 0),
+            templatePrefixLen,
+            templateSuffixLen,
+            expectedTemplateHash
+        );
+        return kcc20PrevState.amount;
+    }
+
+    function checkMinterKcc20NewState(KCC20State minterKcc20NewState) {
+        byte[32] controllerId = OpInputCovenantId(this.activeInputIndex);
+        require(minterKcc20NewState.ownerIdentifier == controllerId);
+        require(minterKcc20NewState.identifierType == IDENTIFIER_COVENANT_ID);
+        require(minterKcc20NewState.isMinter);
+
+        validateOutputStateWithTemplate(
+            OpCovOutputIdx(kcc20Covid, 0),
+            minterKcc20NewState,
+            templatePrefix,
+            templateSuffix,
+            expectedTemplateHash
+        );
+    }
+
+    function checkRecipientKcc20NewState(KCC20State recipientKcc20NewState) {
+        require(!recipientKcc20NewState.isMinter);
+        validateOutputStateWithTemplate(
+            OpCovOutputIdx(kcc20Covid, 1),
+            recipientKcc20NewState,
+            templatePrefix,
+            templateSuffix,
+            expectedTemplateHash
+        );
+    }
+
+    #[covenant.singleton]
+    function init(State prevState, State newState, sig adminSig) {
+        requireValidCap(prevState);
+        require(!prevState.initialized);
+        require(!prevState.adminRenounced);
+        require(newState.kcc20Covid == OpOutputCovenantId(0));
+        require(newState.totalCap == prevState.totalCap);
+        require(newState.remainingAllowance == prevState.remainingAllowance);
+        require(newState.initialized);
+        require(!newState.adminRenounced);
+        requireAdmin(adminSig);
+    }
+
+    // One-way: after this, only the attestor can authorize mint. Admin cannot undo.
+    #[covenant.singleton]
+    function handover(State prevState, State newState, sig adminSig) {
+        requireValidCap(prevState);
+        require(prevState.initialized);
+        require(!prevState.adminRenounced);
+        require(newState.initialized);
+        require(newState.adminRenounced);
+        require(newState.kcc20Covid == prevState.kcc20Covid);
+        require(newState.totalCap == prevState.totalCap);
+        require(newState.remainingAllowance == prevState.remainingAllowance);
+        requireAdmin(adminSig);
+    }
+
+    #[covenant.singleton]
+    function mint(
+        State prevState,
+        State newState,
+        sig authoritySig,
+        byte[32] burnTxId,
+        KCC20State minterKcc20NewState,
+        KCC20State recipientKcc20NewState
+    ) {
+        requireValidCap(prevState);
+        require(prevState.initialized);
+        require(newState.initialized);
+        require(newState.adminRenounced == prevState.adminRenounced);
+        require(newState.kcc20Covid == prevState.kcc20Covid);
+        require(newState.totalCap == prevState.totalCap);
+        require(newState.remainingAllowance >= 0);
+        require(newState.remainingAllowance <= prevState.remainingAllowance);
+
+        // burnTxId must be a real 32-byte id (non-zero) so mints are auditable.
+        require(burnTxId != 0x0000000000000000000000000000000000000000000000000000000000000000);
+
+        // Controller always continues (singleton). Shape: 1 KCC20 in / 2 KCC20 outs.
+        require(OpCovOutputCount(kcc20Covid) == 2);
+        require(OpCovInputCount(kcc20Covid) == 1);
+
+        checkMinterKcc20NewState(minterKcc20NewState);
+        checkRecipientKcc20NewState(recipientKcc20NewState);
+
+        int inAmount = calcInAmount();
+        int mintedAmount = minterKcc20NewState.amount + recipientKcc20NewState.amount - inAmount;
+        require(mintedAmount > 0);
+        require(mintedAmount <= prevState.remainingAllowance);
+        require(newState.remainingAllowance == prevState.remainingAllowance - mintedAmount);
+
+        if (prevState.adminRenounced) {
+            requireAttestor(authoritySig);
+        } else {
+            // Pre-handover soak: admin OR attestor may authorize.
+            require(checkSig(authoritySig, admin) || checkSig(authoritySig, attestor));
+        }
+    }
+}
