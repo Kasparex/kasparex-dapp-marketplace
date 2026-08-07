@@ -402,7 +402,7 @@ export async function POST(req: NextRequest) {
         { status: 400 },
       );
     }
-    return NextResponse.json({ ok: true, mode: 'observe-burn', ...observed });
+    return NextResponse.json({ ...observed, mode: 'observe-burn' });
   }
 
   if (!watcherAuthorized(req)) {
