@@ -213,7 +213,7 @@ export async function persistMintReceiptStore(store: KrexWrapMintReceiptStore): 
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            message: `chore(bridge): upsert TN10 TKREX mint receipt (${store.updatedAt})`,
+            message: `chore(bridge): upsert TN10 TKREX mint receipt (${store.updatedAt}) [skip vercel]`,
             content,
             sha: current?.sha,
           }),
@@ -350,7 +350,7 @@ export async function persistAttestationStore(store: AttestationStoreFile): Prom
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            message: `chore(bridge): upsert TN10 migrate attestation (${normalized.updatedAt})`,
+            message: `chore(bridge): upsert TN10 migrate attestation (${normalized.updatedAt}) [skip vercel]`,
             content,
             sha: current?.sha,
           }),
@@ -506,7 +506,7 @@ export async function persistMigrateMintTip(tipInput: unknown): Promise<{
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            message: `chore(bridge): upsert TN10 migrate mint tip (${tip.updatedAt})`,
+            message: `chore(bridge): upsert TN10 migrate mint tip (${tip.updatedAt}) [skip vercel]`,
             content,
             sha: current?.sha,
           }),

@@ -1,4 +1,5 @@
 # Keep Vercel uploads small. Hub runtime does not need local migrate toolchains.
+# Do NOT ignore .git: Vercel ignoreCommand / git metadata need it.
 tools/tn10-migrate/
 tools/
 .tools/
@@ -12,4 +13,3 @@ upstream/
 node_modules
 .next
 out
-.git
