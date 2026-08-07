@@ -9,6 +9,7 @@ import { getWalletProvider } from '@/lib/kaspa/wallet';
 import {
   assembleMigrateClaimTx,
   tipReadyForUserClaim,
+  waitForClaimParentsReady,
   type MigrateClaimTip,
 } from './claimAssemble';
 import { bytesToHex, hexToBytes, spliceTemplateScript, encodeMigrateTicketState } from './migrateStateEncode';
@@ -37,7 +38,11 @@ async function resolveClaimantXOnly(
   return String(x).replace(/^0x/i, '').toLowerCase();
 }
 
-export async function submitMigrateClaim(input: {
+function isOrphanReject(err: string | undefined): boolean {
+  return Boolean(err && /orphan/i.test(err));
+}
+
+async function submitMigrateClaimOnce(input: {
   provider: KaspaWalletProvider;
   attestation: MigrateAttestation;
   tip: MigrateClaimTip;
@@ -54,6 +59,14 @@ export async function submitMigrateClaim(input: {
   if (!wallet?.signPskt || !wallet.pushTx) {
     return { ok: false, error: 'Wallet needs signPskt + pushTx for Claim' };
   }
+
+  const parents = await waitForClaimParentsReady({
+    tip: input.tip,
+    ticketTxId: plan.ticketTxId,
+    maxAttempts: 8,
+    delayMs: 1200,
+  });
+  if (!parents.ok) return { ok: false, error: parents.error };
 
   const kaspa = await loadKaspaWasm();
   const claimantXOnly = await resolveClaimantXOnly(kaspa, plan.claimantAddress, input.publicKeyHex);
@@ -141,4 +154,23 @@ export async function submitMigrateClaim(input: {
     return { ok: false, error: funded.error || 'Claim broadcast failed' };
   }
   return { ok: true, txHash: funded.txHash };
+}
+
+export async function submitMigrateClaim(input: {
+  provider: KaspaWalletProvider;
+  attestation: MigrateAttestation;
+  tip: MigrateClaimTip;
+  fundingAddress: string;
+  publicKeyHex?: string | null;
+}): Promise<{ ok: boolean; txHash?: string; error?: string }> {
+  let last: { ok: boolean; txHash?: string; error?: string } = { ok: false, error: 'Claim failed' };
+  for (let attempt = 0; attempt < 3; attempt++) {
+    if (attempt > 0) {
+      await new Promise((r) => setTimeout(r, 2500 * attempt));
+    }
+    last = await submitMigrateClaimOnce(input);
+    if (last.ok) return last;
+    if (!isOrphanReject(last.error)) return last;
+  }
+  return last;
 }

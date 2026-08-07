@@ -59,6 +59,52 @@ async function fetchAddressUtxos(address: string) {
   return Array.isArray(raw) ? raw : raw.utxos || raw.result || [];
 }
 
+async function isTxAcceptedOnTn10(txId: string): Promise<boolean> {
+  const id = String(txId || '')
+    .trim()
+    .toLowerCase()
+    .replace(/^0x/i, '');
+  if (!/^[a-f0-9]{64}$/.test(id)) return false;
+  try {
+    const res = await fetch(
+      `https://api-tn10.kaspa.org/transactions/${id}?inputs=false&outputs=false&resolve_previous_outpoints=no`,
+      { cache: 'no-store', signal: AbortSignal.timeout(10_000) },
+    );
+    if (!res.ok) return false;
+    const j = (await res.json()) as { is_accepted?: boolean; isAccepted?: boolean; block_hash?: unknown };
+    if (j.is_accepted === false || j.isAccepted === false) return false;
+    if (j.is_accepted === true || j.isAccepted === true) return true;
+    return Boolean(j.block_hash);
+  } catch {
+    return false;
+  }
+}
+
+/** Wait until tip/ticket parents are accepted so KasWare pushTx does not orphan. */
+export async function waitForClaimParentsReady(input: {
+  tip: MigrateClaimTip;
+  ticketTxId: string;
+  maxAttempts?: number;
+  delayMs?: number;
+}): Promise<{ ok: boolean; error?: string }> {
+  const maxAttempts = Math.max(1, input.maxAttempts ?? 10);
+  const delayMs = Math.max(250, input.delayMs ?? 1500);
+  for (let i = 0; i < maxAttempts; i++) {
+    const [minterOk, ctrlOk, ticketOk] = await Promise.all([
+      isTxAcceptedOnTn10(input.tip.minterTxId),
+      isTxAcceptedOnTn10(input.tip.controllerTxId),
+      isTxAcceptedOnTn10(input.ticketTxId),
+    ]);
+    if (minterOk && ctrlOk && ticketOk) return { ok: true };
+    if (i < maxAttempts - 1) await new Promise((r) => setTimeout(r, delayMs));
+  }
+  return {
+    ok: false,
+    error:
+      'Claim inputs are not confirmed on TN10 yet. Wait a few seconds and tap Claim again.',
+  };
+}
+
 function findUtxo(list: unknown[], txId: string, index: number) {
   return (list as Array<Record<string, unknown>>).find((u) => {
     const op = (u.outpoint || u.previousOutpoint || {}) as Record<string, unknown>;
@@ -218,7 +264,7 @@ export async function assembleMigrateClaimTx(input: {
     };
   }
 
-  const fundPick = (fundUtxos as Array<Record<string, unknown>>)
+  const fundCandidates = (fundUtxos as Array<Record<string, unknown>>)
     .map((u) => {
       const op = (u.outpoint || u.previousOutpoint || {}) as Record<string, unknown>;
       return {
@@ -238,7 +284,24 @@ export async function assembleMigrateClaimTx(input: {
     })
     .filter((x) => x.amount >= EXTRA_FUNDING_SOMPI)
     .filter((x) => !x.scriptHex.startsWith('aa20'))
-    .sort((a, b) => (a.amount < b.amount ? -1 : 1))[0];
+    .sort((a, b) => {
+      // Prefer older / higher DAA first so we do not spend brand-new fee change.
+      if (a.blockDaaScore !== b.blockDaaScore) return a.blockDaaScore > b.blockDaaScore ? -1 : 1;
+      return a.amount < b.amount ? -1 : 1;
+    });
+
+  let fundPick:
+    | (typeof fundCandidates)[number]
+    | undefined;
+  for (const cand of fundCandidates.slice(0, 8)) {
+    const parentOk = await isTxAcceptedOnTn10(cand.outpoint.transactionId);
+    if (parentOk || cand.isCoinbase) {
+      fundPick = cand;
+      break;
+    }
+  }
+  // Fallback: still allow newest if indexer lags (retry path handles orphan).
+  if (!fundPick) fundPick = fundCandidates[0];
   if (!fundPick) {
     return {
       ok: false,

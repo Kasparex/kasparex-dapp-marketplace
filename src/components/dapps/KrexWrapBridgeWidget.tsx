@@ -222,7 +222,10 @@ function ClaimTicketButton({
                 return;
               }
               setBusy(true);
-              const loadingId = hubNotify.loading('Building claim…', 'Confirm in KasWare when prompted');
+              const loadingId = hubNotify.loading(
+                'Building claim…',
+                'Waiting for inputs to settle, then confirm in KasWare',
+              );
               try {
                 const tipRes = await fetch('/api/krex-wrap/mint-receipts?mode=mint-tip', {
                   headers: { Accept: 'application/json' },

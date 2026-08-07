@@ -10,10 +10,14 @@ function pickString(value: unknown): string | null {
 
 function rpcDisconnectHelp(text: string): string | null {
   const lower = text.toLowerCase();
+  // Keep real reject reasons (orphan, double-spend, etc.) visible.
+  if (lower.includes('rejected') || lower.includes('orphan') || lower.includes('already spent')) {
+    return null;
+  }
   if (
     lower.includes('websocket disconnected') ||
-    lower.includes('websocket') && lower.includes('disconnect') ||
-    lower.includes('rpc server') && lower.includes('remote error')
+    (lower.includes('websocket') && lower.includes('disconnect')) ||
+    (lower.includes('rpc server') && lower.includes('remote error') && !lower.includes('->'))
   ) {
     return (
       'Your wallet lost its Kaspa RPC connection (WebSocket disconnected). ' +
@@ -21,6 +25,14 @@ function rpcDisconnectHelp(text: string): string | null {
     );
   }
   return null;
+}
+
+function orphanTxHelp(text: string): string | null {
+  if (!/orphan/i.test(text)) return null;
+  return (
+    'Claim rejected as orphan: an input is not ready on your wallet RPC yet ' +
+    '(ticket or recent fee change). Wait about 15 seconds, then tap Claim again.'
+  );
 }
 
 /**
@@ -35,6 +47,8 @@ export function formatKaspaWalletError(err: unknown): string {
     const direct = pickString(err.message);
     if (direct) {
       if (isStorageMassErrorMessage(direct)) return storageMassHelp();
+      const orphanHelp = orphanTxHelp(direct);
+      if (orphanHelp) return orphanHelp;
       const rpcHelp = rpcDisconnectHelp(direct);
       if (rpcHelp) return rpcHelp;
       if (direct.toLowerCase().includes('json')) {
@@ -48,6 +62,8 @@ export function formatKaspaWalletError(err: unknown): string {
     const direct = pickString(err);
     if (direct) {
       if (isStorageMassErrorMessage(direct)) return storageMassHelp();
+      const orphanHelp = orphanTxHelp(direct);
+      if (orphanHelp) return orphanHelp;
       const rpcHelp = rpcDisconnectHelp(direct);
       if (rpcHelp) return rpcHelp;
       return direct;
@@ -61,6 +77,10 @@ export function formatKaspaWalletError(err: unknown): string {
       const text = pickString(nested);
       if (text) {
         if (isStorageMassErrorMessage(text)) return storageMassHelp();
+        const orphanHelp = orphanTxHelp(text);
+        if (orphanHelp) return orphanHelp;
+        const rpcHelp = rpcDisconnectHelp(text);
+        if (rpcHelp) return rpcHelp;
         return text;
       }
       if (nested && typeof nested === 'object') {
