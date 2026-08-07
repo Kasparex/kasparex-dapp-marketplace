@@ -94,12 +94,17 @@ export function tipPatchFromMintTx(
     return null;
   }
 
+  // If tip already points at this mint, remainingAllowance was already reduced.
+  // Re-subtracting (e.g. claim-report reconcile) breaks the next Claim script.
   let remaining = tip.remainingAllowance;
-  try {
-    const next = BigInt(tip.remainingAllowance) - BigInt(amountRaw || '0');
-    if (next >= 0n) remaining = String(next);
-  } catch {
-    /* keep tip remaining */
+  const tipAlreadyAtMint = normalizeTxHash(tip.minterTxId) === mintTxId;
+  if (!tipAlreadyAtMint) {
+    try {
+      const next = BigInt(tip.remainingAllowance) - BigInt(amountRaw || '0');
+      if (next >= 0n) remaining = String(next);
+    } catch {
+      /* keep tip remaining */
+    }
   }
 
   return {

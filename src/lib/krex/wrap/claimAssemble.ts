@@ -244,6 +244,16 @@ export async function assembleMigrateClaimTx(input: {
   const recipientAddress = kaspa.addressFromScriptPublicKey(recipientSpk, 'testnet-10').toString();
   const postMintAddress = kaspa.addressFromScriptPublicKey(postMintSpk, 'testnet-10').toString();
   const ticketAddress = kaspa.addressFromScriptPublicKey(ticketSpk, 'testnet-10').toString();
+  const spendControllerAddress = kaspa
+    .addressFromScriptPublicKey(kaspa.payToScriptHashScript(spendControllerScript), 'testnet-10')
+    .toString();
+  if (spendControllerAddress !== tip.controllerAddress) {
+    return {
+      ok: false,
+      error:
+        'Migrate tip remainingAllowance does not match live controller. Refresh History and try Claim again.',
+    };
+  }
 
   const [minterUtxos, controllerUtxos, ticketUtxos, fundUtxos] = await Promise.all([
     fetchAddressUtxos(tip.minterAddress),
