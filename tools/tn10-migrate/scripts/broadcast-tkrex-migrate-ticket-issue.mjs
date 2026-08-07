@@ -53,6 +53,11 @@ const FUNDING_SOMPI = BigInt(process.env.TKREX_TICKET_FUNDING_SOMPI || '50000000
 const PRIORITY_FEE_SOMPI = BigInt(process.env.TKREX_PRIORITY_FEE_SOMPI || '15000000');
 const COMPUTE_BUDGET = Number(process.env.TKREX_COMPUTE_BUDGET || '200');
 const ISSUE_SELECTOR = 0n;
+/** Skip genesis and issue against an existing inactive ticket UTXO (txid). */
+const RESUME_GENESIS_TXID = (process.env.TKREX_TICKET_GENESIS_TXID || '')
+  .trim()
+  .toLowerCase()
+  .replace(/^0x/i, '');
 const WALLET3 =
   process.env.TKREX_WALLET3_ADDRESS ||
   'kaspatest:qqn2344wcpyrp3w4jx8dc6zd0mn2ml4glgn84ufwv7em20udf2s9z8p8xc2zy';
@@ -285,62 +290,73 @@ console.log('Funding address:', fundAddr);
 console.log('Inactive ticket P2SH:', inactiveAddress);
 console.log('Active ticket P2SH:', activeAddress);
 
-const utxos = await fetchUtxos(fundAddr);
-const need = FUNDING_SOMPI + PRIORITY_FEE_SOMPI + 10_000_000n;
-const funding = utxos
-  .filter((u) => u.amount >= need)
-  .filter((u) => !String(u.scriptHex || '').startsWith('aa20'))
-  .sort((a, b) => (a.amount < b.amount ? -1 : 1))[0];
-if (!funding) throw new Error(`No funding UTXO >= ${need} sompi on ${fundAddr}`);
-
-const created = await createTransactions({
-  version: 1,
-  entries: [toEntry(funding)],
-  outputs: [{ address: inactiveAddress, amount: FUNDING_SOMPI }],
-  changeAddress: fundAddr,
-  priorityFee: PRIORITY_FEE_SOMPI,
-  networkId: 'testnet-10',
-});
-if (!created.transactions?.length) throw new Error('createTransactions returned no txs');
-if (created.transactions.length > 1) {
-  throw new Error(`Generator produced ${created.transactions.length} txs; pick a smaller funding UTXO`);
-}
-
-const pending = created.transactions[0];
-const genesisTx = pending.transaction;
-genesisTx.version = 1;
-for (const tin of genesisTx.inputs) {
-  tin.sigOpCount = 0;
-  tin.computeBudget = COMPUTE_BUDGET;
-}
-genesisTx.populateGenesisCovenants([{ authorizingInput: 0, outputs: [0] }]);
-genesisTx.finalize();
-
-const fundSig = createInputSignature(genesisTx, 0, fundKey);
-genesisTx.inputs[0].signatureScript = fundSig;
-
 const rpc = process.env.TKREX_RPC_URL
   ? new RpcClient({ url: process.env.TKREX_RPC_URL, encoding: Encoding.Borsh, networkId: 'testnet-10' })
   : new RpcClient({ resolver: new Resolver(), encoding: Encoding.Borsh, networkId: 'testnet-10' });
 
 await rpc.connect();
 let genesisTxId;
+let genesisTx = null;
 try {
-  const g = await rpc.submitTransaction({ transaction: genesisTx, allowOrphan: false });
-  genesisTxId = String(g?.transactionId || g?.transaction_id || genesisTx.id?.toString?.() || '');
-  if (!genesisTxId) throw new Error('Genesis submit returned no txid');
-  console.log('Ticket genesis submitted:', genesisTxId);
+  if (/^[a-f0-9]{64}$/.test(RESUME_GENESIS_TXID)) {
+    genesisTxId = RESUME_GENESIS_TXID;
+    console.log('Resuming issue from existing ticket genesis:', genesisTxId);
+  } else {
+    const utxos = await fetchUtxos(fundAddr);
+    const need = FUNDING_SOMPI + PRIORITY_FEE_SOMPI + 10_000_000n;
+    const funding = utxos
+      .filter((u) => u.amount >= need)
+      .filter((u) => !String(u.scriptHex || '').startsWith('aa20'))
+      .sort((a, b) => (a.amount < b.amount ? -1 : 1))[0];
+    if (!funding) throw new Error(`No funding UTXO >= ${need} sompi on ${fundAddr}`);
+
+    const created = await createTransactions({
+      version: 1,
+      entries: [toEntry(funding)],
+      outputs: [{ address: inactiveAddress, amount: FUNDING_SOMPI }],
+      changeAddress: fundAddr,
+      priorityFee: PRIORITY_FEE_SOMPI,
+      networkId: 'testnet-10',
+    });
+    if (!created.transactions?.length) throw new Error('createTransactions returned no txs');
+    if (created.transactions.length > 1) {
+      throw new Error(`Generator produced ${created.transactions.length} txs; pick a smaller funding UTXO`);
+    }
+
+    const pending = created.transactions[0];
+    genesisTx = pending.transaction;
+    genesisTx.version = 1;
+    for (const tin of genesisTx.inputs) {
+      tin.sigOpCount = 0;
+      tin.computeBudget = COMPUTE_BUDGET;
+    }
+    genesisTx.populateGenesisCovenants([{ authorizingInput: 0, outputs: [0] }]);
+    genesisTx.finalize();
+
+    const fundSig = createInputSignature(genesisTx, 0, fundKey);
+    genesisTx.inputs[0].signatureScript = fundSig;
+
+    const g = await rpc.submitTransaction({ transaction: genesisTx, allowOrphan: false });
+    genesisTxId = String(g?.transactionId || g?.transaction_id || genesisTx.id?.toString?.() || '');
+    if (!genesisTxId) throw new Error('Genesis submit returned no txid');
+    console.log('Ticket genesis submitted:', genesisTxId);
+  }
 
   // Brief wait for UTXO index; retry fetch.
   let genesisUtxo = null;
   for (let i = 0; i < 12; i++) {
-    await new Promise((r) => setTimeout(r, 2500));
     const list = await fetchUtxos(inactiveAddress);
     genesisUtxo = list.find(
-      (u) => u.outpoint.transactionId === genesisTxId && Number(u.outpoint.index) === 0,
+      (u) =>
+        String(u.outpoint.transactionId).toLowerCase() === genesisTxId &&
+        Number(u.outpoint.index) === 0,
     );
     if (genesisUtxo) break;
+    if (/^[a-f0-9]{64}$/.test(RESUME_GENESIS_TXID) && i === 0) {
+      // Already indexed from prior attempt; still allow a couple retries.
+    }
     console.log(`Waiting for genesis UTXO… (${i + 1}/12)`);
+    await new Promise((r) => setTimeout(r, 2500));
   }
   if (!genesisUtxo) throw new Error(`Genesis UTXO ${genesisTxId}:0 not found on ${inactiveAddress}`);
 
@@ -352,14 +368,25 @@ try {
     scriptPublicKey: inactiveSpk,
     blockDaaScore: genesisUtxo.blockDaaScore,
     isCoinbase: false,
-    covenantId: genesisTx.outputs[0]?.covenant?.covenantId?.toString?.() || undefined,
+    covenantId: genesisTx?.outputs?.[0]?.covenant?.covenantId?.toString?.() || undefined,
   };
 
   // Discover covenant id from genesis output if present.
   const genesisCov =
-    genesisTx.outputs[0]?.covenant?.covenantId?.toString?.() ||
-    genesisTx.outputs[0]?.covenant?.covenant_id?.toString?.();
+    genesisTx?.outputs?.[0]?.covenant?.covenantId?.toString?.() ||
+    genesisTx?.outputs?.[0]?.covenant?.covenant_id?.toString?.();
   if (genesisCov) ticketEntry.covenantId = String(genesisCov);
+  // Resume: do NOT use P2SH script hash (aa20…87) as covenant id; that fails genesis hashing.
+  // Prefer env, else require a live genesis tx object from this run.
+  if (!ticketEntry.covenantId) {
+    const fromEnv = (process.env.TKREX_TICKET_COVENANT_ID || '').trim().toLowerCase().replace(/^0x/i, '');
+    if (/^[a-f0-9]{64}$/.test(fromEnv)) ticketEntry.covenantId = fromEnv;
+  }
+  if (!ticketEntry.covenantId) {
+    throw new Error(
+      'Missing ticket covenant id. Re-run without TKREX_TICKET_GENESIS_TXID, or set TKREX_TICKET_COVENANT_ID from the genesis output.',
+    );
+  }
 
   const keep = ticketAmount - PRIORITY_FEE_SOMPI;
   if (keep <= 0n) throw new Error('Ticket UTXO too small for issue fee');
@@ -370,8 +397,9 @@ try {
     PRIORITY_FEE_SOMPI,
   );
   issueTx.version = 1;
+  // TN10 tx version 1: sigOpCount must be 0 (same as handover / mint scripts).
   for (const tin of issueTx.inputs) {
-    tin.sigOpCount = 3;
+    tin.sigOpCount = 0;
     tin.computeBudget = COMPUTE_BUDGET;
   }
   if (ticketEntry.covenantId) {

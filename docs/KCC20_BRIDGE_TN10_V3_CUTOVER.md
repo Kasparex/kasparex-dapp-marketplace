@@ -32,6 +32,19 @@ Kascov: https://kascov.io/testnet-10/c/4c1b883883cc816442bac6bd23621c7b1157a25f5
 5. Point Hub tip + `NEXT_PUBLIC_KCC20_BRIDGE_COVENANTS` at the new asset id
 6. Attestor issues tickets (2-of-3); user Claims in Hub
 
+## Attestor GHA (keep in sync)
+
+Workflow: `.github/workflows/tn10-migrate-attestor.yml` (cron `*/10`).
+
+Required repo secrets (must match Vercel watcher secret after any regen):
+
+- `KCC20_BRIDGE_WATCHER_SECRET` / `KCC20_MIGRATE_ATTESTOR_SECRET`
+- `KREX_WRAP_HUB_URL` (`https://hub.kasparex.com`)
+- `TKREX_WALLET3_PRIVKEY`
+- `TKREX_ATTESTOR1_PRIVKEY` / `TKREX_ATTESTOR2_PRIVKEY` / `TKREX_ATTESTOR3_PRIVKEY`
+
+Ticket issue uses tx `version=1` with `sigOpCount=0` (same as handover). Optional resume: `TKREX_TICKET_GENESIS_TXID` + `TKREX_TICKET_COVENANT_ID` (do not use P2SH script hash as covenant id).
+
 ## Honesty
 
 “Keyless” means sink + post-handover admin mint gone. Attestor keys remain for KRC-20 observation and ticket issue until observation is unnecessary.
