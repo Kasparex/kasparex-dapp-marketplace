@@ -1,6 +1,6 @@
 {
   "network": "testnet-10",
-  "updatedAt": "2026-08-07T09:13:20.087Z",
+  "updatedAt": "2026-08-07T09:13:25.455Z",
   "attestations": [
     {
       "network": "testnet-10",
@@ -13,9 +13,11 @@
       "claimantAddress": "kaspatest:qrwa6q8pk80dzpatgas9es2re0kusnja305wsnealy0hj480w452y0fmw3hsd",
       "ticketId": "6f92fd30b9355ecedcf46a76d411e5bf6244648ccf1536eee43efa057d420252",
       "migrateVersion": 2,
-      "status": "attested",
+      "status": "claimed",
       "attestedAt": "2026-08-07T09:13:19.969Z",
-      "note": "TN10 soak: attested; AUTO_MINT claims against live tip until v3 ticket deploy"
+      "note": "Claimed via attestor-assisted KCC20Migrate mint (soak)",
+      "mintTxHash": "9a341c3715ba8340f771038db17f89e9ea92fde8fd7fe89e5b097bb7ef6d0963",
+      "assetCovenantId": "83b999756e613d2749b8ff9549de4bdd0cb864f3d5d2dc606d92f3aa740ee91a"
     },
     {
       "network": "testnet-10",
