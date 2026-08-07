@@ -40,3 +40,7 @@ skills-lock.json
 tools/tn10-migrate/**/.attestor*.privkey
 tools/tn10-migrate/**/wallet3.privkey
 tools/tn10-migrate/**/.wallet3.privkey
+
+.cutover-watcher-secret.tmp
+.env.vercel.cutover.local
+

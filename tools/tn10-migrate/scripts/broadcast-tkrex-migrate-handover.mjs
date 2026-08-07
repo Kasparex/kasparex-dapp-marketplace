@@ -172,7 +172,7 @@ const unsigned = createTransaction(
 );
 unsigned.version = 1;
 for (const tin of unsigned.inputs) {
-  tin.sigOpCount = 1;
+  tin.sigOpCount = 0;
   tin.computeBudget = COMPUTE_BUDGET;
 }
 unsigned.outputs[0].covenant = new CovenantBinding(0, new Hash(CONTROLLER_COV_ID));
@@ -190,11 +190,6 @@ const result = {
   minterTxId: tip?.minterTxId || genesis.submittedTxId,
   minterIndex: Number(tip?.minterIndex ?? 0),
   minterAddress: tip?.minterAddress || genesis.assetAddress,
-  assetTemplate: template,
-  ticketTemplate,
-  controllerTemplate: existsSync(join(outDir, 'controller-template-parts.json'))
-    ? JSON.parse(readFileSync(join(outDir, 'controller-template-parts.json'), 'utf8'))
-    : undefined,
 };
 
 if (!WANT_BROADCAST) {
@@ -208,9 +203,31 @@ if (!/^[0-9a-fA-F]{64}$/.test(PRIV)) {
   throw new Error('Missing wallet3 private key for handover broadcast');
 }
 
+function hexToBytes(hex) {
+  const body = String(hex).replace(/^0x/i, '');
+  const out = new Uint8Array(body.length / 2);
+  for (let i = 0; i < out.length; i++) out[i] = parseInt(body.slice(i * 2, i * 2 + 2), 16);
+  return out;
+}
+
+function normalizeSchnorrSignature(raw) {
+  let signature = typeof raw === 'string' ? hexToBytes(raw) : raw;
+  if (signature.length === 66 && signature[0] === 65) signature = signature.slice(1);
+  if (signature.length === 64) {
+    const withType = new Uint8Array(65);
+    withType.set(signature);
+    withType[64] = 0x01;
+    return withType;
+  }
+  if (signature.length !== 65) {
+    throw new Error(`Expected 65-byte schnorr+sighash; got ${signature.length}`);
+  }
+  return signature;
+}
+
 const key = new PrivateKey(PRIV);
 const entries = [controllerEntry];
-const adminSig = createInputSignature(unsigned, 0, key, entries);
+const adminSig = normalizeSchnorrSignature(createInputSignature(unsigned, 0, key, entries));
 
 // newState { covid, totalCap, remaining, initialized=true, adminRenounced=true } + adminSig + selector
 const prefix = new ScriptBuilder();
@@ -221,8 +238,11 @@ prefix.addI64(1n); // initialized
 prefix.addI64(1n); // adminRenounced
 prefix.addData(adminSig);
 prefix.addI64(HANDOVER_SELECTOR);
+const prefixHex = prefix.drain();
 
-unsigned.inputs[0].signatureScript = prefix.toBytes();
+unsigned.inputs[0].signatureScript = ScriptBuilder.fromScript(spendScript, {
+  flags: { covenantsEnabled: true },
+}).encodePayToScriptHashSignatureScript(prefixHex);
 
 const rpc = new RpcClient({
   resolver: new Resolver(),
@@ -233,7 +253,15 @@ await rpc.connect();
 try {
   const { transactionId } = await rpc.submitTransaction({ transaction: unsigned, allowOrphan: false });
   result.controllerTxId = transactionId;
+  result.controllerIndex = 0;
   result.updatedAt = new Date().toISOString();
+  result.assetTemplate = template;
+  result.ticketTemplate = ticketTemplate;
+  if (existsSync(join(outDir, 'controller-template-parts.json'))) {
+    result.controllerTemplate = JSON.parse(
+      readFileSync(join(outDir, 'controller-template-parts.json'), 'utf8'),
+    );
+  }
   writeFileSync(join(outDir, 'HANDOVER_RESULT.json'), `${JSON.stringify(result, null, 2)}\n`);
   writeFileSync(tipPath, `${JSON.stringify(result, null, 2)}\n`);
   console.log('Handover submitted:', transactionId);
