@@ -1,7 +1,4 @@
-# TN10 keyless migrate: attest sink burns + AUTO_MINT against live soak tip.
-# While tip is pre-ticket (83b999 / migrateVersion 2), attestor mints for the user.
-# After v3 ticket deploy + handover, tip.migrateVersion=3 → attestor issues tickets;
-# user Claims in Hub. Optional secrets: TKREX_ATTESTOR{1,2,3}_PRIVKEY for ticket issue.
+# TN10 keyless migrate: attest sink burns + issue MigrateTickets (v3) or AUTO_MINT (v2 soak).
 #
 # Secrets:
 #   KCC20_BRIDGE_WATCHER_SECRET
@@ -11,13 +8,19 @@
 name: TN10 migrate attestor
 
 on:
+  # Every 5 min is enough. cancel-in-progress:true + */2 cancelled free-tier
+  # queued runs before a runner started, so tickets never issued.
   schedule:
-    - cron: '*/2 * * * *'
+    - cron: '*/5 * * * *'
   workflow_dispatch:
 
 concurrency:
   group: tn10-migrate-attestor
-  cancel-in-progress: true
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  actions: write
 
 jobs:
   attest-and-mint:
@@ -87,6 +90,7 @@ jobs:
           TKREX_ATTESTOR2_PRIVKEY: ${{ secrets.TKREX_ATTESTOR2_PRIVKEY }}
           TKREX_ATTESTOR3_PRIVKEY: ${{ secrets.TKREX_ATTESTOR3_PRIVKEY }}
           TKREX_HUB_ROOT: ${{ github.workspace }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           export KREX_WRAP_HUB_URL="${KREX_WRAP_HUB_URL:-https://hub.kasparex.com}"
           if [ -z "$KCC20_BRIDGE_WATCHER_SECRET" ] || [ -z "$TKREX_WALLET3_PRIVKEY" ]; then
@@ -94,3 +98,65 @@ jobs:
             exit 1
           fi
           node scripts/tkrex-migrate-attestor.mjs --once
+
+      - name: Sync ticket attestation to main when Hub cannot persist
+        if: success()
+        working-directory: ${{ github.workspace }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          node <<'NODE'
+          const fs = require('fs');
+          const { execSync } = require('child_process');
+          const tipPath = 'tools/tn10-migrate/tkrex-migrate-deploy/TICKET_ISSUE_RESULT.json';
+          const attestPath = 'data/krex-wrap/attestations-tn10.json';
+          if (!fs.existsSync(tipPath) || !fs.existsSync(attestPath)) {
+            console.log('No ticket result or attestations file; skip sync');
+            process.exit(0);
+          }
+          const ticket = JSON.parse(fs.readFileSync(tipPath, 'utf8'));
+          if (!ticket.ticketId || !ticket.burnTxId) {
+            console.log('Ticket result incomplete; skip');
+            process.exit(0);
+          }
+          const store = JSON.parse(fs.readFileSync(attestPath, 'utf8'));
+          const burn = String(ticket.burnTxId).toLowerCase();
+          let row = store.attestations.find((a) => a.burnTxHash === burn);
+          if (!row) {
+            row = {
+              network: 'testnet-10',
+              tick: 'TKREX',
+              burnTxHash: burn,
+              amountRaw: String(ticket.amountRaw || '0'),
+              amount: Number(ticket.amountRaw || 0) / 1e8,
+              status: 'attested',
+              attestedAt: new Date().toISOString(),
+              migrateVersion: 3,
+            };
+            store.attestations.unshift(row);
+          }
+          if (row.ticketId === ticket.ticketId) {
+            console.log('Attestation already has ticket; skip commit');
+            process.exit(0);
+          }
+          row.ticketId = ticket.ticketId;
+          row.ticketTxId = ticket.ticketTxId;
+          row.ticketIndex = Number(ticket.ticketIndex ?? 0);
+          row.status = 'attested';
+          row.note = 'TN10 v3: MigrateTicket issued; user Claims in Hub';
+          row.migrateVersion = 3;
+          store.updatedAt = new Date().toISOString();
+          fs.writeFileSync(attestPath, JSON.stringify(store, null, 2) + '\n');
+          execSync('git config user.name "kasparex-attestor"');
+          execSync('git config user.email "attestor@users.noreply.github.com"');
+          execSync(`git add ${attestPath}`);
+          const st = execSync('git status --porcelain', { encoding: 'utf8' });
+          if (!st.trim()) {
+            console.log('Nothing to commit');
+            process.exit(0);
+          }
+          execSync(`git commit -m "chore(bridge): upsert TN10 migrate attestation (${store.updatedAt})"`);
+          execSync('git pull --rebase origin main');
+          execSync('git push origin HEAD:main');
+          console.log('Pushed attestation with ticket', ticket.ticketId);
+          NODE

@@ -101,12 +101,26 @@ export async function observeSinkBurn(input: {
     };
   }
 
+  const opOk = accepted(match.opAccept);
+  // Already attested and waiting for ticket: do not re-persist (GitHub spam + tip races).
+  if (existing?.status === 'attested' && opOk) {
+    if (!attestationHasTicket(existing)) {
+      void wakeMigrateAttestor(`observe-burn:${burnTxHash.slice(0, 12)}`);
+    }
+    return {
+      ok: true,
+      verified: true,
+      attestation: existing,
+      opAccept: true,
+      created: false,
+    };
+  }
+
   const amountRaw = String(match.amt || '0');
   const amount =
     typeof input.amount === 'number' && Number.isFinite(input.amount)
       ? input.amount
       : Number(amountRaw) / 1e8;
-  const opOk = accepted(match.opAccept);
   const row: MigrateAttestation = {
     network: 'testnet-10',
     tick,

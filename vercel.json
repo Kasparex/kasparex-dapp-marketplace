@@ -3,6 +3,7 @@
   "devCommand": "npm run dev",
   "installCommand": "npm install",
   "framework": "nextjs",
-  "regions": ["iad1"]
+  "regions": ["iad1"],
+  "ignoreCommand": "git diff --quiet HEAD^ HEAD -- . \":(exclude)data/krex-wrap/**\" \":(exclude).github/workflows/tn10-migrate-attestor.yml\" \":(exclude)tools/tn10-migrate/scripts/bootstrap-silverc.sh\""
 }
 

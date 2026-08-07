@@ -20,6 +20,12 @@ if [ "${CURRENT_HEAD}" != "${PINNED_REF}" ]; then
   git checkout "${PINNED_REF}"
 fi
 
+# Skip rebuild when pin matches and binary exists (keeps GHA under a few minutes).
+if [ -x "${SILVERC_BIN}" ] && [ "${CURRENT_HEAD}" = "${PINNED_REF}" ]; then
+  echo "silverc cache hit: ${SILVERC_BIN}"
+  exit 0
+fi
+
 cargo build --manifest-path silverscript-lang/Cargo.toml --bin silverc
 
 echo "silverc ready: ${SILVERC_BIN}"

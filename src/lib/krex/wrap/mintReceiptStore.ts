@@ -272,26 +272,40 @@ async function fetchAttestGithubFile(): Promise<{
   const githubToken = process.env.GITHUB_TOKEN?.trim();
   const repoOwner = process.env.GITHUB_REPO_OWNER || 'Kasparex';
   const repoName = process.env.GITHUB_REPO_NAME || 'kasparex-dapp-marketplace';
-  if (!githubToken) return null;
 
-  const res = await fetch(
-    `https://api.github.com/repos/${repoOwner}/${repoName}/contents/${attestationsPath}`,
-    {
-      headers: {
-        Authorization: `token ${githubToken}`,
-        Accept: 'application/vnd.github.v3+json',
+  if (githubToken) {
+    const res = await fetch(
+      `https://api.github.com/repos/${repoOwner}/${repoName}/contents/${attestationsPath}`,
+      {
+        headers: {
+          Authorization: `token ${githubToken}`,
+          Accept: 'application/vnd.github.v3+json',
+        },
+        cache: 'no-store',
       },
-      cache: 'no-store',
-    },
-  );
-  if (res.status === 404) return { store: emptyAttestationStore(), sha: undefined };
-  if (!res.ok) return null;
-  const data = (await res.json()) as { content?: string; encoding?: string; sha?: string };
-  if (!data.content) return { store: emptyAttestationStore(), sha: data.sha };
-  const decoded = Buffer.from(data.content, (data.encoding as BufferEncoding) || 'base64').toString(
-    'utf8',
-  );
-  return { store: normalizeAttestationStore(JSON.parse(decoded)), sha: data.sha };
+    );
+    if (res.status === 404) return { store: emptyAttestationStore(), sha: undefined };
+    if (!res.ok) return null;
+    const data = (await res.json()) as { content?: string; encoding?: string; sha?: string };
+    if (!data.content) return { store: emptyAttestationStore(), sha: data.sha };
+    const decoded = Buffer.from(
+      data.content,
+      (data.encoding as BufferEncoding) || 'base64',
+    ).toString('utf8');
+    return { store: normalizeAttestationStore(JSON.parse(decoded)), sha: data.sha };
+  }
+
+  // Public repo fallback: Hub can serve live tickets without GITHUB_TOKEN on Vercel.
+  try {
+    const res = await fetch(
+      `https://raw.githubusercontent.com/${repoOwner}/${repoName}/main/${attestationsPath}`,
+      { cache: 'no-store', signal: AbortSignal.timeout(12_000) },
+    );
+    if (!res.ok) return null;
+    return { store: normalizeAttestationStore(await res.json()), sha: undefined };
+  } catch {
+    return null;
+  }
 }
 
 /** Prefer GitHub (live after attestor POST), else deployment file. */
@@ -406,26 +420,39 @@ async function fetchTipGithubFile(): Promise<{ tip: MigrateMintTip | null; sha?:
   const githubToken = process.env.GITHUB_TOKEN?.trim();
   const repoOwner = process.env.GITHUB_REPO_OWNER || 'Kasparex';
   const repoName = process.env.GITHUB_REPO_NAME || 'kasparex-dapp-marketplace';
-  if (!githubToken) return null;
 
-  const res = await fetch(
-    `https://api.github.com/repos/${repoOwner}/${repoName}/contents/${MIGRATE_MINT_TIP_TN10_PATH}`,
-    {
-      headers: {
-        Authorization: `token ${githubToken}`,
-        Accept: 'application/vnd.github.v3+json',
+  if (githubToken) {
+    const res = await fetch(
+      `https://api.github.com/repos/${repoOwner}/${repoName}/contents/${MIGRATE_MINT_TIP_TN10_PATH}`,
+      {
+        headers: {
+          Authorization: `token ${githubToken}`,
+          Accept: 'application/vnd.github.v3+json',
+        },
+        cache: 'no-store',
       },
-      cache: 'no-store',
-    },
-  );
-  if (res.status === 404) return { tip: null, sha: undefined };
-  if (!res.ok) return null;
-  const data = (await res.json()) as { content?: string; encoding?: string; sha?: string };
-  if (!data.content) return { tip: null, sha: data.sha };
-  const decoded = Buffer.from(data.content, (data.encoding as BufferEncoding) || 'base64').toString(
-    'utf8',
-  );
-  return { tip: normalizeMigrateMintTip(JSON.parse(decoded)), sha: data.sha };
+    );
+    if (res.status === 404) return { tip: null, sha: undefined };
+    if (!res.ok) return null;
+    const data = (await res.json()) as { content?: string; encoding?: string; sha?: string };
+    if (!data.content) return { tip: null, sha: data.sha };
+    const decoded = Buffer.from(
+      data.content,
+      (data.encoding as BufferEncoding) || 'base64',
+    ).toString('utf8');
+    return { tip: normalizeMigrateMintTip(JSON.parse(decoded)), sha: data.sha };
+  }
+
+  try {
+    const res = await fetch(
+      `https://raw.githubusercontent.com/${repoOwner}/${repoName}/main/${MIGRATE_MINT_TIP_TN10_PATH}`,
+      { cache: 'no-store', signal: AbortSignal.timeout(12_000) },
+    );
+    if (!res.ok) return null;
+    return { tip: normalizeMigrateMintTip(await res.json()), sha: undefined };
+  } catch {
+    return null;
+  }
 }
 
 /** Prefer GitHub (live after attestor mint), else deployment file. */
