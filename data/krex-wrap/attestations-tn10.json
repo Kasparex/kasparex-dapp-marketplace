@@ -1,6 +1,6 @@
 {
   "network": "testnet-10",
-  "updatedAt": "2026-08-07T16:36:06.338Z",
+  "updatedAt": "2026-08-07T16:42:58.545Z",
   "attestations": [
     {
       "network": "testnet-10",
@@ -15,9 +15,10 @@
       "ticketTxId": "5287338212af01017ea317ca2f312fc8fc4883825efaaf69e8ad21e73b4cdbaf",
       "ticketIndex": 0,
       "migrateVersion": 3,
-      "status": "attested",
+      "status": "claimed",
       "attestedAt": "2026-08-07T16:36:06.225Z",
-      "note": "TN10 v3: MigrateTicket issued; user Claims in Hub"
+      "note": "User claimed KCC20 on Kaspa L1 (ticket spent).",
+      "mintTxHash": "645b328ec76520190f2205be29ab298ab5955c0c7f6bc27004f293a4930ddc68"
     },
     {
       "network": "testnet-10",
