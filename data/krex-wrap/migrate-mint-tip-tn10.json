@@ -1,17 +1,14 @@
 {
   "network": "testnet-10",
-  "updatedAt": "2026-08-06T19:08:56.920Z",
-  "legacyNote": "Historical pre-ticket soak (asset 83b999…). Do not use for v3 ticket-gated claims. Redeploy migrate-v3 + handover, then replace this tip.",
-  "migrateVersion": 2,
-  "adminRenounced": false,
-  "minterTxId": "f225d4b697f421807bbc1c35299cbdc890d8037be1a74a38f6efadb3b72890ee",
+  "updatedAt": "2026-08-07T09:13:24.162Z",
+  "minterTxId": "9a341c3715ba8340f771038db17f89e9ea92fde8fd7fe89e5b097bb7ef6d0963",
   "minterIndex": 0,
   "minterAddress": "kaspatest:pzl9g673gdnhwpvj0h0cu32u2h4ty43qm5fvm7ulfwcgyy8lg5fv6y5ctfst3",
-  "controllerTxId": "f225d4b697f421807bbc1c35299cbdc890d8037be1a74a38f6efadb3b72890ee",
+  "controllerTxId": "9a341c3715ba8340f771038db17f89e9ea92fde8fd7fe89e5b097bb7ef6d0963",
   "controllerIndex": 2,
-  "controllerAddress": "kaspatest:pq67erh6rk2km3gcfjrkszadl8k8lkm6d5zy8sz4nmda0rkm62q5kdfw90acy",
-  "remainingAllowance": "99998400000000",
+  "controllerAddress": "kaspatest:prna9rt7yspsawhuh3ns9ahlt0cclu7m6v82jpfrc9n88cuyls7zkvtk7n2fq",
+  "remainingAllowance": "99998200000000",
   "assetCovenantId": "83b999756e613d2749b8ff9549de4bdd0cb864f3d5d2dc606d92f3aa740ee91a",
   "controllerCovenantId": "ebdcd301fa71fab9710a113a16002220b6947b58666a322c76162ec7f4da25fe",
-  "lastBurnTxId": "e6895bf1f0cc369b85906f23cca9847af0c2a63b16008ce8cb50428e6f3d337c"
+  "lastBurnTxId": "6f92fd30b9355ecedcf46a76d411e5bf6244648ccf1536eee43efa057d420252"
 }
