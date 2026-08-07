@@ -145,7 +145,7 @@ function v1Steps(status: KrexWrapStatus): FlowStep[] {
   });
 }
 
-function nextHint(steps: FlowStep[], migrateV2: boolean): string {
+function nextHint(steps: FlowStep[], migrateV2: boolean, ticketReady: boolean): string {
   const current = steps.find((s) => s.state === 'current');
   const failed = steps.find((s) => s.state === 'failed');
   if (failed) return 'This migration did not complete. Start a new one from Migrate.';
@@ -155,7 +155,9 @@ function nextHint(steps: FlowStep[], migrateV2: boolean): string {
       : 'Done. Your KCC20 is on Kaspa L1.';
   }
   if (current.id === 'attest') {
-    return 'Waiting for claim ticket. Usually under 2 minutes; can take a few. Auto-checks every few seconds.';
+    return ticketReady
+      ? 'Ticket ready. Tap Claim KCC20 and sign in KasWare.'
+      : 'Confirming burn and issuing your claim ticket. Usually under 2 minutes. History refreshes automatically.';
   }
   if (current.id === 'mint') {
     return 'Tap Claim KCC20, then sign in KasWare.';
@@ -221,7 +223,7 @@ export function KrexWrapMigrateProgress({
 }) {
   const useV2 = migrateV2 || row.migrateVersion === 2 || row.status === 'burned' || row.status === 'awaiting_attest';
   const steps = useV2 ? v2Steps(row.status, ticketReady) : v1Steps(row.status);
-  const hint = nextHint(steps, useV2);
+  const hint = nextHint(steps, useV2, ticketReady);
 
   return (
     <div className={`${KX_SURFACE_NESTED} p-3.5`} aria-label="Migration progress">

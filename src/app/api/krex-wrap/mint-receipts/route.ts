@@ -26,6 +26,15 @@ import type { Krc20BridgeNetwork } from '@/lib/krex/wrap/types';
 
 export const runtime = 'nodejs';
 
+const NO_STORE = {
+  'Cache-Control': 'no-store, no-cache, must-revalidate',
+  Pragma: 'no-cache',
+} as const;
+
+function json(data: unknown, init?: { status?: number }) {
+  return NextResponse.json(data, { status: init?.status, headers: NO_STORE });
+}
+
 function watcherSecretExpected(): string {
   return (
     process.env.KCC20_MIGRATE_ATTESTOR_SECRET?.trim() ||
@@ -94,7 +103,7 @@ async function getAttestations(req: NextRequest) {
         }
       }
     }
-    return NextResponse.json({
+    return json({
       ok: true,
       mode: 'attest',
       network: store.network,
@@ -105,7 +114,7 @@ async function getAttestations(req: NextRequest) {
       ...(discovered ? { discovered } : {}),
     });
   }
-  return NextResponse.json({
+  return json({
     ok: true,
     mode: 'attest',
     network: store.network,
@@ -117,18 +126,18 @@ async function getAttestations(req: NextRequest) {
 
 async function postAttestation(req: NextRequest, body: Record<string, unknown>) {
   if (!watcherSecretExpected()) {
-    return NextResponse.json(
+    return json(
       { ok: false, error: 'Watcher/attestor secret is not configured on this deployment' },
       { status: 503 },
     );
   }
   if (!watcherAuthorized(req)) {
-    return NextResponse.json({ ok: false, error: 'Unauthorized' }, { status: 401 });
+    return json({ ok: false, error: 'Unauthorized' }, { status: 401 });
   }
 
   const burnTxHash = normalizeTxHash(typeof body.burnTxHash === 'string' ? body.burnTxHash : '');
   if (!burnTxHash) {
-    return NextResponse.json({ ok: false, error: 'burnTxHash must be 64-char hex' }, { status: 400 });
+    return json({ ok: false, error: 'burnTxHash must be 64-char hex' }, { status: 400 });
   }
 
   const existing = await findAttestation(burnTxHash);
@@ -140,7 +149,7 @@ async function postAttestation(req: NextRequest, body: Record<string, unknown>) 
     : 'attested';
 
   if (existing?.status === 'claimed' && status !== 'claimed') {
-    return NextResponse.json(
+    return json(
       { ok: false, error: 'Burn already claimed; nullifier active', attestation: existing },
       { status: 409 },
     );
@@ -171,7 +180,7 @@ async function postAttestation(req: NextRequest, body: Record<string, unknown>) 
     ticketId !== existing.ticketId &&
     status === 'attested'
   ) {
-    return NextResponse.json(
+    return json(
       {
         ok: false,
         error: 'Ticket already issued for this burn; nullifier active',
@@ -212,13 +221,13 @@ async function postAttestation(req: NextRequest, body: Record<string, unknown>) 
   };
 
   const { attestation, persist } = await upsertAttestation(row);
-  return NextResponse.json({ ok: true, mode: 'attest', attestation, persist });
+  return json({ ok: true, mode: 'attest', attestation, persist });
 }
 
 async function getMintTip() {
   const tip = await loadMigrateMintTip();
   if (!tip) {
-    return NextResponse.json({
+    return json({
       ok: true,
       mode: 'mint-tip',
       network: 'testnet-10',
@@ -247,7 +256,7 @@ async function getMintTip() {
     }
   }
 
-  return NextResponse.json({
+  return json({
     ok: true,
     mode: 'mint-tip',
     network: 'testnet-10',
@@ -260,13 +269,13 @@ async function getMintTip() {
 
 async function postMintTip(req: NextRequest, body: Record<string, unknown>) {
   if (!watcherSecretExpected()) {
-    return NextResponse.json(
+    return json(
       { ok: false, error: 'Watcher/attestor secret is not configured on this deployment' },
       { status: 503 },
     );
   }
   if (!watcherAuthorized(req)) {
-    return NextResponse.json({ ok: false, error: 'Unauthorized' }, { status: 401 });
+    return json({ ok: false, error: 'Unauthorized' }, { status: 401 });
   }
   const tipBody =
     body.tip && typeof body.tip === 'object'
@@ -274,7 +283,7 @@ async function postMintTip(req: NextRequest, body: Record<string, unknown>) {
       : body;
   const persisted = await persistMigrateMintTip(tipBody);
   if (!persisted.ok || !persisted.tip) {
-    return NextResponse.json(
+    return json(
       {
         ok: false,
         mode: 'mint-tip',
@@ -284,7 +293,7 @@ async function postMintTip(req: NextRequest, body: Record<string, unknown>) {
       { status: persisted.error?.startsWith('Invalid') ? 400 : 502 },
     );
   }
-  return NextResponse.json({
+  return json({
     ok: true,
     mode: 'mint-tip',
     tip: persisted.tip,
@@ -299,29 +308,29 @@ async function postMintTip(req: NextRequest, body: Record<string, unknown>) {
  */
 async function postIssueTicket(req: NextRequest, body: Record<string, unknown>) {
   if (!watcherSecretExpected()) {
-    return NextResponse.json(
+    return json(
       { ok: false, error: 'Watcher/attestor secret is not configured on this deployment' },
       { status: 503 },
     );
   }
   if (!watcherAuthorized(req)) {
-    return NextResponse.json({ ok: false, error: 'Unauthorized' }, { status: 401 });
+    return json({ ok: false, error: 'Unauthorized' }, { status: 401 });
   }
 
   const burnTxHash = normalizeTxHash(typeof body.burnTxHash === 'string' ? body.burnTxHash : '');
   if (!burnTxHash) {
-    return NextResponse.json({ ok: false, error: 'burnTxHash must be 64-char hex' }, { status: 400 });
+    return json({ ok: false, error: 'burnTxHash must be 64-char hex' }, { status: 400 });
   }
 
   const existing = await findAttestation(burnTxHash);
   if (!existing) {
-    return NextResponse.json({ ok: false, error: 'No attestation for this burn' }, { status: 404 });
+    return json({ ok: false, error: 'No attestation for this burn' }, { status: 404 });
   }
   if (attestationHasTicket(existing)) {
-    return NextResponse.json({ ok: true, mode: 'issue-ticket', already: true, attestation: existing });
+    return json({ ok: true, mode: 'issue-ticket', already: true, attestation: existing });
   }
   if (!canIssueTicketsOnHub()) {
-    return NextResponse.json(
+    return json(
       {
         ok: false,
         mode: 'issue-ticket',
@@ -337,7 +346,7 @@ async function postIssueTicket(req: NextRequest, body: Record<string, unknown>) 
     claimantAddress: existing.claimantAddress || existing.from,
   });
   if (!issued.ok) {
-    return NextResponse.json(
+    return json(
       { ok: false, mode: 'issue-ticket', error: issued.error || 'Ticket issue failed' },
       { status: 502 },
     );
@@ -351,7 +360,7 @@ async function postIssueTicket(req: NextRequest, body: Record<string, unknown>) 
     note: 'Burn accepted. Ticket issued automatically; Claim is ready.',
   };
   const { attestation, persist } = await upsertAttestation(row);
-  return NextResponse.json({ ok: true, mode: 'issue-ticket', attestation, persist, issued });
+  return json({ ok: true, mode: 'issue-ticket', attestation, persist, issued });
 }
 
 /**
@@ -362,7 +371,7 @@ async function postClaimReport(body: Record<string, unknown>) {
   const burnTxHash = normalizeTxHash(typeof body.burnTxHash === 'string' ? body.burnTxHash : '');
   const mintTxHash = normalizeTxHash(typeof body.mintTxHash === 'string' ? body.mintTxHash : '');
   if (!burnTxHash || !mintTxHash) {
-    return NextResponse.json(
+    return json(
       { ok: false, error: 'burnTxHash and mintTxHash must be 64-char hex' },
       { status: 400 },
     );
@@ -370,10 +379,10 @@ async function postClaimReport(body: Record<string, unknown>) {
 
   const existing = await findAttestation(burnTxHash);
   if (!existing) {
-    return NextResponse.json({ ok: false, error: 'No attestation for this burn' }, { status: 404 });
+    return json({ ok: false, error: 'No attestation for this burn' }, { status: 404 });
   }
   if (existing.status === 'claimed' && existing.mintTxHash === mintTxHash) {
-    return NextResponse.json({
+    return json({
       ok: true,
       mode: 'claim-report',
       already: true,
@@ -388,7 +397,7 @@ async function postClaimReport(body: Record<string, unknown>) {
     tip,
   });
   if (!verified.ok || !verified.mintTxHash) {
-    return NextResponse.json(
+    return json(
       { ok: false, mode: 'claim-report', error: verified.error || 'Claim verification failed' },
       { status: 400 },
     );
@@ -421,7 +430,7 @@ async function postClaimReport(body: Record<string, unknown>) {
     tipPersist = { ok: nextTip.ok, via: nextTip.via, error: nextTip.error };
   }
 
-  return NextResponse.json({
+  return json({
     ok: true,
     mode: 'claim-report',
     attestation,
@@ -445,7 +454,7 @@ export async function GET(req: NextRequest) {
   const store = await loadMintReceiptStore();
   if (deposit) {
     const receipt = findMintReceipt(store, deposit);
-    return NextResponse.json({
+    return json({
       ok: true,
       network: store.network,
       tick: store.tick,
@@ -455,7 +464,7 @@ export async function GET(req: NextRequest) {
       ignored: store.ignoredDepositTxHashes.includes(deposit),
     });
   }
-  return NextResponse.json({
+  return json({
     ok: true,
     network: store.network,
     tick: store.tick,
@@ -475,7 +484,7 @@ export async function POST(req: NextRequest) {
   try {
     body = (await req.json()) as Record<string, unknown>;
   } catch {
-    return NextResponse.json({ ok: false, error: 'Invalid JSON body' }, { status: 400 });
+    return json({ ok: false, error: 'Invalid JSON body' }, { status: 400 });
   }
 
   const mode =
@@ -504,19 +513,19 @@ export async function POST(req: NextRequest) {
       amount: typeof body.amount === 'number' ? body.amount : undefined,
     });
     if (!observed.ok) {
-      return NextResponse.json(
+      return json(
         { ok: false, mode: 'observe-burn', error: observed.error },
         { status: 400 },
       );
     }
-    return NextResponse.json({ ...observed, mode: 'observe-burn' });
+    return json({ ...observed, mode: 'observe-burn' });
   }
 
   if (!watcherAuthorized(req)) {
-    return NextResponse.json({ ok: false, error: 'Unauthorized' }, { status: 401 });
+    return json({ ok: false, error: 'Unauthorized' }, { status: 401 });
   }
   if (!process.env.KCC20_BRIDGE_WATCHER_SECRET?.trim()) {
-    return NextResponse.json(
+    return json(
       { ok: false, error: 'KCC20_BRIDGE_WATCHER_SECRET is not configured' },
       { status: 503 },
     );
@@ -527,7 +536,7 @@ export async function POST(req: NextRequest) {
   );
   const mintTxHash = normalizeTxHash(typeof body.mintTxHash === 'string' ? body.mintTxHash : '');
   if (!depositTxHash || !mintTxHash) {
-    return NextResponse.json(
+    return json(
       { ok: false, error: 'depositTxHash and mintTxHash must be 64-char hex' },
       { status: 400 },
     );
@@ -563,7 +572,7 @@ export async function POST(req: NextRequest) {
   const next = upsertMintReceipt(store, receipt);
   const persisted = await persistMintReceiptStore(next);
   if (!persisted.ok) {
-    return NextResponse.json(
+    return json(
       {
         ok: false,
         error: persisted.error || 'Failed to persist mint receipt',
@@ -574,7 +583,7 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  return NextResponse.json({
+  return json({
     ok: true,
     via: persisted.via,
     receipt,

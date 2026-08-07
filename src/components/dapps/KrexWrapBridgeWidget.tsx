@@ -37,6 +37,7 @@ import {
 } from '@/lib/krex/wrap/history';
 import type { Krc20BridgeNetwork, KrexWrapRecord, KrexWrapStatus } from '@/lib/krex/wrap/types';
 import {
+  attestationHasTicket,
   buildMigrateClaimPlan,
   type MigrateAttestation,
 } from '@/lib/krex/wrap/migrateV2';
@@ -370,6 +371,32 @@ export function KrexWrapBridgeWidget() {
   const [syncing, setSyncing] = useState(false);
   const notifiedTicketReadyRef = useRef<Set<string>>(new Set());
 
+  const mergeAttestation = useCallback((a: MigrateAttestation) => {
+    const key = a.burnTxHash?.toLowerCase();
+    if (!key) return;
+    setAttestByBurn((prev) => {
+      const existing = prev[key];
+      // Never let a ticket-less poll overwrite a ticket that already landed.
+      if (
+        existing &&
+        attestationHasTicket(existing) &&
+        !attestationHasTicket(a) &&
+        existing.status !== 'claimed'
+      ) {
+        return prev;
+      }
+      // Prefer claimed / ticketed rows when merging.
+      if (
+        existing?.status === 'claimed' &&
+        existing.mintTxHash &&
+        a.status !== 'claimed'
+      ) {
+        return prev;
+      }
+      return { ...prev, [key]: a };
+    });
+  }, []);
+
   const maybeNotifyTicketReady = useCallback((a: MigrateAttestation) => {
     const key = a.burnTxHash?.toLowerCase();
     if (!key || notifiedTicketReadyRef.current.has(key)) return;
@@ -439,7 +466,7 @@ export function KrexWrapBridgeWidget() {
               amount: row.amount,
             });
             if (!a || cancelled) return;
-            setAttestByBurn((prev) => ({ ...prev, [a.burnTxHash.toLowerCase()]: a }));
+            mergeAttestation(a);
             maybeNotifyTicketReady(a);
             if (a.status === 'attested' || a.status === 'pending') {
               updateKrexWrapStatusByBurn(a.burnTxHash, 'awaiting_attest', {
@@ -459,12 +486,12 @@ export function KrexWrapBridgeWidget() {
         );
 
         const [attestRes, mintRes] = await Promise.all([
-          fetch('/api/krex-wrap/mint-receipts?mode=attest', {
-            headers: { Accept: 'application/json' },
+          fetch(`/api/krex-wrap/mint-receipts?mode=attest&t=${Date.now()}`, {
+            headers: { Accept: 'application/json', 'Cache-Control': 'no-cache' },
             cache: 'no-store',
           }),
-          fetch('/api/krex-wrap/mint-receipts', {
-            headers: { Accept: 'application/json' },
+          fetch(`/api/krex-wrap/mint-receipts?t=${Date.now()}`, {
+            headers: { Accept: 'application/json', 'Cache-Control': 'no-cache' },
             cache: 'no-store',
           }),
         ]);
@@ -474,10 +501,9 @@ export function KrexWrapBridgeWidget() {
             attestations?: MigrateAttestation[];
           };
           if (json.ok && Array.isArray(json.attestations)) {
-            const nextMap: Record<string, MigrateAttestation> = {};
             for (const a of json.attestations) {
               if (!a.burnTxHash) continue;
-              nextMap[a.burnTxHash.toLowerCase()] = a;
+              mergeAttestation(a);
               const isPendingRow = pending.some(
                 (r) =>
                   extractTxId(r.depositTxHash || '')?.toLowerCase() === a.burnTxHash.toLowerCase(),
@@ -500,7 +526,6 @@ export function KrexWrapBridgeWidget() {
                 });
               }
             }
-            if (!cancelled) setAttestByBurn((prev) => ({ ...prev, ...nextMap }));
           }
         }
         if (mintRes.ok && !cancelled) {
@@ -527,23 +552,16 @@ export function KrexWrapBridgeWidget() {
       }
     };
     void syncReceipts();
-    const hasPending = listKrexWrapHistory(state.address).some(
-      (row) =>
-        (!row.network || row.network === network) &&
-        row.depositTxHash &&
-        (row.status === 'pending_mint' ||
-          row.status === 'burned' ||
-          row.status === 'awaiting_attest'),
-    );
-    // Waiting for a claim ticket: poll fast (2s) so Claim appears the moment it lands.
+    // Always poll fast while History is open or any row is waiting on Confirm/Claim.
+    // Recompute pending each tick so we do not stall on a stale 15s interval.
     const id = window.setInterval(() => {
       void syncReceipts();
-    }, hasPending ? 2_000 : 15_000);
+    }, 2_000);
     return () => {
       cancelled = true;
       window.clearInterval(id);
     };
-  }, [state.address, network, refreshHistory, tab, syncNonce, maybeNotifyTicketReady]);
+  }, [state.address, network, refreshHistory, tab, syncNonce, maybeNotifyTicketReady, mergeAttestation]);
 
   /** Keep bridge tab aligned with the connected L1 address HRP. */
   useEffect(() => {

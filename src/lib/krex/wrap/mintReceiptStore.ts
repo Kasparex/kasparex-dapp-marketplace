@@ -296,10 +296,16 @@ async function fetchAttestGithubFile(): Promise<{
   }
 
   // Public repo fallback: Hub can serve live tickets without GITHUB_TOKEN on Vercel.
+  // Bust GitHub raw CDN cache so Confirm flips to Claim as soon as the ticket lands.
   try {
+    const bust = Date.now();
     const res = await fetch(
-      `https://raw.githubusercontent.com/${repoOwner}/${repoName}/main/${attestationsPath}`,
-      { cache: 'no-store', signal: AbortSignal.timeout(12_000) },
+      `https://raw.githubusercontent.com/${repoOwner}/${repoName}/main/${attestationsPath}?t=${bust}`,
+      {
+        cache: 'no-store',
+        signal: AbortSignal.timeout(12_000),
+        headers: { Accept: 'application/json', 'Cache-Control': 'no-cache' },
+      },
     );
     if (!res.ok) return null;
     return { store: normalizeAttestationStore(await res.json()), sha: undefined };
@@ -444,9 +450,14 @@ async function fetchTipGithubFile(): Promise<{ tip: MigrateMintTip | null; sha?:
   }
 
   try {
+    const bust = Date.now();
     const res = await fetch(
-      `https://raw.githubusercontent.com/${repoOwner}/${repoName}/main/${MIGRATE_MINT_TIP_TN10_PATH}`,
-      { cache: 'no-store', signal: AbortSignal.timeout(12_000) },
+      `https://raw.githubusercontent.com/${repoOwner}/${repoName}/main/${MIGRATE_MINT_TIP_TN10_PATH}?t=${bust}`,
+      {
+        cache: 'no-store',
+        signal: AbortSignal.timeout(12_000),
+        headers: { Accept: 'application/json', 'Cache-Control': 'no-cache' },
+      },
     );
     if (!res.ok) return null;
     return { tip: normalizeMigrateMintTip(await res.json()), sha: undefined };
