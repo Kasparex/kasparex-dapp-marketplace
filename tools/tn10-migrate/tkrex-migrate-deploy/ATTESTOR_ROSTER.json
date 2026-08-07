@@ -1,0 +1,27 @@
+{
+  "network": "testnet-10",
+  "threshold": 2,
+  "adminXOnlyPubkey": "0fff7ff34854e0327d5f508b2e50434d7984d12546ad6b44df72bd7845337e11",
+  "attestors": [
+    {
+      "id": 1,
+      "xOnlyPubkey": "0fff7ff34854e0327d5f508b2e50434d7984d12546ad6b44df72bd7845337e11",
+      "note": "attestor1 (often wallet3)"
+    },
+    {
+      "id": 2,
+      "xOnlyPubkey": "0c60dc1322d89aee6fdd8d1f0b445a189473b23b41c2a68db8d5ce570ff0f910",
+      "note": "attestor2"
+    },
+    {
+      "id": 3,
+      "xOnlyPubkey": "eb4c84fa5e018fe9e819b4fc05e217f73805e624f5fe5662ee44f1f14513277a",
+      "note": "attestor3"
+    }
+  ],
+  "privkeyFiles": [
+    ".attestor1.privkey",
+    ".attestor2.privkey",
+    ".attestor3.privkey"
+  ]
+}

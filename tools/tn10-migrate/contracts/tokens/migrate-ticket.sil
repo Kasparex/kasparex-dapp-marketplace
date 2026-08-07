@@ -1,0 +1,107 @@
+pragma silverscript ^0.1.0;
+
+// MigrateTicket — one-shot burn ticket for keyless KRC-20 → KCC20 migrate.
+//
+// Constructor embeds only the attestor roster (stable script template across tickets).
+// Per-burn fields live in covenant state so KCC20Migrate can readInputStateWithTemplate
+// with one shared ticket template hash.
+//
+// Lifecycle:
+// 1. Genesis UTXO: active=false (dust / mass-safe), zeroed burn fields.
+// 2. `issue` (2-of-3): bind burnTxId + amountRaw + claimantXOnly; active=true; continues.
+// 3. `redeem` (claimant): terminal spend in the same tx as KCC20Migrate.mint.
+
+contract MigrateTicket(
+    pubkey attestor1,
+    pubkey attestor2,
+    pubkey attestor3,
+    int initThreshold
+) {
+    int threshold = initThreshold;
+    byte[32] burnTxId = 0x0000000000000000000000000000000000000000000000000000000000000000;
+    int amountRaw = 0;
+    byte[32] claimantXOnly = 0x0000000000000000000000000000000000000000000000000000000000000000;
+    bool active = false;
+
+    function requireValidRoster() {
+        require(threshold >= 1);
+        require(threshold <= 3);
+        require(attestor1 != attestor2);
+        require(attestor1 != attestor3);
+        require(attestor2 != attestor3);
+    }
+
+    function signerIsMember(pubkey candidate): bool {
+        return (candidate == attestor1 || candidate == attestor2 || candidate == attestor3);
+    }
+
+    function distinctSigners(pubkey signer1, pubkey signer2, pubkey signer3): bool {
+        return (signer1 != signer2 && signer1 != signer3 && signer2 != signer3);
+    }
+
+    function approvalCount(
+        pubkey signer1,
+        sig sig1,
+        pubkey signer2,
+        sig sig2,
+        pubkey signer3,
+        sig sig3
+    ): int {
+        int approvals = 0;
+        if (signerIsMember(signer1) && checkSig(sig1, signer1)) {
+            approvals = approvals + 1;
+        }
+        if (signerIsMember(signer2) && checkSig(sig2, signer2)) {
+            approvals = approvals + 1;
+        }
+        if (signerIsMember(signer3) && checkSig(sig3, signer3)) {
+            approvals = approvals + 1;
+        }
+        return approvals;
+    }
+
+    function requireQuorum(
+        pubkey signer1,
+        sig sig1,
+        pubkey signer2,
+        sig sig2,
+        pubkey signer3,
+        sig sig3
+    ) {
+        requireValidRoster();
+        require(distinctSigners(signer1, signer2, signer3));
+        require(approvalCount(signer1, sig1, signer2, sig2, signer3, sig3) >= threshold);
+    }
+
+    // Activate a genesis ticket for one accepted burn. Attestors only.
+    #[covenant.singleton]
+    function issue(
+        State prevState,
+        State newState,
+        pubkey signer1,
+        sig sig1,
+        pubkey signer2,
+        sig sig2,
+        pubkey signer3,
+        sig sig3
+    ) {
+        requireValidRoster();
+        require(!prevState.active);
+        require(prevState.amountRaw == 0);
+        require(newState.active);
+        require(newState.threshold == prevState.threshold);
+        require(newState.burnTxId != 0x0000000000000000000000000000000000000000000000000000000000000000);
+        require(newState.amountRaw > 0);
+        require(newState.claimantXOnly != 0x0000000000000000000000000000000000000000000000000000000000000000);
+        requireQuorum(signer1, sig1, signer2, sig2, signer3, sig3);
+    }
+
+    // Terminal redeem: claimant spends the ticket alongside KCC20Migrate.mint.
+    entrypoint function redeem(pubkey claimantPk, sig claimantSig) {
+        require(active);
+        require(amountRaw > 0);
+        require(burnTxId != 0x0000000000000000000000000000000000000000000000000000000000000000);
+        require(byte[32](claimantPk) == claimantXOnly);
+        require(checkSig(claimantSig, claimantPk));
+    }
+}

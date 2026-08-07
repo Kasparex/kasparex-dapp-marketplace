@@ -7,27 +7,45 @@ Companion ops doc (current v1 vault+watcher): [KREX_WRAP_BRIDGE.md](./KREX_WRAP_
 Reference demo (Kascov / Knitser, TN10, 2026-08-06):  
 https://x.com/0xKnitser/status/2085226857759465824
 
-## Implementation status (2026-08-06)
+## Implementation status (2026-08-07)
 
-Shipped in Hub + OpenSilver (TN10 soak, N=1 attestor honesty):
+Shipped in Hub + OpenSilver (TN10 soak, **v3** ticket-gated + 2-of-3 roster):
 
 | Piece | Status |
 |-------|--------|
 | Architecture invariants | Locked in this doc |
 | Keyless sink v1 (P2SH OP_RETURN) | `data/krex-wrap/migrate-sink-v1.json` + default Hub config |
-| Hub Migrate UI Burn → Attest → Minted | `/dapps/kcc20-bridge` with `migrateV2Enabled` default ON (`NEXT_PUBLIC_KCC20_MIGRATE_V2=0` to force v1) |
-| Attestation API + nullifier store | `/api/krex-wrap/attestations`, `data/krex-wrap/attestations-tn10.json` |
-| OpenSilver `KCC20Migrate` | `contracts/tokens/kcc20-migrate.sil` (attestor mint, handover, burnTxId, controller continues) |
-| Compile + runtime tests | `tests/tokens/kcc20-migrate-compile.test.ts`, `kcc20_migrate_handover_and_attestor_mint_continues_controller` |
-| Attestor script | OpenSilver `scripts/tkrex-migrate-attestor.mjs` |
+| Hub Migrate UI Burn → Attest → **Claim** | `/dapps/kcc20-bridge` (`migrateV2Enabled` default ON) |
+| Attestation API + nullifier store | `/api/krex-wrap/mint-receipts?mode=attest` + ticket outpoint fields |
+| OpenSilver `MigrateTicket` | `contracts/tokens/migrate-ticket.sil` (2-of-3 `issue`, claimant `redeem`) |
+| OpenSilver `KCC20Migrate` v3 | Ticket-gated `mint` + 3 attestors + `handover` |
+| Compile tests | `tests/tokens/migrate-ticket-compile.test.ts`, `kcc20-migrate-compile.test.ts` |
+| Attestor | Ticket path; **`KCC20_MIGRATE_AUTO_MINT` off** by default |
+| Handover script | `broadcast-tkrex-migrate-handover.mjs` |
+| Roster | `generate-tn10-attestor-roster.mjs` → `ATTESTOR_ROSTER.json` (2-of-3) |
 
-Still open before calling it fair for real funds:
+**Legacy soak asset** `83b999756e613d2749b8ff9549de4bdd0cb864f3d5d2dc606d92f3aa740ee91a` is **historical** (pre-ticket). Fresh greenfield deploy required for v3 covenants.
 
-- Deploy fresh TN10 migrate covenants (do not reuse admin-minted `c9d0799b…` as the fairness asset)
-- Ticket UTXO consensus replay (today: attestor nullifier)
-- User-signed claim txs (today: optional attestor-assisted mint via `KCC20_MIGRATE_AUTO_MINT=1`)
-- N-of-M independent attestors + dual indexers + soak
+Still open / ops before mainnet fairness:
 
+- Broadcast fresh TN10 v3 controller + asset + **handover** on chain; point Hub env at new ids
+- Complete on-chain ticket genesis+issue broadcast funding path (scaffold in `broadcast-tkrex-migrate-ticket-issue.mjs`)
+- Full KasWare claim assembler (Hub shows Claim when `ticketId` is `txid:index`)
+- Independent attestors (not three Kasparex-held soak keys) + dual indexers
+
+### Mainnet holder-class annex (policy; not enforced on TN10)
+
+Product shape: **burn → ticket → user-signed claim** (B), with published exclusions (C hybrid).
+
+| Class | Treatment |
+|-------|-----------|
+| Self-custody L1 | Burn-migrate 1:1 |
+| Exclusion (lost XT / Knot / AscendEx-style) | No KCC20; excluded weight mostly burn + locked LP |
+| Live CEX (e.g. CoinEx) | Separate customer track; not automatic hostile exclusion |
+| KAT Bridge reserve | **Not excluded.** Unwrap window → L1 → normal migrate; no blind airdrop to bridge wallet |
+| Unmigrated leftover | Grace then stop mint; publish burned vs minted |
+
+See plan annex in repo history / this section for KAT Option 1 unwrap-then-migrate.
 ## Goal
 
 Migrate KRC-20 → matching KCC20 **1:1**, as **automatic**, **fair**, and **operator-free** as Kaspa L1 allows today.

@@ -1,23 +1,23 @@
 pragma silverscript ^0.1.0;
 
-// KCC20Migrate — burn-ticket / attestor-gated capped controller (Kasparex keyless migrate).
+// KCC20Migrate — ticket-gated + 2-of-3 attestor roster (Kasparex keyless migrate v3).
 //
 // Same mint shape as KCC20Capped (1 KCC20 in → continued minter + recipient, singleton
-// controller always continues). Differences:
+// controller always continues). Differences vs v1 capped / early migrate soak:
 // - `init` still requires deploy admin.
 // - `handover` renounces admin mint power forever (`adminRenounced = true`).
-// - `mint` requires attestor signature (never admin after handover; before handover
-//   either admin OR attestor may sign so TN10 soak can switch cleanly).
-// - `mint` binds `burnTxId` into the call so explorers can map mint → burn.
-//
-// Consensus replay protection for a given burn is completed off-chain by consuming a
-// one-shot attestation ticket (attestor refuses to re-sign) and, in a later revision,
-// by spending a ticket UTXO created for that burn. The controller always returns so a
-// valid claim cannot brick remaining supply (Kascov lesson).
+// - `mint` requires a sibling MigrateTicket input (readInputStateWithTemplate) whose
+//   burnTxId + amountRaw bind the mint; ticket redeem is the consensus replay lock.
+// - Attestor roster is 3 keys with threshold (default 2). Pre-handover, admin may still
+//   authorize mint without quorum (TN10 soak). Post-handover, mint needs no admin key;
+//   ticket active state + claimant-bound recipient are sufficient (quorum already ran at issue).
 
 contract KCC20Migrate(
     pubkey admin,
-    pubkey attestor,
+    pubkey attestor1,
+    pubkey attestor2,
+    pubkey attestor3,
+    int attestorThreshold,
     int initTotalCap,
     int initRemainingAllowance,
     byte[32] initKCC20Covid,
@@ -27,7 +27,12 @@ contract KCC20Migrate(
     int templateSuffixLen,
     byte[32] expectedTemplateHash,
     byte[] templatePrefix,
-    byte[] templateSuffix
+    byte[] templateSuffix,
+    int ticketTemplatePrefixLen,
+    int ticketTemplateSuffixLen,
+    byte[32] ticketExpectedTemplateHash,
+    byte[] ticketTemplatePrefix,
+    byte[] ticketTemplateSuffix
 ) {
     byte[32] kcc20Covid = initKCC20Covid;
     int totalCap = initTotalCap;
@@ -42,14 +47,19 @@ contract KCC20Migrate(
         bool isMinter;
     }
 
+    struct TicketState {
+        int threshold;
+        byte[32] burnTxId;
+        int amountRaw;
+        byte[32] claimantXOnly;
+        bool active;
+    }
+
     byte constant IDENTIFIER_COVENANT_ID = 0x02;
+    byte constant IDENTIFIER_PUBKEY = 0x00;
 
     function requireAdmin(sig adminSig) {
         require(checkSig(adminSig, admin));
-    }
-
-    function requireAttestor(sig attestorSig) {
-        require(checkSig(attestorSig, attestor));
     }
 
     function requireValidCap(State prevState) {
@@ -107,7 +117,7 @@ contract KCC20Migrate(
         requireAdmin(adminSig);
     }
 
-    // One-way: after this, only the attestor can authorize mint. Admin cannot undo.
+    // One-way: after this, admin cannot mint. Tickets + claimant redeem authorize supply.
     #[covenant.singleton]
     function handover(State prevState, State newState, sig adminSig) {
         requireValidCap(prevState);
@@ -127,6 +137,7 @@ contract KCC20Migrate(
         State newState,
         sig authoritySig,
         byte[32] burnTxId,
+        int ticketInputIdx,
         KCC20State minterKcc20NewState,
         KCC20State recipientKcc20NewState
     ) {
@@ -139,8 +150,9 @@ contract KCC20Migrate(
         require(newState.remainingAllowance >= 0);
         require(newState.remainingAllowance <= prevState.remainingAllowance);
 
-        // burnTxId must be a real 32-byte id (non-zero) so mints are auditable.
         require(burnTxId != 0x0000000000000000000000000000000000000000000000000000000000000000);
+        require(ticketInputIdx >= 0);
+        require(ticketInputIdx != this.activeInputIndex);
 
         // Controller always continues (singleton). Shape: 1 KCC20 in / 2 KCC20 outs.
         require(OpCovOutputCount(kcc20Covid) == 2);
@@ -155,11 +167,26 @@ contract KCC20Migrate(
         require(mintedAmount <= prevState.remainingAllowance);
         require(newState.remainingAllowance == prevState.remainingAllowance - mintedAmount);
 
+        TicketState ticket = readInputStateWithTemplate(
+            ticketInputIdx,
+            ticketTemplatePrefixLen,
+            ticketTemplateSuffixLen,
+            ticketExpectedTemplateHash
+        );
+        require(ticket.active);
+        require(ticket.burnTxId == burnTxId);
+        require(ticket.amountRaw == mintedAmount);
+        require(recipientKcc20NewState.identifierType == IDENTIFIER_PUBKEY);
+        require(recipientKcc20NewState.ownerIdentifier == ticket.claimantXOnly);
+
         if (prevState.adminRenounced) {
-            requireAttestor(authoritySig);
+            // Post-handover: ticket binding is the mint gate (quorum already at issue).
+            // authoritySig is ignored but must be a valid placeholder signature length for unlock encoding.
+            require(attestorThreshold >= 1);
+            require(attestorThreshold <= 3);
         } else {
-            // Pre-handover soak: admin OR attestor may authorize.
-            require(checkSig(authoritySig, admin) || checkSig(authoritySig, attestor));
+            // Pre-handover soak: admin may authorize (still requires a live ticket).
+            requireAdmin(authoritySig);
         }
     }
 }

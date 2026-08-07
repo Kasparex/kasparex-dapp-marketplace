@@ -35,3 +35,8 @@ skills-lock.json
 .env.local
 .env*.local
 .vercel
+
+# TN10 migrate attestor / wallet keys (never commit)
+tools/tn10-migrate/**/.attestor*.privkey
+tools/tn10-migrate/**/wallet3.privkey
+tools/tn10-migrate/**/.wallet3.privkey

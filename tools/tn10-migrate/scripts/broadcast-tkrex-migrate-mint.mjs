@@ -26,7 +26,14 @@ import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { execFileSync } from 'node:child_process';
-import { encodeConstructorArgsForSilverc, encodeConstructorArgForSilverc } from '../sdk/dist/index.js';
+import { encodeConstructorArgForSilverc } from '../sdk/dist/index.js';
+import {
+  TOTAL_CAP,
+  ATTESTOR_THRESHOLD,
+  loadAttestorRoster,
+  migrateControllerExprs,
+  resolveSilvercBin,
+} from './lib/migrate-v3-ctor.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const openSilverRoot = resolve(__dirname, '..');
@@ -35,19 +42,7 @@ const hubRoot = resolve(
 );
 const outDir = join(openSilverRoot, 'tkrex-migrate-deploy');
 
-function resolveSilvercBin() {
-  const candidates = [
-    join(openSilverRoot, 'upstream/silverscript/target/debug/silverc.exe'),
-    join(openSilverRoot, 'upstream/silverscript/target/debug/silverc'),
-    join(openSilverRoot, 'upstream/silverscript/target/release/silverc.exe'),
-    join(openSilverRoot, 'upstream/silverscript/target/release/silverc'),
-  ];
-  for (const p of candidates) {
-    if (existsSync(p)) return p;
-  }
-  return candidates[0];
-}
-const silvercBin = resolveSilvercBin();
+const silvercBin = resolveSilvercBin(openSilverRoot);
 
 const HUB_URL = (process.env.KREX_WRAP_HUB_URL || '').replace(/\/$/, '');
 const HUB_SECRET =
@@ -60,7 +55,6 @@ const keyFileFlagIdx = process.argv.indexOf('--key-file');
 const KEY_FILE =
   keyFileFlagIdx >= 0 ? resolve(process.cwd(), process.argv[keyFileFlagIdx + 1] || '') : '';
 
-const TOTAL_CAP = 1_000_000 * 100_000_000;
 if (!process.env.TKREX_MINT_AMOUNT_RAW) {
   throw new Error('Set TKREX_MINT_AMOUNT_RAW (raw units, 8 decimals). Example: 600000000 for 6 TKREX.');
 }
@@ -238,7 +232,15 @@ if (!tip) {
 const adminPubkey = readFileSync(join(openSilverRoot, 'TKREX_WALLET3_PUBKEY.txt'), 'utf8')
   .trim()
   .replace(/^0x/i, '');
-const attestorPubkey = (process.env.TKREX_ATTESTOR_PUBKEY || adminPubkey).trim().replace(/^0x/i, '');
+const roster = loadAttestorRoster(openSilverRoot, outDir);
+const attestors = roster.attestors.map((a) => a.xOnlyPubkey);
+const ticketTemplate = JSON.parse(readFileSync(join(outDir, 'ticket-template-parts.json'), 'utf8'));
+const adminRenounced = tip?.adminRenounced === true || process.env.TKREX_ADMIN_RENOUNCED === '1';
+const TICKET_TXID = (process.env.TKREX_TICKET_TXID || '').trim().toLowerCase().replace(/^0x/i, '');
+const TICKET_INDEX = Number(process.env.TKREX_TICKET_INDEX ?? '0');
+if (!/^[a-f0-9]{64}$/.test(TICKET_TXID)) {
+  throw new Error('Set TKREX_TICKET_TXID (active MigrateTicket outpoint) for v3 mint.');
+}
 
 const CONTROLLER_COV_ID = genesis.controllerCovenantId;
 const ASSET_COV_ID = genesis.assetCovenantId;
@@ -307,41 +309,35 @@ const recipientSpk = payToScriptHashScript(recipientScript);
 const recipientAddress = addressFromScriptPublicKey(recipientSpk, 'testnet-10').toString();
 writeFileSync(join(outDir, 'mint-recipient-artifact.json'), JSON.stringify(recipientArtifact, null, 2));
 
-console.log('Compiling spend-side migrate controller (current remaining)...');
-const spendControllerExprs = encodeConstructorArgsForSilverc([
+console.log('Compiling spend-side migrate controller v3 (current remaining)...');
+const spendControllerExprs = migrateControllerExprs({
   adminPubkey,
-  attestorPubkey,
-  TOTAL_CAP,
-  Number(remainingBefore),
-  ASSET_COV_ID,
-  true,
-  false,
-  template.prefixLength,
-  template.suffixLength,
-  template.expectedTemplateHash,
-  template.templatePrefix,
-  template.templateSuffix,
-]);
-const spendControllerArtifact = tip
-  ? compileWithExprs('contracts/tokens/kcc20-migrate.sil', spendControllerExprs, 'spend-controller')
-  : JSON.parse(readFileSync(join(outDir, 'controller-postinit-artifact.json'), 'utf8'));
+  attestors,
+  threshold: ATTESTOR_THRESHOLD,
+  totalCap: TOTAL_CAP,
+  remainingAllowance: Number(remainingBefore),
+  assetCovid: ASSET_COV_ID,
+  initialized: true,
+  adminRenounced,
+  assetTemplate: template,
+  ticketTemplate,
+});
+const spendControllerArtifact = compileWithExprs('contracts/tokens/kcc20-migrate.sil', spendControllerExprs, 'spend-controller');
 const spendControllerScript = Uint8Array.from(spendControllerArtifact.script);
 
 console.log('Compiling post-mint migrate controller...');
-const postMintExprs = encodeConstructorArgsForSilverc([
+const postMintExprs = migrateControllerExprs({
   adminPubkey,
-  attestorPubkey,
-  TOTAL_CAP,
-  Number(remainingAfter),
-  ASSET_COV_ID,
-  true,
-  false,
-  template.prefixLength,
-  template.suffixLength,
-  template.expectedTemplateHash,
-  template.templatePrefix,
-  template.templateSuffix,
-]);
+  attestors,
+  threshold: ATTESTOR_THRESHOLD,
+  totalCap: TOTAL_CAP,
+  remainingAllowance: Number(remainingAfter),
+  assetCovid: ASSET_COV_ID,
+  initialized: true,
+  adminRenounced,
+  assetTemplate: template,
+  ticketTemplate,
+});
 const postMintArtifact = compileWithExprs('contracts/tokens/kcc20-migrate.sil', postMintExprs, 'post-mint');
 const postMintScript = Uint8Array.from(postMintArtifact.script);
 const postMintSpk = payToScriptHashScript(postMintScript);
@@ -527,9 +523,10 @@ ctrlPrefix.addData(hexToBytes(ASSET_COV_ID));
 ctrlPrefix.addI64(BigInt(TOTAL_CAP));
 ctrlPrefix.addI64(remainingAfter);
 ctrlPrefix.addI64(1n); // initialized
-ctrlPrefix.addI64(0n); // adminRenounced
+ctrlPrefix.addI64(adminRenounced ? 1n : 0n); // adminRenounced
 ctrlPrefix.addData(authoritySig);
 ctrlPrefix.addData(hexToBytes(BURN_TXID));
+ctrlPrefix.addI64(BigInt(Number(process.env.TKREX_TICKET_INPUT_IDX || '2'))); // ticketInputIdx in claim tx
 // minter KCC20State
 ctrlPrefix.addData(hexToBytes(CONTROLLER_COV_ID));
 ctrlPrefix.addData(Uint8Array.from([IDENTIFIER_COVENANT_ID]));
@@ -592,6 +589,8 @@ try {
     assetCovenantId: ASSET_COV_ID,
     controllerCovenantId: CONTROLLER_COV_ID,
     lastBurnTxId: BURN_TXID,
+    adminRenounced,
+    migrateVersion: 3,
     network: 'testnet-10',
     updatedAt: new Date().toISOString(),
   };

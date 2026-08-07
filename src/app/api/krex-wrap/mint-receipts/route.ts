@@ -94,6 +94,41 @@ async function postAttestation(req: NextRequest, body: Record<string, unknown>) 
     );
   }
 
+  const ticketIdRaw = typeof body.ticketId === 'string' ? body.ticketId.trim() : existing?.ticketId;
+  const ticketTxId =
+    typeof body.ticketTxId === 'string'
+      ? body.ticketTxId.trim().toLowerCase()
+      : existing?.ticketTxId;
+  const ticketIndex =
+    typeof body.ticketIndex === 'number'
+      ? body.ticketIndex
+      : typeof body.ticketIndex === 'string'
+        ? Number(body.ticketIndex)
+        : existing?.ticketIndex;
+
+  // Prefer explicit outpoint fields; accept ticketId as txid:index.
+  let ticketId = ticketIdRaw;
+  if (ticketTxId && /^[a-f0-9]{64}$/.test(ticketTxId) && Number.isFinite(ticketIndex)) {
+    ticketId = `${ticketTxId}:${Number(ticketIndex)}`;
+  }
+
+  if (
+    existing?.ticketId &&
+    /^[a-f0-9]{64}:\d+$/.test(existing.ticketId) &&
+    ticketId &&
+    ticketId !== existing.ticketId &&
+    status === 'attested'
+  ) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error: 'Ticket already issued for this burn; nullifier active',
+        attestation: existing,
+      },
+      { status: 409 },
+    );
+  }
+
   const row: MigrateAttestation = {
     network: 'testnet-10',
     tick: String(body.tick || existing?.tick || 'TKREX').trim().toUpperCase(),
@@ -106,12 +141,19 @@ async function postAttestation(req: NextRequest, body: Record<string, unknown>) 
       typeof body.claimantAddress === 'string' ? body.claimantAddress : existing?.claimantAddress,
     attestorPubkey:
       typeof body.attestorPubkey === 'string' ? body.attestorPubkey : existing?.attestorPubkey,
-    ticketId: typeof body.ticketId === 'string' ? body.ticketId : existing?.ticketId,
+    attestorSigs: Array.isArray(body.attestorSigs)
+      ? (body.attestorSigs as MigrateAttestation['attestorSigs'])
+      : existing?.attestorSigs,
+    ticketId,
+    ticketTxId: ticketTxId && /^[a-f0-9]{64}$/.test(ticketTxId) ? ticketTxId : existing?.ticketTxId,
+    ticketIndex: Number.isFinite(ticketIndex) ? Number(ticketIndex) : existing?.ticketIndex,
     mintTxHash:
       normalizeTxHash(typeof body.mintTxHash === 'string' ? body.mintTxHash : '') ||
       existing?.mintTxHash,
     assetCovenantId:
       typeof body.assetCovenantId === 'string' ? body.assetCovenantId : existing?.assetCovenantId,
+    migrateVersion:
+      typeof body.migrateVersion === 'number' ? body.migrateVersion : existing?.migrateVersion ?? 3,
     status,
     attestedAt: existing?.attestedAt || new Date().toISOString(),
     note: typeof body.note === 'string' ? body.note : existing?.note,

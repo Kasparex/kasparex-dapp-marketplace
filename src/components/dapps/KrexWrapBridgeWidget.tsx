@@ -37,6 +37,11 @@ import {
 } from '@/lib/krex/wrap/history';
 import type { Krc20BridgeNetwork, KrexWrapRecord, KrexWrapStatus } from '@/lib/krex/wrap/types';
 import {
+  buildMigrateClaimPlan,
+  type MigrateAttestation,
+} from '@/lib/krex/wrap/migrateV2';
+import { claimButtonLabel, evaluateMigrateClaimReady } from '@/lib/krex/wrap/claimPlan';
+import {
   buildHubKasListingPlan,
   payHubKasPlan,
 } from '@/lib/payments/hubPayRail';
@@ -95,16 +100,40 @@ function statusTooltip(status: KrexWrapStatus): string {
     case 'burned':
       return 'KRC-20 burned to the keyless sink. Waiting for attestor observation (opAccept).';
     case 'awaiting_attest':
-      return 'Burn attested. Matching KCC20 mint/claim is in progress.';
+      return 'Burn attested. When a ticket outpoint is ready, Claim KCC20 in History (you sign).';
     case 'pending_mint':
       return 'Your deposit is on Kaspa L1. Matching KCC20 mint is still pending.';
     case 'minted':
-      return 'Matching KCC20 was minted on Kaspa L1. Open the Mint link for the covenant tx.';
+      return 'Matching KCC20 was claimed/minted on Kaspa L1. Open the Mint link for the covenant tx.';
     case 'failed':
       return 'This migration did not complete. Check the note or try again.';
     default:
       return 'Migration status for this browser history row.';
   }
+}
+
+function ClaimTicketButton({ attestation }: { attestation?: MigrateAttestation }) {
+  const ready = evaluateMigrateClaimReady(attestation);
+  return (
+    <button
+      type="button"
+      className="k-control-btn mt-1 text-xs"
+      disabled={!ready.ready}
+      onClick={() => {
+        const plan = ready.plan || (attestation ? buildMigrateClaimPlan(attestation) : null);
+        if (!plan) {
+          hubNotify.info('Claim not ready', ready.reason || 'Waiting for ticket');
+          return;
+        }
+        hubNotify.success(
+          'Ticket ready to claim',
+          `Spend ticket ${plan.ticketId} in your wallet claim tx (amount ${plan.amountRaw} raw). Full KasWare claim assembler uses this outpoint + migrate tip.`,
+        );
+      }}
+    >
+      {claimButtonLabel(ready)}
+    </button>
+  );
 }
 
 function networkLabel(network: Krc20BridgeNetwork): string {
@@ -145,6 +174,7 @@ export function KrexWrapBridgeWidget() {
   const [isWorking, setIsWorking] = useState(false);
   const [success, setSuccess] = useState<string | null>(null);
   const [history, setHistory] = useState<KrexWrapRecord[]>([]);
+  const [attestByBurn, setAttestByBurn] = useState<Record<string, MigrateAttestation>>({});
 
   const tick = (selectedToken?.ticker || tickInput || config.defaultTick).trim().toUpperCase();
   const decimals =
@@ -208,28 +238,30 @@ export function KrexWrapBridgeWidget() {
         if (attestRes.ok && !cancelled) {
           const json = (await attestRes.json()) as {
             ok?: boolean;
-            attestations?: Array<{
-              burnTxHash?: string;
-              mintTxHash?: string;
-              status?: string;
-            }>;
+            attestations?: MigrateAttestation[];
           };
           if (json.ok && Array.isArray(json.attestations)) {
+            const nextMap: Record<string, MigrateAttestation> = {};
             for (const a of json.attestations) {
               if (!a.burnTxHash) continue;
+              nextMap[a.burnTxHash.toLowerCase()] = a;
               if (a.status === 'attested' || a.status === 'pending') {
+                const ready = evaluateMigrateClaimReady(a);
                 changed += updateKrexWrapStatusByBurn(a.burnTxHash, 'awaiting_attest', {
-                  note: 'Burn attested. Mint/claim in progress.',
+                  note: ready.ready
+                    ? `Ticket ready (${ready.plan?.ticketId}). Claim KCC20 in History.`
+                    : 'Burn attested. Waiting for ticket issue / claim.',
                 });
               }
               if (a.mintTxHash && (a.status === 'claimed' || a.mintTxHash)) {
                 changed += applyMintReceiptToHistory({
                   depositTxHash: a.burnTxHash,
                   mintTxHash: a.mintTxHash,
-                  note: 'KCC20 minted against attested burn.',
+                  note: 'KCC20 claimed against attested burn ticket.',
                 });
               }
             }
+            if (!cancelled) setAttestByBurn((prev) => ({ ...prev, ...nextMap }));
           }
         }
         if (mintRes.ok && !cancelled) {
@@ -626,11 +658,10 @@ export function KrexWrapBridgeWidget() {
             {migrateV2 ? (
               <>
                 <li>Pay the fee and burn KRC-20 to the keyless sink (no spend key).</li>
-                <li>Attestors observe an accepted burn (opAccept), not a prediction.</li>
-                <li>Matching KCC20 is minted 1:1 against that burn ticket.</li>
+                <li>Attestors (2-of-3) observe opAccept and issue a one-shot burn ticket UTXO.</li>
+                <li>You Claim in Hub: spend the ticket and mint matching KCC20 1:1 (you sign; no server AUTO_MINT).</li>
                 <li>
-                  During TN10 soak, attest + mint run on the Kasparex host (not inside your browser). Each row
-                  shows where you are and what is next.
+                  After covenant handover, deploy admin cannot mint. Ticket spend is the consensus replay lock.
                 </li>
               </>
             ) : (
@@ -686,6 +717,11 @@ export function KrexWrapBridgeWidget() {
                   </a>
                 ) : null}
                 <KrexWrapMigrateProgress row={row} migrateV2={migrateV2} />
+                {migrateV2 && row.depositTxHash && row.status === 'awaiting_attest' ? (
+                  <ClaimTicketButton
+                    attestation={attestByBurn[extractTxId(row.depositTxHash)?.toLowerCase() || '']}
+                  />
+                ) : null}
                 {row.note ? <p className="text-xs text-zinc-500">{row.note}</p> : null}
               </li>
             ))}
@@ -909,14 +945,14 @@ export function KrexWrapBridgeWidget() {
             <>
               <li>
                 Burn is permanent: the sink has no private key. Matching KCC20 is minted 1:1 only against an accepted
-                burn observation.
+                burn observation and a spent ticket UTXO.
               </li>
               <li>
                 One-way by construction. No reverse path. Circulating KCC20 cannot exceed burned KRC-20 for that tick.
               </li>
               <li>
-                KRC-20 burns still need indexers + attestors (opAccept). After covenant handover, deploy keys cannot
-                mint. TN10 may still use a 1-of-1 attestor while the mechanism soaks.
+                KRC-20 burns still need indexers + a 2-of-3 attestor quorum (opAccept). After handover, deploy keys
+                cannot mint. You sign the Claim; attestors issue tickets only.
               </li>
               <li>Only send the selected ticker to the sink address shown above. Tokens sent elsewhere may be lost.</li>
               <li>Centralized exchanges still expect KRC-20. Keep exchange inventory unmigrated if you deposit there.</li>

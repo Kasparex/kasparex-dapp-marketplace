@@ -12,7 +12,7 @@ const githubPath = MINT_RECEIPTS_TN10_PATH;
 const attestationsPath = 'data/krex-wrap/attestations-tn10.json';
 export const MIGRATE_MINT_TIP_TN10_PATH = 'data/krex-wrap/migrate-mint-tip-tn10.json';
 
-/** Live KCC20Migrate tip for chaining attestor auto-mints (TN10 soak). */
+/** Live KCC20Migrate tip for chaining claims (TN10). */
 export type MigrateMintTip = {
   network?: 'testnet-10';
   updatedAt?: string;
@@ -26,6 +26,8 @@ export type MigrateMintTip = {
   assetCovenantId: string;
   controllerCovenantId: string;
   lastBurnTxId?: string;
+  adminRenounced?: boolean;
+  migrateVersion?: number;
 };
 
 function normalizeMigrateMintTip(raw: unknown): MigrateMintTip | null {
@@ -73,6 +75,8 @@ function normalizeMigrateMintTip(raw: unknown): MigrateMintTip | null {
     assetCovenantId,
     controllerCovenantId,
     ...(lastBurn && /^[a-f0-9]{64}$/.test(lastBurn) ? { lastBurnTxId: lastBurn } : {}),
+    ...(typeof o.adminRenounced === 'boolean' ? { adminRenounced: o.adminRenounced } : {}),
+    ...(typeof o.migrateVersion === 'number' ? { migrateVersion: o.migrateVersion } : {}),
   };
 }
 

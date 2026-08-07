@@ -53,10 +53,10 @@ function v2Steps(status: KrexWrapStatus): FlowStep[] {
     },
     {
       id: 'mint',
-      label: 'Mint',
-      doneDetail: 'KCC20 minted 1:1',
-      currentDetail: 'Covenant mint in progress',
-      nextDetail: 'Matching KCC20 claim',
+      label: 'Claim',
+      doneDetail: 'KCC20 claimed 1:1',
+      currentDetail: 'Sign claim in wallet (spend ticket)',
+      nextDetail: 'User-signed ticket claim',
     },
   ];
 

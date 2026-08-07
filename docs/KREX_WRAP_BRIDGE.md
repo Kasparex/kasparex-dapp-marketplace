@@ -4,9 +4,10 @@ Hub dApp: [`/dapps/kcc20-bridge`](../src/components/dapps/KrexWrapBridgeWidget.t
 
 Old URL `/dapps/krex-wrap-bridge` redirects permanently to `/dapps/kcc20-bridge`.
 
-**v2 target (keyless one-way migrate):** [KCC20_BRIDGE_KEYLESS_ARCHITECTURE.md](./KCC20_BRIDGE_KEYLESS_ARCHITECTURE.md).  
-Hub Migrate UI defaults to **v2** (burn to keyless sink). Set `NEXT_PUBLIC_KCC20_MIGRATE_V2=0` for legacy vault path. This file still documents **v1** ops (vault + watcher).
+**v2/v3 target (keyless one-way migrate):** [KCC20_BRIDGE_KEYLESS_ARCHITECTURE.md](./KCC20_BRIDGE_KEYLESS_ARCHITECTURE.md).  
+Hub Migrate UI defaults to **v2** (burn to keyless sink). **v3** adds MigrateTicket + 2-of-3 + user Claim (`AUTO_MINT` off). Set `NEXT_PUBLIC_KCC20_MIGRATE_V2=0` for legacy vault path. This file still documents **v1** ops (vault + watcher).
 
+Legacy TN10 soak asset `83b999…e91a` is historical (pre-ticket). Deploy fresh v3 covenants before treating Hub as ticket-gated.
 Migrate any KRC-20 into matching KCC20 1:1. Default tick is **KREX** on Mainnet and **TKREX** on Testnet. Users can switch **Mainnet** / **Testnet** in the Migrate tab.
 
 Note: bridge env vars must be read via static `process.env.NEXT_PUBLIC_*` names (Next.js does not inline dynamic `process.env[key]` in the client bundle).

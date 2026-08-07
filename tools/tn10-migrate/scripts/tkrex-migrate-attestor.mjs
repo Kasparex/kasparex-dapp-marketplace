@@ -1,22 +1,18 @@
 /**
- * TN10 keyless migrate attestor (N=1 soak).
+ * TN10 keyless migrate attestor (v3: ticket issue, no AUTO_MINT by default).
  *
  * Watches Kasplex for KRC-20 transfers into the published keyless sink,
- * refuses double-attest (nullifier), posts Hub attestations, and optionally
- * mints via broadcast-tkrex-migrate-mint.mjs (KCC20Migrate + burnTxId).
+ * refuses double-attest (nullifier), posts Hub attestations with Schnorr
+ * message signatures, and optionally compiles/issues MigrateTicket UTXOs.
  *
  *   node scripts/tkrex-migrate-attestor.mjs --once
  *   node scripts/tkrex-migrate-attestor.mjs --loop
- *   node scripts/tkrex-migrate-attestor.mjs --mint-burn <txid>   # mint already-attested burn
  *
  * Env:
  *   KREX_WRAP_HUB_URL
  *   KCC20_MIGRATE_ATTESTOR_SECRET (or KCC20_BRIDGE_WATCHER_SECRET)
- *   KCC20_MIGRATE_SINK (optional override)
- *   KCC20_MIGRATE_TICK (default TKREX)
- *   KCC20_MIGRATE_AUTO_MINT=1 to call broadcast-tkrex-migrate-mint.mjs after attest
- *   TKREX_WALLET3_PRIVKEY (preferred in CI; no key file)
- *   TKREX_HUB_ROOT (Hub checkout for kaspa WASM)
+ *   KCC20_MIGRATE_SINK / KCC20_MIGRATE_TICK
+ *   KCC20_MIGRATE_AUTO_MINT=1  legacy only (discouraged; prefer user Claim)
  */
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
@@ -126,11 +122,7 @@ async function fetchSinkTransfers() {
     const isTransfer = String(op.op || '').toLowerCase() === 'transfer';
     const toSink = stripHrp(op.to) === sinkNorm;
     const tickOk = String(op.tick || '').toUpperCase() === TICK;
-    const accepted =
-      op.opAccept === true ||
-      op.opAccept === 1 ||
-      op.opAccept === '1' ||
-      op.opAccept == null;
+    const accepted = op.opAccept === true || op.opAccept === 1 || op.opAccept === '1';
     return isTransfer && toSink && tickOk && accepted;
   });
 }
@@ -304,7 +296,8 @@ async function scanOnce() {
       claimantAddress: from,
       status: 'attested',
       ticketId: burnTxHash,
-      note: 'TN10 N=1 attestor observation (mechanism soak)',
+      note: 'TN10 v3 attestor observation (ticket issue / user claim; AUTO_MINT off by default)',
+      migrateVersion: 3,
     });
 
     if (!posted.ok && posted.status === 409) {

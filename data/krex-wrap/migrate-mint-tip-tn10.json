@@ -1,6 +1,9 @@
 {
   "network": "testnet-10",
   "updatedAt": "2026-08-06T19:08:56.920Z",
+  "legacyNote": "Historical pre-ticket soak (asset 83b999…). Do not use for v3 ticket-gated claims. Redeploy migrate-v3 + handover, then replace this tip.",
+  "migrateVersion": 2,
+  "adminRenounced": false,
   "minterTxId": "f225d4b697f421807bbc1c35299cbdc890d8037be1a74a38f6efadb3b72890ee",
   "minterIndex": 0,
   "minterAddress": "kaspatest:pzl9g673gdnhwpvj0h0cu32u2h4ty43qm5fvm7ulfwcgyy8lg5fv6y5ctfst3",
