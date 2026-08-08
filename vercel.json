@@ -4,5 +4,5 @@
   "installCommand": "npm install",
   "framework": "nextjs",
   "regions": ["iad1"],
-  "ignoreCommand": "git log -1 --pretty=%B | grep -qiE '\\[skip vercel\\]|chore\\(bridge\\): upsert' && exit 0 || exit 1"
+  "ignoreCommand": "sh scripts/vercel-ignored-build.sh"
 }
