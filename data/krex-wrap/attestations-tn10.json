@@ -1,6 +1,6 @@
 {
   "network": "testnet-10",
-  "updatedAt": "2026-08-08T07:21:44.457Z",
+  "updatedAt": "2026-08-08T07:21:45.754Z",
   "attestations": [
     {
       "network": "testnet-10",
@@ -14,7 +14,7 @@
       "assetCovenantId": "4c1b883883cc816442bac6bd23621c7b1157a25f5c5ac61caf098ae0004d8106",
       "migrateVersion": 3,
       "status": "attested",
-      "attestedAt": "2026-08-08T07:21:44.373Z",
+      "attestedAt": "2026-08-08T07:21:43.191Z",
       "note": "Burn accepted. Waiting for claim ticket (may take a few minutes)…"
     },
     {
