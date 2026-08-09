@@ -1,7 +1,22 @@
 {
   "network": "testnet-10",
-  "updatedAt": "2026-08-09T13:37:13.498Z",
+  "updatedAt": "2026-08-09T14:24:54.781Z",
   "attestations": [
+    {
+      "network": "testnet-10",
+      "tick": "TKREX",
+      "burnTxHash": "43122684e5c426321da23e165b576e0c5086579226899033e9b3f0072daf1554",
+      "amountRaw": "450000000",
+      "amount": 4.5,
+      "from": "kaspatest:qrwa6q8pk80dzpatgas9es2re0kusnja305wsnealy0hj480w452y0fmw3hsd",
+      "sinkAddress": "kaspatest:pqw2y985nkrstxa7x30rkckq6y8papu48tv688vak9eyew2fc9r9vdf0hcw87",
+      "claimantAddress": "kaspatest:qrwa6q8pk80dzpatgas9es2re0kusnja305wsnealy0hj480w452y0fmw3hsd",
+      "assetCovenantId": "4c1b883883cc816442bac6bd23621c7b1157a25f5c5ac61caf098ae0004d8106",
+      "migrateVersion": 3,
+      "status": "attested",
+      "attestedAt": "2026-08-09T14:24:54.590Z",
+      "note": "Burn accepted. Waiting for claim ticket (may take a few minutes)…"
+    },
     {
       "network": "testnet-10",
       "tick": "TKREX",
