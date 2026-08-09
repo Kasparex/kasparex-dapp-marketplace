@@ -24,78 +24,25 @@ function Prose({ children }: { children: ReactNode }) {
   return <div className={DAPP_ABOUT_PROSE_CLASS}>{children}</div>;
 }
 
-type AboutBlock = {
-  key: string;
-  kicker: string;
-  title: string;
-  body: ReactNode;
-};
-
 /**
- * How it works tab: same title stack as Migrate (tilt kicker + bold heading + body).
+ * How it works: one Overview title (Migrate-style), then body sections without
+ * extra tilt headers unless Security / Roadmap need a separate block.
  */
 export function DAppAboutSections({ fields }: { fields: DAppAboutFields }) {
   const extras = getHowItWorksExtras(fields.slug);
-  const blocks: AboutBlock[] = [];
+  const overviewParts: ReactNode[] = [];
 
-  if (fields.description) {
-    blocks.push({
-      key: 'overview',
-      kicker: 'Overview',
-      title: 'What this is',
-      body: <Prose>{fields.description}</Prose>,
-    });
-  }
-  if (fields.utility) {
-    blocks.push({
-      key: 'utility',
-      kicker: 'Utility',
-      title: 'What you can do',
-      body: <Prose>{fields.utility}</Prose>,
-    });
-  }
-  if (fields.process) {
-    blocks.push({
-      key: 'process',
-      kicker: 'Process',
-      title: 'How it works',
-      body: <Prose>{fields.process}</Prose>,
-    });
-  }
-  if (fields.benefits) {
-    blocks.push({
-      key: 'benefits',
-      kicker: 'Benefits',
-      title: 'Why use it',
-      body: <Prose>{fields.benefits}</Prose>,
-    });
-  }
-  if (extras) {
-    blocks.push({
-      key: 'details',
-      kicker: 'Details',
-      title: 'Good to know',
-      body: <Prose>{extras}</Prose>,
-    });
-  }
-  if (fields.security) {
-    blocks.push({
-      key: 'security',
-      kicker: 'Security',
-      title: 'Keep in mind',
-      body: <Prose>{fields.security}</Prose>,
-    });
-  }
-  if (fields.roadmap) {
-    blocks.push({
-      key: 'roadmap',
-      kicker: 'Roadmap',
-      title: 'What is next',
-      body: <Prose>{fields.roadmap}</Prose>,
-    });
-  }
+  if (fields.description) overviewParts.push(<Prose key="description">{fields.description}</Prose>);
+  if (fields.utility) overviewParts.push(<Prose key="utility">{fields.utility}</Prose>);
+  if (fields.process) overviewParts.push(<Prose key="process">{fields.process}</Prose>);
+  if (fields.benefits) overviewParts.push(<Prose key="benefits">{fields.benefits}</Prose>);
+  if (extras) overviewParts.push(<Prose key="extras">{extras}</Prose>);
 
-  if (blocks.length === 0) {
+  const hasOverview = overviewParts.length > 0;
+  const hasSecurity = Boolean(fields.security);
+  const hasRoadmap = Boolean(fields.roadmap);
+
+  if (!hasOverview && !hasSecurity && !hasRoadmap) {
     return (
       <div className={`${KX_FORM_PANEL} space-y-4`}>
         <p className="kx-body py-2">No description available for this dApp.</p>
@@ -105,17 +52,29 @@ export function DAppAboutSections({ fields }: { fields: DAppAboutFields }) {
 
   return (
     <div className={`${KX_FORM_PANEL} space-y-8`}>
-      {blocks.map((block, i) => (
-        <section key={block.key}>
+      {hasOverview ? (
+        <section>
+          <GameOverviewTitleBlock as="h3" kicker="Overview" title="How it works" compact />
+          <div className="space-y-4">{overviewParts}</div>
+        </section>
+      ) : null}
+      {hasSecurity ? (
+        <section>
+          <GameOverviewTitleBlock as="h3" kicker="Security" title="Keep in mind" compact={!hasOverview} />
+          <Prose>{fields.security}</Prose>
+        </section>
+      ) : null}
+      {hasRoadmap ? (
+        <section>
           <GameOverviewTitleBlock
             as="h3"
-            kicker={block.kicker}
-            title={block.title}
-            compact={i === 0}
+            kicker="Roadmap"
+            title="What is next"
+            compact={!hasOverview && !hasSecurity}
           />
-          {block.body}
+          <Prose>{fields.roadmap}</Prose>
         </section>
-      ))}
+      ) : null}
     </div>
   );
 }

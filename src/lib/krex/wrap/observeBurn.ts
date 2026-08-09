@@ -14,7 +14,7 @@ import { normalizeTxHash } from './mintReceipts';
 import { attestationHasTicket, type MigrateAttestation } from './migrateV2';
 import { stripKaspaAddressHrp } from '@/lib/kaspa/sdk';
 import type { Krc20BridgeNetwork } from './types';
-import { wakeMigrateAttestor } from './wakeAttestor';
+import { wakeMigrateAttestor as wakeMigrateAttestorImpl } from './wakeAttestor';
 import { canIssueTicketsOnHub, issueMigrateTicket } from './issueTicket';
 
 type KasplexOp = {
@@ -31,6 +31,31 @@ type KasplexOp = {
 
 function accepted(v: unknown): boolean {
   return v === true || v === 1 || v === '1' || v === 'true';
+}
+
+/** Kasplex TN10 often leaves txId empty and puts the id in hashRev. */
+function opBurnTxId(op: KasplexOp): string {
+  return String(op.txId || op.hashRev || '')
+    .trim()
+    .toLowerCase()
+    .replace(/^0x/i, '');
+}
+
+/** Never throw: a broken wake must not abort observe-burn / Confirm. */
+async function safeWakeAttestor(reasonTag: string): Promise<void> {
+  try {
+    const wake =
+      typeof wakeMigrateAttestorImpl === 'function'
+        ? wakeMigrateAttestorImpl
+        : (await import('./wakeAttestor')).wakeMigrateAttestor;
+    if (typeof wake !== 'function') {
+      console.warn('[krex-wrap] wakeMigrateAttestor unavailable');
+      return;
+    }
+    await wake(reasonTag);
+  } catch (err) {
+    console.warn('[krex-wrap] wake attestor failed', err instanceof Error ? err.message : err);
+  }
 }
 
 /** In-flight ticket issues (same isolate). Prevents stacked observe-burn timeouts. */
@@ -56,7 +81,7 @@ async function tryAutoIssueTicket(
     }
   }
   if (!canIssueTicketsOnHub()) {
-    void wakeMigrateAttestor(reasonTag);
+    await safeWakeAttestor(reasonTag);
     return row;
   }
 
@@ -86,7 +111,7 @@ async function tryAutoIssueTicket(
     } catch (err) {
       console.warn('[krex-wrap] auto ticket issue error', err instanceof Error ? err.message : err);
     }
-    void wakeMigrateAttestor(reasonTag);
+    await safeWakeAttestor(reasonTag);
     return row;
   })();
 
@@ -142,7 +167,9 @@ export async function observeSinkBurn(input: {
     const isTransfer = (op.op || '').toLowerCase() === 'transfer';
     const toSink = to === sinkNorm;
     const fromWallet = !walletNorm || from === walletNorm;
-    return isTransfer && opTick === tick && toSink && fromWallet;
+    const opTx = opBurnTxId(op);
+    const txMatches = !opTx || opTx === burnTxHash;
+    return isTransfer && opTick === tick && toSink && fromWallet && txMatches;
   });
 
   if (!match) {

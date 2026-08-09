@@ -96,6 +96,8 @@ export function tipPatchFromMintTx(
 
   // If tip already points at this mint, remainingAllowance was already reduced.
   // Re-subtracting (e.g. claim-report reconcile) breaks the next Claim script.
+  // If addresses moved to this mint but remaining still looks like a preimage of
+  // a larger balance, claimAssemble heals by matching tip.controllerAddress.
   let remaining = tip.remainingAllowance;
   const tipAlreadyAtMint = normalizeTxHash(tip.minterTxId) === mintTxId;
   if (!tipAlreadyAtMint) {

@@ -52,6 +52,82 @@ function tipReadyForUserClaim(tip: MigrateClaimTip | null | undefined): string |
   return null;
 }
 
+function deriveSpendControllerAddress(
+  kaspa: {
+    payToScriptHashScript: (script: Uint8Array) => unknown;
+    addressFromScriptPublicKey: (spk: unknown, network: string) => { toString: () => string };
+  },
+  tip: MigrateClaimTip,
+  remaining: bigint,
+): string {
+  const script = spliceTemplateScript(
+    tip.controllerTemplate!,
+    encodeMigrateControllerState({
+      assetCovenantId: tip.assetCovenantId,
+      totalCap: MIGRATE_TOTAL_CAP_RAW,
+      remainingAllowance: remaining,
+      initialized: true,
+      adminRenounced: true,
+    }),
+  );
+  return kaspa
+    .addressFromScriptPublicKey(kaspa.payToScriptHashScript(script), 'testnet-10')
+    .toString();
+}
+
+/**
+ * Tip JSON can drift (claim-report persist skipped) so remainingAllowance no longer
+ * hashes to tip.controllerAddress. Search nearby candidates and fix in-memory.
+ */
+function healRemainingAllowance(
+  kaspa: {
+    payToScriptHashScript: (script: Uint8Array) => unknown;
+    addressFromScriptPublicKey: (spk: unknown, network: string) => { toString: () => string };
+  },
+  tip: MigrateClaimTip,
+  claimAmountRaw: bigint,
+): bigint | null {
+  const target = tip.controllerAddress;
+  const center = BigInt(tip.remainingAllowance);
+  const candidates = new Set<bigint>([center]);
+
+  for (let i = 1n; i <= 200n; i++) {
+    const step = i * 100_000_000n;
+    candidates.add(center - step);
+    candidates.add(center + step);
+  }
+  // 0.1-token steps around tip (covers double-subtract drift of a few tokens).
+  for (let i = 1n; i <= 500n; i++) {
+    const step = i * 10_000_000n;
+    candidates.add(center - step);
+    candidates.add(center + step);
+  }
+  // 0.1-token grid from CAP (covers odd burn amounts like 5.09999999).
+  for (let i = 0n; i <= 12_000n; i++) {
+    candidates.add(MIGRATE_TOTAL_CAP_RAW - i * 10_000_000n);
+  }
+  // Fine nudge around the tip value (raw units).
+  for (let i = -20_000n; i <= 20_000n; i++) {
+    candidates.add(center + i);
+  }
+  for (let n = 0n; n <= 80n; n++) {
+    candidates.add(MIGRATE_TOTAL_CAP_RAW - n * claimAmountRaw);
+    candidates.add(MIGRATE_TOTAL_CAP_RAW - n * 100_000_000n);
+    candidates.add(center - n * claimAmountRaw);
+    candidates.add(center + n * claimAmountRaw);
+  }
+
+  for (const rem of candidates) {
+    if (rem < 0n || rem > MIGRATE_TOTAL_CAP_RAW) continue;
+    try {
+      if (deriveSpendControllerAddress(kaspa, tip, rem) === target) return rem;
+    } catch {
+      /* ignore bad rem */
+    }
+  }
+  return null;
+}
+
 async function fetchAddressUtxos(address: string) {
   const res = await fetch(`https://api-tn10.kaspa.org/addresses/${encodeURIComponent(address)}/utxos`);
   if (!res.ok) throw new Error(`UTXO fetch failed for ${address}: ${res.status}`);
@@ -176,9 +252,33 @@ export async function assembleMigrateClaimTx(input: {
   const plan = buildMigrateClaimPlan(input.attestation);
   if (!plan) return { ok: false, error: 'Invalid claim plan / ticket outpoint' };
 
-  const tip = input.tip;
+  const tip = { ...input.tip };
   const amountRaw = BigInt(plan.amountRaw);
-  const remainingBefore = BigInt(tip.remainingAllowance);
+  let remainingBefore = BigInt(tip.remainingAllowance);
+  const { kaspa } = input;
+
+  // Heal stale tip.remainingAllowance before building scripts / failing Claim.
+  try {
+    const encodedAddr = deriveSpendControllerAddress(kaspa, tip, remainingBefore);
+    if (encodedAddr !== tip.controllerAddress) {
+      const healed = healRemainingAllowance(kaspa, tip, amountRaw);
+      if (healed == null) {
+        return {
+          ok: false,
+          error:
+            'Migrate tip remainingAllowance does not match live controller. Refresh History and try Claim again.',
+        };
+      }
+      remainingBefore = healed;
+      tip.remainingAllowance = String(healed);
+    }
+  } catch (err) {
+    return {
+      ok: false,
+      error: err instanceof Error ? err.message : 'Failed to validate migrate tip controller',
+    };
+  }
+
   const remainingAfter = remainingBefore - amountRaw;
   if (remainingAfter < 0n) return { ok: false, error: 'Mint exceeds remaining allowance' };
 
@@ -235,7 +335,6 @@ export async function assembleMigrateClaimTx(input: {
     }),
   );
 
-  const { kaspa } = input;
   const minterSpk = kaspa.payToScriptHashScript(minterScript);
   const recipientSpk = kaspa.payToScriptHashScript(recipientScript);
   const postMintSpk = kaspa.payToScriptHashScript(postMintScript);

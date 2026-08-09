@@ -53,6 +53,7 @@ import {
 import { KxBadge, type KxBadgeVariant } from '@/components/ui/KxBadge';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { KrexWrapMigrateProgress } from '@/components/dapps/KrexWrapMigrateProgress';
+import { cacheAttestation, loadCachedAttestations } from '@/lib/krex/wrap/attestCache';
 
 const BRIDGE_SLUG = 'kcc20-bridge';
 
@@ -366,10 +367,26 @@ export function KrexWrapBridgeWidget() {
   const [isWorking, setIsWorking] = useState(false);
   const [success, setSuccess] = useState<string | null>(null);
   const [history, setHistory] = useState<KrexWrapRecord[]>([]);
-  const [attestByBurn, setAttestByBurn] = useState<Record<string, MigrateAttestation>>({});
+  const [attestByBurn, setAttestByBurn] = useState<Record<string, MigrateAttestation>>(() =>
+    loadCachedAttestations(),
+  );
   const [syncNonce, setSyncNonce] = useState(0);
   const [syncing, setSyncing] = useState(false);
   const notifiedTicketReadyRef = useRef<Set<string>>(new Set());
+
+  // Seed toast de-dupe + Claim-ready cache so remounts do not re-spam "Ticket ready"
+  // while the row still looks stuck on Confirm.
+  useEffect(() => {
+    const cached = loadCachedAttestations();
+    for (const [key, row] of Object.entries(cached)) {
+      if (evaluateMigrateClaimReady(row).ready || row.status === 'claimed') {
+        notifiedTicketReadyRef.current.add(key);
+      }
+    }
+    if (Object.keys(cached).length > 0) {
+      setAttestByBurn((prev) => ({ ...cached, ...prev }));
+    }
+  }, []);
 
   const mergeAttestation = useCallback((a: MigrateAttestation) => {
     const key = a.burnTxHash?.toLowerCase();
@@ -393,7 +410,9 @@ export function KrexWrapBridgeWidget() {
       ) {
         return prev;
       }
-      return { ...prev, [key]: a };
+      const next = { ...prev, [key]: a };
+      cacheAttestation(a);
+      return next;
     });
   }, []);
 
@@ -402,6 +421,8 @@ export function KrexWrapBridgeWidget() {
     if (!key || notifiedTicketReadyRef.current.has(key)) return;
     if (!evaluateMigrateClaimReady(a).ready) return;
     notifiedTicketReadyRef.current.add(key);
+    // Persist immediately so a remount still shows Claim (not Confirm + stale toast).
+    cacheAttestation(a);
     hubNotify.success('Ticket ready', 'Claim KCC20 below.');
   }, []);
 
