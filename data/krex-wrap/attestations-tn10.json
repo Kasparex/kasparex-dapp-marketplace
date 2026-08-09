@@ -1,6 +1,6 @@
 {
   "network": "testnet-10",
-  "updatedAt": "2026-08-09T12:51:04.099Z",
+  "updatedAt": "2026-08-09T12:51:05.983Z",
   "attestations": [
     {
       "network": "testnet-10",
@@ -47,12 +47,13 @@
       "claimantAddress": "kaspatest:qrwa6q8pk80dzpatgas9es2re0kusnja305wsnealy0hj480w452y0fmw3hsd",
       "assetCovenantId": "4c1b883883cc816442bac6bd23621c7b1157a25f5c5ac61caf098ae0004d8106",
       "migrateVersion": 3,
-      "status": "attested",
+      "status": "claimed",
       "attestedAt": "2026-08-09T11:07:50.487Z",
-      "note": "Burn accepted. Ticket ready. Claim KCC20 below.",
+      "note": "User claimed KCC20 on Kaspa L1 (ticket spent).",
       "ticketId": "6c83d106f70c0be95c1f08c4a5fb1735fe57adfbe845ca7a950b7613422376b4:0",
       "ticketTxId": "6c83d106f70c0be95c1f08c4a5fb1735fe57adfbe845ca7a950b7613422376b4",
-      "ticketIndex": 0
+      "ticketIndex": 0,
+      "mintTxHash": "eac877aa7f8737bcd699bd0694a5299f95c48c88cd311699b3376065e1a09054"
     },
     {
       "network": "testnet-10",
