@@ -172,13 +172,20 @@ export function updateKrexWrapStatusByBurn(
   status: KrexWrapStatus,
   patch?: Partial<KrexWrapRecord>,
 ): number {
-  const burn = (burnTxHash || '').trim().toLowerCase();
+  const burn = (burnTxHash || '')
+    .trim()
+    .toLowerCase()
+    .replace(/^0x/, '');
   if (!/^[a-f0-9]{64}$/.test(burn)) return 0;
   const all = readAll();
   let changed = 0;
   for (let i = 0; i < all.length; i++) {
     const row = all[i];
-    const rowDeposit = (row.depositTxHash || '').trim().toLowerCase();
+    const rawDeposit = (row.depositTxHash || '').trim().toLowerCase().replace(/^0x/, '');
+    // Prefer exact 64-hex; also accept explorer URLs / pasted strings that contain the burn id.
+    const rowDeposit = /^[a-f0-9]{64}$/.test(rawDeposit)
+      ? rawDeposit
+      : (rawDeposit.match(/[a-f0-9]{64}/)?.[0] || rawDeposit);
     if (rowDeposit !== burn) continue;
     if (row.status === 'minted') continue;
     if (row.status === status && !patch) continue;

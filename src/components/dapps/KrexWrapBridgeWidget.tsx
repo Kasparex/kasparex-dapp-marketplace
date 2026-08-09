@@ -225,8 +225,24 @@ function historyBadgeLabel(row: KrexWrapRecord, attestation?: MigrateAttestation
   if (row.status === 'minted' || row.mintTxHash) return 'Complete';
   const ready = evaluateMigrateClaimReady(attestation);
   if (ready.ready) return 'Ready to claim';
-  if (row.status === 'burned' || row.status === 'awaiting_attest') return 'Confirming';
+  if (row.status === 'burned' || row.status === 'awaiting_attest' || row.status === 'pending_mint') {
+    return 'Confirming';
+  }
   return statusLabel(row.status);
+}
+
+function resolveHistoryAttestation(
+  row: KrexWrapRecord,
+  attestByBurn: Record<string, MigrateAttestation>,
+): MigrateAttestation | undefined {
+  const burnKey = extractTxId(row.depositTxHash || '')?.toLowerCase() || '';
+  if (burnKey && attestByBurn[burnKey]) return attestByBurn[burnKey];
+  const deposit = String(row.depositTxHash || '').toLowerCase();
+  if (!deposit) return undefined;
+  for (const [key, rowAttest] of Object.entries(attestByBurn)) {
+    if (deposit.includes(key) || key.includes(burnKey)) return rowAttest;
+  }
+  return undefined;
 }
 
 function ClaimTicketButton({
@@ -448,8 +464,25 @@ export function KrexWrapBridgeWidget() {
       ) {
         return prev;
       }
-      const next = { ...prev, [key]: a };
-      writeAttestCache(a);
+      // Prefer the richer of the two (ticket/claim fields win).
+      const merged =
+        existing && attestationHasTicket(a) && !attestationHasTicket(existing)
+          ? { ...existing, ...a }
+          : existing
+            ? { ...existing, ...a }
+            : a;
+      if (
+        existing &&
+        attestationHasTicket(existing) &&
+        attestationHasTicket(merged) &&
+        !merged.ticketId
+      ) {
+        merged.ticketId = existing.ticketId;
+        merged.ticketTxId = existing.ticketTxId;
+        merged.ticketIndex = existing.ticketIndex;
+      }
+      const next = { ...prev, [key]: merged };
+      writeAttestCache(merged);
       return next;
     });
   }, []);
@@ -497,7 +530,7 @@ export function KrexWrapBridgeWidget() {
     refreshHistory();
   }, [refreshHistory]);
 
-  /** Fast poll: observe burns on Kasplex + pull Hub attestations (Claim within seconds of ticket). */
+  /** Fast poll: pull Hub tickets first, then observe Kasplex burns. */
   useEffect(() => {
     let cancelled = false;
     const syncReceipts = async () => {
@@ -512,10 +545,87 @@ export function KrexWrapBridgeWidget() {
       if (pending.length === 0 && tab !== 'history') return;
       setSyncing(true);
       try {
+        // Tickets land in the attest store first. Always hydrate those before observe-burn
+        // so Confirm flips to Claim even when observe returns a ticket-less stub.
+        const [attestRes, mintRes] = await Promise.all([
+          fetch(`/api/krex-wrap/mint-receipts?mode=attest&t=${Date.now()}`, {
+            headers: { Accept: 'application/json', 'Cache-Control': 'no-cache' },
+            cache: 'no-store',
+          }),
+          fetch(`/api/krex-wrap/mint-receipts?t=${Date.now()}`, {
+            headers: { Accept: 'application/json', 'Cache-Control': 'no-cache' },
+            cache: 'no-store',
+          }),
+        ]);
+        if (attestRes.ok && !cancelled) {
+          const json = (await attestRes.json()) as {
+            ok?: boolean;
+            attestations?: MigrateAttestation[];
+          };
+          if (json.ok && Array.isArray(json.attestations)) {
+            for (const a of json.attestations) {
+              if (!a.burnTxHash) continue;
+              mergeAttestation(a);
+              const isPendingRow = pending.some((r) => {
+                const burn = extractTxId(r.depositTxHash || '')?.toLowerCase();
+                return burn && burn === a.burnTxHash.toLowerCase();
+              });
+              if (!isPendingRow) continue;
+              maybeNotifyTicketReady(a);
+              if (a.status === 'attested' || a.status === 'pending') {
+                const ready = evaluateMigrateClaimReady(a);
+                updateKrexWrapStatusByBurn(a.burnTxHash, 'awaiting_attest', {
+                  note: ready.ready
+                    ? 'Ticket ready. Claim KCC20 below (you sign in KasWare).'
+                    : a.note || 'Burn confirmed. Waiting for claim ticket…',
+                });
+              }
+              if (a.mintTxHash) {
+                applyMintReceiptToHistory({
+                  depositTxHash: a.burnTxHash,
+                  mintTxHash: a.mintTxHash,
+                  note: 'KCC20 claimed on Kaspa L1.',
+                });
+              }
+            }
+          }
+        }
+
         await Promise.all(
           pending.slice(0, 6).map(async (row) => {
             const burn = extractTxId(row.depositTxHash || '');
             if (!burn) return;
+            // Per-burn Hub lookup (source of truth for tickets).
+            try {
+              const one = await fetch(
+                `/api/krex-wrap/mint-receipts?mode=attest&burnTxHash=${encodeURIComponent(burn)}&t=${Date.now()}`,
+                {
+                  headers: { Accept: 'application/json', 'Cache-Control': 'no-cache' },
+                  cache: 'no-store',
+                },
+              );
+              if (one.ok && !cancelled) {
+                const oneJson = (await one.json()) as {
+                  ok?: boolean;
+                  attestations?: MigrateAttestation[];
+                };
+                const hit = oneJson.attestations?.find(
+                  (a) => a.burnTxHash?.toLowerCase() === burn.toLowerCase(),
+                );
+                if (hit) {
+                  mergeAttestation(hit);
+                  maybeNotifyTicketReady(hit);
+                  if (evaluateMigrateClaimReady(hit).ready) {
+                    updateKrexWrapStatusByBurn(hit.burnTxHash, 'awaiting_attest', {
+                      note: 'Ticket ready. Claim KCC20 below (you sign in KasWare).',
+                    });
+                    return;
+                  }
+                }
+              }
+            } catch {
+              /* continue to observe */
+            }
             const a = await observeBurnOnHub({
               burnTxHash: burn,
               network,
@@ -543,49 +653,6 @@ export function KrexWrapBridgeWidget() {
           }),
         );
 
-        const [attestRes, mintRes] = await Promise.all([
-          fetch(`/api/krex-wrap/mint-receipts?mode=attest&t=${Date.now()}`, {
-            headers: { Accept: 'application/json', 'Cache-Control': 'no-cache' },
-            cache: 'no-store',
-          }),
-          fetch(`/api/krex-wrap/mint-receipts?t=${Date.now()}`, {
-            headers: { Accept: 'application/json', 'Cache-Control': 'no-cache' },
-            cache: 'no-store',
-          }),
-        ]);
-        if (attestRes.ok && !cancelled) {
-          const json = (await attestRes.json()) as {
-            ok?: boolean;
-            attestations?: MigrateAttestation[];
-          };
-          if (json.ok && Array.isArray(json.attestations)) {
-            for (const a of json.attestations) {
-              if (!a.burnTxHash) continue;
-              mergeAttestation(a);
-              const isPendingRow = pending.some(
-                (r) =>
-                  extractTxId(r.depositTxHash || '')?.toLowerCase() === a.burnTxHash.toLowerCase(),
-              );
-              if (!isPendingRow) continue;
-              maybeNotifyTicketReady(a);
-              if (a.status === 'attested' || a.status === 'pending') {
-                const ready = evaluateMigrateClaimReady(a);
-                updateKrexWrapStatusByBurn(a.burnTxHash, 'awaiting_attest', {
-                  note: ready.ready
-                    ? 'Ticket ready. Claim KCC20 below (you sign in KasWare).'
-                    : a.note || 'Burn confirmed. Waiting for claim ticket…',
-                });
-              }
-              if (a.mintTxHash) {
-                applyMintReceiptToHistory({
-                  depositTxHash: a.burnTxHash,
-                  mintTxHash: a.mintTxHash,
-                  note: 'KCC20 claimed on Kaspa L1.',
-                });
-              }
-            }
-          }
-        }
         if (mintRes.ok && !cancelled) {
           const json = (await mintRes.json()) as {
             ok?: boolean;
@@ -1059,7 +1126,7 @@ export function KrexWrapBridgeWidget() {
           <ul className="space-y-3">
             {history.map((row) => {
               const burnKey = extractTxId(row.depositTxHash || '')?.toLowerCase() || '';
-              const attestation = burnKey ? attestByBurn[burnKey] : undefined;
+              const attestation = resolveHistoryAttestation(row, attestByBurn);
               const claimReady = evaluateMigrateClaimReady(attestation);
               const covenantId =
                 getWrapCovenantIdForTick(row.tick) || attestation?.assetCovenantId || null;

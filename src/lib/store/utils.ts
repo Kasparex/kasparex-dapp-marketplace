@@ -8,17 +8,23 @@ export function extractTxId(txHash: string | unknown): string {
   if (typeof txHash === 'string') {
     const trimmed = txHash.trim();
     if (!trimmed || trimmed === '[object Object]') return '';
-    if (/^[0-9a-fA-F]{64}$/.test(trimmed.replace(/^0x/i, ''))) {
-      return trimmed.replace(/^0x/i, '').toLowerCase();
+    const bare = trimmed.replace(/^0x/i, '');
+    if (/^[0-9a-fA-F]{64}$/.test(bare)) {
+      return bare.toLowerCase();
     }
     if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
       try {
         return extractTxId(JSON.parse(trimmed) as unknown);
       } catch {
-        return trimmed;
+        /* fall through to embedded hex search */
       }
     }
-    return trimmed;
+    // Explorer URLs / pasted strings often embed the 64-char txid.
+    const embedded = trimmed.match(/(?:^|[^0-9a-fA-F])([0-9a-fA-F]{64})(?:[^0-9a-fA-F]|$)/);
+    if (embedded?.[1]) return embedded[1].toLowerCase();
+    const anyHex = trimmed.match(/[0-9a-fA-F]{64}/);
+    if (anyHex?.[0]) return anyHex[0].toLowerCase();
+    return '';
   }
 
   if (typeof txHash === 'object') {

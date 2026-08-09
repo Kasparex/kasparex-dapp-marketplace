@@ -345,6 +345,76 @@ function attestationPayloadEqual(a: MigrateAttestation, b: MigrateAttestation): 
   return pick(a) === pick(b);
 }
 
+function preferRicherAttestation(
+  a: MigrateAttestation,
+  b: MigrateAttestation,
+): MigrateAttestation {
+  const aTicket = attestationHasTicket(a);
+  const bTicket = attestationHasTicket(b);
+  const aClaimed = a.status === 'claimed' || Boolean(a.mintTxHash);
+  const bClaimed = b.status === 'claimed' || Boolean(b.mintTxHash);
+  if (aClaimed && !bClaimed) return a;
+  if (bClaimed && !aClaimed) return b;
+  if (aTicket && !bTicket) {
+    return {
+      ...b,
+      ...a,
+      ticketId: a.ticketId,
+      ticketTxId: a.ticketTxId,
+      ticketIndex: a.ticketIndex,
+    };
+  }
+  if (bTicket && !aTicket) {
+    return {
+      ...a,
+      ...b,
+      ticketId: b.ticketId,
+      ticketTxId: b.ticketTxId,
+      ticketIndex: b.ticketIndex,
+    };
+  }
+  return {
+    ...a,
+    ...b,
+    ticketId: b.ticketId || a.ticketId,
+    ticketTxId: b.ticketTxId || a.ticketTxId,
+    ticketIndex: b.ticketIndex ?? a.ticketIndex,
+    mintTxHash: b.mintTxHash || a.mintTxHash,
+    from: b.from || a.from,
+    claimantAddress: b.claimantAddress || a.claimantAddress,
+    status: bClaimed || aClaimed ? 'claimed' : b.status || a.status,
+  };
+}
+
+/** Merge local writes onto remote so observe never wipes tickets already on main. */
+function mergeAttestationStores(
+  remote: AttestationStoreFile,
+  local: AttestationStoreFile,
+): AttestationStoreFile {
+  const byBurn = new Map<string, MigrateAttestation>();
+  for (const row of remote.attestations || []) {
+    const key = String(row.burnTxHash || '')
+      .trim()
+      .toLowerCase();
+    if (/^[a-f0-9]{64}$/.test(key)) byBurn.set(key, row);
+  }
+  for (const row of local.attestations || []) {
+    const key = String(row.burnTxHash || '')
+      .trim()
+      .toLowerCase();
+    if (!/^[a-f0-9]{64}$/.test(key)) continue;
+    const prev = byBurn.get(key);
+    byBurn.set(key, prev ? preferRicherAttestation(prev, row) : row);
+  }
+  return {
+    network: 'testnet-10',
+    updatedAt: local.updatedAt || remote.updatedAt || new Date().toISOString(),
+    attestations: Array.from(byBurn.values()).sort((x, y) =>
+      String(y.attestedAt || '').localeCompare(String(x.attestedAt || '')),
+    ),
+  };
+}
+
 export async function persistAttestationStore(
   store: AttestationStoreFile,
   opts?: { force?: boolean },
@@ -371,14 +441,18 @@ export async function persistAttestationStore(
   const githubToken = process.env.GITHUB_TOKEN?.trim();
   const repoOwner = process.env.GITHUB_REPO_OWNER || 'Kasparex';
   const repoName = process.env.GITHUB_REPO_NAME || 'kasparex-dapp-marketplace';
+
+  const current = await fetchAttestGithubFile();
+  const mergedStore = current?.store
+    ? mergeAttestationStores(current.store, store)
+    : normalizeAttestationStore(store);
   const normalized = normalizeAttestationStore({
-    ...store,
-    updatedAt: store.updatedAt || new Date().toISOString(),
+    ...mergedStore,
+    updatedAt: new Date().toISOString(),
   });
 
   if (githubToken) {
     try {
-      const current = await fetchAttestGithubFile();
       if (current?.store) {
         const prevRows = current.store.attestations || [];
         const nextRows = normalized.attestations || [];
@@ -389,11 +463,7 @@ export async function persistAttestationStore(
           return { ok: true, via: 'skipped' };
         }
       }
-      const stamped = {
-        ...normalized,
-        updatedAt: new Date().toISOString(),
-      };
-      const body = `${JSON.stringify(stamped, null, 2)}\n`;
+      const body = `${JSON.stringify(normalized, null, 2)}\n`;
       const content = Buffer.from(body, 'utf8').toString('base64');
       const updateResponse = await fetch(
         `https://api.github.com/repos/${repoOwner}/${repoName}/contents/${attestationsPath}`,
@@ -405,13 +475,44 @@ export async function persistAttestationStore(
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            message: `chore(bridge): upsert TN10 migrate attestation (${stamped.updatedAt}) [skip vercel]`,
+            message: `chore(bridge): upsert TN10 migrate attestation (${normalized.updatedAt}) [skip vercel]`,
             content,
             sha: current?.sha,
           }),
         },
       );
       if (updateResponse.ok) return { ok: true, via: 'github' };
+      if (updateResponse.status === 409) {
+        const again = await fetchAttestGithubFile();
+        const retryStore = again?.store
+          ? mergeAttestationStores(again.store, store)
+          : normalized;
+        const stamped = normalizeAttestationStore({
+          ...retryStore,
+          updatedAt: new Date().toISOString(),
+        });
+        const retryRes = await fetch(
+          `https://api.github.com/repos/${repoOwner}/${repoName}/contents/${attestationsPath}`,
+          {
+            method: 'PUT',
+            headers: {
+              Authorization: `token ${githubToken}`,
+              Accept: 'application/vnd.github.v3+json',
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              message: `chore(bridge): upsert TN10 migrate attestation (${stamped.updatedAt}) [skip vercel]`,
+              content: Buffer.from(`${JSON.stringify(stamped, null, 2)}\n`, 'utf8').toString(
+                'base64',
+              ),
+              sha: again?.sha,
+            }),
+          },
+        );
+        if (retryRes.ok) return { ok: true, via: 'github' };
+        const err2 = await retryRes.text();
+        return { ok: false, via: 'github', error: err2.slice(0, 500) };
+      }
       const err = await updateResponse.text();
       return { ok: false, via: 'github', error: err.slice(0, 500) };
     } catch (e) {
@@ -459,13 +560,12 @@ function isMeaningfulAttestationUpgrade(
   prev: MigrateAttestation | undefined,
   next: MigrateAttestation,
 ): boolean {
-  // First sight of a burn must land in GitHub so GHA hydrate / Confirm can see it.
-  // Routine observe polls stay skipped (equal payload or note-only tweaks).
-  if (!prev) return true;
-  const gainedTicket = attestationHasTicket(next) && !attestationHasTicket(prev);
+  // Only force GitHub writes for ticket/claim upgrades. Ticket-less first sight stays
+  // ephemeral on Vercel so observe polls cannot wipe remote tickets with a stale store.
+  const gainedTicket = attestationHasTicket(next) && (!prev || !attestationHasTicket(prev));
   const gainedClaim =
-    (next.status === 'claimed' && prev.status !== 'claimed') ||
-    (Boolean(next.mintTxHash) && !prev.mintTxHash);
+    (next.status === 'claimed' && prev?.status !== 'claimed') ||
+    (Boolean(next.mintTxHash) && !prev?.mintTxHash);
   return gainedTicket || gainedClaim;
 }
 
@@ -479,16 +579,7 @@ export async function upsertAttestation(row: MigrateAttestation): Promise<{
   const idx = store.attestations.findIndex((a) => a.burnTxHash?.toLowerCase() === burn);
   if (idx >= 0) {
     const prev = store.attestations[idx];
-    const merged: MigrateAttestation = { ...prev, ...normalized };
-    // Never drop a real ticket outpoint because a stale observe poll lacked it.
-    if (attestationHasTicket(prev) && !attestationHasTicket(normalized)) {
-      merged.ticketId = prev.ticketId;
-      merged.ticketTxId = prev.ticketTxId;
-      merged.ticketIndex = prev.ticketIndex;
-      if (prev.note && (!merged.note || /waiting for claim ticket/i.test(merged.note))) {
-        merged.note = prev.note;
-      }
-    }
+    const merged = preferRicherAttestation(prev, normalized);
     if (attestationPayloadEqual(prev, merged)) {
       return { attestation: prev, persist: { ok: true, via: 'skipped' } };
     }

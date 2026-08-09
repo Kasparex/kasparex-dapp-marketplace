@@ -28,11 +28,13 @@ function v2Steps(status: KrexWrapStatus, ticketReady: boolean): FlowStep[] {
     status === 'pending_mint' ? 'awaiting_attest' : status === 'deposited' ? 'burned' : status;
 
   // Stay on Confirm until the claim ticket exists. Do not jump to Claim early.
+  // `burned` and `awaiting_attest` both mean post-burn Confirm; ticketReady advances to Claim.
   let currentIdx = 1;
   if (normalized === 'minted') currentIdx = 4;
   else if (normalized === 'fee_paid') currentIdx = 1;
-  else if (normalized === 'burned') currentIdx = 2;
-  else if (normalized === 'awaiting_attest') currentIdx = ticketReady ? 3 : 2;
+  else if (normalized === 'burned' || normalized === 'awaiting_attest') {
+    currentIdx = ticketReady ? 3 : 2;
+  }
 
   const labels: Array<{
     id: string;
