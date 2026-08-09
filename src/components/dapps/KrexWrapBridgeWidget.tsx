@@ -367,17 +367,14 @@ export function KrexWrapBridgeWidget() {
   const [isWorking, setIsWorking] = useState(false);
   const [success, setSuccess] = useState<string | null>(null);
   const [history, setHistory] = useState<KrexWrapRecord[]>([]);
-  const [attestByBurn, setAttestByBurn] = useState<Record<string, MigrateAttestation>>(() =>
-    loadCachedAttestations(),
-  );
+  const [attestByBurn, setAttestByBurn] = useState<Record<string, MigrateAttestation>>({});
   const [syncNonce, setSyncNonce] = useState(0);
   const [syncing, setSyncing] = useState(false);
   const notifiedTicketReadyRef = useRef<Set<string>>(new Set());
 
-  // Seed toast de-dupe + Claim-ready cache so remounts do not re-spam "Ticket ready"
-  // while the row still looks stuck on Confirm.
+  // Load browser ticket cache after mount only (never in useState init / SSR prerender).
   useEffect(() => {
-    const cached = loadCachedAttestations();
+    const cached = loadCachedAttestations() as Record<string, MigrateAttestation>;
     for (const [key, row] of Object.entries(cached)) {
       if (evaluateMigrateClaimReady(row).ready || row.status === 'claimed') {
         notifiedTicketReadyRef.current.add(key);
