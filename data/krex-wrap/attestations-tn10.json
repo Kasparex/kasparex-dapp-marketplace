@@ -1,6 +1,6 @@
 {
   "network": "testnet-10",
-  "updatedAt": "2026-08-09T14:55:21.139Z",
+  "updatedAt": "2026-08-09T14:56:12.336Z",
   "attestations": [
     {
       "network": "testnet-10",
@@ -15,7 +15,10 @@
       "migrateVersion": 3,
       "status": "attested",
       "attestedAt": "2026-08-09T14:24:54.590Z",
-      "note": "Burn accepted. Waiting for claim ticket (may take a few minutes)…"
+      "note": "TN10 v3: MigrateTicket issued; user Claims in Hub",
+      "ticketId": "e41ee56708d3b3d152e4483e5848125f1c815c1bfb5f01c5b9bfb011f3643c5d:0",
+      "ticketTxId": "e41ee56708d3b3d152e4483e5848125f1c815c1bfb5f01c5b9bfb011f3643c5d",
+      "ticketIndex": 0
     },
     {
       "network": "testnet-10",
