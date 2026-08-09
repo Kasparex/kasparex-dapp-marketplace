@@ -135,22 +135,30 @@ async function hydrateNullifiersFromHub(state) {
       const status = a.status === 'claimed' ? 'claimed' : a.status === 'rejected' ? 'rejected' : 'attested';
       const prev = state.nullifiers[burnTxHash];
       if (prev?.status === 'claimed' && prev.mintTxHash) continue;
-      if (status === 'claimed' || !prev) {
-        state.nullifiers[burnTxHash] = {
-          amountRaw: String(a.amountRaw || prev?.amountRaw || '0'),
-          from: String(a.from || prev?.from || ''),
-          attestedAt: a.attestedAt || prev?.attestedAt || new Date().toISOString(),
-          status,
-          ...(a.mintTxHash ? { mintTxHash: String(a.mintTxHash).toLowerCase() } : {}),
-          ...(a.ticketId ? { ticketId: String(a.ticketId) } : {}),
-        };
+      const ticketId = a.ticketId ? String(a.ticketId) : prev?.ticketId;
+      const mintTxHash = a.mintTxHash
+        ? String(a.mintTxHash).toLowerCase()
+        : prev?.mintTxHash
+          ? String(prev.mintTxHash).toLowerCase()
+          : undefined;
+      const next = {
+        amountRaw: String(a.amountRaw || prev?.amountRaw || '0'),
+        from: String(a.from || prev?.from || ''),
+        attestedAt: a.attestedAt || prev?.attestedAt || new Date().toISOString(),
+        status: status === 'claimed' || prev?.status === 'claimed' ? 'claimed' : status,
+        ...(mintTxHash ? { mintTxHash } : {}),
+        ...(ticketId ? { ticketId } : {}),
+      };
+      const prevTicket = prev?.ticketId || '';
+      const nextTicket = next.ticketId || '';
+      if (
+        !prev ||
+        prev.status !== next.status ||
+        prevTicket !== nextTicket ||
+        (prev.mintTxHash || '') !== (next.mintTxHash || '')
+      ) {
+        state.nullifiers[burnTxHash] = next;
         changed += 1;
-      } else if (prev.status !== 'claimed' && status === 'attested') {
-        state.nullifiers[burnTxHash] = {
-          ...prev,
-          status: 'attested',
-          ...(a.ticketId ? { ticketId: String(a.ticketId) } : {}),
-        };
       }
     }
     if (changed > 0) {
@@ -292,6 +300,35 @@ async function issueTicketForBurn(state, burnTxHash, entry) {
   if (entry.ticketId && /^[a-f0-9]{64}:\d+$/.test(entry.ticketId)) {
     console.log('Ticket already issued', entry.ticketId);
     return entry;
+  }
+  // Hub may already have a ticket from a prior run whose sync failed locally.
+  try {
+    const res = await fetch(
+      `${HUB_URL}/api/krex-wrap/mint-receipts?mode=attest&burnTxHash=${encodeURIComponent(burnTxHash)}`,
+      { headers: { Accept: 'application/json' }, cache: 'no-store' },
+    );
+    if (res.ok) {
+      const json = await res.json();
+      const row = Array.isArray(json.attestations)
+        ? json.attestations.find((a) => String(a.burnTxHash || '').toLowerCase() === burnTxHash)
+        : json.attestation;
+      const ticketId = row?.ticketId ? String(row.ticketId) : '';
+      if (/^[a-f0-9]{64}:\d+$/.test(ticketId)) {
+        state.nullifiers[burnTxHash] = {
+          ...entry,
+          status: row.status === 'claimed' ? 'claimed' : 'attested',
+          ticketId,
+          ticketTxId: row.ticketTxId || ticketId.split(':')[0],
+          ticketIndex: Number(row.ticketIndex ?? 0),
+          ...(row.mintTxHash ? { mintTxHash: String(row.mintTxHash).toLowerCase() } : {}),
+        };
+        saveState(state);
+        console.log('Adopted Hub ticket', ticketId);
+        return state.nullifiers[burnTxHash];
+      }
+    }
+  } catch (err) {
+    console.warn('Hub ticket lookup failed', err instanceof Error ? err.message : err);
   }
   const claimantPubkey = await resolveRecipientPubkey(entry.from);
   if (!/^[0-9a-f]{64}$/.test(claimantPubkey)) {
@@ -508,8 +545,26 @@ async function scanOnce() {
     `Attestor scan: ${transfers.length} sink transfers, nullifiers=${Object.keys(state.nullifiers).length}, mode=${useV3 ? 'v3-ticket' : 'v2-soak'}`,
   );
 
+  // Prefer burns that still need a ticket (newest first) so Confirm never waits behind a re-scan of old rows.
+  const ordered = [...transfers].sort((a, b) => {
+    const aHash = String(a.txId || a.hashRev || '')
+      .trim()
+      .toLowerCase();
+    const bHash = String(b.txId || b.hashRev || '')
+      .trim()
+      .toLowerCase();
+    const aEntry = state.nullifiers[aHash];
+    const bEntry = state.nullifiers[bHash];
+    const aNeeds =
+      aEntry?.status !== 'claimed' && !(useV3 && aEntry?.ticketId && /^[a-f0-9]{64}:\d+$/.test(aEntry.ticketId));
+    const bNeeds =
+      bEntry?.status !== 'claimed' && !(useV3 && bEntry?.ticketId && /^[a-f0-9]{64}:\d+$/.test(bEntry.ticketId));
+    if (aNeeds !== bNeeds) return aNeeds ? -1 : 1;
+    return 0;
+  });
+
   let attested = 0;
-  for (const op of transfers) {
+  for (const op of ordered) {
     const burnTxHash = String(op.txId || op.hashRev || '')
       .trim()
       .toLowerCase();
@@ -517,7 +572,12 @@ async function scanOnce() {
 
     const existing = state.nullifiers[burnTxHash];
     if (existing?.status === 'claimed') continue;
-    if (existing?.status === 'attested' && (!useV3 || existing.ticketId)) continue;
+    if (
+      existing?.status === 'attested' &&
+      (!useV3 || (existing.ticketId && /^[a-f0-9]{64}:\d+$/.test(existing.ticketId)))
+    ) {
+      continue;
+    }
 
     const amountRaw = String(op.amt || '0');
     const amount = Number(amountRaw) / 1e8;

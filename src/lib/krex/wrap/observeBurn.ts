@@ -159,18 +159,41 @@ export async function observeSinkBurn(input: {
     return { ok: false, error: `Kasplex returned ${res.status}` };
   }
   const json = (await res.json()) as { result?: KasplexOp[] };
-  const ops = Array.isArray(json.result) ? json.result : [];
-  const match = ops.find((op) => {
-    const opTick = (op.tick || '').toUpperCase();
-    const to = stripKaspaAddressHrp(op.to || '').toLowerCase();
-    const from = stripKaspaAddressHrp(op.from || '').toLowerCase();
-    const isTransfer = (op.op || '').toLowerCase() === 'transfer';
-    const toSink = to === sinkNorm;
-    const fromWallet = !walletNorm || from === walletNorm;
-    const opTx = opBurnTxId(op);
-    const txMatches = !opTx || opTx === burnTxHash;
-    return isTransfer && opTick === tick && toSink && fromWallet && txMatches;
-  });
+  let ops = Array.isArray(json.result) ? json.result : [];
+
+  const pickMatch = (list: KasplexOp[]) =>
+    list.find((op) => {
+      const opTick = (op.tick || '').toUpperCase();
+      const to = stripKaspaAddressHrp(op.to || '').toLowerCase();
+      const from = stripKaspaAddressHrp(op.from || '').toLowerCase();
+      const isTransfer = (op.op || '').toLowerCase() === 'transfer';
+      const toSink = to === sinkNorm;
+      const fromWallet = !walletNorm || from === walletNorm;
+      const opTx = opBurnTxId(op);
+      const txMatches = opTx === burnTxHash;
+      return isTransfer && opTick === tick && toSink && fromWallet && txMatches;
+    });
+
+  let match = pickMatch(ops);
+  // Kasplex sometimes ignores txId filter or returns a window without the exact op.
+  // Fall back to sink address listing so Confirm can still verify accepted burns.
+  if (!match) {
+    const sinkUrl = `${apiBase}/v1/krc20/oplist?tick=${encodeURIComponent(tick)}&address=${encodeURIComponent(sink)}`;
+    try {
+      const sinkRes = await fetch(sinkUrl, {
+        headers: { Accept: 'application/json' },
+        signal: AbortSignal.timeout(12_000),
+        cache: 'no-store',
+      });
+      if (sinkRes.ok) {
+        const sinkJson = (await sinkRes.json()) as { result?: KasplexOp[] };
+        ops = Array.isArray(sinkJson.result) ? sinkJson.result : [];
+        match = pickMatch(ops);
+      }
+    } catch {
+      /* keep primary lookup result */
+    }
+  }
 
   if (!match) {
     return {

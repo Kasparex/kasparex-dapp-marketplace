@@ -4,7 +4,7 @@
  */
 
 let lastWakeAt = 0;
-const WAKE_COOLDOWN_MS = 90_000;
+const WAKE_COOLDOWN_MS = 45_000;
 
 export async function wakeMigrateAttestor(reason: string): Promise<{ ok: boolean; skipped?: string }> {
   const now = Date.now();

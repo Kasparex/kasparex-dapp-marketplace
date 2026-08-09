@@ -61,8 +61,18 @@ function writeAll(records: KrexWrapRecord[]): void {
   }
 }
 
+/** Hide wallet rejects / abandoned fee flows that never reached Burn. */
+export function isKrexWrapHistoryVisible(row: KrexWrapRecord): boolean {
+  if (row.status !== 'failed') return true;
+  const burn = String(row.depositTxHash || '')
+    .trim()
+    .toLowerCase()
+    .replace(/^0x/, '');
+  return /^[a-f0-9]{64}$/.test(burn);
+}
+
 export function listKrexWrapHistory(wallet?: string | null): KrexWrapRecord[] {
-  const all = readAll();
+  const all = readAll().filter(isKrexWrapHistoryVisible);
   if (!wallet) return all;
   const norm = wallet.replace(/^kaspa:/i, '').toLowerCase();
   return all.filter((r) => r.wallet.replace(/^kaspa:/i, '').toLowerCase() === norm);

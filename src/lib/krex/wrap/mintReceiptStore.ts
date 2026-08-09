@@ -459,10 +459,13 @@ function isMeaningfulAttestationUpgrade(
   prev: MigrateAttestation | undefined,
   next: MigrateAttestation,
 ): boolean {
-  const gainedTicket = attestationHasTicket(next) && (!prev || !attestationHasTicket(prev));
+  // First sight of a burn must land in GitHub so GHA hydrate / Confirm can see it.
+  // Routine observe polls stay skipped (equal payload or note-only tweaks).
+  if (!prev) return true;
+  const gainedTicket = attestationHasTicket(next) && !attestationHasTicket(prev);
   const gainedClaim =
-    (next.status === 'claimed' && prev?.status !== 'claimed') ||
-    (Boolean(next.mintTxHash) && !prev?.mintTxHash);
+    (next.status === 'claimed' && prev.status !== 'claimed') ||
+    (Boolean(next.mintTxHash) && !prev.mintTxHash);
   return gainedTicket || gainedClaim;
 }
 
