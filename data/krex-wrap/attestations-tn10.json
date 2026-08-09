@@ -1,7 +1,24 @@
 {
   "network": "testnet-10",
-  "updatedAt": "2026-08-09T15:49:46.830Z",
+  "updatedAt": "2026-08-09T15:50:00.313Z",
   "attestations": [
+    {
+      "network": "testnet-10",
+      "tick": "TKREX",
+      "burnTxHash": "38623bbde27df9478b443bf281d776a54c5ec9b4f24828e161613881bc5a2f5d",
+      "amountRaw": "1200000000",
+      "amount": 12,
+      "from": "kaspatest:qrwa6q8pk80dzpatgas9es2re0kusnja305wsnealy0hj480w452y0fmw3hsd",
+      "sinkAddress": "kaspatest:pqw2y985nkrstxa7x30rkckq6y8papu48tv688vak9eyew2fc9r9vdf0hcw87",
+      "claimantAddress": "kaspatest:qrwa6q8pk80dzpatgas9es2re0kusnja305wsnealy0hj480w452y0fmw3hsd",
+      "ticketId": "94b540ae6330ba9c652de168eee0d0836f80c5b36d6ec438c01b9c2175108154:0",
+      "ticketTxId": "94b540ae6330ba9c652de168eee0d0836f80c5b36d6ec438c01b9c2175108154",
+      "ticketIndex": 0,
+      "migrateVersion": 3,
+      "status": "attested",
+      "attestedAt": "2026-08-09T15:50:00.016Z",
+      "note": "TN10 v3: MigrateTicket issued; user Claims in Hub"
+    },
     {
       "network": "testnet-10",
       "tick": "TKREX",
