@@ -53,7 +53,48 @@ import {
 import { KxBadge, type KxBadgeVariant } from '@/components/ui/KxBadge';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { KrexWrapMigrateProgress } from '@/components/dapps/KrexWrapMigrateProgress';
-import { cacheAttestation, loadCachedAttestations } from '@/lib/krex/wrap/attestCache';
+
+const ATTEST_CACHE_KEY = 'kx_krex_wrap_attest_cache_v1';
+
+/** Local-only ticket cache (inline to avoid SSR/circular import crashes). */
+function readAttestCache(): Record<string, MigrateAttestation> {
+  if (typeof window === 'undefined') return {};
+  try {
+    const raw = window.localStorage.getItem(ATTEST_CACHE_KEY);
+    if (!raw) return {};
+    const parsed = JSON.parse(raw) as Record<string, MigrateAttestation>;
+    return parsed && typeof parsed === 'object' ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+
+function writeAttestCache(a: MigrateAttestation): void {
+  if (typeof window === 'undefined' || !a.burnTxHash) return;
+  try {
+    const key = a.burnTxHash.toLowerCase();
+    const prev = readAttestCache();
+    const existing = prev[key];
+    if (
+      existing &&
+      attestationHasTicket(existing) &&
+      !attestationHasTicket(a) &&
+      existing.status !== 'claimed'
+    ) {
+      return;
+    }
+    if (existing?.status === 'claimed' && existing.mintTxHash && a.status !== 'claimed') {
+      return;
+    }
+    prev[key] = a;
+    const entries = Object.entries(prev)
+      .sort((x, y) => String(y[1].attestedAt || '').localeCompare(String(x[1].attestedAt || '')))
+      .slice(0, 40);
+    window.localStorage.setItem(ATTEST_CACHE_KEY, JSON.stringify(Object.fromEntries(entries)));
+  } catch {
+    /* ignore quota */
+  }
+}
 
 const BRIDGE_SLUG = 'kcc20-bridge';
 
@@ -372,9 +413,9 @@ export function KrexWrapBridgeWidget() {
   const [syncing, setSyncing] = useState(false);
   const notifiedTicketReadyRef = useRef<Set<string>>(new Set());
 
-  // Load browser ticket cache after mount only (never in useState init / SSR prerender).
+  // Load browser ticket cache after mount only (never during SSR).
   useEffect(() => {
-    const cached = loadCachedAttestations() as Record<string, MigrateAttestation>;
+    const cached = readAttestCache();
     for (const [key, row] of Object.entries(cached)) {
       if (evaluateMigrateClaimReady(row).ready || row.status === 'claimed') {
         notifiedTicketReadyRef.current.add(key);
@@ -408,7 +449,7 @@ export function KrexWrapBridgeWidget() {
         return prev;
       }
       const next = { ...prev, [key]: a };
-      cacheAttestation(a);
+      writeAttestCache(a);
       return next;
     });
   }, []);
@@ -418,8 +459,7 @@ export function KrexWrapBridgeWidget() {
     if (!key || notifiedTicketReadyRef.current.has(key)) return;
     if (!evaluateMigrateClaimReady(a).ready) return;
     notifiedTicketReadyRef.current.add(key);
-    // Persist immediately so a remount still shows Claim (not Confirm + stale toast).
-    cacheAttestation(a);
+    writeAttestCache(a);
     hubNotify.success('Ticket ready', 'Claim KCC20 below.');
   }, []);
 
