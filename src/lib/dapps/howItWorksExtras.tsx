@@ -12,192 +12,132 @@ function ProseBlock({ children }: { children: ReactNode }) {
 const HOW_IT_WORKS_EXTRAS: Record<string, ReactNode> = {
   lockbox: (
     <ProseBlock>
-      <p>
-        Lockbox lets you hold KAS for someone until rules you set are met. Think of it as a simple safe deposit box
-        on Kaspa.
-      </p>
+      <p>Lock KAS for someone else until your rules are met. Nobody custodians the coins.</p>
       <ul className={DAPP_ABOUT_LIST_CLASS}>
         <li>
-          <strong>Who holds the KAS?</strong> Nobody custodies it. When you create a lock, the amount leaves your
-          wallet and sits in a Kaspa L1 covenant output (a programmable UTXO). Kasparex does not hold or control
-          those coins.
+          <strong>Where it sits:</strong> Kaspa L1 covenant UTXO. Kasparex does not hold the keys.
         </li>
         <li>
-          <strong>Where is it locked?</strong> On Kaspa Layer 1, bound by covenant script rules you chose (escrow or
-          timelock). The lock is visible on-chain under a covenant ID. Only a spend that satisfies those rules can
-          move the funds.
+          <strong>Claimers:</strong> Set wallets and shares (must total 100%). Escrow claims anytime;
+          timelock claims after the date.
         </li>
         <li>
-          <strong>Who can release it?</strong> You set one or more claimer wallets and a percentage for each.
-          Shares must total 100%. Each claimer gets their own lock for that slice and can only claim their share.
-          Escrow: claim anytime. Timelock: claim after the unlock date.
+          <strong>Fees:</strong> Hub deploy / claim fees are separate KAS to treasury (not part of the
+          lock). Extra claimers add +5 KAS each.
         </li>
         <li>
-          <strong>Extra claimers</strong> The first claimer is included. Each additional claimer adds +5 KAS to the
-          Hub deploy fee (same premium-slot pattern as Split). Multi-claimer create signs one lock transaction per
-          claimer, then the Hub fee once.
-        </li>
-        <li>
-          <strong>Platform fee vs lock amount</strong> Hub deploy and claim fees (shown in the fee panel /
-          claim button) are separate KAS transfers to Kasparex treasury. They are not part of the locked
-          principal. KREX tiers discount both fees and multiply Hub Points.
-        </li>
-        <li>
-          <strong>L1 covenants</strong> LockBox uses real Kaspa L1 covenants when your wallet
-          supports signPskt + pushTx. Import by covenant ID if you need to restore a lock from an
-          explorer. Older local demo vaults are hidden.
-        </li>
-        <li>
-          <strong>Reading the wallet popup</strong> Kaspa spends whole UTXOs. One input is coins leaving a prior
-          output. Two outputs is normal: the lock amount to the covenant address, plus change back to you. A
-          positive &quot;balance change&quot; is usually that change returning, not a profit. The network fee is the
-          leftover between inputs and outputs.
-        </li>
-        <li>
-          <strong>Create vs claim</strong> Creating builds the covenant, then collects the Hub deploy fee. Claiming
-          collects the Hub claim fee first, waits for that fee to settle, then unlocks (so the fee always prompts
-          and claim does not spend unconfirmed change). Claimers earn Hub Points. Keep unlocked KAS for network
-          fees plus Hub fees.
-        </li>
-        <li>
-          <strong>Escrow</strong> The assigned claimer can claim their share anytime after the lock is created.
-        </li>
-        <li>
-          <strong>Timelock</strong> Same share rules, but claiming is blocked until the date you pick.
+          <strong>Wallet popup:</strong> Whole UTXOs move. Change back to you is normal, not a profit.
         </li>
       </ul>
       <p className={DAPP_ABOUT_FOOTNOTE_CLASS}>
-        Useful for trades, freelance payments, savings goals, or any transfer where you want clear release conditions
-        without trusting a middleman.
+        Useful for trades, freelance payouts, or savings with clear release rules.
       </p>
     </ProseBlock>
   ),
   'covenant-split': (
     <ProseBlock>
-      <p>
-        Covenant Split is for paying several people from one pot of KAS. Each recipient gets their own L1 lock for
-        their share and can claim independently.
-      </p>
+      <p>Pay several people from one KAS pot. Each share is its own L1 lock.</p>
       <ul className={DAPP_ABOUT_LIST_CLASS}>
         <li>
-          <strong>Set shares</strong>: assign a percentage to each recipient. They must add up to 100%. Each share
-          must meet the minimum lock amount.
+          <strong>Shares:</strong> Percentages must total 100% and meet the minimum lock.
         </li>
         <li>
-          <strong>Independent claims</strong>: recipients do not need to wait on each other. Each claims their slice
-          when ready (Hub claim fee + Hub Points, with KREX tier discounts).
-        </li>
-        <li>
-          <strong>L1 covenants</strong>: each share is a real Kaspa L1 covenant UTXO when your wallet supports
-          signPskt + pushTx.
+          <strong>Claims:</strong> Recipients claim independently (Hub claim fee + Hub Points).
         </li>
       </ul>
       <p className={DAPP_ABOUT_FOOTNOTE_CLASS}>
-        Great for team payouts, creator revenue splits, prize pools, or treasury distributions.
+        Team payouts, revenue splits, prize pools.
       </p>
     </ProseBlock>
   ),
   'covenant-milestone': (
     <ProseBlock>
-      <p>
-        Covenant Milestone helps you pay for work in stages without handing over the full amount on day one.
-      </p>
+      <p>Fund work in stages. Lock the total once; each milestone unlocks on its date.</p>
       <ul className={DAPP_ABOUT_LIST_CLASS}>
         <li>
-          <strong>Fund once</strong>: you lock the total KAS across milestone shares (one L1 lock per step).
+          <strong>Fund once:</strong> One L1 lock per milestone share.
         </li>
         <li>
-          <strong>Release on schedule</strong>: each milestone unlocks on its date. Only the beneficiary can claim
-          that slice (Hub claim fee + Hub Points apply).
-        </li>
-        <li>
-          <strong>No middleman</strong>: rules are enforced by Kaspa L1 covenants when your wallet supports signPskt
-          + pushTx.
+          <strong>Release:</strong> Only the beneficiary claims each unlocked slice.
         </li>
       </ul>
       <p className={DAPP_ABOUT_FOOTNOTE_CLASS}>
-        Good for freelancers, builders, game quests, or any project with clear delivery steps.
+        Freelancers, builders, quests with clear delivery steps.
       </p>
     </ProseBlock>
   ),
   'covenant-crowdfund': (
     <ProseBlock>
-      <p>
-        Covenant Crowdfund is an all-or-nothing raise: money only moves to the creator if enough people pledge before
-        the deadline.
-      </p>
+      <p>All-or-nothing raise: funds move only if the goal is met before the deadline.</p>
       <ul className={DAPP_ABOUT_LIST_CLASS}>
         <li>
-          <strong>Set a goal and deadline</strong>: backers know exactly what has to happen for the campaign to
-          succeed.
+          <strong>Pledge:</strong> Each backer locks KAS in an L1 covenant.
         </li>
         <li>
-          <strong>Pledge KAS</strong>: each pledge locks KAS in a Kaspa L1 covenant UTXO and can earn Hub Points.
+          <strong>Goal met:</strong> Creator claims the pool.
         </li>
         <li>
-          <strong>Goal met</strong>: the creator claims the pooled amount (Hub claim fee + Hub Points, with KREX
-          tier discounts).
-        </li>
-        <li>
-          <strong>Goal missed</strong>: after the deadline, backers can refund their pledge locks.
+          <strong>Goal missed:</strong> Backers refund after the deadline.
         </li>
       </ul>
       <p className={DAPP_ABOUT_FOOTNOTE_CLASS}>
-        Useful for launches, community drops, charity drives, or any raise where trust matters.
+        Launches, community drops, charity drives.
       </p>
     </ProseBlock>
   ),
   'covenant-voucher': (
     <ProseBlock>
-      <p>
-        Covenant Voucher works like a gift card for KAS. You lock coins on-chain, then give someone a secret code so
-        only they can claim it.
-      </p>
+      <p>Gift-card style KAS: lock coins, share a secret code, redeem once before expiry.</p>
       <ul className={DAPP_ABOUT_LIST_CLASS}>
         <li>
-          <strong>Mint</strong>: choose an amount and expiry date. You get a voucher ID and a secret code. Hub
-          deploy fee + Hub Points apply (KREX tiers discount fees and multiply points).
+          <strong>Mint:</strong> Amount + expiry → voucher ID + secret (keep private).
         </li>
         <li>
-          <strong>Share off-chain</strong>: send the code to the recipient by message or email. Do not post it
-          publicly.
-        </li>
-        <li>
-          <strong>Redeem once</strong>: whoever enters the correct code first claims the KAS. Each voucher works only
-          one time (Hub claim fee + Hub Points).
-        </li>
-        <li>
-          <strong>Expires</strong>: unredeemed vouchers stop working after the expiry date you set.
+          <strong>Redeem:</strong> First correct code wins; one use only.
         </li>
       </ul>
       <p className={DAPP_ABOUT_FOOTNOTE_CLASS}>
-        Great for tips, gifts, promo credits, or paying someone without needing their wallet address up front.
+        Tips, gifts, promo credits without needing an address up front.
       </p>
     </ProseBlock>
   ),
   'kaspa-capsule': (
     <ProseBlock>
-      <p>
-        Kaspa Capsule is a permanent message board on Kaspa L1. Leave a rich-text note that becomes part of the early
-        ecosystem archive.
-      </p>
+      <p>Leave a permanent rich-text note on Kaspa L1.</p>
       <ul className={DAPP_ABOUT_LIST_CLASS}>
         <li>
-          <strong>Compose</strong>: write with the same rich editor used in vBlog. Minimum and maximum character limits
-          apply.
+          <strong>Compose:</strong> Same rich editor as vBlog (size limits apply).
         </li>
         <li>
-          <strong>Pay once</strong>: base fee plus payload size fee based on how many on-chain chunks your message
-          needs.
+          <strong>Pay once:</strong> Base fee plus payload size.
         </li>
         <li>
-          <strong>Stored forever</strong>: your L1 transaction and payload remain on-chain. The Hub archive can hide
-          messages you delete locally.
-        </li>
-        <li>
-          <strong>Hub Points</strong>: qualifying messages earn redeemable Hub Points on your connected wallet ledger.
+          <strong>Stay on-chain:</strong> Tx + payload remain; Hub can hide local deletes.
         </li>
       </ul>
+    </ProseBlock>
+  ),
+  'kcc20-bridge': (
+    <ProseBlock>
+      <p>After Burn, Confirm runs on its own. You only sign Claim.</p>
+      <ul className={DAPP_ABOUT_LIST_CLASS}>
+        <li>
+          <strong>Burn:</strong> Permanent. Sink has no private key.
+        </li>
+        <li>
+          <strong>Confirm:</strong> Kasplex + attestors open a one-time claim ticket (usually under a
+          couple of minutes). History refreshes by itself.
+        </li>
+        <li>
+          <strong>Claim:</strong> You sign in KasWare. Matching KCC20 lands as a covenant coin.
+        </li>
+        <li>
+          <strong>Balance:</strong> Use History / kascov. KasWare will not show KCC20 like KRC-20.
+        </li>
+      </ul>
+      <p className={DAPP_ABOUT_FOOTNOTE_CLASS}>
+        One-way for now. Only send the selected ticker to the sink shown in Migrate.
+      </p>
     </ProseBlock>
   ),
 };

@@ -177,11 +177,11 @@ export const placeholderDApps: DApp[] = [
     slug: 'kcc20-bridge',
     category: 'payment',
     utility:
-      'Migrate any KRC-20 into covenant-native KCC20 so it can power Hub apps and markets, keeping a 1:1 claim on vault-locked supply. Deposit is on-chain; mint is Kasparex-operated.',
+      'Turn any KRC-20 into KCC20 (a covenant coin on Kaspa L1) at 1:1 so it can power Hub apps and markets.',
     process:
-      'Connect a Kaspa wallet, pick Mainnet or Testnet, select a KRC-20 ticker, enter an amount, pay the KAS bridge fee, then confirm the send to the deposit vault. The deposit is on-chain immediately. Kasparex mints matching KCC20 1:1 afterward, and History shows Minted when that receipt syncs. One-way for now.',
+      'Connect wallet, pick network and ticker, pay the small KAS fee, then Burn to the sink. Hub confirms the burn and opens a claim ticket automatically. When History shows Claim, you sign once in KasWare. That is the only step that needs you after Burn.',
     benefits:
-      'One bridge for every KRC-20. No new free supply: migration only locks existing tokens. Practice on Testnet before Mainnet. CEX and unwrapped KRC-20 keep working for holders who stay on the inscription rail.',
+      'One migrate path for every ticker. No new free supply. Practice on Testnet first. Keep exchange inventory on KRC-20 if a CEX still expects it.',
     developer: 'Kasparex',
     developerLinks: [
       { label: 'Website', url: 'https://www.kasparex.com' },
@@ -192,13 +192,13 @@ export const placeholderDApps: DApp[] = [
     network: 'Kaspa L1 (Mainnet / Testnet)',
     networkType: 'L1',
     provider: 'Kasparex',
-    version: '0.4.1',
+    version: '0.4.2',
     description:
-      'KCC20 Bridge migrates inscription KRC-20 tokens into KCC20 (covenant tokens on Kaspa L1). You pay a fee, deposit to the published vault, and Kasparex mints matching KCC20 1:1. Wallets may show KRC-20 and KCC20 separately. This release is one-way; reverse migration comes later. It does not create extra supply beyond what is locked in the vault.',
+      'KCC20 Bridge moves inscription KRC-20 into KCC20 on Kaspa L1. Fee → Burn → automatic Confirm → you Claim. One-way for now. KasWare will not list KCC20 like KRC-20; use History and kascov.',
     security:
-      'Deposit is on Kaspa L1 immediately; mint is completed by Kasparex against vault holdings. This is an operator mint path, not a fully trustless consensus bridge. Only send the selected ticker to the vault shown in Migrate. Never send to an address that is not shown in this dApp.',
+      'Burn goes to a keyless sink (no private key). Attestors confirm the burn and open a one-time ticket; you sign Claim yourself. Only send the selected ticker to the sink shown in Migrate.',
     roadmap:
-      'Now: Multi-token migrate UI, Mainnet/Testnet toggle, Hub fee rail, deposit verify, mint receipts + History badges\nNext: Always-on mint host, named kascov genesis metadata on next deploy\nLater: Optional reverse migration under Kasparex operation',
+      'Now: Testnet keyless migrate (Confirm automatic, Claim in wallet)\nNext: Mainnet tip + always-on ticket issue\nLater: Optional reverse path',
     createdAt: new Date().toISOString(),
   },
   {

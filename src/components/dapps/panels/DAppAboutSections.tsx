@@ -3,6 +3,7 @@
 import type { ReactNode } from 'react';
 import { KX_FORM_PANEL } from '@/lib/hub/shellTokens';
 import { getHowItWorksExtras } from '@/lib/dapps/howItWorksExtras';
+import { GameOverviewTitleBlock } from '@/components/games/panels/GameOverviewSections';
 import { DAPP_ABOUT_BODY_CLASS, DAPP_ABOUT_PROSE_CLASS } from './dappAboutStyles';
 
 export type DAppAboutFields = {
@@ -23,21 +24,76 @@ function Prose({ children }: { children: ReactNode }) {
   return <div className={DAPP_ABOUT_PROSE_CLASS}>{children}</div>;
 }
 
+type AboutBlock = {
+  key: string;
+  kicker: string;
+  title: string;
+  body: ReactNode;
+};
+
 /**
- * How it works tab: plain Migrate-style body text.
- * No tilt bars / section titles; stacked paragraphs only.
+ * How it works tab: same title stack as Migrate (tilt kicker + bold heading + body).
  */
 export function DAppAboutSections({ fields }: { fields: DAppAboutFields }) {
   const extras = getHowItWorksExtras(fields.slug);
-  const blocks: ReactNode[] = [];
+  const blocks: AboutBlock[] = [];
 
-  if (fields.description) blocks.push(<Prose key="description">{fields.description}</Prose>);
-  if (fields.utility) blocks.push(<Prose key="utility">{fields.utility}</Prose>);
-  if (fields.process) blocks.push(<Prose key="process">{fields.process}</Prose>);
-  if (fields.benefits) blocks.push(<Prose key="benefits">{fields.benefits}</Prose>);
-  if (extras) blocks.push(<Prose key="extras">{extras}</Prose>);
-  if (fields.security) blocks.push(<Prose key="security">{fields.security}</Prose>);
-  if (fields.roadmap) blocks.push(<Prose key="roadmap">{fields.roadmap}</Prose>);
+  if (fields.description) {
+    blocks.push({
+      key: 'overview',
+      kicker: 'Overview',
+      title: 'What this is',
+      body: <Prose>{fields.description}</Prose>,
+    });
+  }
+  if (fields.utility) {
+    blocks.push({
+      key: 'utility',
+      kicker: 'Utility',
+      title: 'What you can do',
+      body: <Prose>{fields.utility}</Prose>,
+    });
+  }
+  if (fields.process) {
+    blocks.push({
+      key: 'process',
+      kicker: 'Process',
+      title: 'How it works',
+      body: <Prose>{fields.process}</Prose>,
+    });
+  }
+  if (fields.benefits) {
+    blocks.push({
+      key: 'benefits',
+      kicker: 'Benefits',
+      title: 'Why use it',
+      body: <Prose>{fields.benefits}</Prose>,
+    });
+  }
+  if (extras) {
+    blocks.push({
+      key: 'details',
+      kicker: 'Details',
+      title: 'Good to know',
+      body: <Prose>{extras}</Prose>,
+    });
+  }
+  if (fields.security) {
+    blocks.push({
+      key: 'security',
+      kicker: 'Security',
+      title: 'Keep in mind',
+      body: <Prose>{fields.security}</Prose>,
+    });
+  }
+  if (fields.roadmap) {
+    blocks.push({
+      key: 'roadmap',
+      kicker: 'Roadmap',
+      title: 'What is next',
+      body: <Prose>{fields.roadmap}</Prose>,
+    });
+  }
 
   if (blocks.length === 0) {
     return (
@@ -47,5 +103,19 @@ export function DAppAboutSections({ fields }: { fields: DAppAboutFields }) {
     );
   }
 
-  return <div className={`${KX_FORM_PANEL} space-y-4`}>{blocks}</div>;
+  return (
+    <div className={`${KX_FORM_PANEL} space-y-8`}>
+      {blocks.map((block, i) => (
+        <section key={block.key}>
+          <GameOverviewTitleBlock
+            as="h3"
+            kicker={block.kicker}
+            title={block.title}
+            compact={i === 0}
+          />
+          {block.body}
+        </section>
+      ))}
+    </div>
+  );
 }

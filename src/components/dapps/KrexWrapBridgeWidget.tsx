@@ -925,7 +925,7 @@ export function KrexWrapBridgeWidget() {
         heading="Your migrations"
         description={
           migrateV2
-            ? 'Saved in this browser. After burn we confirm on Kasplex, issue a claim ticket, then you Claim. Status updates every few seconds.'
+            ? 'Saved in this browser. After Burn, Confirm runs automatically (Kasplex + ticket). When Claim appears, you sign once in KasWare.'
             : 'Saved in this browser. Deposits are on Kaspa L1. Mint status comes from Kasparex watcher receipts.'
         }
       >
@@ -944,7 +944,7 @@ export function KrexWrapBridgeWidget() {
         </div>
         <div className={KX_INFO_DASHED}>
           <p className="font-semibold text-zinc-900 dark:text-zinc-100">
-            {migrateV2 ? 'Simple path' : 'How minting works'}
+            {migrateV2 ? 'Automatic until Claim' : 'How minting works'}
           </p>
           <ol className="mt-2 list-decimal space-y-1.5 pl-5 text-sm leading-snug text-zinc-700 dark:text-zinc-300">
             {migrateV2 ? (
@@ -958,22 +958,21 @@ export function KrexWrapBridgeWidget() {
                   KRC-20 to the sink (permanent).
                 </li>
                 <li>
-                  Attestors confirm the burn and open a one-time{' '}
-                  <Tooltip content="A one-time on-chain ticket. Spending it mints KCC20 and prevents double-claim.">
+                  <Tooltip content="Kasplex confirms the burn, then a one-time ticket is issued. You do not need to tap anything here.">
                     <span className="cursor-help underline decoration-dotted underline-offset-2">
-                      claim ticket
+                      Confirm
                     </span>
-                  </Tooltip>
-                  .
+                  </Tooltip>{' '}
+                  runs automatically (usually under 2 minutes). History refreshes on its own.
                 </li>
                 <li>
-                  You{' '}
+                  When the badge says Ready to claim, tap{' '}
                   <Tooltip content="You sign in KasWare. Kasparex does not hold a key that claims for you.">
                     <span className="cursor-help underline decoration-dotted underline-offset-2">
                       Claim KCC20
                     </span>
                   </Tooltip>{' '}
-                  1:1. History flips to Complete when the claim tx lands.
+                  and sign once.
                 </li>
                 <li>
                   Find the coin on{' '}

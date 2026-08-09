@@ -156,7 +156,16 @@ jobs:
             process.exit(0);
           }
           execSync(`git commit -m "chore(bridge): upsert TN10 migrate attestation (${store.updatedAt})"`);
-          execSync('git pull --rebase origin main');
-          execSync('git push origin HEAD:main');
+          // Attestor materializes keys / tip / ticket result under tkrex-migrate-deploy.
+          // Those dirty files block `git pull --rebase` and left Claim stuck on Confirm.
+          try {
+            execSync('git stash push -u -m "attestor-wip" -- tools/tn10-migrate/tkrex-migrate-deploy', {
+              stdio: 'inherit',
+            });
+          } catch {
+            /* nothing to stash */
+          }
+          execSync('git pull --rebase origin main', { stdio: 'inherit' });
+          execSync('git push origin HEAD:main', { stdio: 'inherit' });
           console.log('Pushed attestation with ticket', ticket.ticketId);
           NODE

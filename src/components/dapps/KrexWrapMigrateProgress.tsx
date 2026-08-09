@@ -157,7 +157,7 @@ function nextHint(steps: FlowStep[], migrateV2: boolean, ticketReady: boolean): 
   if (current.id === 'attest') {
     return ticketReady
       ? 'Ticket ready. Tap Claim KCC20 and sign in KasWare.'
-      : 'Confirming burn and issuing your claim ticket. Usually under 2 minutes. History refreshes automatically.';
+      : 'Confirming burn and issuing your claim ticket automatically. Usually under 2 minutes. No action needed until Claim.';
   }
   if (current.id === 'mint') {
     return 'Tap Claim KCC20, then sign in KasWare.';

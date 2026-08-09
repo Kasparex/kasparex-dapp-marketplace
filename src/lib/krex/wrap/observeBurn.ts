@@ -33,6 +33,9 @@ function accepted(v: unknown): boolean {
   return v === true || v === 1 || v === '1' || v === 'true';
 }
 
+/** In-flight ticket issues (same isolate). Prevents stacked observe-burn timeouts. */
+const issuingByBurn = new Map<string, Promise<MigrateAttestation>>();
+
 /**
  * Try to issue the claim ticket directly from Hub (no GHA) when attestor/wallet3
  * privkeys are configured on this deployment. Falls back to waking the GHA
@@ -43,33 +46,56 @@ async function tryAutoIssueTicket(
   row: MigrateAttestation,
 ): Promise<MigrateAttestation> {
   if (attestationHasTicket(row)) return row;
+  const burn = row.burnTxHash.toLowerCase();
+  const inFlight = issuingByBurn.get(burn);
+  if (inFlight) {
+    try {
+      return await inFlight;
+    } catch {
+      return row;
+    }
+  }
   if (!canIssueTicketsOnHub()) {
     void wakeMigrateAttestor(reasonTag);
     return row;
   }
-  try {
-    const issued = await issueMigrateTicket({
-      burnTxHash: row.burnTxHash,
-      amountRaw: row.amountRaw,
-      claimantAddress: row.claimantAddress || row.from,
-    });
-    if (issued.ok && issued.ticketTxId && issued.ticketIndex != null) {
-      const updated: MigrateAttestation = {
-        ...row,
-        ticketId: issued.ticketId,
-        ticketTxId: issued.ticketTxId,
-        ticketIndex: issued.ticketIndex,
-        note: 'Burn accepted. Ticket issued automatically; Claim is ready.',
-      };
-      const { attestation } = await upsertAttestation(updated);
-      return attestation;
+
+  const work = (async (): Promise<MigrateAttestation> => {
+    try {
+      const issued = await issueMigrateTicket({
+        burnTxHash: row.burnTxHash,
+        amountRaw: row.amountRaw,
+        claimantAddress: row.claimantAddress || row.from,
+      });
+      if (issued.ok && issued.ticketTxId && issued.ticketIndex != null) {
+        const updated: MigrateAttestation = {
+          ...row,
+          ticketId: issued.ticketId,
+          ticketTxId: issued.ticketTxId,
+          ticketIndex: issued.ticketIndex,
+          status: 'attested',
+          note: 'Burn accepted. Ticket issued automatically; Claim is ready.',
+        };
+        const { attestation, persist } = await upsertAttestation(updated);
+        if (!persist.ok) {
+          console.warn('[krex-wrap] ticket issued but persist failed', persist.error);
+        }
+        return attestation;
+      }
+      console.warn('[krex-wrap] auto ticket issue failed', issued.error);
+    } catch (err) {
+      console.warn('[krex-wrap] auto ticket issue error', err instanceof Error ? err.message : err);
     }
-    console.warn('[krex-wrap] auto ticket issue failed', issued.error);
-  } catch (err) {
-    console.warn('[krex-wrap] auto ticket issue error', err instanceof Error ? err.message : err);
+    void wakeMigrateAttestor(reasonTag);
+    return row;
+  })();
+
+  issuingByBurn.set(burn, work);
+  try {
+    return await work;
+  } finally {
+    issuingByBurn.delete(burn);
   }
-  void wakeMigrateAttestor(reasonTag);
-  return row;
 }
 
 export async function observeSinkBurn(input: {

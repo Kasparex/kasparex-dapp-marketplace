@@ -25,6 +25,8 @@ import { canIssueTicketsOnHub, issueMigrateTicket } from '@/lib/krex/wrap/issueT
 import type { Krc20BridgeNetwork } from '@/lib/krex/wrap/types';
 
 export const runtime = 'nodejs';
+/** Ticket auto-issue from observe-burn can take ~30s (genesis settle). */
+export const maxDuration = 60;
 
 const NO_STORE = {
   'Cache-Control': 'no-store, no-cache, must-revalidate',
@@ -505,20 +507,34 @@ export async function POST(req: NextRequest) {
     return postIssueTicket(req, body);
   }
   if (mode === 'observe-burn') {
-    const observed = await observeSinkBurn({
-      burnTxHash: typeof body.burnTxHash === 'string' ? body.burnTxHash : '',
-      network: (body.network === 'mainnet' ? 'mainnet' : 'testnet-10') as Krc20BridgeNetwork,
-      tick: typeof body.tick === 'string' ? body.tick : undefined,
-      wallet: typeof body.wallet === 'string' ? body.wallet : undefined,
-      amount: typeof body.amount === 'number' ? body.amount : undefined,
-    });
-    if (!observed.ok) {
-      return json(
-        { ok: false, mode: 'observe-burn', error: observed.error },
-        { status: 400 },
+    try {
+      const observed = await observeSinkBurn({
+        burnTxHash: typeof body.burnTxHash === 'string' ? body.burnTxHash : '',
+        network: (body.network === 'mainnet' ? 'mainnet' : 'testnet-10') as Krc20BridgeNetwork,
+        tick: typeof body.tick === 'string' ? body.tick : undefined,
+        wallet: typeof body.wallet === 'string' ? body.wallet : undefined,
+        amount: typeof body.amount === 'number' ? body.amount : undefined,
+      });
+      if (!observed.ok) {
+        return json(
+          { ok: false, mode: 'observe-burn', error: observed.error },
+          { status: 400 },
+        );
+      }
+      return json({ ...observed, mode: 'observe-burn' });
+    } catch (err) {
+      // Never 500 the History poll: Confirm must keep refreshing until Claim.
+      console.warn(
+        '[krex-wrap] observe-burn crashed',
+        err instanceof Error ? err.message : err,
       );
+      return json({
+        ok: true,
+        mode: 'observe-burn',
+        verified: false,
+        error: err instanceof Error ? err.message : 'observe-burn failed',
+      });
     }
-    return json({ ...observed, mode: 'observe-burn' });
   }
 
   if (!watcherAuthorized(req)) {

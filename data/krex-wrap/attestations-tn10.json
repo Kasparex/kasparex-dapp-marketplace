@@ -1,7 +1,25 @@
 {
   "network": "testnet-10",
-  "updatedAt": "2026-08-08T08:21:02.083Z",
+  "updatedAt": "2026-08-09T11:35:00.000Z",
   "attestations": [
+    {
+      "network": "testnet-10",
+      "tick": "TKREX",
+      "burnTxHash": "2c13f401a7b097fb8c3ab0018ac6e0b410aeff3e3eb5f019528c8b8e767a517b",
+      "amountRaw": "210000000",
+      "amount": 2.1,
+      "from": "kaspatest:qrwa6q8pk80dzpatgas9es2re0kusnja305wsnealy0hj480w452y0fmw3hsd",
+      "sinkAddress": "kaspatest:pqw2y985nkrstxa7x30rkckq6y8papu48tv688vak9eyew2fc9r9vdf0hcw87",
+      "claimantAddress": "kaspatest:qrwa6q8pk80dzpatgas9es2re0kusnja305wsnealy0hj480w452y0fmw3hsd",
+      "assetCovenantId": "4c1b883883cc816442bac6bd23621c7b1157a25f5c5ac61caf098ae0004d8106",
+      "migrateVersion": 3,
+      "status": "attested",
+      "attestedAt": "2026-08-09T11:07:50.487Z",
+      "note": "Burn accepted. Ticket ready. Claim KCC20 below.",
+      "ticketId": "6c83d106f70c0be95c1f08c4a5fb1735fe57adfbe845ca7a950b7613422376b4:0",
+      "ticketTxId": "6c83d106f70c0be95c1f08c4a5fb1735fe57adfbe845ca7a950b7613422376b4",
+      "ticketIndex": 0
+    },
     {
       "network": "testnet-10",
       "tick": "TKREX",

@@ -345,19 +345,26 @@ function attestationPayloadEqual(a: MigrateAttestation, b: MigrateAttestation): 
   return pick(a) === pick(b);
 }
 
-export async function persistAttestationStore(store: AttestationStoreFile): Promise<{
+export async function persistAttestationStore(
+  store: AttestationStoreFile,
+  opts?: { force?: boolean },
+): Promise<{
   ok: boolean;
   via: 'github' | 'local' | 'none' | 'skipped';
   error?: string;
 }> {
   // Hub History polls observe-burn every few seconds. Persisting each poll to GitHub
-  // floods main and burns the Vercel deploy queue. Attestations are written by the
-  // attestor / local tools; Hub should read them, not rewrite them on every poll.
-  // Opt in only with KREX_WRAP_ALLOW_GITHUB_ATTEST_PERSIST=1.
-  if (process.env.VERCEL && process.env.KREX_WRAP_ALLOW_GITHUB_ATTEST_PERSIST !== '1') {
+  // floods main and burns the Vercel deploy queue. Skip routine polls on Vercel.
+  // Ticket / claim upgrades MUST persist (force) so Confirm can flip to Claim without
+  // waiting for a manual GHA git sync.
+  if (process.env.KREX_WRAP_DISABLE_GITHUB_PERSIST === '1') {
     return { ok: true, via: 'skipped' };
   }
-  if (process.env.KREX_WRAP_DISABLE_GITHUB_PERSIST === '1') {
+  if (
+    process.env.VERCEL &&
+    process.env.KREX_WRAP_ALLOW_GITHUB_ATTEST_PERSIST !== '1' &&
+    !opts?.force
+  ) {
     return { ok: true, via: 'skipped' };
   }
 
@@ -448,6 +455,17 @@ export async function findAttestation(burnTxHash: string): Promise<MigrateAttest
   return store.attestations.find((a) => a.burnTxHash?.toLowerCase() === burn) ?? null;
 }
 
+function isMeaningfulAttestationUpgrade(
+  prev: MigrateAttestation | undefined,
+  next: MigrateAttestation,
+): boolean {
+  const gainedTicket = attestationHasTicket(next) && (!prev || !attestationHasTicket(prev));
+  const gainedClaim =
+    (next.status === 'claimed' && prev?.status !== 'claimed') ||
+    (Boolean(next.mintTxHash) && !prev?.mintTxHash);
+  return gainedTicket || gainedClaim;
+}
+
 export async function upsertAttestation(row: MigrateAttestation): Promise<{
   attestation: MigrateAttestation;
   persist: { ok: boolean; via: 'github' | 'local' | 'none' | 'skipped'; error?: string };
@@ -472,11 +490,15 @@ export async function upsertAttestation(row: MigrateAttestation): Promise<{
       return { attestation: prev, persist: { ok: true, via: 'skipped' } };
     }
     store.attestations[idx] = merged;
-    const persist = await persistAttestationStore(store);
+    const persist = await persistAttestationStore(store, {
+      force: isMeaningfulAttestationUpgrade(prev, merged),
+    });
     return { attestation: merged, persist };
   }
   store.attestations.unshift(normalized);
-  const persist = await persistAttestationStore(store);
+  const persist = await persistAttestationStore(store, {
+    force: isMeaningfulAttestationUpgrade(undefined, normalized),
+  });
   return { attestation: normalized, persist };
 }
 
