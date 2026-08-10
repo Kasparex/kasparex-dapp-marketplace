@@ -1,6 +1,6 @@
 {
   "network": "testnet-10",
-  "updatedAt": "2026-08-10T12:17:15.313Z",
+  "updatedAt": "2026-08-10T12:38:55.427Z",
   "attestations": [
     {
       "network": "testnet-10",
@@ -170,9 +170,10 @@
       "ticketTxId": "81ba95a9eccfea9bb7ef92277052f9a45800b9d2e6304318f8b9d6931245bab4",
       "ticketIndex": 0,
       "migrateVersion": 3,
-      "status": "attested",
+      "status": "claimed",
       "attestedAt": "2026-08-10T11:55:34.355Z",
-      "note": "TN10 v3: MigrateTicket issued; user Claims in Hub"
+      "note": "User claimed KCC20 on Kaspa L1 (ticket spent).",
+      "mintTxHash": "6d0f54931ddfb17f46c24925234081e758ee5de543f764eaf56b26baa05c7dff"
     },
     {
       "network": "testnet-10",
@@ -335,25 +336,6 @@
       "ticketTxId": "6c83d106f70c0be95c1f08c4a5fb1735fe57adfbe845ca7a950b7613422376b4",
       "ticketIndex": 0,
       "mintTxHash": "eac877aa7f8737bcd699bd0694a5299f95c48c88cd311699b3376065e1a09054"
-    },
-    {
-      "network": "testnet-10",
-      "tick": "TKREX",
-      "burnTxHash": "1bdc4c930142b83beae6030aac1623f40e714a197ee47c88b77bf1bbff7cfe3a",
-      "amountRaw": "290000000",
-      "amount": 2.9,
-      "from": "kaspatest:qrwa6q8pk80dzpatgas9es2re0kusnja305wsnealy0hj480w452y0fmw3hsd",
-      "sinkAddress": "kaspatest:pqw2y985nkrstxa7x30rkckq6y8papu48tv688vak9eyew2fc9r9vdf0hcw87",
-      "claimantAddress": "kaspatest:qrwa6q8pk80dzpatgas9es2re0kusnja305wsnealy0hj480w452y0fmw3hsd",
-      "assetCovenantId": "4c1b883883cc816442bac6bd23621c7b1157a25f5c5ac61caf098ae0004d8106",
-      "migrateVersion": 3,
-      "status": "claimed",
-      "attestedAt": "2026-08-08T07:21:43.191Z",
-      "note": "User claimed KCC20 on Kaspa L1 (ticket spent).",
-      "ticketId": "25464537f5e02eeb0d89ee71cd789fe1377b469fc0f5fbeb2d89774ba161b717:0",
-      "ticketTxId": "25464537f5e02eeb0d89ee71cd789fe1377b469fc0f5fbeb2d89774ba161b717",
-      "ticketIndex": 0,
-      "mintTxHash": "b17d85d9c638dbe271515d4cebf639ce0ddc3c384abb89756bd0a91debc5c064"
     }
   ]
 }
