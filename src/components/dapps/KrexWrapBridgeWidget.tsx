@@ -19,7 +19,7 @@ import { useDAppWidgetSection, useNavigateDAppWidgetTab } from '@/lib/dapps/DApp
 import { Krc20TickerSearchField } from '@/components/tokens/Krc20TickerSearchField';
 import type { Krc20TokenInfo } from '@/lib/tokens/krc20Lookup';
 import { HubMetadataStatGrid } from '@/components/hub/HubMetadataStatGrid';
-import { KX_INFO_DASHED, KX_DASHBOARD_TAB_BTN, KX_DASHBOARD_TAB_BTN_ACTIVE, KX_PANEL, KX_METADATA_STAT_VALUE_LINK } from '@/lib/hub/shellTokens';
+import { KX_INFO_DASHED, KX_DASHBOARD_TAB_BTN, KX_DASHBOARD_TAB_BTN_ACTIVE, KX_PANEL, KX_METADATA_STAT_VALUE_LINK, KX_SURFACE_NESTED } from '@/lib/hub/shellTokens';
 import {
   getKrexWrapPublicConfig,
   getWrapCovenantIdForTick,
@@ -90,7 +90,7 @@ function writeAttestCache(a: MigrateAttestation): void {
     prev[key] = a;
     const entries = Object.entries(prev)
       .sort((x, y) => String(y[1].attestedAt || '').localeCompare(String(x[1].attestedAt || '')))
-      .slice(0, 40);
+      .slice(0, 10);
     window.localStorage.setItem(ATTEST_CACHE_KEY, JSON.stringify(Object.fromEntries(entries)));
   } catch {
     /* ignore quota */
@@ -146,7 +146,7 @@ function statusTooltip(status: KrexWrapStatus): string {
     case 'deposited':
       return 'Token is in the vault. Matching KCC20 mint is not live for this ticker yet.';
     case 'burned':
-      return 'Burn submitted. Confirming on Kasplex, then a claim ticket is issued (usually under 2 minutes).';
+      return 'Burn submitted. Confirming on Kasplex, then a claim ticket is issued (usually under 10 minutes).';
     case 'awaiting_attest':
       return 'Confirming burn / waiting for claim ticket. Claim appears as soon as the ticket is ready.';
     case 'pending_mint':
@@ -538,6 +538,45 @@ export function KrexWrapBridgeWidget() {
 
   const parsedAmount = amount && !Number.isNaN(parseFloat(amount)) ? parseFloat(amount) : null;
   const feeKas = quoteKrexWrapFeeKas(tier);
+
+  const paymentOutputs = useMemo(() => {
+    const rows: Array<{ label: string; amount: string }> = [];
+    if (feeKas > 0 && config.treasuryAddress) {
+      try {
+        const plan = buildHubKasListingPlan({
+          feeKas,
+          treasuryAddress: config.treasuryAddress,
+          ...(network === 'testnet-10' ? { rewardsBps: 0 } : {}),
+        });
+        for (const leg of plan.legs) {
+          rows.push({
+            label: leg.label || (leg.role === 'rewards' ? 'Hub rewards' : 'Kasparex treasury'),
+            amount: `${leg.amount.toLocaleString(undefined, { maximumFractionDigits: 8 })} KAS`,
+          });
+        }
+      } catch {
+        rows.push({
+          label: 'Kasparex treasury (bridge fee)',
+          amount: `${feeKas.toLocaleString(undefined, { maximumFractionDigits: 8 })} KAS`,
+        });
+      }
+    }
+    if (selectedToken && parsedAmount != null && parsedAmount > 0) {
+      rows.push({
+        label: config.migrateV2Enabled ? `Burn ${tick} to sink` : `Send ${tick} to vault`,
+        amount: `${parsedAmount.toLocaleString(undefined, { maximumFractionDigits: 8 })} ${tick}`,
+      });
+    }
+    return rows;
+  }, [
+    feeKas,
+    config.treasuryAddress,
+    config.migrateV2Enabled,
+    network,
+    selectedToken,
+    parsedAmount,
+    tick,
+  ]);
 
   const hubQuote = useMemo(() => {
     if (!bridgeDApp || parsedAmount == null || parsedAmount <= 0 || !selectedToken) return null;
@@ -973,7 +1012,7 @@ export function KrexWrapBridgeWidget() {
 
       const successMsg = migrateV2
         ? mintLive
-          ? `Burned ${parsedAmount} ${tick}. Opening History. Claim appears after confirmation (usually under 2 min).`
+          ? `Burned ${parsedAmount} ${tick}. Opening History. Claim appears after confirmation (usually under 10 min).`
           : `Burned ${parsedAmount} ${tick} to the keyless sink on ${networkLabel(network)}.`
         : mintLive
           ? `Deposited ${parsedAmount} ${tick}. Kasparex mints matching KCC20 next; History flips when the receipt lands.`
@@ -1080,23 +1119,10 @@ export function KrexWrapBridgeWidget() {
         heading="Your migrations"
         description={
           migrateV2
-            ? 'Saved in this browser. After Burn, Confirm runs automatically (Kasplex + ticket). When Claim appears, you sign once in KasWare.'
-            : 'Saved in this browser. Deposits are on Kaspa L1. Mint status comes from Kasparex watcher receipts.'
+            ? 'Saved in this browser (latest 10). After Burn, Confirm runs automatically. When Claim appears, you sign once in KasWare.'
+            : 'Saved in this browser (latest 10). Deposits are on Kaspa L1. Mint status comes from Kasparex watcher receipts.'
         }
       >
-        <div className="flex flex-wrap items-center gap-2">
-          <button
-            type="button"
-            className="k-control-btn text-xs"
-            disabled={syncing}
-            onClick={() => setSyncNonce((n) => n + 1)}
-          >
-            {syncing ? 'Checking…' : 'Refresh status'}
-          </button>
-          {syncing ? (
-            <span className="text-[11px] text-zinc-500">Updating from Kasplex / Hub…</span>
-          ) : null}
-        </div>
         <div className={KX_INFO_DASHED}>
           <p className="font-semibold text-zinc-900 dark:text-zinc-100">
             {migrateV2 ? 'Automatic until Claim' : 'How minting works'}
@@ -1118,7 +1144,7 @@ export function KrexWrapBridgeWidget() {
                       Confirm
                     </span>
                   </Tooltip>{' '}
-                  runs automatically (usually under 2 minutes). History refreshes on its own.
+                  runs automatically (usually under 10 minutes). History refreshes on its own.
                 </li>
                 <li>
                   When the badge says Ready to claim, tap{' '}
@@ -1137,7 +1163,7 @@ export function KrexWrapBridgeWidget() {
                     </span>
                   </Tooltip>
                   {' '}
-                  (not in KasWare&apos;s KRC-20 list).
+                  (not in KasWare&apos;s KRC-20 list). Older migrations stay on-chain explorers.
                 </li>
               </>
             ) : (
@@ -1182,23 +1208,24 @@ export function KrexWrapBridgeWidget() {
                     row={row}
                     migrateV2={migrateV2}
                     ticketReady={claimReady.ready}
+                    claimAction={
+                      migrateV2 &&
+                      row.depositTxHash &&
+                      !row.mintTxHash &&
+                      (row.status === 'burned' || row.status === 'awaiting_attest') ? (
+                        <ClaimTicketButton
+                          attestation={attestation}
+                          provider={state.provider}
+                          fundingAddress={state.address}
+                          forceShowWaiting
+                          onClaimed={() => {
+                            refreshHistory();
+                            setSyncNonce((n) => n + 1);
+                          }}
+                        />
+                      ) : null
+                    }
                   />
-
-                  {migrateV2 &&
-                  row.depositTxHash &&
-                  !row.mintTxHash &&
-                  (row.status === 'burned' || row.status === 'awaiting_attest') ? (
-                    <ClaimTicketButton
-                      attestation={attestation}
-                      provider={state.provider}
-                      fundingAddress={state.address}
-                      forceShowWaiting
-                      onClaimed={() => {
-                        refreshHistory();
-                        setSyncNonce((n) => n + 1);
-                      }}
-                    />
-                  ) : null}
 
                   {row.status === 'minted' ? (
                     <div className="flex flex-wrap items-center gap-2">
@@ -1332,7 +1359,7 @@ export function KrexWrapBridgeWidget() {
               <div className="rounded-xl border border-amber-300/50 bg-amber-50 p-3 text-sm text-amber-950 dark:border-amber-700 dark:bg-amber-950/40 dark:text-amber-100">
                 You are connected as the{' '}
                 <span className="font-semibold">{migrateV2 ? 'burn sink' : 'deposit vault'}</span>
-                {migrateV2 ? ' (unspendable; wrong wallet).' : ' (bal 0 is expected).'} Switch KasWare to
+                {migrateV2 ? ' (unspendable; wrong wallet).' : ' (balance 0 is expected).'} Switch KasWare to
                 your funded test wallet to migrate {tick || 'tokens'}.
               </div>
             ) : null}
@@ -1411,7 +1438,7 @@ export function KrexWrapBridgeWidget() {
               <KxFormFieldLabel htmlFor="kcc20-bridge-amount">
                 Amount
                 {selectedToken
-                  ? ` (${tick}${isLoadingBalance ? '' : ` · bal ${tokenBalance.toLocaleString()}`})`
+                  ? ` (${tick}${isLoadingBalance ? '' : ` · balance ${tokenBalance.toLocaleString()}`})`
                   : ''}
               </KxFormFieldLabel>
               <div className="mt-1.5 flex gap-2">
@@ -1435,6 +1462,33 @@ export function KrexWrapBridgeWidget() {
                   Max
                 </button>
               </div>
+              {paymentOutputs.length > 0 ? (
+                <div className={`${KX_SURFACE_NESTED} mt-3 space-y-1.5 p-3`}>
+                  <p className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+                    Payment outputs
+                  </p>
+                  {paymentOutputs.map((row) => (
+                    <div
+                      key={`${row.label}-${row.amount}`}
+                      className="flex justify-between gap-3 text-xs text-zinc-600 dark:text-zinc-400"
+                    >
+                      <span className="min-w-0 truncate">{row.label}</span>
+                      <span className="shrink-0 font-semibold tabular-nums text-zinc-900 dark:text-zinc-100">
+                        {row.amount}
+                      </span>
+                    </div>
+                  ))}
+                  <div className="flex justify-between gap-3 text-xs text-zinc-500">
+                    <span>Change</span>
+                    <span className="shrink-0 tabular-nums">back to your wallet</span>
+                  </div>
+                  <p className="pt-1 text-[11px] leading-snug text-zinc-500 dark:text-zinc-400">
+                    {migrateV2
+                      ? 'KAS fee goes to Hub. Token amount is burned to the sink in a separate wallet step.'
+                      : 'KAS fee goes to Hub. Token amount is sent to the vault in a separate wallet step.'}
+                  </p>
+                </div>
+              ) : null}
             </div>
           </>
         )}

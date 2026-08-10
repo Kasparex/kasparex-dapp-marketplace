@@ -1,7 +1,7 @@
 import type { KrexWrapRecord, KrexWrapStatus } from './types';
 
 const STORAGE_KEY = 'kx_krex_wrap_history_v1';
-const MAX_RECORDS = 50;
+const MAX_RECORDS = 10;
 
 function canUseStorage(): boolean {
   return typeof window !== 'undefined' && typeof window.localStorage !== 'undefined';

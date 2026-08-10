@@ -1,5 +1,6 @@
 'use client';
 
+import type { ReactNode } from 'react';
 import type { KrexWrapRecord, KrexWrapStatus } from '@/lib/krex/wrap/types';
 import { KX_SURFACE_NESTED } from '@/lib/hub/shellTokens';
 import { Tooltip } from '@/components/ui/Tooltip';
@@ -65,7 +66,6 @@ function v2Steps(
   const normalized: KrexWrapStatus =
     status === 'pending_mint' ? 'awaiting_attest' : status === 'deposited' ? 'burned' : status;
 
-  // Stay on Confirm until the claim ticket exists. Do not jump to Claim early.
   let currentIdx = 1;
   if (normalized === 'minted') currentIdx = 4;
   else if (normalized === 'fee_paid') currentIdx = 1;
@@ -109,15 +109,15 @@ function v2Steps(
       doneDetail: 'Burn confirmed',
       currentDetail: ticketReady
         ? 'Ticket ready'
-        : 'Please wait… claim ticket (usually under 2 min)',
+        : 'Please wait… claim ticket (usually under 10 minutes)',
       nextDetail: 'Attestors confirm burn',
-      tip: 'Kasplex opAccept, then a one-time claim ticket. Usually under 2 minutes.',
+      tip: 'Kasplex opAccept, then a one-time claim ticket. Usually under 10 minutes.',
     },
     {
       id: 'mint',
       label: 'Claim',
       doneDetail: 'KCC20 received 1:1',
-      currentDetail: 'Sign Claim in KasWare',
+      currentDetail: ticketReady ? 'Sign Claim in KasWare' : 'Waiting for ticket…',
       nextDetail: 'Claim matching KCC20',
       tip: 'You sign the claim. KCC20 is a covenant coin on Kaspa L1 (see kascov).',
       txHash: row.mintTxHash,
@@ -154,6 +154,8 @@ function v2Steps(
       detail: step.nextDetail,
       tip: step.tip,
       state: 'upcoming' as const,
+      txHash: step.id === 'mint' ? step.txHash : undefined,
+      txKind: step.id === 'mint' ? step.txKind : undefined,
     };
   });
 }
@@ -249,7 +251,7 @@ function nextHint(steps: FlowStep[], migrateV2: boolean, ticketReady: boolean): 
   if (current.id === 'attest') {
     return ticketReady
       ? 'Ticket ready. Tap Claim KCC20 and sign in KasWare.'
-      : 'Confirming burn and issuing your claim ticket automatically. Usually under 2 minutes. No action needed until Claim.';
+      : 'Confirming burn and issuing your claim ticket automatically. Usually under 10 minutes. No action needed until Claim.';
   }
   if (current.id === 'mint') {
     return 'Tap Claim KCC20, then sign in KasWare.';
@@ -337,16 +339,23 @@ export function KrexWrapMigrateProgress({
   row,
   migrateV2,
   ticketReady = false,
+  claimAction,
 }: {
   row: KrexWrapRecord;
   migrateV2: boolean;
   /** True when MigrateTicket is on the Hub attestation and Claim can be signed. */
   ticketReady?: boolean;
+  /** Claim / Waiting button rendered inside the Claim capsule while pending. */
+  claimAction?: ReactNode;
 }) {
   const useV2 = migrateV2 || row.migrateVersion === 2 || row.status === 'burned' || row.status === 'awaiting_attest';
   const steps = useV2 ? v2Steps(row.status, ticketReady, row) : v1Steps(row.status, row);
   const hint = nextHint(steps, useV2, ticketReady);
   const net = row.network === 'testnet-10' ? 'testnet-10' : 'mainnet';
+  const showClaimAction =
+    Boolean(claimAction) &&
+    !row.mintTxHash &&
+    (row.status === 'burned' || row.status === 'awaiting_attest' || row.status === 'pending_mint');
 
   return (
     <div className={`${KX_SURFACE_NESTED} p-3.5`} aria-label="Migration progress">
@@ -361,7 +370,12 @@ export function KrexWrapMigrateProgress({
       <ol className="divide-y divide-zinc-200/80 dark:divide-zinc-700/80">
         {steps.map((step) => {
           const txId = step.txHash ? extractTxId(step.txHash) : '';
-          const showTx = Boolean(txId) && (step.state === 'done' || (step.state === 'current' && step.txKind));
+          const isClaimStep = step.id === 'mint';
+          const showTx =
+            Boolean(txId) &&
+            (step.state === 'done' || (step.state === 'current' && step.txKind && !isClaimStep));
+          const showClaimTx = isClaimStep && step.state === 'done' && Boolean(txId);
+          const showClaimBtn = isClaimStep && showClaimAction && step.state !== 'done';
           return (
             <li key={step.id} className="flex items-start gap-2.5 py-2.5 first:pt-0 last:pb-0">
               <StepIcon state={step.state} />
@@ -390,9 +404,9 @@ export function KrexWrapMigrateProgress({
                       {step.label}
                     </span>
                   )}
-                  {showTx && step.txHash && step.txKind ? (
+                  {(showTx || showClaimTx) && step.txHash && step.txKind ? (
                     <StepTxCapsule txHash={step.txHash} kind={step.txKind} network={net} />
-                  ) : (
+                  ) : showClaimBtn ? null : (
                     <span
                       className={`shrink-0 text-[10px] uppercase tracking-wide ${
                         step.state === 'current'
@@ -423,6 +437,7 @@ export function KrexWrapMigrateProgress({
                 >
                   {step.detail}
                 </p>
+                {showClaimBtn ? <div className="mt-2">{claimAction}</div> : null}
               </div>
             </li>
           );
