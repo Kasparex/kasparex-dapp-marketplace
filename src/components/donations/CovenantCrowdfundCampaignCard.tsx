@@ -38,9 +38,13 @@ const PLEDGE_HUB_POINTS_BASE = getHubPointsBaseForAction(CROWDFUND_DAPP, 'pledge
 
 export function CovenantCrowdfundCampaignCard({
   campaign,
+  footer,
+  showPledge = true,
 }: {
   campaign: CrowdfundCampaign;
   footer?: React.ReactNode;
+  /** Listing cards: true. My Campaigns / studio: false (actions only). */
+  showPledge?: boolean;
 }) {
   const { state } = useKaspaWallet();
   const { pledge, refresh } = useCovenantCrowdfund();
@@ -116,7 +120,7 @@ export function CovenantCrowdfundCampaignCard({
 
   const listingFooter = (
     <div className="space-y-3">
-      {isLive ? (
+      {showPledge && isLive ? (
         <VDonatePledgeInline
           amount={pledgeAmount}
           onAmountChange={setPledgeAmount}
@@ -126,25 +130,35 @@ export function CovenantCrowdfundCampaignCard({
           feeHint={feeHint}
         />
       ) : null}
-      <div
-        className="flex items-center justify-between gap-3"
-        onClick={(e) => e.stopPropagation()}
-        onKeyDown={(e) => e.stopPropagation()}
-      >
-        <div className="min-w-0">
-          {campaign.category ? (
-            <KxListingCategoryChip title={campaign.category}>{campaign.category}</KxListingCategoryChip>
-          ) : (
-            <span className="text-xs text-zinc-500 dark:text-zinc-400">{VDONATE_SHORT_NAME} L1</span>
-          )}
+      {showPledge ? (
+        <div
+          className="flex items-center justify-between gap-3"
+          onClick={(e) => e.stopPropagation()}
+          onKeyDown={(e) => e.stopPropagation()}
+        >
+          <div className="min-w-0">
+            {campaign.category ? (
+              <KxListingCategoryChip title={campaign.category}>{campaign.category}</KxListingCategoryChip>
+            ) : (
+              <span className="text-xs text-zinc-500 dark:text-zinc-400">{VDONATE_SHORT_NAME} L1</span>
+            )}
+          </div>
+          <DonationVoteControls
+            entityId={`covenant:${campaign.id}`}
+            creatorWallet={campaign.creator}
+            title={campaign.title}
+            compact
+          />
         </div>
-        <DonationVoteControls
-          entityId={`covenant:${campaign.id}`}
-          creatorWallet={campaign.creator}
-          title={campaign.title}
-          compact
-        />
-      </div>
+      ) : null}
+      {footer ? (
+        <div
+          onClick={(e) => e.stopPropagation()}
+          onKeyDown={(e) => e.stopPropagation()}
+        >
+          {footer}
+        </div>
+      ) : null}
     </div>
   );
 

@@ -1,7 +1,6 @@
 'use client';
 
-import { useAccount, useChainId } from 'wagmi';
-import { formatEther } from 'viem';
+import { crowdkasCardClass } from '@/components/donations/CrowdKasUi';
 import { DonationLeaderboard } from './DonationLeaderboard';
 import type { DonationCampaign } from '@/lib/donations/types';
 import { progressPercent, totalDonorCount, totalRaisedWei } from '@/lib/donations/totals';
@@ -11,6 +10,8 @@ import type { DonationCampaignMetadata } from '@/lib/donations/types';
 import { DonationBlock } from '@/components/donations/DonationBlock';
 import { CampaignEndCountdown } from '@/components/donations/CampaignEndCountdown';
 import { HubAsideRail } from '@/components/hub/HubAsideRail';
+import { formatEther } from 'viem';
+import { useAccount, useChainId } from 'wagmi';
 
 interface DonationCampaignRightColumnProps {
   campaign: DonationCampaign;
@@ -53,8 +54,8 @@ export function DonationCampaignRightColumn({
         onL2AmountChange={onL2AmountChange}
       />
 
-      <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4">
-        <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-3">Campaign summary</h3>
+      <div className={`${crowdkasCardClass} space-y-3`}>
+        <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Campaign summary</h3>
         <dl className="space-y-2 text-sm">
           <div className="flex justify-between">
             <span className="text-zinc-500 dark:text-zinc-400">{v2Campaign ? 'Raised (L2 goal)' : 'Raised'}</span>
@@ -92,8 +93,8 @@ export function DonationCampaignRightColumn({
       </div>
 
       {userWalletAddress && (
-        <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4">
-          <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Your points</h3>
+        <div className={`${crowdkasCardClass} space-y-2`}>
+          <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Your points</h3>
           <p className="kx-body">
             {pointsLoading ? 'Calculating…' : `${points} points`}
           </p>

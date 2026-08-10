@@ -15,6 +15,7 @@ import {
   covenantCampaignRaisedKas,
 } from '@/lib/donations/covenantCrowdfund';
 import { VDonateCampaignDetailShell } from '@/components/donations/VDonateCampaignDetailShell';
+import type { CrowdfundTier } from '@/lib/covenant/crowdfund-types';
 
 export default function CovenantCrowdfundPage({
   params,
@@ -22,8 +23,9 @@ export default function CovenantCrowdfundPage({
   params: Promise<{ campaignId: string }>;
 }) {
   const { campaignId } = use(params);
-  const { allCampaigns, loading } = useCovenantCrowdfund();
+  const { allCampaigns, loading, pledge, refresh } = useCovenantCrowdfund();
   const [selectedTierId, setSelectedTierId] = useState<string | null>(null);
+  const [rewardBusy, setRewardBusy] = useState(false);
 
   const campaign = useMemo(
     () => allCampaigns.find((c) => c.id === campaignId) ?? null,
@@ -37,6 +39,20 @@ export default function CovenantCrowdfundPage({
       .slice(0, 6)
       .map((c) => ({ href: `/donations/covenant/${c.id}`, title: c.title }));
   }, [allCampaigns, campaign]);
+
+  const handleRewardPledge = async (tier: CrowdfundTier) => {
+    if (!campaign) return;
+    setSelectedTierId(tier.id);
+    setRewardBusy(true);
+    try {
+      await pledge(campaign.id, tier.minKas, tier.id);
+      await refresh();
+    } catch {
+      /* hook toasts */
+    } finally {
+      setRewardBusy(false);
+    }
+  };
 
   if (loading && !campaign) {
     return (
@@ -115,6 +131,8 @@ export default function CovenantCrowdfundPage({
         otherCampaigns,
       }}
       onSelectTier={(id) => setSelectedTierId(id)}
+      onRewardPledge={(tier) => void handleRewardPledge(tier)}
+      rewardBusy={rewardBusy}
       rightColumn={
         <CovenantCrowdfundRightColumn
           campaign={campaign}

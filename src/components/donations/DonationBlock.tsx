@@ -24,6 +24,7 @@ import type { Address } from 'viem';
 import { useHubWalletGate } from '@/hooks/useHubWalletGate';
 import { HubWalletGateModal } from '@/components/hub/HubWalletGateModal';
 import { evaluateHubAccess, getHubGateMessage } from '@/lib/hub/access';
+import { crowdkasCardClass } from '@/components/donations/CrowdKasUi';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 
 function getCrowdKASDApp(chainId: number | undefined): DApp {
@@ -296,12 +297,12 @@ export function DonationBlock({
 
   const shellClass =
     layoutVariant === 'panel'
-      ? 'rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4'
+      ? `${crowdkasCardClass} space-y-4`
       : 'border-t border-zinc-200 dark:border-zinc-700 pt-6 mt-6';
 
   return (
     <div id="crowdkas-donate" className={shellClass}>
-      <div className="flex items-start justify-between gap-2 mb-4">
+      <div className="flex items-start justify-between gap-2">
         <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">Donate</h3>
         {!deadlinePassed ? <DonationL2FeeInfoModal /> : null}
       </div>

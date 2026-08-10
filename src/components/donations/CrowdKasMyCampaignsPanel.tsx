@@ -34,6 +34,87 @@ function toListItem(c: DonationCampaignV2ListItem): DonationCampaignListItem {
   };
 }
 
+function StudioCardActions({
+  onEdit,
+  onDelete,
+  canDelete,
+  deleteBlockedHint,
+  confirmDelete,
+  onConfirmDelete,
+  onCancelDelete,
+  deleting,
+  claimSlot,
+}: {
+  onEdit?: () => void;
+  onDelete?: () => void;
+  canDelete: boolean;
+  deleteBlockedHint?: string;
+  confirmDelete: boolean;
+  onConfirmDelete: () => void;
+  onCancelDelete: () => void;
+  deleting?: boolean;
+  claimSlot?: React.ReactNode;
+}) {
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      {onEdit ? (
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            onEdit();
+          }}
+          className="flex-1 k-control-btn hub-cta-btn justify-center"
+        >
+          Edit
+        </button>
+      ) : null}
+      {claimSlot}
+      {onDelete ? (
+        confirmDelete ? (
+          <>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onConfirmDelete();
+              }}
+              disabled={deleting || !canDelete}
+              className="flex-1 k-control-btn justify-center !bg-red-600 !text-white !border-red-600 hover:!bg-red-700 disabled:opacity-50"
+            >
+              {deleting ? 'Deleting…' : 'Confirm'}
+            </button>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onCancelDelete();
+              }}
+              disabled={deleting}
+              className="k-control-btn"
+            >
+              Cancel
+            </button>
+          </>
+        ) : (
+          <button
+            type="button"
+            disabled={!canDelete}
+            title={!canDelete ? deleteBlockedHint : undefined}
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete();
+            }}
+            className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-semibold text-red-700 transition-colors hover:bg-red-100 disabled:opacity-50 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-300 dark:hover:bg-red-900/40"
+          >
+            Delete
+          </button>
+        )
+      ) : null}
+    </div>
+  );
+}
+
 export function CrowdKasMyCampaignsPanel({
   l2Campaigns,
   covenantCampaigns,
@@ -63,6 +144,8 @@ export function CrowdKasMyCampaignsPanel({
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [methodFilter, setMethodFilter] = useState<MethodFilter>('all');
   const [metadataById, setMetadataById] = useState<Record<string, DonationCampaignMetadata | null>>({});
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -123,6 +206,16 @@ export function CrowdKasMyCampaignsPanel({
   const hasActiveFilters = statusFilter !== 'all' || methodFilter !== 'all' || search.trim().length > 0;
   const totalVisible = filteredL2.length + filteredCovenant.length;
 
+  const runDelete = async (id: string, fn: () => void | Promise<void>) => {
+    setDeletingId(id);
+    try {
+      await fn();
+      setConfirmDeleteId(null);
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
   return (
     <div id="crowdkas-dashboard-archive" className="scroll-mt-24 space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <FilterBar
@@ -177,43 +270,34 @@ export function CrowdKasMyCampaignsPanel({
       ) : null}
 
       {!isLoading && totalVisible > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 items-stretch w-full">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-stretch w-full">
           {filteredCovenant.map((c) => {
+            const key = `covenant-${c.id}`;
             const backers = c.pledges.filter((p) => !p.refunded).length;
             const canDeleteCovenant = backers === 0;
             return (
               <CovenantCrowdfundCampaignCard
-                key={`covenant-${c.id}`}
+                key={key}
                 campaign={c}
+                showPledge={false}
                 footer={
                   onEditCovenant || onDeleteCovenant ? (
-                    <div className="flex flex-wrap items-center gap-2">
-                      {onEditCovenant ? (
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onEditCovenant(c);
-                          }}
-                          className="flex-1 k-control-btn justify-center !bg-emerald-600 !text-white !border-emerald-600 hover:!bg-emerald-700"
-                        >
-                          Edit
-                        </button>
-                      ) : null}
-                      {onDeleteCovenant ? (
-                        <button
-                          type="button"
-                          disabled={!canDeleteCovenant}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onDeleteCovenant(c.id);
-                          }}
-                          className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-semibold text-red-700 transition-colors hover:bg-red-100 disabled:opacity-50 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-300 dark:hover:bg-red-900/40"
-                        >
-                          Delete
-                        </button>
-                      ) : null}
-                    </div>
+                    <StudioCardActions
+                      onEdit={onEditCovenant ? () => onEditCovenant(c) : undefined}
+                      onDelete={
+                        onDeleteCovenant
+                          ? () => setConfirmDeleteId(key)
+                          : undefined
+                      }
+                      canDelete={canDeleteCovenant}
+                      deleteBlockedHint="Remove only when there are no active pledges."
+                      confirmDelete={confirmDeleteId === key}
+                      onConfirmDelete={() =>
+                        void runDelete(key, () => onDeleteCovenant?.(c.id))
+                      }
+                      onCancelDelete={() => setConfirmDeleteId(null)}
+                      deleting={deletingId === key}
+                    />
                   ) : undefined
                 }
               />
@@ -221,12 +305,13 @@ export function CrowdKasMyCampaignsPanel({
           })}
           {filteredL2.map((c) => {
             const listItem = toListItem(c);
-            const key = c.campaignId.toString();
-            const meta = metadataById[key] ?? null;
+            const key = `l2-${c.campaignId.toString()}`;
+            const meta = metadataById[c.campaignId.toString()] ?? null;
             const deadlinePassed = BigInt(nowSec) >= c.deadline;
             const targetReached = c.method === 'L2_ESCROW' && c.raisedWei >= c.targetWei;
             const isRowCreator =
-              Boolean(creatorAddress) && c.creatorAddress.toLowerCase() === (creatorAddress as string).toLowerCase();
+              Boolean(creatorAddress) &&
+              c.creatorAddress.toLowerCase() === (creatorAddress as string).toLowerCase();
             const canClaimV2 = isRowCreator && c.method === 'L2_ESCROW' && targetReached && deadlinePassed;
             const canDeleteCampaign =
               c.active &&
@@ -247,35 +332,32 @@ export function CrowdKasMyCampaignsPanel({
                     : undefined
                 }
                 footer={
-                  <div className="flex flex-wrap items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => onEdit(c.campaignId, c.ipfsHash, c.l1Address, c.targetWei, c.deadline)}
-                      className="flex-1 k-control-btn justify-center !bg-emerald-600 !text-white !border-emerald-600 hover:!bg-emerald-700"
-                    >
-                      Edit
-                    </button>
-                    {canClaimV2 ? (
-                      <button
-                        type="button"
-                        onClick={() => onClaim(c.campaignId)}
-                        className="flex-1 k-control-btn justify-center"
-                      >
-                        Claim
-                      </button>
-                    ) : null}
-                    <button
-                      type="button"
-                      disabled={!canDeleteCampaign}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onDelete(c.campaignId);
-                      }}
-                      className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-semibold text-red-700 transition-colors hover:bg-red-100 disabled:opacity-50 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-300 dark:hover:bg-red-900/40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500"
-                    >
-                      Delete
-                    </button>
-                  </div>
+                  <StudioCardActions
+                    onEdit={() =>
+                      onEdit(c.campaignId, c.ipfsHash, c.l1Address, c.targetWei, c.deadline)
+                    }
+                    onDelete={() => setConfirmDeleteId(key)}
+                    canDelete={canDeleteCampaign}
+                    deleteBlockedHint="Delete only when the campaign has no donations."
+                    confirmDelete={confirmDeleteId === key}
+                    onConfirmDelete={() => void runDelete(key, () => onDelete(c.campaignId))}
+                    onCancelDelete={() => setConfirmDeleteId(null)}
+                    deleting={deletingId === key}
+                    claimSlot={
+                      canClaimV2 ? (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onClaim(c.campaignId);
+                          }}
+                          className="flex-1 k-control-btn justify-center"
+                        >
+                          Claim
+                        </button>
+                      ) : null
+                    }
+                  />
                 }
               />
             );

@@ -131,26 +131,35 @@ export function DonationCampaignCard({
           feeHint={feeHint}
         />
       ) : null}
-      <div
-        className="flex items-center justify-between gap-3"
-        onClick={(e) => e.stopPropagation()}
-        onKeyDown={(e) => e.stopPropagation()}
-      >
-        <div className="min-w-0">
-          {category ? (
-            <KxListingCategoryChip title={category}>{category}</KxListingCategoryChip>
-          ) : (
-            <span className="text-xs text-zinc-500 dark:text-zinc-400">{VDONATE_SHORT_NAME}</span>
-          )}
+      {showPledge ? (
+        <div
+          className="flex items-center justify-between gap-3"
+          onClick={(e) => e.stopPropagation()}
+          onKeyDown={(e) => e.stopPropagation()}
+        >
+          <div className="min-w-0">
+            {category ? (
+              <KxListingCategoryChip title={category}>{category}</KxListingCategoryChip>
+            ) : (
+              <span className="text-xs text-zinc-500 dark:text-zinc-400">{VDONATE_SHORT_NAME}</span>
+            )}
+          </div>
+          <DonationVoteControls
+            entityId={entityId}
+            creatorWallet={isL1Direct ? campaign.l1Address || campaign.creatorAddress : campaign.creatorAddress}
+            title={title}
+            compact
+          />
         </div>
-        <DonationVoteControls
-          entityId={entityId}
-          creatorWallet={isL1Direct ? campaign.l1Address || campaign.creatorAddress : campaign.creatorAddress}
-          title={title}
-          compact
-        />
-      </div>
-      {footer}
+      ) : null}
+      {footer ? (
+        <div
+          onClick={(e) => e.stopPropagation()}
+          onKeyDown={(e) => e.stopPropagation()}
+        >
+          {footer}
+        </div>
+      ) : null}
     </div>
   );
 

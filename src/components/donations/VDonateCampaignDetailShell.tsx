@@ -23,6 +23,8 @@ import { KX_PANEL, KX_SURFACE_NESTED } from '@/lib/hub/shellTokens';
 import type { CrowdfundFaqItem, CrowdfundTier, CrowdfundUpdate } from '@/lib/covenant/crowdfund-types';
 import { sortTiersByMinKas } from '@/lib/donations/tiers';
 import { useDonationsRightPanelOpen } from '@/hooks/useDonationsRightPanelOpen';
+import { SidePanelCollapsedContentWrap } from '@/components/layout/SidePanelCollapsedContentWrap';
+import { VDonateRewardTierList } from '@/components/donations/VDonateRewardTierList';
 
 export type VDonateDetailTab =
   | 'campaign'
@@ -135,11 +137,16 @@ export function VDonateCampaignDetailShell({
   rightColumn,
   initialTab,
   onSelectTier,
+  onRewardPledge,
+  rewardBusy,
 }: {
   view: VDonateDetailCampaignView;
   rightColumn: ReactNode;
   initialTab?: VDonateDetailTab;
+  /** @deprecated Prefer onRewardPledge (wires payment). */
   onSelectTier?: (tierId: string) => void;
+  onRewardPledge?: (tier: CrowdfundTier) => void;
+  rewardBusy?: boolean;
 }) {
   const [tab, setTab] = useState<VDonateDetailTab>(initialTab ?? 'campaign');
   const [rightOpen, setRightOpen] = useDonationsRightPanelOpen(true);
@@ -166,6 +173,15 @@ export function VDonateCampaignDetailShell({
   const tiers = sortTiersByMinKas(view.tiers ?? []);
   const socialEntries = Object.entries(view.socialLinks ?? {}).filter(([, v]) => Boolean(v?.trim()));
 
+  const handleRewardPledge = (tier: CrowdfundTier) => {
+    onSelectTier?.(tier.id);
+    if (onRewardPledge) {
+      onRewardPledge(tier);
+      return;
+    }
+    setRightOpen(true);
+  };
+
   const campaignHero = (
     <div className={`${KX_PANEL} overflow-hidden`}>
       <VDonateCampaignMedia imageUrl={view.imageUrl} imageHash={view.imageHash} />
@@ -176,7 +192,7 @@ export function VDonateCampaignDetailShell({
           goalReached={view.goalReached}
           featured={view.featured}
         />
-        <h1 className="text-2xl md:text-3xl font-bold text-zinc-900 dark:text-zinc-100">
+        <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-zinc-900 dark:text-zinc-100">
           {view.title}
         </h1>
         <AuthorInline
@@ -231,57 +247,15 @@ export function VDonateCampaignDetailShell({
       {tab === 'rewards' ? (
         <div className="space-y-4">
           <DAppSectionHeader title="Rewards" className="mb-0" />
-          {tiers.length === 0 ? (
-            <p className="kx-body">
-              This campaign has no reward tiers. You can still pledge any amount from the panel.
-            </p>
-          ) : (
-            <div className="space-y-3">
-              {tiers.map((tier) => {
-                const soldOut =
-                  tier.limitedQty != null &&
-                  tier.limitedQty > 0 &&
-                  (tier.claimedCount ?? 0) >= tier.limitedQty;
-                return (
-                  <div key={tier.id} className={`${KX_SURFACE_NESTED} p-4 space-y-2`}>
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <p className="font-semibold text-zinc-900 dark:text-zinc-100">{tier.title}</p>
-                        <p className="text-sm text-emerald-700 dark:text-emerald-300 font-medium">
-                          {tier.minKas} KAS or more
-                        </p>
-                      </div>
-                      {onSelectTier && !soldOut ? (
-                        <button
-                          type="button"
-                          className="text-xs px-3 py-1.5 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700"
-                          onClick={() => onSelectTier(tier.id)}
-                        >
-                          Select
-                        </button>
-                      ) : null}
-                      {soldOut ? (
-                        <span className="text-xs text-rose-600 dark:text-rose-400 font-medium">Sold out</span>
-                      ) : null}
-                    </div>
-                    {tier.description ? (
-                      <p className="text-sm text-zinc-600 dark:text-zinc-300">{tier.description}</p>
-                    ) : null}
-                    {tier.reward ? (
-                      <p className="text-sm text-zinc-800 dark:text-zinc-200">
-                        <span className="font-medium">Reward:</span> {tier.reward}
-                      </p>
-                    ) : null}
-                    {tier.limitedQty != null ? (
-                      <p className="text-xs text-zinc-500">
-                        {tier.claimedCount ?? 0} / {tier.limitedQty} claimed
-                      </p>
-                    ) : null}
-                  </div>
-                );
-              })}
-            </div>
-          )}
+          <p className="kx-body">
+            Pick a reward tier to unlock perks. Pledging runs the L1 covenant lock plus Hub platform fee.
+          </p>
+          <VDonateRewardTierList
+            tiers={tiers}
+            onSelectAndPledge={handleRewardPledge}
+            busy={rewardBusy}
+            isLive={view.isLive}
+          />
         </div>
       ) : null}
 
@@ -425,12 +399,12 @@ export function VDonateCampaignDetailShell({
             />
           </div>
           <div className={HUB_MAIN_COLUMN}>
-            <div className={HUB_MAIN_INNER}>
-              <Link href="/donations" className="kx-body hover:underline mb-4 inline-block">
+            <div className={`${HUB_MAIN_INNER} flex w-full min-w-0 flex-col gap-6`}>
+              <Link href="/donations" className="kx-body hover:underline inline-block">
                 ← All campaigns
               </Link>
 
-              <div className="mb-2 flex w-full min-w-0 flex-col gap-2 sm:flex-row sm:items-stretch sm:gap-3">
+              <div className="flex w-full min-w-0 flex-col gap-2 sm:flex-row sm:items-stretch sm:gap-3">
                 <div className="min-w-0 flex-1">
                   <DAppTabs tabs={tabs} value={tab} onChange={setTab} />
                 </div>
@@ -452,10 +426,12 @@ export function VDonateCampaignDetailShell({
                 gridClassName="grid grid-cols-1 gap-8 xl:gap-12"
                 hideToggle
               >
-                <div className="flex min-w-0 flex-col gap-6">
-                  {tab === 'campaign' ? campaignHero : null}
-                  {tabBody}
-                </div>
+                <SidePanelCollapsedContentWrap panelOpen={rightOpen}>
+                  <div className="flex min-w-0 flex-col gap-6">
+                    {tab === 'campaign' ? campaignHero : null}
+                    {tabBody}
+                  </div>
+                </SidePanelCollapsedContentWrap>
               </HubPageRightPanelGrid>
             </div>
           </div>
