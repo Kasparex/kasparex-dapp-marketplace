@@ -29,25 +29,24 @@ export function DAppMetadataTable({
   const stats: HubMetadataStat[] = [];
   const id = dapp.id?.trim() || '';
   const slug = dapp.slug?.trim() || '';
-  // Smart: do not duplicate id when it matches slug.
-  if (id && id !== slug) {
-    stats.push({ label: 'dApp ID', value: id, mono: true });
-  }
-  if (slug) {
-    stats.push({ label: 'Slug', value: slug, mono: true, copyable: true });
-  }
-  if (dapp.version) {
-    stats.push({ label: 'Version', value: dapp.version, copyable: false });
-  }
-  if (dapp.network) {
-    stats.push({ label: 'Network', value: dapp.network, copyable: false });
-  }
-  if (dapp.status) {
-    stats.push({ label: 'Status', value: dapp.status, copyable: false });
+
+  // Status + Provider first. Network/Status were redundant (both describe availability).
+  const statusValue = (dapp.network || dapp.status || '').trim();
+  if (statusValue) {
+    stats.push({
+      label: 'Status',
+      value: statusValue,
+      tooltipTitle: 'Status',
+      tooltipDescription: dapp.status && dapp.network && dapp.status !== dapp.network
+        ? `${dapp.status} on ${dapp.network}.`
+        : 'Live network / availability for this dApp.',
+      copyable: false,
+    });
   }
   if (dapp.provider) {
     stats.push({ label: 'Provider', value: dapp.provider, copyable: false });
   }
+
   if (resolvedContract) {
     stats.push({ label: 'Contract', value: resolvedContract, mono: true });
   }
@@ -63,8 +62,8 @@ export function DAppMetadataTable({
         value: 'One-way',
         tooltipTitle: 'Direction',
         tooltipDescription: bridge.migrateV2Enabled
-          ? 'KRC-20 burn to keyless sink → attested claim → KCC20. No reverse path.'
-          : 'KRC-20 → vault → KCC20. Reverse migration comes later.',
+          ? 'KRC-20 burn to keyless sink, then attested claim to KCC20. No reverse path.'
+          : 'KRC-20 to vault to KCC20. Reverse migration comes later.',
         copyable: false,
       },
       {
@@ -111,6 +110,17 @@ export function DAppMetadataTable({
       },
       { label: 'Fee tx', value: listing.feeTxHash || '', mono: true },
     );
+  }
+
+  // Slug / Version always last. Skip redundant dApp ID when it matches slug.
+  if (id && id !== slug) {
+    stats.push({ label: 'dApp ID', value: id, mono: true });
+  }
+  if (slug) {
+    stats.push({ label: 'Slug', value: slug, mono: true, copyable: true });
+  }
+  if (dapp.version) {
+    stats.push({ label: 'Version', value: dapp.version, copyable: false });
   }
 
   return (

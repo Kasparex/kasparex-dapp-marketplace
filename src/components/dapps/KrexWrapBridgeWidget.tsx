@@ -146,7 +146,7 @@ function statusTooltip(status: KrexWrapStatus): string {
     case 'deposited':
       return 'Token is in the vault. Matching KCC20 mint is not live for this ticker yet.';
     case 'burned':
-      return 'Burn submitted. Confirming on Kasplex, then a claim ticket is issued (usually under 2 minutes).';
+      return 'Burn submitted. Confirming on Kasplex, then a claim ticket is issued (usually under 1h).';
     case 'awaiting_attest':
       return 'Confirming burn / waiting for claim ticket. Claim appears as soon as the ticket is ready.';
     case 'pending_mint':
@@ -335,7 +335,7 @@ function ClaimTicketButton({
                       variant: 'info',
                       title: 'Already claimed?',
                       description:
-                        'This ticket looks spent. Refreshing History. If Complete does not appear, open your earlier Claim toast.',
+                        'This ticket looks spent. Refreshing History. If Complete does not appear, wait a moment and refresh again.',
                     });
                     onClaimed?.('');
                     return;
@@ -350,7 +350,7 @@ function ClaimTicketButton({
                 applyMintReceiptToHistory({
                   depositTxHash: attestation.burnTxHash,
                   mintTxHash: result.txHash,
-                  note: 'KCC20 claimed on Kaspa L1. Open Claim tx or kascov to see the covenant coin.',
+                  note: 'KCC20 claimed on Kaspa L1. Use Claim tx or kascov to see the covenant coin.',
                 });
                 void reportClaimToHub(attestation.burnTxHash, result.txHash);
                 onClaimed?.(result.txHash);
@@ -1105,7 +1105,7 @@ export function KrexWrapBridgeWidget() {
                       Confirm
                     </span>
                   </Tooltip>{' '}
-                  runs automatically (usually under 2 minutes). History refreshes on its own.
+                  runs automatically (usually under 1h). History refreshes on its own.
                 </li>
                 <li>
                   When the badge says Ready to claim, tap{' '}
@@ -1279,29 +1279,6 @@ export function KrexWrapBridgeWidget() {
               tooltipDescription: 'KAS fee paid to Hub treasury before the token deposit. Discounted by your KREX tier.',
               copyable: false,
             },
-            ...(mintLive && getWrapCovenantIdForTick(tick)
-              ? [
-                  {
-                    label: 'KCC20 on kascov',
-                    value: getWrapCovenantIdForTick(tick)!,
-                    valueNode: (
-                      <a
-                        href={kascovCovenantUrl(network, getWrapCovenantIdForTick(tick)!)}
-                        target="_blank"
-                        rel="noreferrer"
-                        className={KX_METADATA_STAT_VALUE_LINK}
-                      >
-                        Open {tick} covenant
-                      </a>
-                    ),
-                    tooltipTitle: 'TKREX on kascov',
-                    tooltipDescription:
-                      'Opens the TKREX asset covenant on kascov. Your balance is a covenant coin from the Claim tx, not a KasWare KRC-20 row. Look for moves on that covenant id.',
-                    copyable: true,
-                    mono: true,
-                  },
-                ]
-              : []),
           ]}
         />
 
@@ -1420,6 +1397,33 @@ export function KrexWrapBridgeWidget() {
                   Max
                 </button>
               </div>
+              {mintLive && getWrapCovenantIdForTick(tick) ? (
+                <div className="mt-3">
+                  <HubMetadataStatGrid
+                    stats={[
+                      {
+                        label: 'KCC20 on kascov',
+                        value: getWrapCovenantIdForTick(tick)!,
+                        valueNode: (
+                          <a
+                            href={kascovCovenantUrl(network, getWrapCovenantIdForTick(tick)!)}
+                            target="_blank"
+                            rel="noreferrer"
+                            className={KX_METADATA_STAT_VALUE_LINK}
+                          >
+                            Open {tick} covenant
+                          </a>
+                        ),
+                        tooltipTitle: 'TKREX on kascov',
+                        tooltipDescription:
+                          'Opens the TKREX asset covenant on kascov. Your balance is a covenant coin from the Claim tx, not a KasWare KRC-20 row. Look for moves on that covenant id.',
+                        copyable: true,
+                        mono: true,
+                      },
+                    ]}
+                  />
+                </div>
+              ) : null}
             </div>
           </>
         )}

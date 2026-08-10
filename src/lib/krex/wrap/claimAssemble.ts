@@ -26,6 +26,10 @@ const PRIORITY_FEE_SOMPI = 15_000_000n;
 const COMPUTE_BUDGET = 200;
 const EXTRA_FUNDING_SOMPI = 200_000_000n;
 
+/** Public Claim payment preview (matches PRIORITY_FEE / BRANCH_UTXO above). */
+export const CLAIM_NETWORK_FEE_KAS = Number(PRIORITY_FEE_SOMPI) / 1e8;
+export const CLAIM_KCC20_CARRIER_KAS = Number(BRANCH_UTXO_SOMPI) / 1e8;
+
 export type MigrateClaimTip = MigrateMintTip & {
   assetTemplate?: ScriptTemplateParts;
   ticketTemplate?: ScriptTemplateParts;

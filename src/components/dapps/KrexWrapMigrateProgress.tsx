@@ -2,6 +2,7 @@
 
 import type { ReactNode } from 'react';
 import type { KrexWrapRecord, KrexWrapStatus } from '@/lib/krex/wrap/types';
+import { CLAIM_KCC20_CARRIER_KAS, CLAIM_NETWORK_FEE_KAS } from '@/lib/krex/wrap/claimAssemble';
 import { KX_SURFACE_NESTED } from '@/lib/hub/shellTokens';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { KxCopyIconButton } from '@/components/ui/KxCopyIconButton';
@@ -109,9 +110,9 @@ function v2Steps(
       doneDetail: 'Burn confirmed',
       currentDetail: ticketReady
         ? 'Ticket ready'
-        : 'Please wait… claim ticket (usually under 2 minutes)',
+        : 'Please wait… claim ticket (usually under 1h)',
       nextDetail: 'Attestors confirm burn',
-      tip: 'Kasplex opAccept, then a one-time claim ticket. Usually under 2 minutes.',
+      tip: 'Kasplex opAccept, then a one-time claim ticket. Usually under 1h.',
     },
     {
       id: 'mint',
@@ -251,7 +252,7 @@ function nextHint(steps: FlowStep[], migrateV2: boolean, ticketReady: boolean): 
   if (current.id === 'attest') {
     return ticketReady
       ? 'Ticket ready. Tap Claim KCC20 and sign in KasWare.'
-      : 'Confirming burn and issuing your claim ticket automatically. Usually under 2 minutes. No action needed until Claim.';
+      : 'Confirming burn and issuing your claim ticket automatically. Usually under 1h. No action needed until Claim.';
   }
   if (current.id === 'mint') {
     return 'Tap Claim KCC20, then sign in KasWare.';
@@ -444,6 +445,32 @@ export function KrexWrapMigrateProgress({
           );
         })}
       </ol>
+      {showClaimAction ? (
+        <div className={`${KX_SURFACE_NESTED} mt-3 space-y-1.5 p-3`}>
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+            Payment outputs
+          </p>
+          <div className="flex justify-between gap-3 text-xs text-zinc-600 dark:text-zinc-400">
+            <span className="min-w-0 truncate">Network fee</span>
+            <span className="shrink-0 font-semibold tabular-nums text-zinc-900 dark:text-zinc-100">
+              {CLAIM_NETWORK_FEE_KAS.toLocaleString(undefined, { maximumFractionDigits: 8 })} KAS
+            </span>
+          </div>
+          <div className="flex justify-between gap-3 text-xs text-zinc-600 dark:text-zinc-400">
+            <span className="min-w-0 truncate">Your KCC20 coin (carrier)</span>
+            <span className="shrink-0 font-semibold tabular-nums text-zinc-900 dark:text-zinc-100">
+              {CLAIM_KCC20_CARRIER_KAS.toLocaleString(undefined, { maximumFractionDigits: 8 })} KAS
+            </span>
+          </div>
+          <div className="flex justify-between gap-3 text-xs text-zinc-500">
+            <span>Change</span>
+            <span className="shrink-0 tabular-nums">back to your wallet</span>
+          </div>
+          <p className="pt-1 text-[11px] leading-snug text-zinc-500 dark:text-zinc-400">
+            Claim signs one KasWare transaction. The carrier KAS holds your covenant coin; it is not a Hub fee.
+          </p>
+        </div>
+      ) : null}
       <p className="mt-3 border-t border-zinc-200/80 pt-3 text-[11px] leading-snug text-zinc-600 dark:border-zinc-700/80 dark:text-zinc-400">
         {hint}
       </p>

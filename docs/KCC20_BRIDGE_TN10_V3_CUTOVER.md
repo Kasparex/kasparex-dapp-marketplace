@@ -38,7 +38,7 @@ KCC20 balances are covenant UTXOs (not KasWare KRC-20). After Claim, open the Cl
 
 Fast tickets: `.github/workflows/tn10-migrate-ticket-fast.yml` (no Rust/silverc; uses Hub tip
 `ticketTemplate`). Hub `observe-burn` wakes this after Kasplex `opAccept` so Confirm is usually
-under 1-2 minutes. Full workflow: `.github/workflows/tn10-migrate-attestor.yml` (hourly backup;
+under 1h. Full workflow: `.github/workflows/tn10-migrate-attestor.yml` (hourly backup;
 skips silverc when tip already has a ticket template).
 
 Hub also has a fast `observe-burn` path (Kasplex check) so History leaves Confirm without waiting

@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState, memo } from 'react';
+import { useMemo, useState, memo, useEffect } from 'react';
 import { useChainId } from 'wagmi';
 import { usePaymentAmount } from '@/lib/dapps/PaymentAmountContext';
 import { DApp, getDAppNetworkType } from '@/lib/dapps';
@@ -67,6 +67,8 @@ export const DAppCalculationBreakdownPanel = memo(function DAppCalculationBreakd
   const currency = quoteCurrencyForDApp(dapp, chainId);
   const networkType = getDAppNetworkType(dapp);
   const isCovenant = isCovenantDAppSlug(dapp.slug);
+  const isKasOnlyBridge =
+    dapp.slug === 'kcc20-bridge' || dapp.slug === 'krex-wrap-bridge';
   const {
     paymentAmount,
     actionId: quoteActionId,
@@ -79,7 +81,14 @@ export const DAppCalculationBreakdownPanel = memo(function DAppCalculationBreakd
   const { catalogEntries, pricingSnapshot } = useHubPayWithCatalog({
     amountKas: paymentAmount ?? customHubQuote?.totalKas ?? undefined,
   });
-  const paymentOption = resolveCatalogPaymentOption(catalogEntries, payCurrencyId);
+
+  useEffect(() => {
+    if (isKasOnlyBridge && payCurrencyId !== 'KAS') {
+      setPayCurrencyId('KAS');
+    }
+  }, [isKasOnlyBridge, payCurrencyId, setPayCurrencyId]);
+
+  const paymentOption = resolveCatalogPaymentOption(catalogEntries, isKasOnlyBridge ? 'KAS' : payCurrencyId);
 
   const paymentConfig = useMemo(() => getDAppPaymentConfig(dapp, networkType), [dapp, networkType]);
 
@@ -136,15 +145,27 @@ export const DAppCalculationBreakdownPanel = memo(function DAppCalculationBreakd
   const payFaceAmountKas = quote?.totalKas ?? paymentAmount ?? customHubQuote?.totalKas ?? null;
 
   const catalogForPay = useMemo(() => {
-    if (payFaceAmountKas == null || payFaceAmountKas <= 0) return catalogEntries;
-    return catalogEntries.map((entry) => {
-      if (entry.amountLabel?.trim()) return entry;
+    let entries = catalogEntries;
+    if (isKasOnlyBridge) {
+      entries = catalogEntries.map((entry) => {
+        if (entry.kind === 'kas' || entry.id === 'KAS') return entry;
+        return {
+          ...entry,
+          status: 'locked' as const,
+          detail: 'Bridge fee is KAS only',
+          amountLabel: undefined,
+        };
+      });
+    }
+    if (payFaceAmountKas == null || payFaceAmountKas <= 0) return entries;
+    return entries.map((entry) => {
+      if (entry.status === 'locked' || entry.amountLabel?.trim()) return entry;
       return {
         ...entry,
         amountLabel: formatHubPaymentAmount(entry, payFaceAmountKas, { snapshot: pricingSnapshot }),
       };
     });
-  }, [catalogEntries, payFaceAmountKas, pricingSnapshot]);
+  }, [catalogEntries, isKasOnlyBridge, payFaceAmountKas, pricingSnapshot]);
 
   const formatPayAmount = (kas: number) =>
     formatHubPaymentAmount(paymentOption, kas, { snapshot: pricingSnapshot });
@@ -266,10 +287,11 @@ export const DAppCalculationBreakdownPanel = memo(function DAppCalculationBreakd
                 <p className="mb-2 text-xs uppercase tracking-widest text-zinc-500">Pay with</p>
                 <HubPaymentCurrencyCatalogTrigger
                   entries={catalogForPay}
-                  selectedId={payCurrencyId}
+                  selectedId={isKasOnlyBridge ? 'KAS' : payCurrencyId}
                   amountKas={payFaceAmountKas}
                   pricingSnapshot={pricingSnapshot}
                   onSelect={(opt) => {
+                    if (isKasOnlyBridge && opt.kind !== 'kas' && opt.id !== 'KAS') return;
                     setPayCurrencyId(hubCatalogSelectionToStoreCurrency(opt));
                   }}
                 />
