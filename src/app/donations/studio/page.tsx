@@ -104,10 +104,10 @@ export default function DonationsStudioPage() {
 function DonationsStudioPageContent() {
   const chainId = useChainId();
   const { address } = useAccount();
-  /** CrowdKAS escrow on Igra Mainnet - used for all reads so studio state works even when the wallet is on another chain. */
+  /** vDonate / DonationEscrow on Igra Mainnet: reads work even when the wallet is on another chain. */
   const igraEscrowAddress = getContractAddress(VDONATIONS_CHAIN_ID, 'DonationEscrow');
   const writeEscrowAddress = getContractAddress(chainId, 'DonationEscrow');
-  /** CrowdKAS V2 escrow on Igra Mainnet - multi-campaign + explicit donation method. */
+  /** vDonate V2 escrow on Igra Mainnet: multi-campaign + explicit donation method. */
   const igraEscrowV2Address = getContractAddress(VDONATIONS_CHAIN_ID, 'DonationEscrowV2');
   const writeEscrowV2Address = getContractAddress(chainId, 'DonationEscrowV2');
   const currentChain = chainId ? getChainById(chainId) : null;

@@ -16,6 +16,7 @@ import { CovenantDatetimeField } from '@/components/dapps/covenant/CovenantDatet
 import { DonationCategoryField } from '@/components/donations/DonationCategoryField';
 import { CrowdKasModulesPanel } from '@/components/donations/CrowdKasModulesPanel';
 import { CrowdKasPremiumSectionFields } from '@/components/donations/CrowdKasPremiumSectionFields';
+import { VDonateTiersEditor } from '@/components/donations/VDonateTiersEditor';
 import { KxInFormPremiumRow } from '@/components/ui/KxInFormPremiumRow';
 import { CROWDKAS_PREMIUM_SECTION_OFFER, CROWDKAS_PREMIUM_SECTION_ENABLE_FEE_KAS } from '@/lib/donations/premiumSection';
 import { normalizeTags } from '@/lib/donations/categories';
@@ -23,6 +24,7 @@ import {
   defaultCrowdKasPayoutSplitRows,
   type CrowdKasModulesConfig,
 } from '@/lib/donations/crowdkasModules';
+import type { CrowdfundTier } from '@/lib/covenant/crowdfund-types';
 import type { DonationPaidModuleId } from '@/lib/donations/modules';
 import { CROWDKAS_CONTENT_LIMITS, getCrowdKasCharacterCount } from '@/lib/donations/limits';
 import type { CrowdKasPricingDraft } from '@/lib/donations/pricing';
@@ -31,6 +33,7 @@ import {
   type CrowdKasFormValidation,
 } from '@/lib/donations/formValidation';
 import { hubNotify } from '@/lib/hub/notify';
+import { sanitizeCrowdfundTiers } from '@/lib/donations/tiers';
 
 const COVENANT_HOW_IT_WORKS = (
   <div className="max-w-xs space-y-2 text-sm leading-snug">
@@ -84,6 +87,7 @@ export const CrowdKasCovenantPanel = forwardRef<CrowdKasCovenantPanelHandle, Cro
     const [imageUrl, setImageUrl] = useState('');
     const [imageCid, setImageCid] = useState<string | null>(null);
     const [imageFileName, setImageFileName] = useState<string | null>(null);
+    const [tiers, setTiers] = useState<CrowdfundTier[]>([]);
     const [internalModules, setInternalModules] = useState<CrowdKasModulesConfig>({});
     const [busy, setBusy] = useState(false);
     const minKas = Number(COVENANT_LAB_CONFIG.minLockSompi) / 1e8;
@@ -168,6 +172,15 @@ export const CrowdKasCovenantPanel = forwardRef<CrowdKasCovenantPanelHandle, Cro
           goalKas: parseFloat(goalKas),
           deadline: new Date(deadline),
           studioTotalKas: studioMode && studioTotalKas != null && studioTotalKas > 0 ? studioTotalKas : undefined,
+          mainContent,
+          imageUrl: imageSource === 'url' ? imageUrl.trim() : undefined,
+          imageHash: imageSource === 'file' && imageCid ? imageCid : undefined,
+          category: category || undefined,
+          tags,
+          tiers: sanitizeCrowdfundTiers(tiers),
+          premiumTabEnabled: Boolean(modules.premiumSectionEnabled),
+          premiumTabTitle: modules.premiumSectionEnabled ? 'Premium' : undefined,
+          premiumTabContent: modules.premiumSectionContent,
         });
         hubNotify.success('Campaign created', 'Your L1 covenant campaign is ready.', {
           href: `/donations/covenant/${campaign.id}`,
@@ -181,6 +194,7 @@ export const CrowdKasCovenantPanel = forwardRef<CrowdKasCovenantPanelHandle, Cro
         setImageUrl('');
         setImageCid(null);
         setImageFileName(null);
+        setTiers([]);
         setModules({});
       } catch (e) {
         /* useCovenantCrowdfund already toasts errors; rethrow for studio callers */
@@ -343,6 +357,7 @@ export const CrowdKasCovenantPanel = forwardRef<CrowdKasCovenantPanelHandle, Cro
           onFileNameChange={setImageFileName}
           label="Cover image"
         />
+        <VDonateTiersEditor tiers={tiers} onChange={setTiers} />
       </div>
     );
 
@@ -378,9 +393,9 @@ export const CrowdKasCovenantPanel = forwardRef<CrowdKasCovenantPanelHandle, Cro
                     </span>
                   </Tooltip>
                 </p>
-                <div className="my-6 rounded-xl border border-amber-300/60 dark:border-amber-500/40 bg-amber-50/90 dark:bg-amber-950/30 p-4 text-sm text-amber-950 dark:text-amber-100">
-                  L1 covenant full logic will be available once covenants are live, integrated, and ready on Kaspa. Until
-                  then, simulator mode lets you draft campaigns and preview pricing.
+                <div className="my-6 rounded-xl border border-emerald-300/60 dark:border-emerald-500/40 bg-emerald-50/90 dark:bg-emerald-950/30 p-4 text-sm text-emerald-950 dark:text-emerald-100">
+                  L1 pledges lock KAS in Kaspa covenant UTXOs. Platform fees use the Hub multi-output KAS rail. Campaign
+                  indexes stay on this browser until a shared indexer ships.
                 </div>
               </div>
               {createFields}

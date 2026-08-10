@@ -67,9 +67,9 @@ export function CrowdKasError({ message }: { message: string }) {
 
 export function CrowdKasPrototypeNotice() {
   return (
-    <p className="text-xs text-amber-800 dark:text-amber-200 bg-amber-500/10 border border-amber-500/30 rounded-lg px-3 py-2 leading-relaxed">
-      L1 covenant simulator: campaign data is stored in this browser until Kaspa covenant wallets go live. Share this
-      page URL only on the same device where the campaign was created.
+    <p className="text-xs text-emerald-900 dark:text-emerald-100 bg-emerald-500/10 border border-emerald-500/30 rounded-lg px-3 py-2 leading-relaxed">
+      L1 covenant campaign: each pledge locks KAS in a Kaspa L1 covenant UTXO until the creator claims (goal met) or
+      backers refund (goal missed). Campaign index for this browser stays local until a shared indexer ships.
     </p>
   );
 }

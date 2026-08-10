@@ -13,14 +13,19 @@ import {
   resolveKpxCovenantDeployPrice,
   resolveKpxCovenantClaimPrice,
   type CrowdfundCampaign,
+  type CrowdfundCampaignPatch,
+  type CreateCrowdfundParams,
 } from '@/lib/covenant';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { awardDAppHubPoints } from '@/lib/rewards/awardDAppHubPoints';
 import { appendHubActivityEarn } from '@/lib/rewards/appendHubActivityEarn';
 import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
 import { payCrowdKasL1StudioFee } from '@/lib/donations/l1Payment';
+import { payVDonateL1PledgePlatformFee } from '@/lib/donations/l1PledgePayment';
+import { assertPledgeTierAllowed, sanitizeCrowdfundTiers } from '@/lib/donations/tiers';
 import { placeholderDApps } from '@/lib/dapps';
 import { notifyActionError } from '@/lib/hub/notify';
+import { sompiToKasNumber } from '@/lib/covenant';
 
 const CROWDFUND_DAPP = placeholderDApps.find((d) => d.slug === 'covenant-crowdfund')!;
 
@@ -71,11 +76,40 @@ export function useCovenantCrowdfund() {
       goalKas: number;
       deadline: Date;
       studioTotalKas?: number;
+      mainContent?: string;
+      imageUrl?: string;
+      imageHash?: string;
+      category?: string;
+      tags?: string[];
+      tiers?: CreateCrowdfundParams['tiers'];
+      faq?: CreateCrowdfundParams['faq'];
+      socialLinks?: CreateCrowdfundParams['socialLinks'];
+      premiumTabEnabled?: boolean;
+      premiumTabTitle?: string;
+      premiumTabContent?: string;
     }) => {
       setError(null);
       try {
         if (!state.address || !state.provider) throw new Error('Connect wallet first');
         const ctx = walletCtx();
+        const createParams: CreateCrowdfundParams = {
+          creator: state.address!,
+          title: args.title,
+          memo: args.memo,
+          goalSompi: kasToSompiString(args.goalKas),
+          deadline: args.deadline.getTime(),
+          mainContent: args.mainContent,
+          imageUrl: args.imageUrl,
+          imageHash: args.imageHash,
+          category: args.category,
+          tags: args.tags,
+          tiers: sanitizeCrowdfundTiers(args.tiers),
+          faq: args.faq,
+          socialLinks: args.socialLinks,
+          premiumTabEnabled: args.premiumTabEnabled,
+          premiumTabTitle: args.premiumTabTitle,
+          premiumTabContent: args.premiumTabContent,
+        };
 
         if (args.studioTotalKas != null && args.studioTotalKas > 0) {
           const feeTxHash = await payCrowdKasL1StudioFee({
@@ -84,19 +118,13 @@ export function useCovenantCrowdfund() {
             action: 'create',
             senderAddress: state.address,
           });
-          const campaign = await runtime.create({
-            creator: state.address!,
-            title: args.title,
-            memo: args.memo,
-            goalSompi: kasToSompiString(args.goalKas),
-            deadline: args.deadline.getTime(),
-          });
+          const campaign = await runtime.create(createParams);
           appendHubActivityEarn({
             walletRaw: ctx.userAddress,
             source: 'crowdkas_campaign_create',
             redeemableDelta: HUB_EARN_POINTS.crowdkasCampaignCreate,
             krexBalance: krexBalance ?? 0,
-            idempotencyKey: `crowdkas:l1:create:${feeTxHash}`,
+            idempotencyKey: `vdonate:l1:create:${feeTxHash}`,
             meta: { escrow: 'l1-covenant', spendKas: args.studioTotalKas },
           });
           await refresh();
@@ -108,14 +136,7 @@ export function useCovenantCrowdfund() {
           template: 'crowdfund',
           pricing,
           ctx,
-          create: () =>
-            runtime.create({
-              creator: state.address!,
-              title: args.title,
-              memo: args.memo,
-              goalSompi: kasToSompiString(args.goalKas),
-              deadline: args.deadline.getTime(),
-            }),
+          create: () => runtime.create(createParams),
         });
         await refresh();
         return campaign;
@@ -129,25 +150,47 @@ export function useCovenantCrowdfund() {
   );
 
   const pledge = useCallback(
-    async (campaignId: string, amountKas: number) => {
+    async (campaignId: string, amountKas: number, tierId?: string) => {
       setError(null);
       try {
+        const ctx = walletCtx();
+        const existing = (await runtime.listAll()).find((c) => c.id === campaignId);
+        if (!existing) throw new Error('Campaign not found');
+        assertPledgeTierAllowed({
+          tiers: existing.tiers,
+          tierId,
+          pledgeKas: amountKas,
+        });
+
+        // Platform fee first (shared multi-out KAS rail), then L1 covenant lock for the pledge.
+        const feePaid = await payVDonateL1PledgePlatformFee({
+          provider: ctx.provider,
+          senderAddress: ctx.userAddress,
+          pledgeKas: amountKas,
+          campaignId,
+        });
+
         const c = await runtime.pledge(
           campaignId,
-          walletCtx().userAddress,
+          ctx.userAddress,
           kasToSompiString(amountKas),
-          walletCtx()
+          ctx,
+          {
+            tierId,
+            feeTxHash: feePaid.feeTxHash,
+            platformFeeKas: feePaid.platformFeeKas,
+          },
         );
         const pledgeEntry = c.pledges[c.pledges.length - 1];
         const txHash = pledgeEntry?.txHash ?? `cf:pledge:${pledgeEntry?.id ?? `${campaignId}:${Date.now()}`}`;
         awardDAppHubPoints({
-          walletRaw: walletCtx().userAddress,
+          walletRaw: ctx.userAddress,
           dapp: CROWDFUND_DAPP,
           actionId: 'pledge',
           txHash,
           krexTier,
           krexBalance: krexBalance ?? 0,
-          baseSpendKas: amountKas,
+          baseSpendKas: amountKas + (feePaid.platformFeeKas || 0),
         });
         await refresh();
         return c;
@@ -209,11 +252,15 @@ export function useCovenantCrowdfund() {
   );
 
   const updateCampaign = useCallback(
-    async (campaignId: string, patch: { title?: string; memo?: string }) => {
+    async (campaignId: string, patch: CrowdfundCampaignPatch) => {
       setError(null);
       try {
         if (!state.address) throw new Error('Connect wallet first');
-        const c = await runtime.updateCampaign(campaignId, state.address, patch);
+        const nextPatch: CrowdfundCampaignPatch = {
+          ...patch,
+          tiers: patch.tiers !== undefined ? sanitizeCrowdfundTiers(patch.tiers) : undefined,
+        };
+        const c = await runtime.updateCampaign(campaignId, state.address, nextPatch);
         await refresh();
         return c;
       } catch (err) {
@@ -256,5 +303,7 @@ export function useCovenantCrowdfund() {
     refund,
     updateCampaign,
     deleteCampaign,
+    /** Helper for UI fee copy. */
+    sompiToKasNumber,
   };
 }

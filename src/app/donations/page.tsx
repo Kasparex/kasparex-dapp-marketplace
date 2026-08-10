@@ -67,10 +67,11 @@ export default function DonationsListingPage() {
     return [...v1.campaigns, ...v2Rows];
   }, [v2Configured, hideV1Listing, v1.campaigns, v2Rows]);
   const isLoading =
-    (v2Configured && !hideV1Listing ? v1.isLoading || v2.isLoading : v2Configured ? v2.isLoading : v1.isLoading) ||
-    covenantCrowdfund.loading;
+    v2Configured && !hideV1Listing ? v1.isLoading || v2.isLoading : v2Configured ? v2.isLoading : v1.isLoading;
+  const covenantLoading = covenantCrowdfund.loading && covenantCrowdfund.allCampaigns.length === 0;
   const error =
-    (!v2Configured ? v1.error : hideV1Listing ? v2.error : v1.error ?? v2.error) ?? covenantCrowdfund.error;
+    (!v2Configured ? v1.error : hideV1Listing ? v2.error : v1.error ?? v2.error) ??
+    (covenantCrowdfund.allCampaigns.length === 0 ? covenantCrowdfund.error : null);
   const [selectedStatus, setSelectedStatus] = useState<DonationFilterStatus>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<DonationSortOption>('newest');
@@ -184,12 +185,18 @@ export default function DonationsListingPage() {
     const missing = keys.filter((k) => metaByCreator[k] === undefined);
     if (missing.length === 0) return;
 
-    missing.forEach((key) => {
-      (async () => {
+    const CONCURRENCY = 6;
+    let cursor = 0;
+
+    const worker = async () => {
+      while (!cancelled) {
+        const idx = cursor++;
+        if (idx >= missing.length) return;
+        const key = missing[idx];
         const c = campaigns.find((x) => donationListMetaKey(x) === key);
         if (!c?.ipfsHash) {
           if (!cancelled) setMetaByCreator((prev) => ({ ...prev, [key]: null }));
-          return;
+          continue;
         }
         try {
           const m = await fetchCampaignMetadata(c.ipfsHash);
@@ -197,13 +204,16 @@ export default function DonationsListingPage() {
         } catch {
           if (!cancelled) setMetaByCreator((prev) => ({ ...prev, [key]: null }));
         }
-      })();
-    });
+      }
+    };
+
+    void Promise.all(Array.from({ length: Math.min(CONCURRENCY, missing.length) }, () => worker()));
 
     return () => {
       cancelled = true;
     };
-  }, [campaigns, metaByCreator]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- metaByCreator intentionally omitted to avoid refetch loops
+  }, [campaigns]);
 
   return (
     <div className={`min-h-screen flex flex-col ${HUB_PAGE_BG}`}>
@@ -260,7 +270,7 @@ export default function DonationsListingPage() {
               </div>
             )}
 
-            {isLoading && (
+            {isLoading && totalVisible === 0 && (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {[1, 2, 3].map((i) => (
                   <div key={i} className="rounded-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden bg-white dark:bg-zinc-900 animate-pulse">
@@ -275,7 +285,7 @@ export default function DonationsListingPage() {
               </div>
             )}
 
-            {!isLoading && !error && totalVisible === 0 && (
+            {!isLoading && !error && totalVisible === 0 && !covenantLoading && (
               <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 p-12 text-center text-zinc-500 dark:text-zinc-400">
                 <p className="font-medium">No campaigns match your filters</p>
                 <p className="text-sm mt-1">Try changing filters or create a campaign from the studio.</p>
@@ -296,7 +306,7 @@ export default function DonationsListingPage() {
               </div>
             )}
 
-            {!isLoading && totalVisible > 0 && (
+            {totalVisible > 0 && (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {showCovenantGrid &&
                   filteredCovenantCampaigns.map((c) => (
@@ -313,15 +323,6 @@ export default function DonationsListingPage() {
                           ? `/donations/${c.creatorAddress}?campaignId=${c.campaignId.toString()}`
                           : undefined
                       }
-                      badges={[
-                        {
-                          label: c.donationMethod === 'L1_DIRECT' ? 'L1 • Direct' : 'L2 • Igra',
-                          variant: 'neutral',
-                        },
-                        ...(c.featuredModuleUnlocked
-                          ? [{ label: 'Featured', variant: 'amber' as const }]
-                          : []),
-                      ]}
                     />
                   ))}
               </div>

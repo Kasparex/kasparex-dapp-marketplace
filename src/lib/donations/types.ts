@@ -41,6 +41,15 @@ export interface DonationCampaignMetadata {
   };
   /** Free and paid module toggles stored in campaign metadata. */
   modules?: CrowdKasModulesConfig;
+  /** Optional Kickstarter-style reward tiers (L2 metadata; L1 covenants store tiers on the campaign record). */
+  tiers?: Array<{
+    id: string;
+    title: string;
+    description: string;
+    minKas: number;
+    reward?: string;
+    limitedQty?: number;
+  }>;
 }
 
 /** On-chain campaign (from contract campaigns(creator)) */

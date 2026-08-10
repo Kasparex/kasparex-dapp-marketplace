@@ -1,7 +1,6 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
-import type { ReactNode } from 'react';
+import { useMemo, useState } from 'react';
 import type { CrowdfundCampaign } from '@/lib/covenant/crowdfund-types';
 import {
   covenantCampaignBackerCount,
@@ -11,23 +10,39 @@ import {
   covenantCampaignRaisedKas,
   covenantCampaignGoalReached,
 } from '@/lib/donations/covenantCrowdfund';
-import { DEFAULT_DONATION_IMAGE } from '@/lib/donations/constants';
+import { AuthorInline } from '@/components/ui/AuthorInline';
 import { HubPointsEarnBadge } from '@/components/hub/HubPointsEarnBadge';
 import { getHubPointsBaseForAction } from '@/lib/payments/hubQuote';
 import { placeholderDApps } from '@/lib/dapps';
-import { AuthorInline } from '@/components/ui/AuthorInline';
+import { useKaspaWallet } from '@/lib/kaspa/context';
+import { useCovenantCrowdfund } from '@/hooks/useCovenantCrowdfund';
+import { COVENANT_LAB_CONFIG } from '@/lib/covenant';
+import { quoteVDonateL1Pledge } from '@/lib/donations/l1PledgePayment';
+import { sortTiersByMinKas } from '@/lib/donations/tiers';
+import {
+  VDonateCampaignMedia,
+  VDonateCardShell,
+  VDonateNetworkBadges,
+  VDonatePledgeInline,
+  VDonateStatusBadges,
+} from '@/components/donations/VDonateCampaignCardChrome';
+import { hubNotify } from '@/lib/hub/notify';
 
 const CROWDFUND_DAPP = placeholderDApps.find((d) => d.slug === 'covenant-crowdfund')!;
 const PLEDGE_HUB_POINTS_BASE = getHubPointsBaseForAction(CROWDFUND_DAPP, 'pledge');
 
 export function CovenantCrowdfundCampaignCard({
   campaign,
-  footer,
 }: {
   campaign: CrowdfundCampaign;
   footer?: React.ReactNode;
 }) {
-  const router = useRouter();
+  const { state } = useKaspaWallet();
+  const { pledge, refresh } = useCovenantCrowdfund();
+  const [pledgeAmount, setPledgeAmount] = useState('');
+  const [busy, setBusy] = useState(false);
+  const minKas = Number(COVENANT_LAB_CONFIG.minLockSompi) / 1e8;
+
   const raised = covenantCampaignRaisedKas(campaign);
   const goal = covenantCampaignGoalKas(campaign);
   const progress = covenantCampaignProgress(campaign);
@@ -35,41 +50,65 @@ export function CovenantCrowdfundCampaignCard({
   const goalReached = covenantCampaignGoalReached(campaign);
   const backers = covenantCampaignBackerCount(campaign);
   const deadline = new Date(campaign.deadline);
-  const profilePath = `/u/${encodeURIComponent(campaign.creator)}`;
-  const statusLabel =
-    campaign.status === 'funding' ? 'FUNDING' : campaign.status === 'succeeded' ? 'SUCCEEDED' : 'FAILED';
+  const href = `/donations/covenant/${campaign.id}`;
+  const cheapestTier = useMemo(
+    () => (campaign.tiers?.length ? sortTiersByMinKas(campaign.tiers)[0] : null),
+    [campaign.tiers],
+  );
+
+  const pledgeNum = parseFloat(pledgeAmount);
+  const feeHint =
+    Number.isFinite(pledgeNum) && pledgeNum > 0
+      ? `Total ~${quoteVDonateL1Pledge(pledgeNum).totalKas} KAS (pledge + platform fee)`
+      : cheapestTier
+        ? `From ${cheapestTier.minKas} KAS · ${campaign.tiers!.length} reward tier${campaign.tiers!.length === 1 ? '' : 's'}`
+        : undefined;
+
+  const handlePledge = async () => {
+    if (!state.isConnected) {
+      hubNotify.info('Connect wallet', 'Connect a Kaspa wallet to pledge from the card.');
+      window.location.href = href;
+      return;
+    }
+    const amount = parseFloat(pledgeAmount);
+    if (!Number.isFinite(amount) || amount < minKas) {
+      hubNotify.error('Invalid amount', `Enter at least ${minKas} KAS.`);
+      return;
+    }
+    setBusy(true);
+    try {
+      await pledge(campaign.id, amount, cheapestTier?.id);
+      setPledgeAmount('');
+      await refresh();
+      hubNotify.success('Pledge locked', 'Your L1 covenant pledge is on Kaspa.');
+    } catch {
+      /* hook toasts */
+    } finally {
+      setBusy(false);
+    }
+  };
 
   return (
-    <div
-      role="link"
-      tabIndex={0}
-      onClick={() => router.push(`/donations/covenant/${campaign.id}`)}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          router.push(`/donations/covenant/${campaign.id}`);
-        }
-      }}
-      className="block rounded-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden bg-white dark:bg-zinc-900 hover:border-emerald-500 dark:hover:border-emerald-500 transition-colors cursor-pointer"
+    <VDonateCardShell
+      href={href}
+      footer={
+        isLive ? (
+          <VDonatePledgeInline
+            amount={pledgeAmount}
+            onAmountChange={setPledgeAmount}
+            onPledge={() => void handlePledge()}
+            busy={busy}
+            minKas={minKas}
+            feeHint={feeHint}
+          />
+        ) : undefined
+      }
     >
-      <div className="aspect-[16/9] bg-zinc-100 dark:bg-zinc-800 relative overflow-hidden">
-        <img src={DEFAULT_DONATION_IMAGE} alt="" className="w-full h-full object-cover" />
-      </div>
-      <div className="p-4">
-        <div className="flex justify-between items-start mb-2 gap-2">
-          <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-2 line-clamp-2">{campaign.title}</p>
-            <AuthorInline
-              address={campaign.creator}
-              href={profilePath}
-              prefix=""
-              className="mt-0"
-            />
-          </div>
-          <div className="flex flex-col items-end gap-1 shrink-0">
-            <span className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
-              {statusLabel}
-            </span>
+      <VDonateCampaignMedia imageUrl={campaign.imageUrl} imageHash={campaign.imageHash} />
+      <div className="p-4 pb-0">
+        <div className="flex flex-col gap-2 mb-3">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <VDonateStatusBadges isLive={isLive} goalReached={goalReached} />
             {isLive && PLEDGE_HUB_POINTS_BASE > 0 ? (
               <HubPointsEarnBadge
                 basePoints={PLEDGE_HUB_POINTS_BASE}
@@ -78,27 +117,18 @@ export function CovenantCrowdfundCampaignCard({
                 size="sm"
               />
             ) : null}
-            <div className="flex flex-wrap items-center justify-end gap-1.5">
-              <span className="text-xs px-2 py-0.5 rounded bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300">
-                L1 • Covenant
-              </span>
-              {goalReached ? (
-                <span className="text-xs px-2 py-0.5 rounded bg-sky-100 dark:bg-sky-900/40 text-sky-800 dark:text-sky-200 font-medium">
-                  Goal reached
-                </span>
-              ) : null}
-              {isLive ? (
-                <span className="text-xs px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 font-medium">
-                  Active
-                </span>
-              ) : (
-                <span className="text-xs px-2 py-0.5 rounded bg-zinc-400 dark:bg-zinc-500 text-white dark:text-zinc-950 font-medium">
-                  Ended
-                </span>
-              )}
-            </div>
           </div>
+          <VDonateNetworkBadges network="l1" />
         </div>
+        <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100 mb-2 line-clamp-2 leading-snug">
+          {campaign.title}
+        </h3>
+        <AuthorInline
+          address={campaign.creator}
+          href={`/u/${encodeURIComponent(campaign.creator)}`}
+          prefix=""
+          className="mt-0 mb-3"
+        />
         <div className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
           {raised.toFixed(4)} / {goal.toFixed(4)} KAS
         </div>
@@ -108,11 +138,10 @@ export function CovenantCrowdfundCampaignCard({
             style={{ width: `${Math.min(progress, 100)}%` }}
           />
         </div>
-        <p className="kx-body">
+        <p className="kx-body pb-1">
           {backers} backer{backers === 1 ? '' : 's'} · Ends {deadline.toLocaleDateString()}
         </p>
-        {footer ? <div className="mt-4 pt-4 border-t border-zinc-200 dark:border-zinc-800">{footer}</div> : null}
       </div>
-    </div>
+    </VDonateCardShell>
   );
 }

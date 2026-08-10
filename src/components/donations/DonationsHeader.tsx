@@ -39,7 +39,7 @@ export function DonationsHeader({
               Kasparex <span className={VDONATE_GRADIENT_TEXT}>{VDONATE_SHORT_NAME}</span>
             </h1>
             <p className="kx-body max-w-2xl leading-relaxed mb-8">
-              Crowdfund creators and projects in one place: L2 escrow on Igra, Kaspa L1 tips, and L1 covenant goal raises (simulator).
+              Crowdfund creators and projects in one place: L2 escrow on Igra, Kaspa L1 tips, and L1 covenant goal raises.
             </p>
             <DonationNetworkSwitcher value={networkFilter} onChange={onNetworkFilterChange} />
           </div>

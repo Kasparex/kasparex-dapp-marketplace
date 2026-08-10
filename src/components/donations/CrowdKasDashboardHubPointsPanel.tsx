@@ -46,7 +46,7 @@ export function CrowdKasDashboardHubPointsPanel({ className = '' }: { className?
       </div>
 
       <div className="mt-3 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white/70 dark:bg-zinc-900/60 px-2.5 py-2 text-xs text-zinc-700 dark:text-zinc-300 leading-snug">
-        <p className="font-semibold text-zinc-900 dark:text-zinc-100 mb-1">CrowdKAS Hub Points</p>
+        <p className="font-semibold text-zinc-900 dark:text-zinc-100 mb-1">vDonate Hub Points</p>
         <ul className="space-y-0.5">
           <li>Create campaign: +{HUB_EARN_POINTS.crowdkasCampaignCreate} pts</li>
         </ul>

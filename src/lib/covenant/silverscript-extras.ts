@@ -677,6 +677,7 @@ class SilverscriptCrowdfundRuntime implements CrowdfundRuntime {
       creator: params.creator,
       title: params.title.trim(),
       memo: normalizeCovenantMemo(params.memo, COVENANT_LAB_CONFIG.maxMemoLength),
+      mainContent: params.mainContent?.trim() || undefined,
       goalSompi: params.goalSompi,
       raisedSompi: '0',
       deadline: params.deadline,
@@ -684,6 +685,16 @@ class SilverscriptCrowdfundRuntime implements CrowdfundRuntime {
       createdAt: Date.now(),
       claimedAt: null,
       origin: 'l1',
+      imageUrl: params.imageUrl?.trim() || undefined,
+      imageHash: params.imageHash?.trim() || undefined,
+      category: params.category?.trim() || undefined,
+      tags: params.tags?.length ? params.tags : undefined,
+      tiers: params.tiers?.length ? params.tiers : undefined,
+      faq: params.faq?.length ? params.faq : undefined,
+      socialLinks: params.socialLinks,
+      premiumTabEnabled: params.premiumTabEnabled || undefined,
+      premiumTabTitle: params.premiumTabTitle?.trim() || undefined,
+      premiumTabContent: params.premiumTabContent?.trim() || undefined,
     };
     this.campaigns.set(id, campaign);
     this.persist();
@@ -695,6 +706,7 @@ class SilverscriptCrowdfundRuntime implements CrowdfundRuntime {
     backer: string,
     amountSompi: string,
     ctx: CovenantWalletContext,
+    options?: { tierId?: string; feeTxHash?: string; platformFeeKas?: number },
   ): Promise<CrowdfundCampaign> {
     requireCovenantContext(ctx);
     this.reload();
@@ -725,6 +737,7 @@ class SilverscriptCrowdfundRuntime implements CrowdfundRuntime {
       },
     });
 
+    const tierId = options?.tierId?.trim() || undefined;
     const pledges = [
       ...campaign.pledges,
       {
@@ -732,21 +745,33 @@ class SilverscriptCrowdfundRuntime implements CrowdfundRuntime {
         backer: backer.trim(),
         amountSompi,
         txHash: deployed.txHash,
+        feeTxHash: options?.feeTxHash,
+        platformFeeKas: options?.platformFeeKas,
+        tierId,
         refunded: false,
         createdAt: Date.now(),
         covenantId: deployed.covenantId,
-      utxo: deployed.utxo?.txId
-        ? deployed.utxo
-        : { txId: deployed.txHash, index: 0 },
-      origin: 'l1' as const,
+        utxo: deployed.utxo?.txId
+          ? deployed.utxo
+          : { txId: deployed.txHash, index: 0 },
+        origin: 'l1' as const,
       },
     ];
     const raised = pledges
       .filter((p) => !p.refunded)
       .reduce((s, p) => s + BigInt(p.amountSompi), 0n);
+
+    let tiers = campaign.tiers;
+    if (tierId && tiers?.length) {
+      tiers = tiers.map((t) =>
+        t.id === tierId ? { ...t, claimedCount: (t.claimedCount ?? 0) + 1 } : t,
+      );
+    }
+
     const updated: CrowdfundCampaign = {
       ...campaign,
       pledges,
+      tiers,
       raisedSompi: String(raised),
       covenantId: deployed.covenantId,
       origin: 'l1',
@@ -910,7 +935,7 @@ class SilverscriptCrowdfundRuntime implements CrowdfundRuntime {
   async updateCampaign(
     campaignId: string,
     creator: string,
-    patch: { title?: string; memo?: string },
+    patch: import('./crowdfund-types').CrowdfundCampaignPatch,
   ): Promise<CrowdfundCampaign> {
     this.reload();
     const campaign = this.campaigns.get(campaignId);
@@ -925,6 +950,25 @@ class SilverscriptCrowdfundRuntime implements CrowdfundRuntime {
         patch.memo !== undefined
           ? normalizeCovenantMemo(patch.memo, COVENANT_LAB_CONFIG.maxMemoLength)
           : campaign.memo,
+      mainContent: patch.mainContent !== undefined ? patch.mainContent.trim() || undefined : campaign.mainContent,
+      imageUrl: patch.imageUrl !== undefined ? patch.imageUrl.trim() || undefined : campaign.imageUrl,
+      imageHash: patch.imageHash !== undefined ? patch.imageHash.trim() || undefined : campaign.imageHash,
+      category: patch.category !== undefined ? patch.category.trim() || undefined : campaign.category,
+      tags: patch.tags !== undefined ? (patch.tags.length ? patch.tags : undefined) : campaign.tags,
+      tiers: patch.tiers !== undefined ? (patch.tiers.length ? patch.tiers : undefined) : campaign.tiers,
+      faq: patch.faq !== undefined ? (patch.faq.length ? patch.faq : undefined) : campaign.faq,
+      updates: patch.updates !== undefined ? patch.updates : campaign.updates,
+      socialLinks: patch.socialLinks !== undefined ? patch.socialLinks : campaign.socialLinks,
+      premiumTabEnabled:
+        patch.premiumTabEnabled !== undefined ? patch.premiumTabEnabled : campaign.premiumTabEnabled,
+      premiumTabTitle:
+        patch.premiumTabTitle !== undefined
+          ? patch.premiumTabTitle.trim() || undefined
+          : campaign.premiumTabTitle,
+      premiumTabContent:
+        patch.premiumTabContent !== undefined
+          ? patch.premiumTabContent.trim() || undefined
+          : campaign.premiumTabContent,
     };
     this.campaigns.set(campaignId, updated);
     this.persist();

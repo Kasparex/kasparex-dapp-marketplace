@@ -1,29 +1,41 @@
 'use client';
 
 import { useEffect, useState, type ReactNode } from 'react';
-import Link from 'next/link';
 import { formatEther } from 'viem';
 import type { DonationCampaignListItem } from '@/hooks/useDonationCampaigns';
 import type { DonationCampaignMetadata } from '@/lib/donations/types';
-import { DEFAULT_DONATION_IMAGE } from '@/lib/donations/constants';
-import { getGatewayUrl } from '@/lib/ipfs/gateway';
 import { progressPercent, totalDonorCount, totalRaisedWei } from '@/lib/donations/totals';
 import { AuthorInline } from '@/components/ui/AuthorInline';
+import {
+  VDonateCampaignMedia,
+  VDonateCardShell,
+  VDonateNetworkBadges,
+  VDonatePledgeInline,
+  VDonateStatusBadges,
+} from '@/components/donations/VDonateCampaignCardChrome';
+import { quoteVDonateL1Pledge } from '@/lib/donations/l1PledgePayment';
 
 export function DonationCampaignCard({
   campaign,
   metadata,
   href,
-  badges,
+  featured,
   footer,
+  showPledge = true,
 }: {
   campaign: DonationCampaignListItem;
   metadata: DonationCampaignMetadata | null;
   href?: string;
-  badges?: { label: string; variant?: 'neutral' | 'emerald' | 'amber' }[];
+  featured?: boolean;
+  /** Extra actions under the card (studio Edit / Claim). */
   footer?: ReactNode;
+  /** Listing cards show inline pledge; studio cards can disable it. */
+  showPledge?: boolean;
+  /** @deprecated Network/status badges are built-in. Kept for call-site compatibility. */
+  badges?: { label: string; variant?: 'neutral' | 'emerald' | 'amber' }[];
 }) {
   const [nowSec, setNowSec] = useState(() => Math.floor(Date.now() / 1000));
+  const [pledgeAmount, setPledgeAmount] = useState('');
 
   useEffect(() => {
     const t = setInterval(() => setNowSec(Math.floor(Date.now() / 1000)), 30_000);
@@ -38,69 +50,77 @@ export function DonationCampaignCard({
   const deadlineSec = Number(campaign.deadline);
   const isLive = campaign.active && deadlineSec > nowSec;
   const goalReached = raisedDisplay >= campaign.targetWei;
+  const isL1Direct = campaign.donationMethod === 'L1_DIRECT';
 
-  const imageSrc =
-    metadata?.imageUrl || (metadata?.imageHash ? getGatewayUrl(metadata.imageHash) : DEFAULT_DONATION_IMAGE);
-  const title = metadata?.title?.trim() || `${campaign.creatorAddress.slice(0, 6)}...${campaign.creatorAddress.slice(-4)}`;
+  const title =
+    metadata?.title?.trim() ||
+    `${campaign.creatorAddress.slice(0, 6)}...${campaign.creatorAddress.slice(-4)}`;
   const category = metadata?.category?.trim() || null;
   const tags = (metadata?.tags ?? []).slice(0, 3);
+  const cardHref =
+    href ??
+    (campaign.campaignId != null
+      ? `/donations/${campaign.creatorAddress}?campaignId=${campaign.campaignId.toString()}`
+      : `/donations/${campaign.creatorAddress}`);
 
-  const cardHref = href ?? `/donations/${campaign.creatorAddress}`;
+  const pledgeNum = parseFloat(pledgeAmount);
+  const feeHint =
+    isL1Direct && Number.isFinite(pledgeNum) && pledgeNum > 0
+      ? `Total ~${quoteVDonateL1Pledge(pledgeNum).totalKas} KAS (includes platform fee)`
+      : undefined;
 
-  const cardBody = (
-    <>
-      <div className="aspect-[16/9] bg-zinc-100 dark:bg-zinc-800 relative overflow-hidden">
-        <img src={imageSrc} alt="" className="w-full h-full object-cover" />
+  const pledgeFooter =
+    showPledge && isLive ? (
+      <VDonatePledgeInline
+        amount={pledgeAmount}
+        onAmountChange={setPledgeAmount}
+        onPledge={() => {
+          const q = new URLSearchParams();
+          if (campaign.campaignId != null) q.set('campaignId', campaign.campaignId.toString());
+          if (pledgeAmount.trim()) q.set('pledge', pledgeAmount.trim());
+          const qs = q.toString();
+          window.location.href = `${cardHref.split('?')[0]}${qs ? `?${qs}` : ''}`;
+        }}
+        minKas={isL1Direct ? 1 : undefined}
+        feeHint={feeHint}
+      />
+    ) : null;
+
+  const combinedFooter =
+    pledgeFooter || footer ? (
+      <div className="space-y-3">
+        {pledgeFooter}
+        {footer}
       </div>
-      <div className="p-4">
-        <div className="flex justify-between items-start mb-2 gap-2">
-          <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-2 line-clamp-2">{title}</p>
-            <AuthorInline
-              address={campaign.creatorAddress}
-              href={`/u/${encodeURIComponent(campaign.creatorAddress)}`}
-              prefix=""
-              className="mt-0"
-            />
-          </div>
-          <div className="flex flex-wrap items-center justify-end gap-1.5 shrink-0">
-            {(badges ?? []).map((b) => (
-              <span
-                key={b.label}
-                className={
-                  b.variant === 'emerald'
-                    ? 'text-xs px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300'
-                    : b.variant === 'amber'
-                      ? 'text-xs px-2 py-0.5 rounded bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-200'
-                      : 'text-xs px-2 py-0.5 rounded bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300'
-                }
-              >
-                {b.label}
-              </span>
-            ))}
-            {goalReached ? (
-              <span className="text-xs px-2 py-0.5 rounded bg-sky-100 dark:bg-sky-900/40 text-sky-800 dark:text-sky-200 font-medium">
-                Goal reached
-              </span>
-            ) : null}
-            {isLive ? (
-              <span className="text-xs px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 font-medium">
-                Active
-              </span>
-            ) : (
-              <span className="text-xs px-2 py-0.5 rounded bg-zinc-400 dark:bg-zinc-500 text-white dark:text-zinc-950 font-medium">
-                Ended
-              </span>
-            )}
-          </div>
+    ) : undefined;
+
+  return (
+    <VDonateCardShell href={cardHref} footer={combinedFooter}>
+      <VDonateCampaignMedia imageUrl={metadata?.imageUrl} imageHash={metadata?.imageHash} />
+      <div className="p-4 pb-0">
+        <div className="flex flex-col gap-2 mb-3">
+          <VDonateStatusBadges isLive={isLive} goalReached={goalReached} />
+          <VDonateNetworkBadges
+            network={isL1Direct ? 'l1' : 'l2'}
+            featured={featured ?? campaign.featuredModuleUnlocked}
+          />
         </div>
+        <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100 mb-2 line-clamp-2 leading-snug">
+          {title}
+        </h3>
+        <AuthorInline
+          address={campaign.creatorAddress}
+          href={`/u/${encodeURIComponent(campaign.creatorAddress)}`}
+          prefix=""
+          className="mt-0 mb-3"
+        />
         {(category || tags.length > 0) && (
           <div className="flex flex-wrap gap-1.5 mb-3">
-            {category && (
+            {category ? (
               <span className="text-[11px] px-2 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-700">
                 {category}
               </span>
-            )}
+            ) : null}
             {tags.map((t) => (
               <span
                 key={t}
@@ -115,35 +135,15 @@ export function DonationCampaignCard({
           {formatEther(raisedDisplay)} / {formatEther(campaign.targetWei)} iKAS
         </div>
         <div className="w-full h-2 rounded-full bg-zinc-200 dark:bg-zinc-700 overflow-hidden mb-2">
-          <div className="h-full bg-emerald-500 rounded-full transition-all" style={{ width: `${Math.min(progress, 100)}%` }} />
+          <div
+            className="h-full bg-emerald-500 rounded-full transition-all"
+            style={{ width: `${Math.min(progress, 100)}%` }}
+          />
         </div>
-        <p className="kx-body">
+        <p className="kx-body pb-1">
           {donorsDisplay.toString()} donors · Ends {deadline.toLocaleDateString()}
         </p>
       </div>
-    </>
-  );
-
-  if (footer) {
-    return (
-      <div className="flex flex-col rounded-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden bg-white dark:bg-zinc-900">
-        <Link
-          href={cardHref}
-          className="block hover:border-emerald-500 dark:hover:border-emerald-500 transition-colors"
-        >
-          {cardBody}
-        </Link>
-        <div className="p-4 pt-0">{footer}</div>
-      </div>
-    );
-  }
-
-  return (
-    <Link
-      href={cardHref}
-      className="block rounded-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden bg-white dark:bg-zinc-900 hover:border-emerald-500 dark:hover:border-emerald-500 transition-colors"
-    >
-      {cardBody}
-    </Link>
+    </VDonateCardShell>
   );
 }

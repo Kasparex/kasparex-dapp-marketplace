@@ -3,7 +3,14 @@ import type { CovenantRuntimeMode } from './types';
 import type {
   CreateCrowdfundParams,
   CrowdfundCampaign,
+  CrowdfundCampaignPatch,
 } from './crowdfund-types';
+
+export type CrowdfundPledgeOptions = {
+  tierId?: string;
+  feeTxHash?: string;
+  platformFeeKas?: number;
+};
 
 export interface CrowdfundRuntime {
   readonly mode: CovenantRuntimeMode;
@@ -13,7 +20,8 @@ export interface CrowdfundRuntime {
     campaignId: string,
     backer: string,
     amountSompi: string,
-    ctx: CovenantWalletContext
+    ctx: CovenantWalletContext,
+    options?: CrowdfundPledgeOptions,
   ): Promise<CrowdfundCampaign>;
   claimByCreator(campaignId: string, creator: string, ctx: CovenantWalletContext): Promise<CrowdfundCampaign>;
   refundPledge(
@@ -27,7 +35,7 @@ export interface CrowdfundRuntime {
   updateCampaign(
     campaignId: string,
     creator: string,
-    patch: { title?: string; memo?: string },
+    patch: CrowdfundCampaignPatch,
   ): Promise<CrowdfundCampaign>;
   deleteCampaign(campaignId: string, creator: string): Promise<void>;
 }

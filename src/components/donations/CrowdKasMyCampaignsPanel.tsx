@@ -240,18 +240,12 @@ export function CrowdKasMyCampaignsPanel({
                 key={key}
                 campaign={listItem}
                 metadata={meta}
+                showPledge={false}
                 href={
                   creatorAddress
                     ? `/donations/${creatorAddress}?campaignId=${c.campaignId.toString()}`
                     : undefined
                 }
-                badges={[
-                  {
-                    label: c.method === 'L1_DIRECT' ? 'L1 • Direct' : 'L2 • Igra',
-                    variant: 'neutral',
-                  },
-                  ...(c.featuredModuleUnlocked ? [{ label: 'Featured', variant: 'amber' as const }] : []),
-                ]}
                 footer={
                   <div className="flex flex-wrap items-center gap-2">
                     <button
