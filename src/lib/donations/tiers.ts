@@ -72,11 +72,18 @@ function normalizeBacker(addr: string | null | undefined): string {
   return (addr || '').trim().toLowerCase();
 }
 
+type CrowdfundPledgeRef = {
+  backer: string;
+  refunded?: boolean;
+  amountSompi?: string;
+  tierId?: string;
+};
+
 /** Active (non-refunded) pledges for a wallet on a campaign. */
 export function getViewerActivePledges(
-  campaign: { pledges?: Array<{ backer: string; amountSompi: string; refunded?: boolean; tierId?: string }> },
+  campaign: { pledges?: CrowdfundPledgeRef[] },
   viewerAddress: string | null | undefined,
-) {
+): CrowdfundPledgeRef[] {
   const key = normalizeBacker(viewerAddress);
   if (!key) return [];
   return (campaign.pledges ?? []).filter(
@@ -93,7 +100,7 @@ export function getViewerUnlockedTierIds(
   campaign: {
     creator?: string;
     tiers?: CrowdfundTier[];
-    pledges?: Array<{ backer: string; amountSompi: string; refunded?: boolean; tierId?: string }>;
+    pledges?: CrowdfundPledgeRef[];
   },
   viewerAddress: string | null | undefined,
 ): Set<string> {
@@ -110,7 +117,7 @@ export function getViewerUnlockedTierIds(
 
   for (const p of pledges) {
     if (p.tierId) unlocked.add(p.tierId);
-    const amountKas = Number(p.amountSompi) / 1e8;
+    const amountKas = Number(p.amountSompi ?? 0) / 1e8;
     if (!Number.isFinite(amountKas) || amountKas <= 0) continue;
     for (const tier of tiers) {
       if (amountKas + 1e-9 >= tier.minKas) unlocked.add(tier.id);
@@ -123,7 +130,7 @@ export function getViewerUnlockedTierIds(
 export function viewerHasPremiumAccess(
   campaign: {
     creator: string;
-    pledges?: Array<{ backer: string; refunded?: boolean }>;
+    pledges?: CrowdfundPledgeRef[];
   },
   viewerAddress: string | null | undefined,
 ): boolean {
