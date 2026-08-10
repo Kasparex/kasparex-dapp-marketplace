@@ -275,7 +275,7 @@ export function VDonateCampaignDetailShell({
           </article>
 
           <HubMetadataStatGrid
-            items={[
+            stats={[
               { label: 'Raised', value: view.raisedLabel },
               { label: 'Target', value: view.goalLabel },
               { label: 'Backers', value: view.backersLabel },
