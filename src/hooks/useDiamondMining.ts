@@ -16,7 +16,7 @@ import {
   DIAMOND_VEINS_CONSUMABLES,
 } from '@/lib/game/diamond-veins-config';
 import { applyKrexFeeDiscount } from '@/lib/hub/applyKrexFeeDiscount';
-import { notifyActionError, notifyActionWarning } from '@/lib/hub/notify';
+import { hubNotify, notifyActionError, notifyActionWarning } from '@/lib/hub/notify';
 import type { KREXTier } from '@/lib/rewards/types';
 import { resolveSlotEnergyMax, syncDiamondVeinsEnergyCaps } from '@/lib/game/engine/compute-yield';
 import { fetchNFTMetadata, type ParsedNFTMetadata } from '@/lib/nft/metadata';
@@ -180,7 +180,6 @@ export function useDiamondMining() {
   const [slottedMetadata, setSlottedMetadata] = useState<Record<number, ParsedNFTMetadata>>({});
   const [buyingItemId, setBuyingItemId] = useState<string | null>(null);
   const [lastRefineClaim, setLastRefineClaim] = useState<{ points: number; amount: number } | null>(null);
-  const [profileNotice, setProfileNotice] = useState<string | null>(null);
   const metaRef = useRef(slottedMetadata);
   metaRef.current = slottedMetadata;
 
@@ -191,7 +190,6 @@ export function useDiamondMining() {
   /** Load wallet-scoped profile before autosave can overwrite storage (Minecore pattern). */
   useLayoutEffect(() => {
     if (!walletAddr) {
-      setProfileNotice(null);
       return undefined;
     }
     setBoundAddr(walletAddr);
@@ -200,16 +198,12 @@ export function useDiamondMining() {
     const caught = catchUpIdleMining(base, krexTier, metaRef.current, Date.now());
     setTycon(caught);
     hydratedRef.current = true;
-    let clearTimer: number | undefined;
     if (prevWalletRef.current !== walletAddr) {
       const short = `${walletAddr.slice(0, 12)}…${walletAddr.slice(-10)}`;
-      setProfileNotice(`Loaded Diamond Veins profile for ${short}`);
+      hubNotify.info('Profile loaded', `Diamond Veins profile for ${short}`);
       prevWalletRef.current = walletAddr;
-      clearTimer = window.setTimeout(() => setProfileNotice(null), 6_000);
     }
-    return () => {
-      if (clearTimer !== undefined) window.clearTimeout(clearTimer);
-    };
+    return undefined;
     // Catch-up uses current krexTier/meta once per wallet bind; do not re-run on tier flicker.
     // eslint-disable-next-line react-hooks/exhaustive-deps -- walletAddr only
   }, [walletAddr]);
@@ -350,7 +344,7 @@ export function useDiamondMining() {
         tyconSlots: tyconRef.current.slots,
       });
       if (!exclusivity.ok) {
-        setProfileNotice(globalNftConflictMessage(exclusivity.usedIn));
+        notifyActionWarning('NFT slot conflict', globalNftConflictMessage(exclusivity.usedIn));
         return;
       }
       const meta = metaRef.current[nftId] ?? null;
@@ -804,6 +798,5 @@ export function useDiamondMining() {
     redeemPoints,
     /** @deprecated */
     redeemGrid: redeemPoints,
-    profileNotice,
   };
 }

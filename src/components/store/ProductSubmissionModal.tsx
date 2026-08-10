@@ -46,7 +46,7 @@ export function ProductSubmissionModal({
   const [thumbnailCid, setThumbnailCid] = useState<string | null>(null);
   const [assetCids, setAssetCids] = useState<string[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [step, setStep] = useState<'form' | 'upload' | 'payment' | 'complete'>('form');
+  const [step, setStep] = useState<'form' | 'upload' | 'payment'>('form');
 
   const categories: ProductCategory[] = ['Software', 'Art', 'Music', 'Templates', 'Other'];
 
@@ -182,21 +182,17 @@ export function ProductSubmissionModal({
         localStorage.setItem('store-registry-cid', productResult.registryCid);
       }
 
-      setStep('complete');
-      hubNotify.success('Product published', 'Your Store listing is live.');
+      hubNotify.success('Product published', 'Your product has been listed successfully.');
 
-      // Call onSuccess to refresh product list
       if (onSuccess) {
-        // Small delay to ensure registry is accessible
         setTimeout(() => {
           onSuccess();
         }, 500);
       }
 
-      // Reset form after 2 seconds
       setTimeout(() => {
         handleClose();
-      }, 2000);
+      }, 800);
     } catch (err) {
       notifyActionError('Publish failed', err instanceof Error ? err.message : 'Failed to submit product');
       setStep('form');
@@ -409,18 +405,6 @@ export function ProductSubmissionModal({
             </div>
           )}
 
-          {/* Complete Step */}
-          {step === 'complete' && (
-            <div className="text-center py-8">
-              <div className="text-4xl mb-4">✓</div>
-              <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
-                Product Submitted!
-              </h3>
-              <p className="kx-body">
-                Your product has been listed successfully.
-              </p>
-            </div>
-          )}
         </div>
       </div>
     </div>

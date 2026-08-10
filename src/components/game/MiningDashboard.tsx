@@ -5,6 +5,7 @@ import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useDiamondMining } from '@/hooks/useDiamondMining';
+import { hubNotify } from '@/lib/hub/notify';
 import { GameTooltipProvider } from '@/components/game/diamond-veins/GameTooltip';
 import { OverviewPanel } from '@/components/game/diamond-veins/panels/OverviewPanel';
 import { MiningPanel } from '@/components/game/diamond-veins/panels/MiningPanel';
@@ -107,12 +108,10 @@ export function MiningDashboard({
     miningAllowed,
     reconnectRequiredBy,
     gridLedger,
-    profileNotice,
   } = useDiamondMining();
 
   const [tab, setTab] = useState<TabId>('overview');
   const [faqOpen, setFaqOpen] = useState(false);
-  const [purchaseSuccess, setPurchaseSuccess] = useState<string | null>(null);
   const [refining, setRefining] = useState(false);
   const [refineAmount, setRefineAmount] = useState<number | ''>('');
 
@@ -235,12 +234,6 @@ export function MiningDashboard({
           </div>
         )}
 
-        {profileNotice && (
-          <div className="rounded-2xl border border-sky-500/30 bg-sky-500/10 p-3 text-sm font-medium text-sky-900 dark:text-sky-100">
-            {profileNotice}
-          </div>
-        )}
-
         <UnifiedGameLayout
           tabs={tabsWithComments as any}
           currentTab={tab}
@@ -260,12 +253,6 @@ export function MiningDashboard({
           deckFooter={<span>Refine Diamonds into Hub points on /rewards</span>}
         >
           <div className="flex w-full min-w-0 flex-col gap-6">
-          {purchaseSuccess && (
-            <div className="rounded-2xl border border-emerald-500/40 bg-emerald-500/20 p-4 text-sm font-semibold text-emerald-800 dark:text-emerald-200">
-              Purchase complete. &quot;{purchaseSuccess}&quot; is now active.
-            </div>
-          )}
-
           {tab === 'overview' && (
             <div className="space-y-6">
               <OverviewPanel tycon={tycon} stats={stats} />
@@ -362,8 +349,7 @@ export function MiningDashboard({
               onBuyKrex={async (item, quantity) => {
                 try {
                   await buyBoost(item.id, item.name, item.priceKAS, item.type, item.mult, quantity);
-                  setPurchaseSuccess(item.name);
-                  setTimeout(() => setPurchaseSuccess(null), 5000);
+                  hubNotify.success('Purchase complete', `"${item.name}" is now active.`);
                 } catch {
                   /* */
                 }
@@ -371,8 +357,7 @@ export function MiningDashboard({
               onBuyKas={async (item, quantity) => {
                 try {
                   await buyBoostWithKAS(item.id, item.name, item.priceKAS, item.type, item.mult, quantity);
-                  setPurchaseSuccess(item.name);
-                  setTimeout(() => setPurchaseSuccess(null), 5000);
+                  hubNotify.success('Purchase complete', `"${item.name}" is now active.`);
                 } catch {
                   /* */
                 }
@@ -380,8 +365,7 @@ export function MiningDashboard({
               onBuyConsumable={async (id, currency, quantity) => {
                 const ok = await buyConsumable(id, currency, quantity);
                 if (ok) {
-                  setPurchaseSuccess(id);
-                  setTimeout(() => setPurchaseSuccess(null), 4000);
+                  hubNotify.success('Purchase complete', `"${id}" is now active.`);
                 }
                 return ok;
               }}

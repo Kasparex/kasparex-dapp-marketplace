@@ -16,7 +16,7 @@ import { KxFilterDropdown } from '@/components/ui/KxFilterDropdown';
 import { StoreFileUpload } from '@/components/store/StoreFileUpload';
 import { useDAppListingPayment } from '@/hooks/useDAppListingPayment';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
-import { notifyActionWarning } from '@/lib/hub/notify';
+import { hubNotify, notifyActionWarning } from '@/lib/hub/notify';
 import {
   DAPP_LISTING_ACTION_FEE_KAS,
   DAPP_LISTING_FEE_KAS,
@@ -172,7 +172,7 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
   const [paymentCurrency, setPaymentCurrency] = useState<StorePaymentCurrency>(
     listing?.paymentCurrency ?? 'KAS',
   );
-  const [step, setStep] = useState<'form' | 'payment' | 'complete'>('form');
+  const [step, setStep] = useState<'form' | 'payment'>('form');
   const [featuredPlacementEnabled, setFeaturedPlacementEnabled] = useState(false);
   const [highlightBadgeEnabled, setHighlightBadgeEnabled] = useState(false);
   useEffect(() => {
@@ -453,9 +453,12 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
         });
       }
 
-      setStep('complete');
+      hubNotify.success(
+        isEdit ? 'Listing updated' : 'Listing submitted',
+        isEdit ? 'Your directory listing was updated.' : 'Your directory listing is live.',
+      );
       onSubmitted?.();
-      setTimeout(() => router.replace('/dapps/dashboard?tab=listings'), 2000);
+      setTimeout(() => router.replace('/dapps/dashboard?tab=listings'), 1200);
     } catch {
       setStep('form');
     }
@@ -468,18 +471,6 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
         <p className="text-zinc-500 font-bold uppercase tracking-widest text-sm">
           {isEdit ? 'Processing update payment...' : 'Processing listing payment...'}
         </p>
-      </div>
-    );
-  }
-
-  if (step === 'complete') {
-    return (
-      <div className="text-center py-16">
-        <div className="text-5xl mb-4">?</div>
-        <p className="text-zinc-900 dark:text-zinc-100 font-black uppercase tracking-widest">
-          {isEdit ? 'Listing updated' : 'Listing submitted'}
-        </p>
-        <p className="text-sm text-zinc-500 mt-2">Redirecting to your listings...</p>
       </div>
     );
   }

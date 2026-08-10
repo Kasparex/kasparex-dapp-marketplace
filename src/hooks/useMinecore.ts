@@ -43,7 +43,7 @@ import { useKREXBalance } from '@/hooks/useKREXBalance'
 import { usePricingSnapshot } from '@/hooks/usePricingSnapshot';
 import { KRC20_TRANSFER_TYPE, KREX_DECIMALS } from '@/lib/game/diamond-veins-config';
 import { applyKrexFeeDiscount } from '@/lib/hub/applyKrexFeeDiscount';
-import { notifyActionError, notifyActionWarning } from '@/lib/hub/notify';
+import { hubNotify, notifyActionError, notifyActionWarning } from '@/lib/hub/notify';
 import type { KREXTier } from '@/lib/rewards/types';
 import { signKrc20Transfer } from '@/lib/kaspa/l1WalletActions';
 import { getNFTTier } from '@/lib/game/diamond-bonuses';
@@ -114,28 +114,22 @@ export function useMinecore() {
   const mcRef = useRef(mc);
   mcRef.current = mc;
 
-  const [profileNotice, setProfileNotice] = useState<string | null>(null);
   const prevWalletRef = useRef<string>('');
 
   /** Load persisted profile before passive effects run so autosave cannot overwrite storage with blank default state first. */
   useLayoutEffect(() => {
     if (!walletAddr) {
-      setProfileNotice(null);
       prevWalletRef.current = '';
       return undefined;
     }
     const loaded = loadPersistedMinecore(walletStorageKey(walletAddr));
     setMc(loaded ?? createInitialMinecoreState());
-    let clearTimer: number | undefined;
     if (prevWalletRef.current !== walletAddr) {
       const short = `${walletAddr.slice(0, 12)}…${walletAddr.slice(-10)}`;
-      setProfileNotice(`Loaded Minecore profile for ${short}`);
+      hubNotify.info('Profile loaded', `Minecore profile for ${short}`);
       prevWalletRef.current = walletAddr;
-      clearTimer = window.setTimeout(() => setProfileNotice(null), 6_000);
     }
-    return () => {
-      if (clearTimer !== undefined) window.clearTimeout(clearTimer);
-    };
+    return undefined;
   }, [walletAddr]);
 
   useEffect(() => {
@@ -187,8 +181,6 @@ export function useMinecore() {
   const nowTick = useNowTick(1000);
   const derived = useMemo(() => deriveState(mc, nowTick, minecoreComputeContext), [mc, nowTick, minecoreComputeContext]);
 
-  const [lastSetupError, setLastSetupError] = useState<string | null>(null);
-
   /** Applies Minecore events; InstallPart is validated first so inventory rejects never bump version silently. */
   const dispatch = useCallback((ev: Parameters<typeof applyMinecoreEvent>[1]) => {
     setMc((s) => {
@@ -196,13 +188,13 @@ export function useMinecore() {
 
       const slot = s.plantSlots[ev.slotIndex];
       if (!slot || !slot.unlocked) {
-        queueMicrotask(() => setLastSetupError('Plant is locked or unavailable.'));
+        queueMicrotask(() => notifyActionWarning('Plant setup', 'Plant is locked or unavailable.'));
         return s;
       }
       const nextSetup = nextPlantSetupAfterInstallPart(slot, ev.part);
       const msg = explainPlantSetupBlock(s, ev.slotIndex, nextSetup);
       if (msg) {
-        queueMicrotask(() => setLastSetupError(msg));
+        queueMicrotask(() => notifyActionWarning('Plant setup', msg));
         return s;
       }
       if (ev.part.kind === 'battery') {
@@ -213,11 +205,10 @@ export function useMinecore() {
             : 0;
         const batMsg = explainBatteryInstallChangeBlocked(slot, bIdx, ev.part.id, ev.at);
         if (batMsg) {
-          queueMicrotask(() => setLastSetupError(batMsg));
+          queueMicrotask(() => notifyActionWarning('Plant setup', batMsg));
           return s;
         }
       }
-      queueMicrotask(() => setLastSetupError(null));
       return applyMinecoreEvent(s, ev);
     });
   }, []);
@@ -954,7 +945,7 @@ export function useMinecore() {
       minecoreNftSlots: mcRef.current.nftSlots,
     });
     if (!exclusivity.ok) {
-      setProfileNotice(globalNftConflictMessage(exclusivity.usedIn));
+      notifyActionWarning('NFT slot conflict', globalNftConflictMessage(exclusivity.usedIn));
       return;
     }
     dispatch({
@@ -1073,15 +1064,11 @@ export function useMinecore() {
     slottedMetadata,
     minecoreComputeContext,
     miningAllowed,
-    profileNotice,
-    dismissProfileNotice: () => setProfileNotice(null),
-    dismissLastSetupError: () => setLastSetupError(null),
     wallet: {
       isConnected: walletState.isConnected,
       address: walletState.address ?? null,
       provider: walletState.provider ?? null,
     },
-    lastSetupError,
     actions: {
       unlockSlot,
       addSlot,

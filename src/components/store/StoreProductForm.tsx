@@ -117,7 +117,7 @@ export function StoreProductForm({ product }: StoreProductFormProps) {
   );
 
   const [isProcessing, setIsProcessing] = useState(false);
-  const [step, setStep] = useState<'form' | 'payment' | 'complete'>('form');
+  const [step, setStep] = useState<'form' | 'payment'>('form');
 
   const categories: ProductCategory[] = ['Software', 'Art', 'Music', 'Templates', 'Other'];
   const actionFee = isEdit ? STORE_UPDATE_FEE_KAS : STORE_LISTING_FEE_KAS;
@@ -314,12 +314,11 @@ export function StoreProductForm({ product }: StoreProductFormProps) {
         }
       }
 
-      setStep('complete');
       hubNotify.success(
         isEdit ? 'Product updated' : 'Product published',
         isEdit ? 'Your Store listing was updated.' : 'Your Store listing is live.',
       );
-      setTimeout(() => router.push('/store/dashboard?tab=products'), 2000);
+      setTimeout(() => router.push('/store/dashboard?tab=products'), 1200);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to submit product';
       hubNotify.error(isEdit ? 'Update failed' : 'Publish failed', message);
@@ -336,18 +335,6 @@ export function StoreProductForm({ product }: StoreProductFormProps) {
         <p className="text-zinc-500 font-bold uppercase tracking-widest text-sm">
           {isEdit ? 'Processing update payment...' : 'Processing listing payment...'}
         </p>
-      </div>
-    );
-  }
-
-  if (step === 'complete') {
-    return (
-      <div className="text-center py-16">
-        <div className="text-5xl mb-4">✓</div>
-        <p className="text-zinc-900 dark:text-zinc-100 font-black uppercase tracking-widest">
-          {isEdit ? 'Product updated' : 'Product listed'}
-        </p>
-        <p className="text-sm text-zinc-500 mt-2">Redirecting to your dashboard...</p>
       </div>
     );
   }

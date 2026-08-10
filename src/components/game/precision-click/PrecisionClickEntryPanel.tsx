@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { HubPaymentPanel } from '@/components/payments/HubPaymentPanel';
 import { ToggleSwitch } from '@/components/ui/ToggleSwitch';
 import { Tooltip } from '@/components/ui/Tooltip';
@@ -11,7 +11,6 @@ import { formatHubPaymentAmount, type HubPaymentQuoteLine } from '@/lib/payments
 import { resolveCatalogPaymentOption } from '@/lib/payments/currencyCatalog';
 import { krexTierDiscountPercent } from '@/lib/chronicles/vault/pricing';
 import { KX_SURFACE_NESTED } from '@/lib/hub/shellTokens';
-import { hubNotify, notifyActionError } from '@/lib/hub/notify';
 import {
   PRECISION_CLICK_ENTRY_KAS,
   PRECISION_ENTRY_ADDONS,
@@ -33,14 +32,6 @@ export function PrecisionClickEntryPanel(props: {
   const { tier, balance: krexBalance } = useKREXBalance();
   const [selectedAddons, setSelectedAddons] = useState<PrecisionAddonId[]>([]);
   const [payCurrencyId, setPayCurrencyId] = useState('KAS');
-
-  useEffect(() => {
-    if (props.error) notifyActionError('Precision Click', props.error);
-  }, [props.error]);
-
-  useEffect(() => {
-    if (props.success) hubNotify.success('Precision Click', props.success);
-  }, [props.success]);
 
   const addonsKas = selectedAddons.reduce((sum, id) => {
     const def = PRECISION_ENTRY_ADDONS.find((a) => a.id === id);

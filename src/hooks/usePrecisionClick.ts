@@ -45,6 +45,7 @@ import {
 import { syncGlobalNftSlotsForEntity } from '@/lib/nft/globalNftSlotRegistry';
 import { broadcastPrecisionClickExternalPersist } from '@/lib/game/precision-click-hub';
 import { REDEEMABLE_BREAKDOWN_REFRESH_EVENT } from '@/lib/game/minecore/deduct-refinement-hub';
+import { hubNotify, notifyActionError, notifyActionWarning } from '@/lib/hub/notify';
 
 const DEFAULT_TREASURY = process.env.NEXT_PUBLIC_GAME_TREASURY_ADDRESS || '';
 const KREX_PRIORITY_FEE_KAS = 0.001;
@@ -172,6 +173,14 @@ export function usePrecisionClick() {
   const [refining, setRefining] = useState(false);
   const [lastError, setLastError] = useState<string | null>(null);
   const [lastSuccess, setLastSuccess] = useState<string | null>(null);
+  const pushSuccess = (message: string) => {
+    hubNotify.success('Precision Click', message);
+    setLastSuccess(message);
+  };
+  const pushError = (message: string) => {
+    notifyActionError('Precision Click', message);
+    setLastError(message);
+  };
   const [nowTick, setNowTick] = useState(() => Date.now());
 
   useEffect(() => {
@@ -334,7 +343,7 @@ export function usePrecisionClick() {
       setLastError(null);
       setLastSuccess(null);
       if (!walletAddr) {
-        setLastError('Connect a Kaspa wallet first.');
+        pushError('Connect a Kaspa wallet first.');
         return false;
       }
       const addonsKas = addonListKas(args.addonIds);
@@ -347,7 +356,7 @@ export function usePrecisionClick() {
           const amountKrex = resolveTokenAmountFromKas(payKasAmount, 'KREX', pricingSnapshot);
           const paid = await payKrex({ amountKrex, skuId: 'precision-click:entry' });
           if (!paid.ok) {
-            setLastError(paid.error);
+            pushError(paid.error);
             return false;
           }
           txHash = paid.txHash;
@@ -358,7 +367,7 @@ export function usePrecisionClick() {
             purchaseType: 'entry',
           });
           if (!paid.ok) {
-            setLastError(paid.error);
+            pushError(paid.error);
             return false;
           }
           txHash = paid.txHash;
@@ -379,7 +388,7 @@ export function usePrecisionClick() {
             operativeSlots: slots.length ? slots : [null],
           };
         });
-        setLastSuccess('Lock opened for 24h. Cleared levels reset. Finish the cascade before the timer ends.');
+        pushSuccess('Lock opened for 24h. Cleared levels reset. Finish the cascade before the timer ends.');
         return true;
       } finally {
         setPaying(false);
@@ -394,11 +403,11 @@ export function usePrecisionClick() {
       setLastSuccess(null);
       const def = getPrecisionShopItem(args.itemId);
       if (!def) {
-        setLastError('Unknown shop item.');
+        pushError('Unknown shop item.');
         return false;
       }
       if (def.extendRunMs && !isRunActive(liveState)) {
-        setLastError('Open a lock first (pay entry) before buying Chrono Seals.');
+        pushError('Open a lock first (pay entry) before buying Chrono Seals.');
         return false;
       }
       const qty = Math.max(1, Math.floor(args.quantity ?? 1));
@@ -413,7 +422,7 @@ export function usePrecisionClick() {
             skuId: `precision-click:shop:${args.itemId}`,
           });
           if (!paid.ok) {
-            setLastError(paid.error);
+            pushError(paid.error);
             return false;
           }
           txHash = paid.txHash;
@@ -424,7 +433,7 @@ export function usePrecisionClick() {
             purchaseType: def.boosterMult ? 'boost' : 'other',
           });
           if (!paid.ok) {
-            setLastError(paid.error);
+            pushError(paid.error);
             return false;
           }
           txHash = paid.txHash;
@@ -458,7 +467,7 @@ export function usePrecisionClick() {
           }
           return next;
         });
-        setLastSuccess(`${def.title} purchased.`);
+        pushSuccess(`${def.title} purchased.`);
         return true;
       } finally {
         setBuyBusyId(null);
@@ -534,7 +543,7 @@ export function usePrecisionClick() {
         precisionOperative: state.operativeSlots,
       });
       if (!exclusivity.ok) {
-        setLastError(globalNftConflictMessage(exclusivity.usedIn));
+        notifyActionWarning('NFT slot conflict', globalNftConflictMessage(exclusivity.usedIn));
         return;
       }
       const tier = slot.tier ?? mapRarityToOperativeTier(slot.collection, slot.tokenId);
@@ -569,7 +578,7 @@ export function usePrecisionClick() {
         window.dispatchEvent(new CustomEvent('kasparex-nft-usage'));
       }
       setLastError(null);
-      setLastSuccess(
+      pushSuccess(
         `Sync Operative slotted (${PRECISION_OPERATIVE_PERKS[tier].label}). Lock extended while active.`,
       );
     },
@@ -612,7 +621,7 @@ export function usePrecisionClick() {
           purchaseType: 'other',
         });
         if (!paid.ok) {
-          setLastError(paid.error);
+          pushError(paid.error);
           return false;
         }
         persist((prev) => {
@@ -620,7 +629,7 @@ export function usePrecisionClick() {
           for (let i = 0; i < count; i++) slots.push(null);
           return { ...prev, operativeSlots: slots };
         });
-        setLastSuccess(
+        pushSuccess(
           count === 1
             ? 'Extra Sync Operative slot unlocked.'
             : `${count} Sync Operative slots unlocked.`,
@@ -636,13 +645,13 @@ export function usePrecisionClick() {
   const refineFragments = useCallback(
     async (amountArg: number): Promise<{ points: number; amount: number } | null> => {
       if (!walletAddr) {
-        setLastError('Connect a Kaspa wallet to refine.');
+        pushError('Connect a Kaspa wallet to refine.');
         return null;
       }
       const bag = Math.floor(liveState.ariaFragments);
       const amount = Math.max(0, Math.min(bag, Math.floor(amountArg)));
       if (amount < PRECISION_CLICK_REFINE_MIN) {
-        setLastError(`Refine at least ${PRECISION_CLICK_REFINE_MIN} Aria fragments.`);
+        pushError(`Refine at least ${PRECISION_CLICK_REFINE_MIN} Aria fragments.`);
         return null;
       }
       setRefining(true);
@@ -675,7 +684,7 @@ export function usePrecisionClick() {
         if (typeof window !== 'undefined') {
           window.dispatchEvent(new Event(REDEEMABLE_BREAKDOWN_REFRESH_EVENT));
         }
-        setLastSuccess(
+        pushSuccess(
           `Refined ${amount.toLocaleString()} fragments → ${points.toLocaleString()} Hub points on /rewards.`,
         );
         return { points, amount };

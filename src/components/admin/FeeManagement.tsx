@@ -77,12 +77,32 @@ export function FeeManagement() {
     }
   }, [plan, selectedDApp, isLoadingPlan]);
 
-  // Reset on success
   useEffect(() => {
-    if (isPercentagesUpdated || isAddressesUpdated || isFeeUpdated || isPlanUpdated) {
-      // Values will refresh automatically via hooks
+    if (isPercentagesUpdated) {
+      hubNotify.success('Percentages updated', 'Distribution percentages were saved on-chain.');
     }
-  }, [isPercentagesUpdated, isAddressesUpdated, isFeeUpdated, isPlanUpdated]);
+  }, [isPercentagesUpdated]);
+
+  useEffect(() => {
+    if (isAddressesUpdated) {
+      hubNotify.success('Addresses updated', 'Distribution addresses were saved on-chain.');
+    }
+  }, [isAddressesUpdated]);
+
+  useEffect(() => {
+    if (isFeeUpdated) {
+      hubNotify.success('Fee updated', 'Kasparex fee percentage was saved on-chain.');
+    }
+  }, [isFeeUpdated]);
+
+  useEffect(() => {
+    if (isPlanUpdated) {
+      hubNotify.success(
+        plan ? 'Plan updated' : 'Plan created',
+        `Subscription plan ${plan ? 'updated' : 'created'} successfully.`,
+      );
+    }
+  }, [isPlanUpdated, plan]);
 
   const allDApps = getAllDApps();
   const filteredDApps = searchQuery
@@ -220,11 +240,6 @@ export function FeeManagement() {
           >
             {isUpdatingPercentages ? 'Updating...' : 'Update Distribution Percentages'}
           </button>
-          {isPercentagesUpdated && (
-            <div className="mt-2 text-sm text-green-600 dark:text-green-400">
-              ✓ Percentages updated successfully!
-            </div>
-          )}
         </div>
 
         {/* Distribution Addresses */}
@@ -279,11 +294,6 @@ export function FeeManagement() {
           >
             {isUpdatingAddresses ? 'Updating...' : 'Update Distribution Addresses'}
           </button>
-          {isAddressesUpdated && (
-            <div className="mt-2 text-sm text-green-600 dark:text-green-400">
-              ✓ Addresses updated successfully!
-            </div>
-          )}
         </div>
 
         {/* Kasparex Fee Percentage */}
@@ -320,11 +330,6 @@ export function FeeManagement() {
           >
             {isUpdatingFee ? 'Updating...' : 'Update Kasparex Fee'}
           </button>
-          {isFeeUpdated && (
-            <div className="mt-2 text-sm text-green-600 dark:text-green-400">
-              ✓ Fee updated successfully!
-            </div>
-          )}
         </div>
 
         {/* Treasury Balance */}
@@ -484,11 +489,6 @@ export function FeeManagement() {
             >
               {isUpdatingPlan ? 'Updating...' : plan ? 'Update Plan' : 'Create Plan'}
             </button>
-            {isPlanUpdated && (
-              <div className="mt-2 text-sm text-green-600 dark:text-green-400">
-                ✓ Subscription plan {plan ? 'updated' : 'created'} successfully!
-              </div>
-            )}
           </div>
         )}
       </div>

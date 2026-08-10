@@ -30,6 +30,7 @@ import { RewardsEarnSourcesTable } from '@/components/rewards/RewardsEarnSources
 import { RewardsHistoryTable } from '@/components/rewards/RewardsHistoryTable';
 import { HubListingTitleRow } from '@/components/hub/HubListingTitleRow';
 import { HubBenefitsPanel } from '@/components/hub/HubBenefitsPanel';
+import { hubNotify, notifyActionError, notifyActionWarning } from '@/lib/hub/notify';
 
 function normKaspa(a: string): string {
   try {
@@ -199,8 +200,6 @@ export function RewardsPageContent() {
   const [kindFilter, setKindFilter] = useState<KindFilter>('all');
   const [fulfillmentFilter, setFulfillmentFilter] = useState<FulfillmentFilter>('all');
   const [sort, setSort] = useState<SortKey>('cost-asc');
-  const [note, setNote] = useState<string | null>(null);
-
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     const base = UNIFIED_REWARD_CATALOG.filter(
@@ -222,42 +221,59 @@ export function RewardsPageContent() {
 
   const redeem = useCallback(
     async (item: UnifiedRewardItem, quantityFromCard: number) => {
-      setNote(null);
       if (!kaspaAddr) {
-        setNote('Connect your Kaspa wallet in the header to redeem with your hub-wide balance.');
+        notifyActionWarning(
+          'Wallet required',
+          'Connect your Kaspa wallet in the header to redeem with your hub-wide balance.',
+        );
         return;
       }
       if (item.fulfillment === 'coming_soon') {
-        setNote('This offer opens soon: partners are still wiring delivery.');
+        hubNotify.info('Coming soon', 'This offer opens soon: partners are still wiring delivery.');
         return;
       }
 
       if (isTokenPoolClaimItem(item) && item.tokenPoolRate) {
         const pointsSpend = Math.max(0, Math.floor(quantityFromCard));
         if (pointsSpend < 1) {
-          setNote('Use at least 1 pt to claim from this pool.');
+          notifyActionWarning('Invalid amount', 'Use at least 1 pt to claim from this pool.');
           return;
         }
         if (breakdown.totalRedeemable < pointsSpend) {
-          setNote(`You need ${pointsSpend.toLocaleString()} redeemable pts. Earn more with hub activities listed under the Points tab.`);
+          notifyActionWarning(
+            'Not enough points',
+            `You need ${pointsSpend.toLocaleString()} redeemable pts. Earn more with hub activities listed under the Points tab.`,
+          );
           return;
         }
         if (rewardsItemRequiresL2Gate(item.fulfillment)) {
           if (!evmConnected || !evmAddr) {
-            setNote('Connect your EVM wallet using the verification strip below, then choose IGRA Mainnet.');
+            notifyActionWarning(
+              'EVM wallet required',
+              'Connect your EVM wallet using the verification strip below, then choose IGRA Mainnet.',
+            );
             return;
           }
           if (!igraReady) {
-            setNote('Switch your EVM wallet to IGRA Mainnet using the controls below.');
+            notifyActionWarning(
+              'Wrong network',
+              'Switch your EVM wallet to IGRA Mainnet using the controls below.',
+            );
             return;
           }
           if (!readRewardsL2SessionVerified(CHAIN_IDS.IGRA_MAINNET, evmAddr)) {
-            setNote('Sign once in the verification strip below before claiming token pools.');
+            notifyActionWarning(
+              'Verify session',
+              'Sign once in the verification strip below before claiming token pools.',
+            );
             return;
           }
           const kaspaProvider = kaspaState.provider;
           if (!kaspaProvider) {
-            setNote('Use a supported Kaspa wallet extension so you can sign the redeem request.');
+            notifyActionWarning(
+              'Wallet unsupported',
+              'Use a supported Kaspa wallet extension so you can sign the redeem request.',
+            );
             return;
           }
 
@@ -280,7 +296,7 @@ export function RewardsPageContent() {
           try {
             sig = await signKaspaMessage(kaspaProvider, message);
           } catch (e) {
-            setNote(e instanceof Error ? e.message : 'Kaspa signing failed.');
+            notifyActionError('Signing failed', e, 'Kaspa signing failed.');
             return;
           }
 
@@ -296,7 +312,7 @@ export function RewardsPageContent() {
               }),
             });
           } catch {
-            setNote('Network error talking to redeem service.');
+            notifyActionError('Network error', 'Network error talking to redeem service.');
             return;
           }
 
@@ -318,13 +334,13 @@ export function RewardsPageContent() {
                     .filter(Boolean)
                     .join(', ')}.`
                 : '';
-            setNote(`Redeem error: ${err}.${detail}${debug}`.trim());
+            notifyActionError('Redeem failed', `Redeem error: ${err}.${detail}${debug}`.trim());
             return;
           }
           const voucher = poolJson.voucher as Record<string, unknown> | undefined;
           const jobId = typeof poolJson.job_id === 'string' ? poolJson.job_id : '';
           if (!voucher || typeof voucher.vault !== 'string') {
-            setNote('Invalid voucher from server.');
+            notifyActionError('Redeem failed', 'Invalid voucher from server.');
             return;
           }
 
@@ -352,13 +368,17 @@ export function RewardsPageContent() {
               catalogItemId: item.id,
               quantity: Math.max(0, tokenOutL2),
             });
-            setNote(
-              `${item.title}: claim tx sent (${hash.slice(0, 12)}…). Expect ${tokenOutL2.toLocaleString()} ${item.tokenPoolRate.payoutSymbol} on Igra when the transaction confirms.`,
-            );
+            hubNotify.txSuccess({
+              title: 'Claim submitted',
+              description: `${item.title}: expect ${tokenOutL2.toLocaleString()} ${item.tokenPoolRate.payoutSymbol} on Igra when the transaction confirms.`,
+              txHash: hash,
+              chainId: CHAIN_IDS.IGRA_MAINNET,
+            });
             void refetchVaultPools();
           } catch (e) {
             const extra = jobId ? ` Reference job id: ${jobId}.` : '';
-            setNote(
+            notifyActionError(
+              'Claim incomplete',
               `Voucher was issued but the on-chain claim did not complete: ${e instanceof Error ? e.message : String(e)}.${extra} If pts were debited already, contact support before signing again.`,
             );
             return;
@@ -420,7 +440,8 @@ export function RewardsPageContent() {
           /* ignore */
         }
 
-        setNote(
+        hubNotify.success(
+          'Redeem saved',
           `${item.title}: ${pointsSpend.toLocaleString()} pts → about ${tokenOut.toLocaleString()} ${item.tokenPoolRate.payoutSymbol}. Confirmation saved on this device.${l2Extras}`,
         );
         return;
@@ -430,21 +451,33 @@ export function RewardsPageContent() {
       const q = Math.max(item.minQty, Math.min(item.maxQty, Math.floor(quantityFromCard)));
       const cost = unit * q;
       if (breakdown.totalRedeemable < cost) {
-        setNote(`You need ${cost.toLocaleString()} redeemable pts. Earn more with hub activities listed under the Points tab.`);
+        notifyActionWarning(
+          'Not enough points',
+          `You need ${cost.toLocaleString()} redeemable pts. Earn more with hub activities listed under the Points tab.`,
+        );
         return;
       }
 
       if (rewardsItemRequiresL2Gate(item.fulfillment)) {
         if (!evmConnected || !evmAddr) {
-          setNote('Connect your EVM wallet using the verification strip below, then choose IGRA Mainnet.');
+          notifyActionWarning(
+            'EVM wallet required',
+            'Connect your EVM wallet using the verification strip below, then choose IGRA Mainnet.',
+          );
           return;
         }
         if (!igraReady) {
-          setNote('Switch your EVM wallet to IGRA Mainnet using the controls below.');
+          notifyActionWarning(
+            'Wrong network',
+            'Switch your EVM wallet to IGRA Mainnet using the controls below.',
+          );
           return;
         }
         if (!readRewardsL2SessionVerified(CHAIN_IDS.IGRA_MAINNET, evmAddr)) {
-          setNote('Sign once in the verification strip below before claiming token pools.');
+          notifyActionWarning(
+            'Verify session',
+            'Sign once in the verification strip below before claiming token pools.',
+          );
           return;
         }
       }
@@ -478,7 +511,10 @@ export function RewardsPageContent() {
         /* ignore */
       }
 
-      setNote(`${item.title} ×${q}: confirmation saved (${cost.toLocaleString()} pts).${l2Extras}`);
+      hubNotify.success(
+        'Redeem saved',
+        `${item.title} ×${q}: confirmation saved (${cost.toLocaleString()} pts).${l2Extras}`,
+      );
     },
     [
       breakdown.totalRedeemable,
@@ -539,12 +575,6 @@ export function RewardsPageContent() {
           ))}
         </div>
       </div>
-
-      {note ? (
-        <p className="text-sm text-amber-700 dark:text-amber-300 px-1" role="status">
-          {note}
-        </p>
-      ) : null}
 
       {hubTab === 'catalog' ? (
         <>

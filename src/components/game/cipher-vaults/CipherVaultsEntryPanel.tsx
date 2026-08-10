@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { HubPaymentPanel } from '@/components/payments/HubPaymentPanel';
 import { ToggleSwitch } from '@/components/ui/ToggleSwitch';
 import { Tooltip } from '@/components/ui/Tooltip';
@@ -11,7 +11,6 @@ import { formatHubPaymentAmount, type HubPaymentQuoteLine } from '@/lib/payments
 import { resolveCatalogPaymentOption } from '@/lib/payments/currencyCatalog';
 import { krexTierDiscountPercent } from '@/lib/chronicles/vault/pricing';
 import { KX_SURFACE_NESTED } from '@/lib/hub/shellTokens';
-import { hubNotify, notifyActionError } from '@/lib/hub/notify';
 import {
   CIPHER_ENTRY_ADDONS,
   CIPHER_VAULT_PASS_TIER,
@@ -43,14 +42,6 @@ export function CipherVaultsEntryPanel(props: {
   const [selectedAddons, setSelectedAddons] = useState<CipherAddonId[]>([]);
   const [payCurrencyId, setPayCurrencyId] = useState('KAS');
   const [useVaultPass, setUseVaultPass] = useState(false);
-
-  useEffect(() => {
-    if (props.error) notifyActionError('Cipher Vaults', props.error);
-  }, [props.error]);
-
-  useEffect(() => {
-    if (props.success) hubNotify.success('Cipher Vaults', props.success);
-  }, [props.success]);
 
   const vault = CIPHER_VAULT_TIERS.find((t) => t.id === props.selectedTierId) ?? CIPHER_VAULT_TIERS[0]!;
   const addonsKas = selectedAddons.reduce((sum, id) => {

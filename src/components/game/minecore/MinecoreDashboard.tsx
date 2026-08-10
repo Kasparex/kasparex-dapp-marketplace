@@ -46,8 +46,6 @@ import { MilestonesPanel } from '@/components/games/modules/MilestonesPanel';
 import { useGameMilestones } from '@/hooks/useGameMilestones';
 import { GameActivityStatusDot, type GameActivityHealth } from '@/components/games/GameActivityStatusDot';
 import type { GameTab } from '@/components/games/layout/GameTabs';
-import * as Icons from 'lucide-react';
-
 type TabId =
   | 'overview'
   | 'mining'
@@ -113,8 +111,6 @@ export function MinecoreDashboard(_props: {
   const {
     state,
     actions,
-    lastSetupError,
-    dismissLastSetupError,
     getKasPriceAfterDiscount,
     slotPurchaseKasByType,
     slottedMetadata,
@@ -122,8 +118,6 @@ export function MinecoreDashboard(_props: {
     wallet,
     nowTick,
     miningAllowed,
-    profileNotice,
-    dismissProfileNotice,
   } = useMinecore();
   const redeemBreakdown = useRedeemablePointsBreakdown();
   const redeemUnifiedMatches = useMemo(() => {
@@ -364,36 +358,6 @@ export function MinecoreDashboard(_props: {
     <TooltipProvider>
       <KREXBuyWizard isOpen={krexWizardOpen} onClose={() => setKrexWizardOpen(false)} />
       <div className="flex flex-col space-y-6">
-        {profileNotice || lastSetupError ? (
-          <div className="space-y-3">
-            {profileNotice ? (
-              <div className="relative rounded-2xl border border-sky-500/30 bg-sky-500/10 p-4 pr-11 text-sm font-semibold text-sky-900 dark:text-sky-100">
-                <button
-                  type="button"
-                  onClick={() => dismissProfileNotice()}
-                  className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-lg border border-sky-500/30 text-sky-700 transition-colors hover:bg-sky-500/20 dark:text-sky-200 dark:hover:bg-sky-500/15"
-                  aria-label="Dismiss notice"
-                >
-                  <Icons.X className="h-4 w-4" />
-                </button>
-                {profileNotice}
-              </div>
-            ) : null}
-            {lastSetupError ? (
-              <div className="relative rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 pr-11 text-sm font-semibold text-amber-950 dark:text-amber-100">
-                <button
-                  type="button"
-                  onClick={() => dismissLastSetupError()}
-                  className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-lg border border-amber-500/30 text-amber-900 transition-colors hover:bg-amber-500/20 dark:text-amber-100 dark:hover:bg-amber-500/15"
-                  aria-label="Dismiss setup message"
-                >
-                  <Icons.X className="h-4 w-4" />
-                </button>
-                {lastSetupError}
-              </div>
-            ) : null}
-          </div>
-        ) : null}
         <UnifiedGameLayout
           tabs={tabsWithComments as any}
           currentTab={tab}

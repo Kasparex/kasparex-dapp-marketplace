@@ -30,6 +30,7 @@ import {
   validateL1CovenantCreateForm,
   type CrowdKasFormValidation,
 } from '@/lib/donations/formValidation';
+import { hubNotify } from '@/lib/hub/notify';
 
 const COVENANT_HOW_IT_WORKS = (
   <div className="max-w-xs space-y-2 text-sm leading-snug">
@@ -85,7 +86,6 @@ export const CrowdKasCovenantPanel = forwardRef<CrowdKasCovenantPanelHandle, Cro
     const [imageFileName, setImageFileName] = useState<string | null>(null);
     const [internalModules, setInternalModules] = useState<CrowdKasModulesConfig>({});
     const [busy, setBusy] = useState(false);
-    const [createdId, setCreatedId] = useState<string | null>(null);
     const minKas = Number(COVENANT_LAB_CONFIG.minLockSompi) / 1e8;
 
     const modules = modulesProp ?? internalModules;
@@ -169,7 +169,10 @@ export const CrowdKasCovenantPanel = forwardRef<CrowdKasCovenantPanelHandle, Cro
           deadline: new Date(deadline),
           studioTotalKas: studioMode && studioTotalKas != null && studioTotalKas > 0 ? studioTotalKas : undefined,
         });
-        setCreatedId(campaign.id);
+        hubNotify.success('Campaign created', 'Your L1 covenant campaign is ready.', {
+          href: `/donations/covenant/${campaign.id}`,
+          linkLabel: 'Open campaign',
+        });
         setTitle('');
         setShortDescription('');
         setMainContent('');
@@ -180,7 +183,7 @@ export const CrowdKasCovenantPanel = forwardRef<CrowdKasCovenantPanelHandle, Cro
         setImageFileName(null);
         setModules({});
       } catch (e) {
-        /* useCovenantCrowdfund already toasts; rethrow for studio callers */
+        /* useCovenantCrowdfund already toasts errors; rethrow for studio callers */
         throw e;
       } finally {
         setBusy(false);
@@ -358,18 +361,6 @@ export const CrowdKasCovenantPanel = forwardRef<CrowdKasCovenantPanelHandle, Cro
         ) : null}
 
         {!studioMode ? <CrowdKasPrototypeNotice /> : null}
-
-        {createdId && (
-          <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-sm space-y-2">
-            <p className="font-medium text-emerald-800 dark:text-emerald-200">Campaign created.</p>
-            <a
-              href={`/donations/covenant/${createdId}`}
-              className="text-emerald-700 dark:text-emerald-300 underline font-medium"
-            >
-              Open campaign page →
-            </a>
-          </div>
-        )}
 
         {!state.isConnected ? null : studioMode ? (
           <div className="flex flex-col gap-6 min-w-0">

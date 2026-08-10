@@ -1,12 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useAccount, useWriteContract, useWaitForTransactionReceipt, useReadContract, useChainId } from 'wagmi';
 import { getContractAddress } from '@/lib/contracts/addresses';
 import { TREASURY_ABI } from '@/lib/contracts/abis';
 import { formatEther } from 'viem';
-import { getErrorMessage } from '@/lib/utils';
 import { useSafeError } from '@/hooks/useSafeError';
+import { hubNotify, notifyActionError } from '@/lib/hub/notify';
 
 interface TreasuryAutoDistributeProps {
   autoDistribute?: boolean;
@@ -94,8 +94,21 @@ export function TreasuryAutoDistribute({ autoDistribute = false, onDistribute }:
   // Safely convert errors to strings immediately
   const safeWriteError = useSafeError(writeError);
   const safeTxError = useSafeError(txError);
-  const displayError = safeWriteError || safeTxError;
   const balanceString = balanceBigInt > 0n ? formatEther(balanceBigInt) : '0';
+
+  useEffect(() => {
+    if (isConfirmed) {
+      hubNotify.success('Revenue distributed', 'Treasury revenue was distributed successfully.');
+    }
+  }, [isConfirmed]);
+
+  useEffect(() => {
+    if (safeWriteError) notifyActionError('Distribute failed', safeWriteError);
+  }, [safeWriteError]);
+
+  useEffect(() => {
+    if (safeTxError) notifyActionError('Distribute failed', safeTxError);
+  }, [safeTxError]);
 
   if (!isConnected || !treasuryAddress) {
     return null;
@@ -127,14 +140,6 @@ export function TreasuryAutoDistribute({ autoDistribute = false, onDistribute }:
           </button>
         )}
       </div>
-      {displayError && (
-        <p className="text-xs text-red-600 dark:text-red-400 mt-2">{displayError}</p>
-      )}
-      {isConfirmed && (
-        <p className="text-xs text-green-600 dark:text-green-400 mt-2">
-          Revenue distributed successfully!
-        </p>
-      )}
     </div>
   );
 }

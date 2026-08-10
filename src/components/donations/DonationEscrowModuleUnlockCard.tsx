@@ -19,7 +19,7 @@ import {
 import { KREX_TIERS, type KREXTier } from '@/lib/rewards/types';
 import { buildDonationsModuleUnlockPayloadHex, buildDonationsModuleUnlockPlainNote } from '@/lib/donations/modulePayload';
 import { DONATION_ESCROW_V2_ABI } from '@/lib/contracts/abis';
-import { notifyActionError, notifyActionWarning } from '@/lib/hub/notify';
+import { hubNotify, notifyActionError, notifyActionWarning } from '@/lib/hub/notify';
 import type { Address } from 'viem';
 
 export type DonationModuleOffer = (typeof DONATION_MODULE_OFFERS)[DonationPaidModuleId];
@@ -53,7 +53,6 @@ export function DonationEscrowModuleUnlockCard({
   const { balance: krexBalance, tier } = useKREXBalance();
   const { nftStatus } = useNFTStatus();
   const [busy, setBusy] = useState(false);
-  const [note, setNote] = useState<string | null>(null);
 
   const moduleNftFlags = useMemo(
     () => ({
@@ -96,7 +95,7 @@ export function DonationEscrowModuleUnlockCard({
 
   useEffect(() => {
     if (isConfirmed) {
-      setNote('Module unlocked on-chain.');
+      hubNotify.success('Module unlocked', 'Module unlocked on-chain for this campaign.');
       onUnlockedOnChain();
     }
   }, [isConfirmed, onUnlockedOnChain]);
@@ -128,7 +127,6 @@ export function DonationEscrowModuleUnlockCard({
     !onCrowdkasChain;
 
   const handlePay = async () => {
-    setNote(null);
     if (!writeEscrowV2Address || !kaspaState.provider || !kaspaState.address) {
       notifyActionWarning(
         'Wallet required',
@@ -211,7 +209,10 @@ export function DonationEscrowModuleUnlockCard({
         throw new Error(lastMsg || 'Payment sent but not verified yet.');
       }
 
-      setNote('Confirm the Igra transaction in your EVM wallet to finish unlocking on-chain.');
+      hubNotify.info(
+        'Confirm on Igra',
+        'Confirm the Igra transaction in your EVM wallet to finish unlocking on-chain.',
+      );
       writeContract({
         address: writeEscrowV2Address,
         abi: DONATION_ESCROW_V2_ABI,
@@ -285,8 +286,9 @@ export function DonationEscrowModuleUnlockCard({
             </button>
           </>
         )}
-        {isUnlocked && <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-300">Active for this campaign.</p>}
-        {note ? <p className="text-sm text-amber-800 dark:text-amber-300">{note}</p> : null}
+        {isUnlocked && (
+          <p className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">Active for this campaign.</p>
+        )}
       </div>
     </div>
   );

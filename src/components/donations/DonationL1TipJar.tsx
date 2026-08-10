@@ -13,7 +13,7 @@ import { buildDonationsL1TipPlainNote } from '@/lib/donations/l1TipPayload';
 import { normalizeKaspaAddress } from '@/lib/kaspa/sdk';
 import { extractKaspaTransactionId } from '@/lib/kaspa/transactionId';
 import { KaspaL1WalletButton } from '@/components/KaspaL1WalletButton';
-import { notifyActionError, notifyActionWarning } from '@/lib/hub/notify';
+import { hubNotify, notifyActionWarning } from '@/lib/hub/notify';
 
 interface DonationL1TipJarProps {
   campaign: DonationCampaign;
@@ -36,7 +36,6 @@ export function DonationL1TipJar({
   const [amountKas, setAmountKas] = useState('1');
   const [revealed, setRevealed] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [note, setNote] = useState<string | null>(null);
 
   const cid = campaign.campaignIdV2?.toString();
 
@@ -52,7 +51,6 @@ export function DonationL1TipJar({
   const minKas = Math.max(0.001, parseFloat(amountKas) || 0);
 
   const handleSendTip = async () => {
-    setNote(null);
     if (!donorL2) {
       notifyActionWarning(
         'Wallet required',
@@ -88,6 +86,7 @@ export function DonationL1TipJar({
     const sompi = kasToSompi(minKas);
 
     setBusy(true);
+    const loadingId = hubNotify.loading('Sending tip…', 'Confirm in your Kaspa wallet');
     try {
       const txRes = await sendKaspaTransaction(kaspaState.provider as KaspaWalletProvider, {
         to: destDisplay,
@@ -99,8 +98,13 @@ export function DonationL1TipJar({
       }
       const hashKaspa = extractKaspaTransactionId(txRes.txHash) ?? txRes.txHash.replace(/^0x/i, '').toLowerCase();
 
-      setNote('Tip submitted. Recording on Igra for points…');
+      hubNotify.update(loadingId, {
+        title: 'Tip submitted',
+        description: 'Recording on Igra for points…',
+        variant: 'loading',
+      });
       let lastErr: string | null = null;
+      let recorded = false;
       for (let attempt = 0; attempt < 12; attempt++) {
         try {
           const res = await fetch('/api/donations/l1-tip/record', {
@@ -124,12 +128,24 @@ export function DonationL1TipJar({
             l2TxHash?: string;
           };
           if (j.ok && j.recorded) {
-            setNote(j.l2TxHash ? `Recorded on Igra. Tx: ${j.l2TxHash.slice(0, 14)}…` : 'Recorded on Igra. Points will update shortly.');
+            hubNotify.update(loadingId, {
+              title: 'Tip recorded',
+              description: j.l2TxHash
+                ? `Recorded on Igra. Tx: ${j.l2TxHash.slice(0, 14)}…`
+                : 'Recorded on Igra. Points will update shortly.',
+              variant: 'success',
+            });
+            recorded = true;
             onTipRecorded?.();
             break;
           }
           if (j.ok && j.verified && !j.recorded) {
-            setNote(j.message ?? 'Tip verified on Kaspa; L2 recording is not configured on the server.');
+            hubNotify.update(loadingId, {
+              title: 'Tip verified',
+              description: j.message ?? 'Tip verified on Kaspa. L2 recording is not configured on the server.',
+              variant: 'info',
+            });
+            recorded = true;
             onTipRecorded?.();
             break;
           }
@@ -148,9 +164,20 @@ export function DonationL1TipJar({
         if (attempt < 11) await new Promise((r) => setTimeout(r, 1600 + attempt * 300));
       }
       if (lastErr) throw new Error(lastErr);
+      if (!recorded) {
+        hubNotify.txSuccess({
+          id: loadingId,
+          title: 'Tip submitted',
+          description: 'Kaspa tip sent. Points recording may still be catching up.',
+          txHash: hashKaspa,
+        });
+      }
     } catch (e) {
-      notifyActionError('Tip failed', e instanceof Error ? e.message : 'Tip failed');
-      setNote(null);
+      hubNotify.update(loadingId, {
+        title: 'Tip failed',
+        description: e instanceof Error ? e.message : 'Tip failed',
+        variant: 'error',
+      });
     } finally {
       setBusy(false);
     }
@@ -205,8 +232,6 @@ export function DonationL1TipJar({
           {busy ? 'Working…' : `Send ${Number.isFinite(minKas) ? minKas : '…'} KAS & record points`}
         </button>
       </div>
-
-      {note ? <p className="text-xs text-emerald-800 dark:text-emerald-300 mt-2">{note}</p> : null}
 
       {giftOn && (
         <div className="rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 p-3 mt-4">

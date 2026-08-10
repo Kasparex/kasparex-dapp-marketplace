@@ -1,12 +1,13 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { useAssignDeveloper, useRevokeDeveloper, useDAppDevelopers, getAuthorizationRegistryAddress } from '@/lib/contracts/authorization';
 import { getAllDApps, DApp } from '@/lib/dapps';
 import { isAddress } from 'viem';
 import { useAccount, useChainId } from 'wagmi';
 import { useSafeError } from '@/hooks/useSafeError';
 import { getErrorMessage } from '@/lib/utils';
+import { hubNotify, notifyActionError } from '@/lib/hub/notify';
 
 export function AuthorizationManager() {
   const [selectedDApp, setSelectedDApp] = useState<DApp | null>(null);
@@ -26,7 +27,7 @@ export function AuthorizationManager() {
   const chainId = useChainId();
   const contractAddress = getAuthorizationRegistryAddress(chainId);
   
-  const { assignDeveloper, isPending: isAssigning, isConfirmed: isAssigned, error: assignError, hash: assignHash } = useAssignDeveloper();
+  const { assignDeveloper, isPending: isAssigning, isConfirmed: isAssigned, error: assignError } = useAssignDeveloper();
   const { revokeDeveloper, isPending: isRevoking, isConfirmed: isRevoked, error: revokeError } = useRevokeDeveloper();
   
   // Safely convert errors to strings immediately to prevent React serialization issues
@@ -34,13 +35,27 @@ export function AuthorizationManager() {
   const safeRevokeError = useSafeError(revokeError);
   const { developers, isLoading: isLoadingDevelopers } = useDAppDevelopers(dAppId || undefined);
 
-  // Reset form after successful assignment/revocation
   useEffect(() => {
-    if (isAssigned || isRevoked) {
+    if (isAssigned) {
+      hubNotify.success('Developer assigned', 'Developer assigned successfully. Transaction confirmed.');
       setDeveloperAddress('');
-      // Refresh developers list would happen automatically via the hook
     }
-  }, [isAssigned, isRevoked]);
+  }, [isAssigned]);
+
+  useEffect(() => {
+    if (isRevoked) {
+      hubNotify.success('Developer revoked', 'Developer revoked successfully.');
+      setDeveloperAddress('');
+    }
+  }, [isRevoked]);
+
+  useEffect(() => {
+    if (safeAssignError) notifyActionError('Assign failed', safeAssignError);
+  }, [safeAssignError]);
+
+  useEffect(() => {
+    if (safeRevokeError) notifyActionError('Revoke failed', safeRevokeError);
+  }, [safeRevokeError]);
 
   const handleSelectDApp = (dapp: DApp) => {
     setSelectedDApp(dapp);
@@ -211,37 +226,6 @@ export function AuthorizationManager() {
           </div>
         )}
 
-        {/* Status Messages */}
-        {safeAssignError && (
-          <div className="mt-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-sm text-red-700 dark:text-red-300">
-            <strong>Error:</strong> {safeAssignError}
-          </div>
-        )}
-        {isAssigning && (
-          <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg text-sm text-blue-700 dark:text-blue-300">
-            ⏳ Transaction pending... Please confirm in your wallet.
-          </div>
-        )}
-        {assignHash && (
-          <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg text-sm text-blue-700 dark:text-blue-300">
-            📝 Transaction submitted: <code className="text-xs">{assignHash}</code>
-          </div>
-        )}
-        {isAssigned && (
-          <div className="mt-4 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg text-sm text-green-700 dark:text-green-300">
-            ✓ Developer assigned successfully! Transaction confirmed.
-          </div>
-        )}
-        {safeRevokeError && (
-          <div className="mt-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-sm text-red-700 dark:text-red-300">
-            Error: {safeRevokeError}
-          </div>
-        )}
-        {isRevoked && (
-          <div className="mt-4 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg text-sm text-green-700 dark:text-green-300">
-            ✓ Developer revoked successfully!
-          </div>
-        )}
       </div>
 
       {/* Current Developers List */}

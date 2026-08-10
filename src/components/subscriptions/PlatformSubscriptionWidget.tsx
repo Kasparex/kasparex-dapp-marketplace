@@ -139,9 +139,12 @@ export function PlatformSubscriptionWidget() {
       </div>
 
       {isSubscribed ? (
-        <div className="p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
-          <p className="text-green-600 dark:text-green-400 font-semibold">
-            ✓ You have an active platform subscription
+        <div className="p-4 rounded-lg border border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900/60">
+          <p className="font-semibold text-zinc-800 dark:text-zinc-200">
+            Active platform subscription
+          </p>
+          <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
+            Premium dApps stay unlocked for the current billing window.
           </p>
         </div>
       ) : (
