@@ -1,30 +1,28 @@
-# TN10 keyless migrate: attest sink burns + issue MigrateTickets (v3) or AUTO_MINT (v2 soak).
-#
-# Secrets:
-#   KCC20_BRIDGE_WATCHER_SECRET
-#   TKREX_WALLET3_PRIVKEY
-#   KREX_WRAP_HUB_URL
-#   TKREX_ATTESTOR1_PRIVKEY / TKREX_ATTESTOR2_PRIVKEY / TKREX_ATTESTOR3_PRIVKEY (v3 tickets)
-name: TN10 migrate attestor
+# Fast path: issue MigrateTickets without Rust/silverc.
+# Uses Hub tip.ticketTemplate (already compiled at v3 deploy).
+# Woken by Hub observe-burn after Kasplex opAccept (target Confirm under ~2 min).
+name: TN10 migrate ticket (fast)
 
 on:
-  # Hourly backup. User Confirm wakes tn10-migrate-ticket-fast.yml (no Rust) for ~1-2 min tickets.
-  schedule:
-    - cron: '17 * * * *'
   workflow_dispatch:
+  repository_dispatch:
+    types: [kcc20-ticket-needed]
+  # Backup only; GitHub schedule can lag. Prefer Hub wake via workflow_dispatch.
+  schedule:
+    - cron: '*/5 * * * *'
 
 concurrency:
-  group: tn10-migrate-attestor
-  cancel-in-progress: false
+  group: tn10-migrate-ticket-fast
+  cancel-in-progress: true
 
 permissions:
   contents: write
   actions: write
 
 jobs:
-  attest-and-mint:
+  issue-ticket:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 12
     defaults:
       run:
         working-directory: tools/tn10-migrate
@@ -36,8 +34,7 @@ jobs:
         with:
           node-version: 24
 
-      - name: Prefetch Hub mint tip
-        id: tip
+      - name: Prefetch Hub tip + ticket template
         env:
           KREX_WRAP_HUB_URL: ${{ secrets.KREX_WRAP_HUB_URL }}
         run: |
@@ -48,36 +45,25 @@ jobs:
             const fs=require('fs');
             try {
               const j=JSON.parse(fs.readFileSync('/tmp/mint-tip.json','utf8'));
-              if (j && j.tip) {
-                fs.writeFileSync('tkrex-migrate-deploy/MINT_TIP.json', JSON.stringify(j.tip,null,2)+'\n');
-                const tt=j.tip.ticketTemplate;
-                if (tt && tt.templatePrefix && tt.templateSuffix) {
-                  fs.writeFileSync('tkrex-migrate-deploy/ticket-template-parts.json', JSON.stringify(tt,null,2)+'\n');
-                  fs.writeFileSync('tkrex-migrate-deploy/.has-ticket-template', '1');
-                  console.log('Wrote ticket-template-parts.json from Hub tip');
-                }
-                console.log('Wrote tip remainingAllowance=', j.tip.remainingAllowance, 'migrateVersion=', j.tip.migrateVersion);
-              } else console.log('No Hub tip yet');
-            } catch (e) { console.log('Tip prefetch skipped:', e.message); }
+              if (!j || !j.tip) {
+                console.error('No Hub tip yet');
+                process.exit(1);
+              }
+              fs.writeFileSync('tkrex-migrate-deploy/MINT_TIP.json', JSON.stringify(j.tip,null,2)+'\n');
+              const tt=j.tip.ticketTemplate;
+              if (tt && tt.templatePrefix && tt.templateSuffix) {
+                fs.writeFileSync('tkrex-migrate-deploy/ticket-template-parts.json', JSON.stringify(tt,null,2)+'\n');
+                console.log('Wrote ticket-template-parts.json from Hub tip');
+              } else {
+                console.error('Hub tip missing ticketTemplate; run full TN10 migrate attestor once');
+                process.exit(1);
+              }
+              console.log('Tip remainingAllowance=', j.tip.remainingAllowance, 'migrateVersion=', j.tip.migrateVersion);
+            } catch (e) {
+              console.error('Tip prefetch failed:', e.message);
+              process.exit(1);
+            }
           "
-          if [ -f tkrex-migrate-deploy/.has-ticket-template ]; then
-            echo "has_template=1" >> "$GITHUB_OUTPUT"
-          else
-            echo "has_template=0" >> "$GITHUB_OUTPUT"
-          fi
-
-      - uses: dtolnay/rust-toolchain@stable
-        if: steps.tip.outputs.has_template != '1'
-
-      - uses: Swatinem/rust-cache@v2
-        if: steps.tip.outputs.has_template != '1'
-        with:
-          workspaces: |
-            tools/tn10-migrate/upstream/silverscript -> target
-
-      - name: Bootstrap pinned silverc
-        if: steps.tip.outputs.has_template != '1'
-        run: bash scripts/bootstrap-silverc.sh
 
       - name: Materialize attestor keys (v3 ticket issue)
         env:
@@ -94,7 +80,7 @@ jobs:
             fi
           done
 
-      - name: Attest + AUTO_MINT / ticket-issue once
+      - name: Attest + ticket-issue once (no silverc)
         env:
           KREX_WRAP_HUB_URL: ${{ secrets.KREX_WRAP_HUB_URL }}
           KCC20_BRIDGE_WATCHER_SECRET: ${{ secrets.KCC20_BRIDGE_WATCHER_SECRET }}
@@ -113,7 +99,7 @@ jobs:
           fi
           node scripts/tkrex-migrate-attestor.mjs --once
 
-      - name: Sync ticket attestation to main when Hub cannot persist
+      - name: Sync ticket attestation to Hub store
         if: success()
         working-directory: ${{ github.workspace }}
         env:

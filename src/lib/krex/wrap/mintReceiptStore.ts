@@ -132,14 +132,42 @@ function emptyAttestationStore(): AttestationStoreFile {
   return { network: 'testnet-10', updatedAt: new Date().toISOString(), attestations: [] };
 }
 
+/** Claimed rows only; open / ticket-pending rows are never dropped. */
+const MAX_CLAIMED_ATTESTATIONS = 10;
+
+function isClaimedAttestation(row: MigrateAttestation): boolean {
+  return row.status === 'claimed' || Boolean(row.mintTxHash);
+}
+
+/**
+ * Keep every unclaimed attestation (users still need Claim).
+ * Cap claimed history so Hub / GitHub stay lightweight.
+ */
+export function pruneAttestationStore(store: AttestationStoreFile): AttestationStoreFile {
+  const rows = Array.isArray(store.attestations) ? store.attestations : [];
+  const open: MigrateAttestation[] = [];
+  const claimed: MigrateAttestation[] = [];
+  for (const row of rows) {
+    if (isClaimedAttestation(row)) claimed.push(row);
+    else open.push(row);
+  }
+  claimed.sort((a, b) => String(b.attestedAt || '').localeCompare(String(a.attestedAt || '')));
+  return {
+    ...store,
+    attestations: [...open, ...claimed.slice(0, MAX_CLAIMED_ATTESTATIONS)].sort((a, b) =>
+      String(b.attestedAt || '').localeCompare(String(a.attestedAt || '')),
+    ),
+  };
+}
+
 function normalizeAttestationStore(raw: unknown): AttestationStoreFile {
   const o = (raw && typeof raw === 'object' ? raw : {}) as Partial<AttestationStoreFile>;
   const attestations = Array.isArray(o.attestations) ? (o.attestations as MigrateAttestation[]) : [];
-  return {
+  return pruneAttestationStore({
     network: 'testnet-10',
     updatedAt: typeof o.updatedAt === 'string' ? o.updatedAt : new Date().toISOString(),
     attestations,
-  };
+  });
 }
 
 function localPath(): string {

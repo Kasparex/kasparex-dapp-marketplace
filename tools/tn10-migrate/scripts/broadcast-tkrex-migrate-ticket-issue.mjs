@@ -353,9 +353,9 @@ try {
     console.log('Ticket genesis submitted:', genesisTxId);
   }
 
-  // Brief wait for UTXO index; retry fetch.
+  // Brief wait for UTXO index; retry fetch (match Hub issueTicket: ~1s polls).
   let genesisUtxo = null;
-  for (let i = 0; i < 12; i++) {
+  for (let i = 0; i < 20; i++) {
     const list = await fetchUtxos(inactiveAddress);
     genesisUtxo = list.find(
       (u) =>
@@ -366,8 +366,8 @@ try {
     if (/^[a-f0-9]{64}$/.test(RESUME_GENESIS_TXID) && i === 0) {
       // Already indexed from prior attempt; still allow a couple retries.
     }
-    console.log(`Waiting for genesis UTXO… (${i + 1}/12)`);
-    await new Promise((r) => setTimeout(r, 2500));
+    console.log(`Waiting for genesis UTXO… (${i + 1}/20)`);
+    await new Promise((r) => setTimeout(r, 1000));
   }
   if (!genesisUtxo) throw new Error(`Genesis UTXO ${genesisTxId}:0 not found on ${inactiveAddress}`);
 

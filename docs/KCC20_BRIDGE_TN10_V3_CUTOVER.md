@@ -36,13 +36,18 @@ KCC20 balances are covenant UTXOs (not KasWare KRC-20). After Claim, open the Cl
 
 ## Attestor GHA (keep in sync)
 
-Workflow: `.github/workflows/tn10-migrate-attestor.yml` (cron `*/2`; sync uses GitHub Contents API).
+Fast tickets: `.github/workflows/tn10-migrate-ticket-fast.yml` (no Rust/silverc; uses Hub tip
+`ticketTemplate`). Hub `observe-burn` wakes this after Kasplex `opAccept` so Confirm is usually
+under 1-2 minutes. Full workflow: `.github/workflows/tn10-migrate-attestor.yml` (hourly backup;
+skips silverc when tip already has a ticket template).
 
 Hub also has a fast `observe-burn` path (Kasplex check) so History leaves Confirm without waiting
-for the full GHA ticket job. Ticket issue still needs Hub auto-issue (privkeys on Vercel) or the
-attestor workflow. Ticket / claim upgrades are persisted to GitHub from Hub; routine observe polls
-are not. The GHA sync step stashes dirty deploy files before `git pull --rebase` so tickets are not
-lost after issue.
+for a slow cron. Ticket issue needs Hub auto-issue (privkeys on Vercel) or the woken GHA job.
+Ticket / claim upgrades are persisted to GitHub from Hub; routine observe polls are not. GHA sync
+uses Contents API via `tools/tn10-migrate/scripts/sync-ticket-attestations-to-hub.mjs`.
+
+Hub attestation store keeps every unclaimed / ticket-pending row, and prunes claimed rows to the
+latest 10 so the shared file stays light.
 
 ### Set secrets (GitHub UI)
 

@@ -19,7 +19,7 @@ import { useDAppWidgetSection, useNavigateDAppWidgetTab } from '@/lib/dapps/DApp
 import { Krc20TickerSearchField } from '@/components/tokens/Krc20TickerSearchField';
 import type { Krc20TokenInfo } from '@/lib/tokens/krc20Lookup';
 import { HubMetadataStatGrid } from '@/components/hub/HubMetadataStatGrid';
-import { KX_INFO_DASHED, KX_DASHBOARD_TAB_BTN, KX_DASHBOARD_TAB_BTN_ACTIVE, KX_PANEL, KX_METADATA_STAT_VALUE_LINK, KX_SURFACE_NESTED } from '@/lib/hub/shellTokens';
+import { KX_INFO_DASHED, KX_DASHBOARD_TAB_BTN, KX_DASHBOARD_TAB_BTN_ACTIVE, KX_PANEL, KX_METADATA_STAT_VALUE_LINK } from '@/lib/hub/shellTokens';
 import {
   getKrexWrapPublicConfig,
   getWrapCovenantIdForTick,
@@ -146,13 +146,13 @@ function statusTooltip(status: KrexWrapStatus): string {
     case 'deposited':
       return 'Token is in the vault. Matching KCC20 mint is not live for this ticker yet.';
     case 'burned':
-      return 'Burn submitted. Confirming on Kasplex, then a claim ticket is issued (usually under 10 minutes).';
+      return 'Burn submitted. Confirming on Kasplex, then a claim ticket is issued (usually under 2 minutes).';
     case 'awaiting_attest':
       return 'Confirming burn / waiting for claim ticket. Claim appears as soon as the ticket is ready.';
     case 'pending_mint':
       return 'Deposit is on Kaspa L1. Matching KCC20 mint is still pending.';
     case 'minted':
-      return 'Done. Matching KCC20 is on Kaspa L1 as a covenant coin. Open Claim tx or kascov. KasWare will not list it like KRC-20.';
+      return 'Done. KCC20 is on Kaspa L1 as a kascov coin (not listed in KasWare).';
     case 'failed':
       return 'This migration did not complete. Check the note or start a new one.';
     default:
@@ -258,10 +258,10 @@ function ClaimTicketButton({
   const enabled = ready.ready && !busy && Boolean(provider) && Boolean(fundingAddress);
   return (
     <Tooltip content={ready.ready ? 'Sign the claim in KasWare' : ready.reason || 'Waiting…'}>
-      <span className="inline-flex w-full sm:w-auto">
+      <span className="inline-flex shrink-0">
         <button
           type="button"
-          className={`mt-0 inline-flex w-full items-center justify-center rounded-lg px-3 py-2 text-xs font-semibold transition sm:w-auto ${
+          className={`mt-0 inline-flex items-center justify-center rounded-lg px-3 py-1.5 text-xs font-semibold transition whitespace-nowrap ${
             enabled
               ? 'bg-[color:var(--hub-accent)] text-white shadow-sm hover:opacity-90'
               : 'cursor-not-allowed bg-zinc-700/80 text-zinc-300 ring-1 ring-zinc-600/80'
@@ -538,45 +538,6 @@ export function KrexWrapBridgeWidget() {
 
   const parsedAmount = amount && !Number.isNaN(parseFloat(amount)) ? parseFloat(amount) : null;
   const feeKas = quoteKrexWrapFeeKas(tier);
-
-  const paymentOutputs = useMemo(() => {
-    const rows: Array<{ label: string; amount: string }> = [];
-    if (feeKas > 0 && config.treasuryAddress) {
-      try {
-        const plan = buildHubKasListingPlan({
-          feeKas,
-          treasuryAddress: config.treasuryAddress,
-          ...(network === 'testnet-10' ? { rewardsBps: 0 } : {}),
-        });
-        for (const leg of plan.legs) {
-          rows.push({
-            label: leg.label || (leg.role === 'rewards' ? 'Hub rewards' : 'Kasparex treasury'),
-            amount: `${leg.amount.toLocaleString(undefined, { maximumFractionDigits: 8 })} KAS`,
-          });
-        }
-      } catch {
-        rows.push({
-          label: 'Kasparex treasury (bridge fee)',
-          amount: `${feeKas.toLocaleString(undefined, { maximumFractionDigits: 8 })} KAS`,
-        });
-      }
-    }
-    if (selectedToken && parsedAmount != null && parsedAmount > 0) {
-      rows.push({
-        label: config.migrateV2Enabled ? `Burn ${tick} to sink` : `Send ${tick} to vault`,
-        amount: `${parsedAmount.toLocaleString(undefined, { maximumFractionDigits: 8 })} ${tick}`,
-      });
-    }
-    return rows;
-  }, [
-    feeKas,
-    config.treasuryAddress,
-    config.migrateV2Enabled,
-    network,
-    selectedToken,
-    parsedAmount,
-    tick,
-  ]);
 
   const hubQuote = useMemo(() => {
     if (!bridgeDApp || parsedAmount == null || parsedAmount <= 0 || !selectedToken) return null;
@@ -1144,7 +1105,7 @@ export function KrexWrapBridgeWidget() {
                       Confirm
                     </span>
                   </Tooltip>{' '}
-                  runs automatically (usually under 10 minutes). History refreshes on its own.
+                  runs automatically (usually under 2 minutes). History refreshes on its own.
                 </li>
                 <li>
                   When the badge says Ready to claim, tap{' '}
@@ -1251,9 +1212,6 @@ export function KrexWrapBridgeWidget() {
                           <ExternalTabIcon />
                         </a>
                       ) : null}
-                      <p className="text-[11px] leading-snug text-zinc-500 dark:text-zinc-400">
-                        KCC20 is a covenant coin (kascov). KasWare lists KAS / KRC-20 only.
-                      </p>
                     </div>
                   ) : null}
                 </li>
@@ -1462,33 +1420,6 @@ export function KrexWrapBridgeWidget() {
                   Max
                 </button>
               </div>
-              {paymentOutputs.length > 0 ? (
-                <div className={`${KX_SURFACE_NESTED} mt-3 space-y-1.5 p-3`}>
-                  <p className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
-                    Payment outputs
-                  </p>
-                  {paymentOutputs.map((row) => (
-                    <div
-                      key={`${row.label}-${row.amount}`}
-                      className="flex justify-between gap-3 text-xs text-zinc-600 dark:text-zinc-400"
-                    >
-                      <span className="min-w-0 truncate">{row.label}</span>
-                      <span className="shrink-0 font-semibold tabular-nums text-zinc-900 dark:text-zinc-100">
-                        {row.amount}
-                      </span>
-                    </div>
-                  ))}
-                  <div className="flex justify-between gap-3 text-xs text-zinc-500">
-                    <span>Change</span>
-                    <span className="shrink-0 tabular-nums">back to your wallet</span>
-                  </div>
-                  <p className="pt-1 text-[11px] leading-snug text-zinc-500 dark:text-zinc-400">
-                    {migrateV2
-                      ? 'KAS fee goes to Hub. Token amount is burned to the sink in a separate wallet step.'
-                      : 'KAS fee goes to Hub. Token amount is sent to the vault in a separate wallet step.'}
-                  </p>
-                </div>
-              ) : null}
             </div>
           </>
         )}

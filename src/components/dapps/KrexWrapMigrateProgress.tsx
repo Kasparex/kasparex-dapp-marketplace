@@ -109,9 +109,9 @@ function v2Steps(
       doneDetail: 'Burn confirmed',
       currentDetail: ticketReady
         ? 'Ticket ready'
-        : 'Please wait… claim ticket (usually under 10 minutes)',
+        : 'Please wait… claim ticket (usually under 2 minutes)',
       nextDetail: 'Attestors confirm burn',
-      tip: 'Kasplex opAccept, then a one-time claim ticket. Usually under 10 minutes.',
+      tip: 'Kasplex opAccept, then a one-time claim ticket. Usually under 2 minutes.',
     },
     {
       id: 'mint',
@@ -245,13 +245,13 @@ function nextHint(steps: FlowStep[], migrateV2: boolean, ticketReady: boolean): 
   if (failed) return 'This migration did not complete. Start a new one from Migrate.';
   if (!current) {
     return migrateV2
-      ? 'Done. Your KCC20 is on Kaspa L1. Open Claim tx or kascov.'
+      ? 'Done. KCC20 is on Kaspa L1 as a kascov coin (not listed in KasWare).'
       : 'Done. Your KCC20 is on Kaspa L1.';
   }
   if (current.id === 'attest') {
     return ticketReady
       ? 'Ticket ready. Tap Claim KCC20 and sign in KasWare.'
-      : 'Confirming burn and issuing your claim ticket automatically. Usually under 10 minutes. No action needed until Claim.';
+      : 'Confirming burn and issuing your claim ticket automatically. Usually under 2 minutes. No action needed until Claim.';
   }
   if (current.id === 'mint') {
     return 'Tap Claim KCC20, then sign in KasWare.';
@@ -345,7 +345,7 @@ export function KrexWrapMigrateProgress({
   migrateV2: boolean;
   /** True when MigrateTicket is on the Hub attestation and Claim can be signed. */
   ticketReady?: boolean;
-  /** Claim / Waiting button rendered inside the Claim capsule while pending. */
+  /** Claim / Waiting button rendered on the right of the Claim capsule (same slot as Claim tx). */
   claimAction?: ReactNode;
 }) {
   const useV2 = migrateV2 || row.migrateVersion === 2 || row.status === 'burned' || row.status === 'awaiting_attest';
@@ -380,7 +380,7 @@ export function KrexWrapMigrateProgress({
             <li key={step.id} className="flex items-start gap-2.5 py-2.5 first:pt-0 last:pb-0">
               <StepIcon state={step.state} />
               <div className="min-w-0 flex-1">
-                <div className="flex items-baseline justify-between gap-2">
+                <div className="flex items-center justify-between gap-2">
                   {step.tip ? (
                     <Tooltip content={step.tip}>
                       <span
@@ -406,7 +406,9 @@ export function KrexWrapMigrateProgress({
                   )}
                   {(showTx || showClaimTx) && step.txHash && step.txKind ? (
                     <StepTxCapsule txHash={step.txHash} kind={step.txKind} network={net} />
-                  ) : showClaimBtn ? null : (
+                  ) : showClaimBtn ? (
+                    <div className="shrink-0">{claimAction}</div>
+                  ) : (
                     <span
                       className={`shrink-0 text-[10px] uppercase tracking-wide ${
                         step.state === 'current'
@@ -437,7 +439,6 @@ export function KrexWrapMigrateProgress({
                 >
                   {step.detail}
                 </p>
-                {showClaimBtn ? <div className="mt-2">{claimAction}</div> : null}
               </div>
             </li>
           );
