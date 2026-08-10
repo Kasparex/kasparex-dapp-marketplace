@@ -160,8 +160,8 @@ function DonationCampaignPageContent() {
         commentsArticleId: vdonateCommentsArticleId({
           network: isL1Direct ? 'l1' : 'l2',
           campaignId:
-            campaign.campaignId != null
-              ? campaign.campaignId.toString()
+            campaign.campaignIdV2 != null
+              ? campaign.campaignIdV2.toString()
               : campaign.creatorAddress.toLowerCase(),
         }),
       }}
