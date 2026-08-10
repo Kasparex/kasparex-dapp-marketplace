@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { KX_SURFACE_NESTED } from '@/lib/hub/shellTokens';
+import { KX_METADATA_STAT_CARD } from '@/lib/hub/shellTokens';
 
 export type HubFaqItem = {
   id: string;
@@ -40,7 +40,7 @@ export function HubFaqAccordion({
       {items.map((item) => {
         const open = openIds.has(item.id);
         return (
-          <div key={item.id} className={`${KX_SURFACE_NESTED} overflow-hidden`}>
+          <div key={item.id} className={`${KX_METADATA_STAT_CARD} overflow-hidden !p-0`}>
             <button
               type="button"
               onClick={() => toggle(item.id)}

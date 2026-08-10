@@ -15,6 +15,7 @@ import { CrowdKasPublicModules } from '@/components/donations/CrowdKasPublicModu
 import { CrowdKasPremiumSectionUnlock } from '@/components/donations/CrowdKasPremiumSectionUnlock';
 import { useQuery } from '@tanstack/react-query';
 import { VDonateCampaignDetailShell } from '@/components/donations/VDonateCampaignDetailShell';
+import { vdonateCommentsArticleId } from '@/lib/donations/defaultFaqs';
 
 function DonationCampaignPageContent() {
   const params = useParams();
@@ -156,9 +157,13 @@ function DonationCampaignPageContent() {
             onDonationRecorded={refetchCampaign}
           />
         ),
-        commentsSlot: (
-          <p className="kx-body">Share feedback with the creator after you donate. Comment threads are rolling out Hub-wide.</p>
-        ),
+        commentsArticleId: vdonateCommentsArticleId({
+          network: isL1Direct ? 'l1' : 'l2',
+          campaignId:
+            campaign.campaignId != null
+              ? campaign.campaignId.toString()
+              : campaign.creatorAddress.toLowerCase(),
+        }),
       }}
       rightColumn={
         <DonationCampaignRightColumn

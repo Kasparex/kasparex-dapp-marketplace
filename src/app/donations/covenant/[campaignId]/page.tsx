@@ -18,6 +18,7 @@ import { VDonateCampaignDetailShell } from '@/components/donations/VDonateCampai
 import type { CrowdfundTier } from '@/lib/covenant/crowdfund-types';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { getViewerUnlockedTierIds, viewerHasPremiumAccess } from '@/lib/donations/tiers';
+import { vdonateCommentsArticleId } from '@/lib/donations/defaultFaqs';
 
 export default function CovenantCrowdfundPage({
   params,
@@ -143,6 +144,7 @@ export default function CovenantCrowdfundPage({
         premiumUnlocked,
         unlockedTierIds,
         otherCampaigns,
+        commentsArticleId: vdonateCommentsArticleId({ network: 'l1', campaignId: campaign.id }),
       }}
       onSelectTier={(id) => setSelectedTierId(id)}
       onRewardPledge={(tier) => void handleRewardPledge(tier)}

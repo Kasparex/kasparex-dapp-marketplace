@@ -48,6 +48,7 @@ import { KREX_TIERS } from '@/lib/rewards/types';
 import { placeholderDApps } from '@/lib/dapps';
 import { KX_SURFACE_NESTED } from '@/lib/hub/shellTokens';
 import { KREXBuyWizard } from '@/components/rewards/KREXBuyWizard';
+import { GAME_OVERVIEW_KICKER } from '@/components/games/panels/GameOverviewSections';
 
 const CROWDFUND_DAPP = placeholderDApps.find((d) => d.slug === 'covenant-crowdfund')!;
 const PLEDGE_HUB_POINTS_BASE = getHubPointsBaseForAction(CROWDFUND_DAPP, 'pledge');
@@ -286,7 +287,7 @@ export function CovenantCrowdfundRightColumn({
             title="Pledge calculation"
             asideClassName={CROWDKAS_CALCULATION_ASIDE}
             alerts={
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {campaignStatsAlert}
                 {!state.isConnected ? (
                   <div className="space-y-3">
@@ -302,7 +303,7 @@ export function CovenantCrowdfundRightColumn({
                     </button>
                   </div>
                 ) : isLive ? (
-                  <div className="space-y-3">
+                  <div className="space-y-2">
                     {selectedTier ? (
                       <p className="text-xs text-emerald-700 dark:text-emerald-300">
                         Selected reward:{' '}
@@ -310,19 +311,22 @@ export function CovenantCrowdfundRightColumn({
                         {selectedTier.minKas} KAS)
                       </p>
                     ) : null}
-                    <label
-                      htmlFor="ck-pledge-amount"
-                      className="block text-sm font-medium text-zinc-700 dark:text-zinc-300"
-                    >
-                      {`Amount (KAS, min ${effectiveMin})`}
-                    </label>
+                    <div className="kx-page-kicker !mb-0">
+                      <span
+                        className="hub-tilt-bar-sm h-4 w-1 shrink-0 -skew-y-12 rounded-full"
+                        aria-hidden="true"
+                      />
+                      <label htmlFor="ck-pledge-amount" className={GAME_OVERVIEW_KICKER}>
+                        {`Amount (KAS, min ${effectiveMin})`}
+                      </label>
+                    </div>
                     <input
                       id="ck-pledge-amount"
                       type="number"
                       min={effectiveMin}
                       step="0.01"
                       className={pledgeAmountInputClass}
-                      placeholder={String(effectiveMin)}
+                      placeholder="Pledge amount…"
                       value={pledgeKas}
                       onChange={(e) => setPledgeKas(e.target.value)}
                     />

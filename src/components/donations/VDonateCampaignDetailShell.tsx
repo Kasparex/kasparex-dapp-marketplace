@@ -6,7 +6,6 @@ import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { DonationsSidebar } from '@/components/donations/DonationsSidebar';
 import { DAppTabs, type DAppTab } from '@/components/dapps/layout/DAppTabs';
-import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 import { HubPageAccentLayout } from '@/components/hub/HubPageAccentLayout';
 import {
   HubPageRightPanelGrid,
@@ -20,13 +19,22 @@ import {
   VDonateNetworkBadgeGroup,
   VDonateStatusBadgeGroup,
 } from '@/components/donations/VDonateCampaignCardChrome';
-import { KX_PANEL, KX_SURFACE_NESTED } from '@/lib/hub/shellTokens';
+import { KX_PANEL, KX_METADATA_STAT_CARD } from '@/lib/hub/shellTokens';
 import type { CrowdfundFaqItem, CrowdfundTier, CrowdfundUpdate } from '@/lib/covenant/crowdfund-types';
 import { sortTiersByMinKas } from '@/lib/donations/tiers';
 import { useDonationsRightPanelOpen } from '@/hooks/useDonationsRightPanelOpen';
 import { SidePanelCollapsedContentWrap } from '@/components/layout/SidePanelCollapsedContentWrap';
 import { VDonateRewardTierList } from '@/components/donations/VDonateRewardTierList';
 import { HubFaqAccordion } from '@/components/hub/HubFaqAccordion';
+import { CommentsSection } from '@/components/vblog/CommentsSection';
+import { mergeVDonateFaqs } from '@/lib/donations/defaultFaqs';
+import {
+  GameOverviewTip,
+  GameOverviewTitleBlock,
+} from '@/components/games/panels/GameOverviewSections';
+import { HubMetadataStatGrid } from '@/components/hub/HubMetadataStatGrid';
+import { KX_PROSE, KX_PROSE_PARAGRAPH } from '@/lib/ui/kxTypography';
+import { VDONATE_SHORT_NAME } from '@/lib/donations/brand';
 
 export type VDonateDetailTab =
   | 'campaign'
@@ -68,6 +76,8 @@ export type VDonateDetailCampaignView = {
   campaignExtras?: ReactNode;
   otherCampaigns?: { href: string; title: string }[];
   commentsSlot?: ReactNode;
+  /** Stable id for Hub CommentsSection (`vdonate:…`). */
+  commentsArticleId?: string;
 };
 
 const TAB_ICONS: Record<VDonateDetailTab, ReactNode> = {
@@ -178,6 +188,7 @@ export function VDonateCampaignDetailShell({
 
   const tiers = sortTiersByMinKas(view.tiers ?? []);
   const socialEntries = Object.entries(view.socialLinks ?? {}).filter(([, v]) => Boolean(v?.trim()));
+  const faqItems = useMemo(() => mergeVDonateFaqs(view.faq), [view.faq]);
 
   const handleRewardPledge = (tier: CrowdfundTier) => {
     onSelectTier?.(tier.id);
@@ -236,26 +247,76 @@ export function VDonateCampaignDetailShell({
   const tabBody = (
     <div className={`${KX_PANEL} p-6 md:p-8`}>
       {tab === 'campaign' ? (
-        <div className="space-y-4">
-          <DAppSectionHeader title="Campaign" className="mb-0" />
-          {view.mainContentHtml ? (
-            <KxRichTextContent html={view.mainContentHtml} className="kx-prose" />
-          ) : view.shortDescription ? (
-            <p className="kx-body whitespace-pre-wrap">{view.shortDescription}</p>
-          ) : (
-            <p className="kx-body">No campaign story yet.</p>
-          )}
-          {view.campaignExtras}
+        <div className="space-y-10 px-1 pt-2 sm:px-2">
+          <article
+            className={`${KX_PROSE} [&_a]:font-semibold [&_a]:text-[color:var(--hub-accent,#10b981)] [&_a]:hover:underline`}
+          >
+            <GameOverviewTitleBlock
+              as="h2"
+              kicker="Campaign"
+              title="The story"
+              subtitle={
+                view.shortDescription?.trim()
+                  ? view.shortDescription.trim().slice(0, 160)
+                  : `Back this raise on ${VDONATE_SHORT_NAME}.`
+              }
+            />
+            {view.mainContentHtml ? (
+              <KxRichTextContent html={view.mainContentHtml} className="kx-prose" />
+            ) : view.shortDescription ? (
+              <p className={KX_PROSE_PARAGRAPH}>{view.shortDescription}</p>
+            ) : (
+              <p className={KX_PROSE_PARAGRAPH}>No campaign story yet.</p>
+            )}
+            <GameOverviewTip title="How pledging works">
+              Enter an amount in the rail (or pick a reward tier). Your pledge locks on-chain until the
+              deadline. Goal met: creator claims. Goal missed: backers can refund on L1.
+            </GameOverviewTip>
+          </article>
+
+          <HubMetadataStatGrid
+            items={[
+              { label: 'Raised', value: view.raisedLabel },
+              { label: 'Target', value: view.goalLabel },
+              { label: 'Backers', value: view.backersLabel },
+              { label: 'Ends', value: view.endsLabel },
+            ]}
+          />
+
+          <section className={`${KX_METADATA_STAT_CARD} space-y-3`}>
+            <GameOverviewTitleBlock
+              as="h3"
+              compact
+              kicker="Progress"
+              title="Raise status"
+              subtitle="Live totals for this campaign."
+            />
+            <div className="w-full h-3 rounded-full bg-zinc-200 dark:bg-zinc-700 overflow-hidden">
+              <div
+                className="h-full bg-emerald-500 rounded-full transition-all"
+                style={{ width: `${Math.min(view.progressPct, 100)}%` }}
+              />
+            </div>
+            <p className="text-sm text-zinc-600 dark:text-zinc-400">
+              {Math.min(Math.round(view.progressPct), 100)}% of target ·{' '}
+              {view.isLive ? 'Campaign is live' : 'Campaign ended'}
+              {view.goalReached ? ' · Goal reached' : ''}
+            </p>
+          </section>
+
+          {view.campaignExtras ? <div className="space-y-4">{view.campaignExtras}</div> : null}
         </div>
       ) : null}
 
       {tab === 'rewards' ? (
         <div className="space-y-4">
-          <DAppSectionHeader title="Rewards" className="mb-0" />
-          <p className="kx-body">
-            Pick a reward tier to unlock perks. Pledging runs the L1 covenant lock plus Hub platform fee.
-            After you pledge a tier, its reward content unlocks here.
-          </p>
+          <GameOverviewTitleBlock
+            as="h2"
+            compact
+            kicker="Rewards"
+            title="Pledge tiers"
+            subtitle="Unlock perks by pledging a tier minimum."
+          />
           <VDonateRewardTierList
             tiers={tiers}
             onSelectAndPledge={handleRewardPledge}
@@ -268,38 +329,47 @@ export function VDonateCampaignDetailShell({
 
       {tab === 'creator' ? (
         <div className="space-y-4">
-          <DAppSectionHeader title="Creator" className="mb-0" />
-          <AuthorInline
-            address={view.creatorAddress}
-            href={`/u/${encodeURIComponent(view.creatorAddress)}`}
-            prefix=""
+          <GameOverviewTitleBlock
+            as="h2"
+            compact
+            kicker="Creator"
+            title="About the creator"
           />
-          {socialEntries.length > 0 ? (
-            <div className="flex flex-wrap gap-3 text-sm">
-              {socialEntries.map(([key, value]) => (
-                <a
-                  key={key}
-                  href={value!.startsWith('http') ? value! : `https://${value}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-emerald-600 dark:text-emerald-400 hover:underline capitalize"
-                >
-                  {key}
-                </a>
-              ))}
-            </div>
-          ) : (
-            <p className="kx-body">No social links published for this campaign.</p>
-          )}
+          <div className={`${KX_METADATA_STAT_CARD} space-y-4`}>
+            <AuthorInline
+              address={view.creatorAddress}
+              href={`/u/${encodeURIComponent(view.creatorAddress)}`}
+              prefix=""
+            />
+            {socialEntries.length > 0 ? (
+              <div className="flex flex-wrap gap-3 text-sm">
+                {socialEntries.map(([key, value]) => (
+                  <a
+                    key={key}
+                    href={value!.startsWith('http') ? value! : `https://${value}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[color:var(--hub-accent)] hover:underline capitalize font-semibold"
+                  >
+                    {key}
+                  </a>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                No social links published for this campaign.
+              </p>
+            )}
+          </div>
           {view.otherCampaigns && view.otherCampaigns.length > 0 ? (
-            <div className="pt-2 space-y-2">
-              <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">More from this creator</p>
+            <div className={`${KX_METADATA_STAT_CARD} space-y-2`}>
+              <p className="text-sm font-bold text-zinc-900 dark:text-zinc-100">More from this creator</p>
               <ul className="space-y-1">
                 {view.otherCampaigns.map((c) => (
                   <li key={c.href}>
                     <Link
                       href={c.href}
-                      className="text-sm text-emerald-600 dark:text-emerald-400 hover:underline"
+                      className="text-sm font-semibold text-[color:var(--hub-accent)] hover:underline"
                     >
                       {c.title}
                     </Link>
@@ -313,48 +383,37 @@ export function VDonateCampaignDetailShell({
 
       {tab === 'faq' ? (
         <div className="space-y-4">
-          <DAppSectionHeader title="FAQ" className="mb-0" />
-          {(view.faq ?? []).length === 0 ? (
-            <HubFaqAccordion
-              items={[
-                {
-                  id: 'default-goal',
-                  question: 'What happens if the goal is not met?',
-                  answer:
-                    'Backers can refund after the deadline on L1 covenant campaigns. L2 escrow follows the campaign contract refund rules.',
-                },
-                {
-                  id: 'default-claim',
-                  question: 'When does the creator receive funds?',
-                  answer:
-                    'After a successful raise, the creator claims raised funds (goal met before deadline).',
-                },
-              ]}
-            />
-          ) : (
-            <HubFaqAccordion
-              items={(view.faq ?? []).map((item) => ({
-                id: item.id,
-                question: item.question,
-                answer: item.answer,
-              }))}
-            />
-          )}
+          <GameOverviewTitleBlock
+            as="h2"
+            compact
+            kicker="Help"
+            title="FAQ"
+            subtitle={`How ${VDONATE_SHORT_NAME} raises work.`}
+          />
+          <HubFaqAccordion
+            items={faqItems.map((item) => ({
+              id: item.id,
+              question: item.question,
+              answer: item.answer,
+            }))}
+          />
         </div>
       ) : null}
 
       {tab === 'updates' ? (
         <div className="space-y-4">
-          <DAppSectionHeader title="Updates" className="mb-0" />
+          <GameOverviewTitleBlock as="h2" compact kicker="News" title="Updates" />
           {(view.updates ?? []).length === 0 ? (
-            <p className="kx-body">No updates yet. Check back after the creator posts progress.</p>
+            <p className="text-base text-zinc-600 dark:text-zinc-400 leading-7">
+              No updates yet. Check back after the creator posts progress.
+            </p>
           ) : (
             <div className="space-y-3">
               {[...(view.updates ?? [])]
                 .sort((a, b) => b.createdAt - a.createdAt)
                 .map((u) => (
-                  <div key={u.id} className={`${KX_SURFACE_NESTED} p-4 space-y-1`}>
-                    <p className="font-semibold text-zinc-900 dark:text-zinc-100">{u.title}</p>
+                  <div key={u.id} className={`${KX_METADATA_STAT_CARD} space-y-1`}>
+                    <p className="font-bold text-zinc-900 dark:text-zinc-100">{u.title}</p>
                     <p className="text-xs text-zinc-500">{new Date(u.createdAt).toLocaleString()}</p>
                     <KxRichTextContent html={u.body} className="kx-prose text-sm" />
                   </div>
@@ -366,18 +425,25 @@ export function VDonateCampaignDetailShell({
 
       {tab === 'comments' ? (
         <div className="space-y-4">
-          <DAppSectionHeader title="Comments" className="mb-0" />
-          {view.commentsSlot ?? (
-            <p className="kx-body">
-              Comments stay with your Hub wallet session. Connect and back this campaign to join the conversation soon.
-            </p>
-          )}
+          {view.commentsSlot ??
+            (view.commentsArticleId ? (
+              <CommentsSection articleId={view.commentsArticleId} dappSectionHeader />
+            ) : (
+              <p className="text-base text-zinc-600 dark:text-zinc-400 leading-7">
+                Comments are unavailable for this campaign.
+              </p>
+            ))}
         </div>
       ) : null}
 
       {tab === 'premium' ? (
         <div className="space-y-4">
-          <DAppSectionHeader title={view.premiumTabTitle?.trim() || 'Premium'} className="mb-0" />
+          <GameOverviewTitleBlock
+            as="h2"
+            compact
+            kicker="Premium"
+            title={view.premiumTabTitle?.trim() || 'Premium'}
+          />
           {view.premiumUnlocked !== false ? (
             <>
               {view.premiumModule}
@@ -385,15 +451,17 @@ export function VDonateCampaignDetailShell({
                 <KxRichTextContent html={view.premiumTabContent} className="kx-prose" />
               ) : null}
               {!view.premiumModule && !view.premiumTabContent ? (
-                <p className="kx-body">Premium content is not configured for this campaign.</p>
+                <p className="text-base text-zinc-600 dark:text-zinc-400 leading-7">
+                  Premium content is not configured for this campaign.
+                </p>
               ) : null}
             </>
           ) : (
-            <div className={`${KX_SURFACE_NESTED} p-5 space-y-3`}>
-              <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+            <div className={`${KX_METADATA_STAT_CARD} space-y-3`}>
+              <p className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
                 Premium content locked
               </p>
-              <p className="kx-body">
+              <p className="text-sm text-zinc-600 dark:text-zinc-400">
                 Back this campaign (any reward tier or custom pledge) to unlock premium content for
                 supporters.
               </p>

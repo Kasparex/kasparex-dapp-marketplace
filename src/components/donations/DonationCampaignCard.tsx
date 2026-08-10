@@ -11,7 +11,6 @@ import {
   VDonateBadgeRow,
   VDonateCampaignMedia,
   VDonateCardShell,
-  VDonatePledgeInline,
 } from '@/components/donations/VDonateCampaignCardChrome';
 import { DonationVoteControls } from '@/components/donations/DonationVoteControls';
 import { KxListingCategoryChip } from '@/components/ui/KxListingCategoryChip';
@@ -39,7 +38,6 @@ export function DonationCampaignCard({
   badges?: { label: string; variant?: 'neutral' | 'emerald' | 'amber' }[];
 }) {
   const [nowSec, setNowSec] = useState(() => Math.floor(Date.now() / 1000));
-  const [pledgeAmount, setPledgeAmount] = useState('');
   const { state: kaspaState } = useKaspaWallet();
   const { isConnected: evmConnected } = useAccount();
   const chainId = useChainId();
@@ -105,57 +103,40 @@ export function DonationCampaignCard({
     return false;
   };
 
-  const pledgeNum = parseFloat(pledgeAmount);
-  void pledgeNum;
-
-  const listingFooter = (
-    <div className="space-y-3">
-      {showPledge && isLive ? (
-        <VDonatePledgeInline
-          amount={pledgeAmount}
-          onAmountChange={setPledgeAmount}
-          onPledge={() => {
-            if (!requireWallet()) return;
-            const q = new URLSearchParams();
-            if (campaign.campaignId != null) q.set('campaignId', campaign.campaignId.toString());
-            if (pledgeAmount.trim()) q.set('pledge', pledgeAmount.trim());
-            const qs = q.toString();
-            window.location.href = `${cardHref.split('?')[0]}${qs ? `?${qs}` : ''}`;
-          }}
-          minKas={isL1Direct ? 1 : undefined}
-        />
-      ) : null}
-      {showPledge ? (
-        <div
-          className="flex items-center justify-between gap-3"
-          onClick={(e) => e.stopPropagation()}
-          onKeyDown={(e) => e.stopPropagation()}
-        >
-          <div className="min-w-0">
-            {category ? (
-              <KxListingCategoryChip title={category}>{category}</KxListingCategoryChip>
-            ) : (
-              <span className="text-xs text-zinc-500 dark:text-zinc-400">{VDONATE_SHORT_NAME}</span>
-            )}
+  const listingFooter =
+    showPledge || footer ? (
+      <div className="space-y-3">
+        {showPledge ? (
+          <div
+            className="flex items-center justify-between gap-3"
+            onClick={(e) => e.stopPropagation()}
+            onKeyDown={(e) => e.stopPropagation()}
+          >
+            <div className="min-w-0">
+              {category ? (
+                <KxListingCategoryChip title={category}>{category}</KxListingCategoryChip>
+              ) : (
+                <span className="text-xs text-zinc-500 dark:text-zinc-400">{VDONATE_SHORT_NAME}</span>
+              )}
+            </div>
+            <DonationVoteControls
+              entityId={entityId}
+              creatorWallet={isL1Direct ? campaign.l1Address || campaign.creatorAddress : campaign.creatorAddress}
+              title={title}
+              compact
+            />
           </div>
-          <DonationVoteControls
-            entityId={entityId}
-            creatorWallet={isL1Direct ? campaign.l1Address || campaign.creatorAddress : campaign.creatorAddress}
-            title={title}
-            compact
-          />
-        </div>
-      ) : null}
-      {footer ? (
-        <div
-          onClick={(e) => e.stopPropagation()}
-          onKeyDown={(e) => e.stopPropagation()}
-        >
-          {footer}
-        </div>
-      ) : null}
-    </div>
-  );
+        ) : null}
+        {footer ? (
+          <div
+            onClick={(e) => e.stopPropagation()}
+            onKeyDown={(e) => e.stopPropagation()}
+          >
+            {footer}
+          </div>
+        ) : null}
+      </div>
+    ) : undefined;
 
   return (
     <>
