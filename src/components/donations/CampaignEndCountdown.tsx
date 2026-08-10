@@ -10,7 +10,9 @@ export function CampaignEndCountdown({
   deadlineSec,
   compact = false,
   className = '',
-  /** When `compact`, still show the “last 7 days” time bar (e.g. summary panel). */
+  /** Campaign start (ms). When set, the bar is remaining time across the full campaign window. */
+  createdAtMs,
+  /** When `compact`, still show the time bar (e.g. summary panel). */
   showTimeProgressBar = false,
   /** Tailwind classes for the time bar fill (funding bar uses emerald elsewhere). */
   timeProgressFillClassName = 'bg-emerald-500',
@@ -19,6 +21,7 @@ export function CampaignEndCountdown({
   deadlineSec: bigint | number;
   compact?: boolean;
   className?: string;
+  createdAtMs?: number | null;
   showTimeProgressBar?: boolean;
   timeProgressFillClassName?: string;
 }) {
@@ -43,9 +46,13 @@ export function CampaignEndCountdown({
     return { d, h, m, s };
   }, [ended, remainingMs]);
 
-  /** Last 7 days before deadline: bar shrinks as the end approaches (full when more than 7 days remain). */
-  const windowMs = 7 * 86400 * 1000;
-  const timeBarPct = ended ? 100 : Math.min(100, Math.max(0, (remainingMs / windowMs) * 100));
+  /** Remaining share of the full campaign window (created → deadline). Falls back to 30d if start unknown. */
+  const startMs =
+    createdAtMs != null && Number.isFinite(createdAtMs) && createdAtMs > 0 && createdAtMs < deadlineMs
+      ? createdAtMs
+      : deadlineMs - 30 * 86400 * 1000;
+  const totalMs = Math.max(1, deadlineMs - startMs);
+  const timeBarPct = ended ? 0 : Math.min(100, Math.max(0, (remainingMs / totalMs) * 100));
 
   if (ended) {
     return (
@@ -55,7 +62,7 @@ export function CampaignEndCountdown({
         </p>
         {(!compact || showTimeProgressBar) && (
           <div className="mt-2 h-1.5 w-full rounded-full bg-zinc-200 dark:bg-zinc-700 overflow-hidden">
-            <div className="h-full w-full rounded-full bg-zinc-400 dark:bg-zinc-500" />
+            <div className="h-full w-0 rounded-full bg-zinc-400 dark:bg-zinc-500" />
           </div>
         )}
       </div>
@@ -92,7 +99,7 @@ export function CampaignEndCountdown({
       )}
       {(!compact || showTimeProgressBar) && (
         <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-1">
-          Bar shows the last week before the deadline (full when more than 7 days remain).
+          Remaining share of the full campaign window.
         </p>
       )}
     </div>

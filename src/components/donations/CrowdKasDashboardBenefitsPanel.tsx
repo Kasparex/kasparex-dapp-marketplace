@@ -1,7 +1,6 @@
 'use client';
 
 import { useMemo, useRef, useState } from 'react';
-import { useCrowdKasPricing } from '@/hooks/useCrowdKasPricing';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { KREXBuyWizard } from '@/components/rewards/KREXBuyWizard';
 import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
@@ -25,12 +24,14 @@ export function CrowdKasDashboardBenefitsPanel({
   className = '',
   variant = 'panel',
   hideBuyButton = false,
+  audience = 'creator',
 }: {
   className?: string;
   variant?: 'panel' | 'compact';
   hideBuyButton?: boolean;
+  /** Creator: studio / editors. Donor: campaign detail rails. */
+  audience?: 'creator' | 'donor';
 }) {
-  const pricing = useCrowdKasPricing();
   const { balance: krexBalance, tier, isLoading } = useKREXBalance();
   const [isKrexWizardOpen, setIsKrexWizardOpen] = useState(false);
   const stableBalanceRef = useRef(0);
@@ -38,16 +39,23 @@ export function CrowdKasDashboardBenefitsPanel({
   const displayBalance = isLoading ? stableBalanceRef.current : krexBalance;
   const discountPercent = KREX_TIERS[tier].feeDiscountPercent;
   const createPts = computeEarnedHubPoints(HUB_EARN_POINTS.crowdkasCampaignCreate, tier);
+  const pledgePts = computeEarnedHubPoints(HUB_EARN_POINTS.dappL1Interaction, tier);
   const visualTier = balanceToKrexVisualTier(displayBalance);
   const ui = KREX_TIER_UI[visualTier];
   const tierLabel = KREX_TIERS[tier].label;
   const tooltipContent = useMemo(() => TIER_TOOLTIP, []);
+  const isDonor = audience === 'donor';
 
   const buyKrexButtonClass = 'hub-cta-btn shrink-0 k-control-btn !h-auto';
 
   if (variant === 'compact') {
-    const feePerk =
-      discountPercent > 0 ? `${discountPercent}% module discount` : 'Hold 1M+ KREX for module discounts';
+    const feePerk = isDonor
+      ? discountPercent > 0
+        ? `${discountPercent}% off pledge fees`
+        : 'Hold 1M+ KREX for pledge fee discounts'
+      : discountPercent > 0
+        ? `${discountPercent}% module discount`
+        : 'Hold 1M+ KREX for module discounts';
     const pointsPerk =
       tier !== 'Tier0' ? `Multiplier (${formatHubPointsTierLabel(tier)})` : 'No multiplier';
 
@@ -60,7 +68,7 @@ export function CrowdKasDashboardBenefitsPanel({
           <Tooltip content={tooltipContent}>
             <div className="flex items-center gap-2 min-w-0 cursor-help">
               <span className="text-xs font-black uppercase tracking-[0.12em] whitespace-nowrap text-emerald-800 dark:text-emerald-300">
-                Benefits
+                {isDonor ? 'Donor perks' : 'Benefits'}
               </span>
               <span className={`rounded-md px-1.5 py-0.5 text-[11px] font-black uppercase tracking-wide whitespace-nowrap ${ui.badge}`}>
                 {ui.label}
@@ -94,10 +102,10 @@ export function CrowdKasDashboardBenefitsPanel({
       <Tooltip content={tooltipContent}>
         <aside
           className={`w-full rounded-xl border border-emerald-500/25 bg-gradient-to-br from-white via-emerald-50/40 to-white dark:from-zinc-900 dark:via-emerald-950/30 dark:to-zinc-900 p-3.5 shadow-lg cursor-help ${className}`.trim()}
-          aria-label="Creator perks. Hover for KREX tier details."
+          aria-label={isDonor ? 'Donor perks. Hover for KREX tier details.' : 'Creator perks. Hover for KREX tier details.'}
         >
           <DAppSectionHeader
-            title="Creator perks"
+            title={isDonor ? 'Donor perks' : 'Creator perks'}
             className="mb-2"
             right={
               <span className={`rounded-md px-2 py-0.5 text-[10px] font-black uppercase tracking-wide ${ui.badge}`}>
@@ -106,17 +114,24 @@ export function CrowdKasDashboardBenefitsPanel({
             }
           />
           <h2 className="text-sm font-bold text-zinc-900 dark:text-zinc-100 leading-snug mb-2.5">
-            Hold KREX. Unlock modules. Earn more.
+            {isDonor ? 'Hold KREX. Pay less to pledge. Earn more.' : 'Hold KREX. Unlock modules. Earn more.'}
           </h2>
           <ul className="space-y-1 text-sm text-zinc-700 dark:text-zinc-300">
             <li>
               <span className="text-emerald-600 dark:text-emerald-400">•</span>{' '}
-              {discountPercent > 0
-                ? `${discountPercent}% off paid module unlocks (${tierLabel})`
-                : `Stack 1M+ KREX for ${KREX_TIERS.Tier1.feeDiscountPercent}% off modules`}
+              {isDonor
+                ? discountPercent > 0
+                  ? `${discountPercent}% off the 1% pledge platform fee (${tierLabel})`
+                  : `Stack 1M+ KREX for ${KREX_TIERS.Tier1.feeDiscountPercent}% off the 1% pledge fee`
+                : discountPercent > 0
+                  ? `${discountPercent}% off paid module unlocks (${tierLabel})`
+                  : `Stack 1M+ KREX for ${KREX_TIERS.Tier1.feeDiscountPercent}% off modules`}
             </li>
             <li>
-              <span className="text-emerald-600 dark:text-emerald-400">•</span> Create earns +{createPts} Hub Points at your tier
+              <span className="text-emerald-600 dark:text-emerald-400">•</span>{' '}
+              {isDonor
+                ? `Pledging earns +${pledgePts} Hub Points at your tier`
+                : `Create earns +${createPts} Hub Points at your tier`}
               {tier !== 'Tier0' ? ` (${formatHubPointsTierLabel(tier)} multiplier)` : ' (base amount)'}
             </li>
           </ul>

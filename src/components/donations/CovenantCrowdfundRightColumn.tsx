@@ -15,11 +15,9 @@ import {
 } from '@/lib/donations/covenantCrowdfund';
 import { CampaignEndCountdown } from '@/components/donations/CampaignEndCountdown';
 import {
-  CrowdKasFieldLabel,
   crowdkasCardClass,
   crowdkasPrimaryBtnClass,
   crowdkasSecondaryBtnClass,
-  crowdkasSmallInputClass,
 } from '@/components/donations/CrowdKasUi';
 import { shortKaspaAddr } from '@/components/dapps/covenant/CovenantWidgetUi';
 import { getAddressExplorerUrl } from '@/lib/walletUi';
@@ -46,11 +44,16 @@ import { resolveCatalogPaymentOption } from '@/lib/payments/currencyCatalog';
 import type { StorePaymentCurrency } from '@/lib/store/currencies';
 import { getHubPointsBaseForAction } from '@/lib/payments/hubQuote';
 import { computeEarnedHubPoints, formatHubPointsTierLabel } from '@/lib/rewards/hub-points';
+import { KREX_TIERS } from '@/lib/rewards/types';
 import { placeholderDApps } from '@/lib/dapps';
 import { KX_SURFACE_NESTED } from '@/lib/hub/shellTokens';
+import { KREXBuyWizard } from '@/components/rewards/KREXBuyWizard';
 
 const CROWDFUND_DAPP = placeholderDApps.find((d) => d.slug === 'covenant-crowdfund')!;
 const PLEDGE_HUB_POINTS_BASE = getHubPointsBaseForAction(CROWDFUND_DAPP, 'pledge');
+
+const pledgeAmountInputClass =
+  'w-full h-10 px-3 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-sm text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 focus:border-emerald-500/60';
 
 export function CovenantCrowdfundRightColumn({
   campaign,
@@ -68,6 +71,7 @@ export function CovenantCrowdfundRightColumn({
   const [busy, setBusy] = useState(false);
   const [localTierId, setLocalTierId] = useState<string | null>(null);
   const [paymentCurrency, setPaymentCurrency] = useState<StorePaymentCurrency>('KAS');
+  const [isKrexWizardOpen, setIsKrexWizardOpen] = useState(false);
   const minKas = Number(COVENANT_LAB_CONFIG.minLockSompi) / 1e8;
   const { l1Modal, closeL1Modal, promptHubGate } = useHubWalletGate();
 
@@ -119,8 +123,10 @@ export function CovenantCrowdfundRightColumn({
 
   const pledgeNum = parseFloat(pledgeKas);
   const quote =
-    Number.isFinite(pledgeNum) && pledgeNum > 0 ? quoteVDonateL1Pledge(pledgeNum) : null;
+    Number.isFinite(pledgeNum) && pledgeNum > 0 ? quoteVDonateL1Pledge(pledgeNum, krexTier) : null;
   const amountKas = quote?.totalKas ?? 0;
+  const discountPercent = KREX_TIERS[krexTier].feeDiscountPercent;
+  const hasKrexDiscount = discountPercent > 0;
 
   const { catalogEntries, pricingSnapshot } = useHubPayWithCatalog({
     amountKas: amountKas > 0 ? amountKas : undefined,
@@ -131,19 +137,37 @@ export function CovenantCrowdfundRightColumn({
     if (!quote) {
       return [
         { label: 'Pledge', value: '—' },
-        { label: 'Platform fee', value: '—' },
+        { label: 'Platform fee (1%)', value: '—' },
       ];
     }
-    return [
+    const lines: HubPaymentQuoteLine[] = [
       {
         label: 'Pledge',
         value: formatHubPaymentAmount(paymentOption, quote.pledgeKas, { snapshot: pricingSnapshot }),
       },
       {
-        label: 'Platform fee',
-        value: formatHubPaymentAmount(paymentOption, quote.platformFeeKas, { snapshot: pricingSnapshot }),
+        label: 'Platform fee (1%)',
+        value: formatHubPaymentAmount(paymentOption, quote.platformFeeBaseKas, {
+          snapshot: pricingSnapshot,
+        }),
       },
     ];
+    if (quote.discountKas > 0) {
+      lines.push({
+        label: `KREX discount (${quote.discountPercent}%)`,
+        value: `−${formatHubPaymentAmount(paymentOption, quote.discountKas, {
+          snapshot: pricingSnapshot,
+        })}`,
+      });
+      lines.push({
+        label: 'Fee after discount',
+        value: formatHubPaymentAmount(paymentOption, quote.platformFeeKas, {
+          snapshot: pricingSnapshot,
+        }),
+        dividerBefore: true,
+      });
+    }
+    return lines;
   }, [paymentOption, pricingSnapshot, quote]);
 
   const totalDisplay = quote
@@ -151,7 +175,7 @@ export function CovenantCrowdfundRightColumn({
     : formatHubPaymentAmount(paymentOption, 0, { snapshot: pricingSnapshot });
 
   const hubPoints =
-    quote && PLEDGE_HUB_POINTS_BASE > 0
+    PLEDGE_HUB_POINTS_BASE > 0
       ? computeEarnedHubPoints(PLEDGE_HUB_POINTS_BASE, krexTier)
       : 0;
 
@@ -242,6 +266,7 @@ export function CovenantCrowdfundRightColumn({
       </div>
       <CampaignEndCountdown
         deadlineSec={Math.floor(campaign.deadline / 1000)}
+        createdAtMs={campaign.createdAt}
         compact
         showTimeProgressBar
         timeProgressFillClassName="bg-sky-500 dark:bg-sky-400"
@@ -285,17 +310,18 @@ export function CovenantCrowdfundRightColumn({
                         {selectedTier.minKas} KAS)
                       </p>
                     ) : null}
-                    <CrowdKasFieldLabel
-                      label={`Amount (KAS, min ${effectiveMin})`}
+                    <label
                       htmlFor="ck-pledge-amount"
-                      tooltip="Your pledge locks into an L1 covenant. Platform fee is included as an extra output on the same transaction."
-                    />
+                      className="block text-sm font-medium text-zinc-700 dark:text-zinc-300"
+                    >
+                      {`Amount (KAS, min ${effectiveMin})`}
+                    </label>
                     <input
                       id="ck-pledge-amount"
                       type="number"
                       min={effectiveMin}
                       step="0.01"
-                      className={`${crowdkasSmallInputClass} h-10 w-full`}
+                      className={pledgeAmountInputClass}
                       placeholder={String(effectiveMin)}
                       value={pledgeKas}
                       onChange={(e) => setPledgeKas(e.target.value)}
@@ -321,7 +347,16 @@ export function CovenantCrowdfundRightColumn({
             pricingSnapshot={pricingSnapshot}
             tier={krexTier}
             krexBalance={krexBalance}
-            infoText="Pledge principal locks in the L1 covenant. Platform fee rides along as extra outputs on the same transaction."
+            discountNote={
+              quote && quote.discountKas > 0
+                ? `KREX discount: −${formatHubPaymentAmount(paymentOption, quote.discountKas, {
+                    snapshot: pricingSnapshot,
+                  })} (${quote.discountPercent}% off the 1% platform fee).`
+                : hasKrexDiscount
+                  ? `KREX discount: ${discountPercent}% off the 1% pledge platform fee (${KREX_TIERS[krexTier].label}).`
+                  : undefined
+            }
+            infoText="Pledge locks in the L1 covenant. Platform fee (1%) is an extra output on the same tx."
             infoAccent="emerald"
             hubPoints={hubPoints}
             hubPointsDetail={hubPoints > 0 ? formatHubPointsTierLabel(krexTier) : undefined}
@@ -330,6 +365,15 @@ export function CovenantCrowdfundRightColumn({
             flowPreset="hubPublish"
             footer={
               <>
+                {!hasKrexDiscount ? (
+                  <button
+                    type="button"
+                    onClick={() => setIsKrexWizardOpen(true)}
+                    className="w-full k-control-btn !border-emerald-500/30 !text-emerald-700 dark:!text-emerald-300"
+                  >
+                    Buy KREX to unlock discount
+                  </button>
+                ) : null}
                 {state.isConnected && isLive ? (
                   <button
                     type="button"
@@ -373,7 +417,8 @@ export function CovenantCrowdfundRightColumn({
               </>
             }
           />
-          <CrowdKasDashboardBenefitsPanel />
+          <CrowdKasDashboardBenefitsPanel audience="donor" />
+          <KREXBuyWizard isOpen={isKrexWizardOpen} onClose={() => setIsKrexWizardOpen(false)} />
         </div>
 
         {tiers.length > 0 ? (
@@ -396,12 +441,20 @@ export function CovenantCrowdfundRightColumn({
         ) : null}
 
         <div id="vdonate-supporters" className={`${crowdkasCardClass} space-y-3`}>
-          <DAppSectionHeader title="Backers" className="mb-0" />
+          <DAppSectionHeader
+            title="Backers"
+            className="mb-0"
+            right={
+              <span className="text-xs font-semibold tabular-nums text-zinc-500 dark:text-zinc-400">
+                {backers} {backers === 1 ? 'backer' : 'backers'}
+              </span>
+            }
+          />
           {activePledges.length === 0 ? (
             <p className="kx-body">No pledges yet. Be the first to back this campaign.</p>
           ) : (
             <ul className="space-y-2 text-sm max-h-64 overflow-y-auto">
-              {activePledges.map((p) => {
+              {activePledges.map((p, index) => {
                 const explorer = getAddressExplorerUrl({ kind: 'kaspa-l1', address: p.backer });
                 const tier = findCrowdfundTier(campaign.tiers, p.tierId);
                 return (
@@ -409,20 +462,25 @@ export function CovenantCrowdfundRightColumn({
                     key={p.id}
                     className="flex justify-between gap-2 border-b border-zinc-100 dark:border-zinc-800 pb-2"
                   >
-                    <div className="min-w-0">
-                      {explorer ? (
-                        <a
-                          href={explorer}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="font-mono text-xs hover:underline"
-                        >
-                          {shortKaspaAddr(p.backer)}
-                        </a>
-                      ) : (
-                        <span className="font-mono text-xs">{shortKaspaAddr(p.backer)}</span>
-                      )}
-                      {tier ? <p className="text-[11px] text-zinc-500 mt-0.5">{tier.title}</p> : null}
+                    <div className="min-w-0 flex items-start gap-2">
+                      <span className="shrink-0 text-[11px] font-bold tabular-nums text-zinc-400 dark:text-zinc-500 w-6">
+                        #{index + 1}
+                      </span>
+                      <div className="min-w-0">
+                        {explorer ? (
+                          <a
+                            href={explorer}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="font-mono text-xs hover:underline"
+                          >
+                            {shortKaspaAddr(p.backer)}
+                          </a>
+                        ) : (
+                          <span className="font-mono text-xs">{shortKaspaAddr(p.backer)}</span>
+                        )}
+                        {tier ? <p className="text-[11px] text-zinc-500 mt-0.5">{tier.title}</p> : null}
+                      </div>
                     </div>
                     <span className="font-medium shrink-0">{sompiToKasNumber(p.amountSompi)} KAS</span>
                   </li>

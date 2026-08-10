@@ -180,6 +180,8 @@ export function HubPaymentPanel({
         {tier != null ? <TierBadge tier={tier} isUnlocked={krexBalance > 0} /> : null}
       </div>
 
+      {alerts ? <div className="space-y-2">{alerts}</div> : null}
+
       <div className="space-y-1.5 text-xs text-zinc-600 dark:text-zinc-400">
         {lines.map((line) => (
           <div
@@ -278,7 +280,7 @@ export function HubPaymentPanel({
       ) : null}
 
       {hubPoints != null && hubPoints > 0 ? (
-        <div className="flex items-center justify-between gap-2 text-xs text-zinc-500 dark:text-zinc-400">
+        <div className="flex items-center justify-between gap-2 rounded-xl border border-zinc-200 px-3 py-2.5 text-xs text-zinc-500 dark:border-zinc-700 dark:text-zinc-400">
           <span>Hub points on action</span>
           <span className="inline-flex items-center gap-1.5">
             <HubPointsEarnBadge points={hubPoints} baseSpendKas={hubPointsBaseSpendKas} />
@@ -292,8 +294,6 @@ export function HubPaymentPanel({
       ) : null}
 
       {footer ? <div className="space-y-3">{footer}</div> : null}
-
-      {alerts ? <div className="space-y-2">{alerts}</div> : null}
 
       {!hideFlowProgress ? (
         <HubFlowProgress

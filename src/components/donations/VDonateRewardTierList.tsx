@@ -5,6 +5,7 @@ import { sortTiersByMinKas } from '@/lib/donations/tiers';
 import { quoteVDonateL1Pledge } from '@/lib/donations/l1PledgePayment';
 import { KX_SURFACE_NESTED } from '@/lib/hub/shellTokens';
 import { crowdkasPrimaryBtnClass } from '@/components/donations/CrowdKasUi';
+import { useKREXBalance } from '@/hooks/useKREXBalance';
 
 export function VDonateRewardTierList({
   tiers,
@@ -26,6 +27,7 @@ export function VDonateRewardTierList({
   /** Tiers whose reward content is unlocked for the connected backer. */
   unlockedTierIds?: Set<string> | ReadonlySet<string>;
 }) {
+  const { tier: krexTier } = useKREXBalance();
   const sorted = sortTiersByMinKas(tiers);
   if (sorted.length === 0) {
     return (
@@ -47,7 +49,7 @@ export function VDonateRewardTierList({
           tier.limitedQty != null
             ? Math.max(0, tier.limitedQty - (tier.claimedCount ?? 0))
             : null;
-        const quote = quoteVDonateL1Pledge(tier.minKas);
+        const quote = quoteVDonateL1Pledge(tier.minKas, krexTier);
         const unlocked = unlockedTierIds?.has(tier.id) ?? false;
         const rewardLines = [tier.reward, tier.description].filter(
           (s): s is string => Boolean(s?.trim()),

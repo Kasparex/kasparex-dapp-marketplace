@@ -18,8 +18,10 @@ export function getPlatformL1Address(): string {
   return (process.env.NEXT_PUBLIC_VDONATIONS_PLATFORM_L1_ADDRESS || DEFAULT_PLATFORM_L1_ADDRESS).trim();
 }
 
-/** Compute L1 platform fee in KAS (1% of donation, min 1 KAS) */
-export function computeL1FeeKAS(donationKAS: number): number {
-  const fee = Math.max(VDONATIONS_MIN_FEE_KAS, (donationKAS * VDONATIONS_FEE_BPS) / 10000);
-  return Math.ceil(fee);
+/** Compute L1 platform fee in KAS (1% of donation, min 1 KAS), optional KREX tier discount. */
+export function computeL1FeeKAS(donationKAS: number, discountPercent = 0): number {
+  const base = Math.max(VDONATIONS_MIN_FEE_KAS, (donationKAS * VDONATIONS_FEE_BPS) / 10000);
+  const pct = Math.max(0, Math.min(100, Number(discountPercent) || 0));
+  const discounted = base * (1 - pct / 100);
+  return Math.ceil(Math.max(0, discounted) * 100) / 100;
 }

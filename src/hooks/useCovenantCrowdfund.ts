@@ -186,6 +186,7 @@ export function useCovenantCrowdfund() {
         const feeBuilt = buildVDonateL1PledgeFeeOutputs({
           pledgeKas: amountKas,
           campaignId,
+          krexTier,
         });
 
         const c = await runtime.pledge(
