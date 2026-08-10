@@ -300,7 +300,7 @@ export default function DonationsListingPage() {
             )}
 
             {isLoading && totalVisible === 0 && (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-stretch">
                 {[1, 2, 3].map((i) => (
                   <div key={i} className="rounded-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden bg-white dark:bg-zinc-900 animate-pulse">
                     <div className="aspect-[16/9] bg-zinc-200 dark:bg-zinc-700" />
@@ -336,7 +336,7 @@ export default function DonationsListingPage() {
             )}
 
             {totalVisible > 0 && (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-stretch">
                 {showCovenantGrid &&
                   filteredCovenantCampaigns.map((c) => (
                     <CovenantCrowdfundCampaignCard key={`covenant-${c.id}`} campaign={c} />
