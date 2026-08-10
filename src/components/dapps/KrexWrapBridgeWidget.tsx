@@ -5,7 +5,7 @@ import { useKaspaWallet } from '@/lib/kaspa/context';
 import { signKrc20Transfer } from '@/lib/kaspa/l1WalletActions';
 import { normalizeKaspaAddress } from '@/lib/kaspa/sdk';
 import { KxFormFieldLabel } from '@/components/ui/KxFormFieldLabel';
-import { getExplorerTxUrl, getKaspaExplorerAddressUrl, extractTxId } from '@/lib/store/utils';
+import { getKaspaExplorerAddressUrl, extractTxId } from '@/lib/store/utils';
 import { CopyableAddress } from '@/components/donations/CopyableAddress';
 import { hubNotify } from '@/lib/hub/notify';
 import { DAppWidgetShell } from '@/components/dapps/DAppWidgetShell';
@@ -36,6 +36,7 @@ import {
   updateKrexWrapStatusByBurn,
 } from '@/lib/krex/wrap/history';
 import type { Krc20BridgeNetwork, KrexWrapRecord, KrexWrapStatus } from '@/lib/krex/wrap/types';
+import { formatKaspaWalletError } from '@/lib/kaspa/formatWalletError';
 import {
   attestationHasTicket,
   buildMigrateClaimPlan,
@@ -198,13 +199,6 @@ async function observeBurnOnHub(input: {
   }
 }
 
-function shortTxId(txHash: string | undefined | null): string {
-  const id = extractTxId(txHash || '') || String(txHash || '').trim();
-  if (!id) return 'tx';
-  if (id.length <= 16) return id;
-  return `${id.slice(0, 8)}…${id.slice(-6)}`;
-}
-
 function ExternalTabIcon({ className = 'h-3 w-3' }: { className?: string }) {
   return (
     <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden>
@@ -290,7 +284,19 @@ function ClaimTicketButton({
                   headers: { Accept: 'application/json' },
                   cache: 'no-store',
                 });
-                const tipJson = (await tipRes.json()) as { ok?: boolean; tip?: MigrateClaimTip };
+                const tipText = await tipRes.text();
+                let tipJson: { ok?: boolean; tip?: MigrateClaimTip } = {};
+                try {
+                  tipJson = tipText ? (JSON.parse(tipText) as { ok?: boolean; tip?: MigrateClaimTip }) : {};
+                } catch {
+                  hubNotify.update(loadingId, {
+                    variant: 'error',
+                    title: 'Claim unavailable',
+                    description:
+                      'Could not load migrate tip (empty or invalid response). Refresh and try Claim again.',
+                  });
+                  return;
+                }
                 const tip = tipJson.tip;
                 if (!tip) {
                   hubNotify.update(loadingId, {
@@ -337,7 +343,7 @@ function ClaimTicketButton({
                   hubNotify.update(loadingId, {
                     variant: 'error',
                     title: 'Claim failed',
-                    description: err,
+                    description: formatKaspaWalletError(err),
                   });
                   return;
                 }
@@ -358,7 +364,7 @@ function ClaimTicketButton({
                 hubNotify.update(loadingId, {
                   variant: 'error',
                   title: 'Claim failed',
-                  description: err instanceof Error ? err.message : String(err),
+                  description: formatKaspaWalletError(err),
                 });
               } finally {
                 setBusy(false);
@@ -371,6 +377,33 @@ function ClaimTicketButton({
       </span>
     </Tooltip>
   );
+}
+
+function isTransientWalletRpcError(err: unknown): boolean {
+  const msg = formatKaspaWalletError(err).toLowerCase();
+  const raw = err instanceof Error ? err.message.toLowerCase() : String(err || '').toLowerCase();
+  return (
+    msg.includes('websocket') ||
+    msg.includes('rpc connection') ||
+    raw.includes('websocket') ||
+    raw.includes('unexpected end of json') ||
+    raw.includes('json') ||
+    err instanceof SyntaxError
+  );
+}
+
+async function withWalletRpcRetry<T>(fn: () => Promise<T>, attempts = 2): Promise<T> {
+  let lastErr: unknown;
+  for (let i = 0; i < attempts; i++) {
+    try {
+      return await fn();
+    } catch (err) {
+      lastErr = err;
+      if (i + 1 >= attempts || !isTransientWalletRpcError(err)) throw err;
+      await new Promise((r) => setTimeout(r, 1500));
+    }
+  }
+  throw lastErr;
 }
 
 function networkLabel(network: Krc20BridgeNetwork): string {
@@ -867,11 +900,13 @@ export function KrexWrapBridgeWidget() {
           // TN10 must not pay mainnet `kaspa:` treasury/rewards legs.
           ...(network === 'testnet-10' ? { rewardsBps: 0 } : {}),
         });
-        const feeHash = await payHubKasPlan({
-          provider: state.provider,
-          senderAddress: state.address,
-          plan,
-        });
+        const feeHash = await withWalletRpcRetry(() =>
+          payHubKasPlan({
+            provider: state.provider!,
+            senderAddress: state.address!,
+            plan,
+          }),
+        );
         updateKrexWrapStatus(wrapId, 'fee_paid', { feeTxHash: feeHash });
       }
 
@@ -884,12 +919,8 @@ export function KrexWrapBridgeWidget() {
         amt: amountInSmallestUnit.toString(),
         to: depositTo,
       };
-      const rawHash = await signKrc20Transfer(
-        state.provider,
-        JSON.stringify(inscribeJson),
-        4,
-        depositTo,
-        0.001,
+      const rawHash = await withWalletRpcRetry(() =>
+        signKrc20Transfer(state.provider!, JSON.stringify(inscribeJson), 4, depositTo, 0.001),
       );
       const hash = extractTxId(rawHash) || (typeof rawHash === 'string' ? rawHash : '');
       const nextStatus = migrateV2
@@ -974,12 +1005,11 @@ export function KrexWrapBridgeWidget() {
       }
     } catch (err) {
       updateKrexWrapStatus(wrapId, 'failed', {
-        note: err instanceof Error ? err.message : 'Migration failed',
+        note: formatKaspaWalletError(err),
       });
-      let msg = 'Migration failed';
-      if (err instanceof Error) {
-        msg = err.message || msg;
-        if (msg.includes('rejected')) msg = 'Transaction was rejected';
+      let msg = formatKaspaWalletError(err);
+      if (/rejected/i.test(msg) && !/orphan/i.test(msg)) {
+        msg = 'Transaction was rejected';
       }
       hubNotify.update(loadingId, {
         title: 'Migration failed',
@@ -1125,7 +1155,6 @@ export function KrexWrapBridgeWidget() {
         ) : (
           <ul className="space-y-3">
             {history.map((row) => {
-              const burnKey = extractTxId(row.depositTxHash || '')?.toLowerCase() || '';
               const attestation = resolveHistoryAttestation(row, attestByBurn);
               const claimReady = evaluateMigrateClaimReady(attestation);
               const covenantId =
@@ -1147,61 +1176,6 @@ export function KrexWrapBridgeWidget() {
                       </p>
                     </div>
                     <WrapStatusBadge status={row.status} label={historyBadgeLabel(row, attestation)} />
-                  </div>
-
-                  <div className="flex flex-wrap gap-2">
-                    {row.depositTxHash ? (
-                      <a
-                        className={TX_CHIP_CLASS}
-                        href={getExplorerTxUrl(row.depositTxHash, net)}
-                        target="_blank"
-                        rel="noreferrer"
-                        title={extractTxId(row.depositTxHash) || undefined}
-                      >
-                        {row.migrateVersion === 2 ||
-                        row.status === 'burned' ||
-                        row.status === 'awaiting_attest' ||
-                        row.status === 'minted'
-                          ? 'Burn'
-                          : 'Deposit'}{' '}
-                        {shortTxId(row.depositTxHash)}
-                        <ExternalTabIcon />
-                      </a>
-                    ) : null}
-                    {row.mintTxHash ? (
-                      <>
-                        <a
-                          className={TX_CHIP_CLASS}
-                          href={getExplorerTxUrl(row.mintTxHash, net)}
-                          target="_blank"
-                          rel="noreferrer"
-                          title={extractTxId(row.mintTxHash) || undefined}
-                        >
-                          Claim {shortTxId(row.mintTxHash)}
-                          <ExternalTabIcon />
-                        </a>
-                        <a
-                          className={TX_CHIP_CLASS}
-                          href={kascovTxUrl(net, row.mintTxHash)}
-                          target="_blank"
-                          rel="noreferrer"
-                        >
-                          View on kascov
-                          <ExternalTabIcon />
-                        </a>
-                        {covenantId ? (
-                          <a
-                            className={TX_CHIP_CLASS}
-                            href={kascovCovenantUrl(net, covenantId)}
-                            target="_blank"
-                            rel="noreferrer"
-                          >
-                            TKREX covenant
-                            <ExternalTabIcon />
-                          </a>
-                        ) : null}
-                      </>
-                    ) : null}
                   </div>
 
                   <KrexWrapMigrateProgress
@@ -1227,9 +1201,33 @@ export function KrexWrapBridgeWidget() {
                   ) : null}
 
                   {row.status === 'minted' ? (
-                    <p className="text-[11px] leading-snug text-zinc-500 dark:text-zinc-400">
-                      KCC20 is a covenant coin (kascov). KasWare lists KAS / KRC-20 only.
-                    </p>
+                    <div className="flex flex-wrap items-center gap-2">
+                      {covenantId ? (
+                        <a
+                          className={TX_CHIP_CLASS}
+                          href={kascovCovenantUrl(net, covenantId)}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          TKREX covenant
+                          <ExternalTabIcon />
+                        </a>
+                      ) : null}
+                      {row.mintTxHash ? (
+                        <a
+                          className={TX_CHIP_CLASS}
+                          href={kascovTxUrl(net, row.mintTxHash)}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          View on kascov
+                          <ExternalTabIcon />
+                        </a>
+                      ) : null}
+                      <p className="text-[11px] leading-snug text-zinc-500 dark:text-zinc-400">
+                        KCC20 is a covenant coin (kascov). KasWare lists KAS / KRC-20 only.
+                      </p>
+                    </div>
                   ) : null}
                 </li>
               );

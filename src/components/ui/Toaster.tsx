@@ -51,39 +51,44 @@ function nextId() {
 
 const VARIANT_SHELL: Record<ToastVariant, string> = {
   success:
-    'border-emerald-500/25 bg-zinc-950/95 shadow-[0_0_24px_-10px_rgba(16,185,129,0.55)] dark:bg-zinc-950/95',
+    'border-emerald-500/40 bg-white shadow-[0_8px_28px_-12px_rgba(16,185,129,0.35)] dark:border-emerald-500/25 dark:bg-zinc-900/95 dark:shadow-[0_0_24px_-10px_rgba(16,185,129,0.55)]',
   error:
-    'border-rose-500/25 bg-zinc-950/95 shadow-[0_0_24px_-10px_rgba(244,63,94,0.45)] dark:bg-zinc-950/95',
+    'border-rose-500/40 bg-white shadow-[0_8px_28px_-12px_rgba(244,63,94,0.3)] dark:border-rose-500/25 dark:bg-zinc-900/95 dark:shadow-[0_0_24px_-10px_rgba(244,63,94,0.45)]',
   warning:
-    'border-amber-500/30 bg-zinc-950/95 shadow-[0_0_24px_-10px_rgba(245,158,11,0.45)] dark:bg-zinc-950/95',
+    'border-amber-500/40 bg-white shadow-[0_8px_28px_-12px_rgba(245,158,11,0.3)] dark:border-amber-500/30 dark:bg-zinc-900/95 dark:shadow-[0_0_24px_-10px_rgba(245,158,11,0.45)]',
   info:
-    'border-sky-500/25 bg-zinc-950/95 shadow-[0_0_24px_-10px_rgba(14,165,233,0.45)] dark:bg-zinc-950/95',
+    'border-sky-500/40 bg-white shadow-[0_8px_28px_-12px_rgba(14,165,233,0.3)] dark:border-sky-500/25 dark:bg-zinc-900/95 dark:shadow-[0_0_24px_-10px_rgba(14,165,233,0.45)]',
   loading:
-    'border-sky-500/25 bg-zinc-950/95 shadow-[0_0_24px_-10px_rgba(14,165,233,0.4)] dark:bg-zinc-950/95',
+    'border-sky-500/40 bg-white shadow-[0_8px_28px_-12px_rgba(14,165,233,0.28)] dark:border-sky-500/25 dark:bg-zinc-900/95 dark:shadow-[0_0_24px_-10px_rgba(14,165,233,0.4)]',
 };
 
 const VARIANT_ACCENT: Record<ToastVariant, string> = {
-  success: 'bg-emerald-400 shadow-[0_0_12px_rgba(52,211,153,0.75)]',
-  error: 'bg-rose-400 shadow-[0_0_12px_rgba(251,113,133,0.7)]',
-  warning: 'bg-amber-400 shadow-[0_0_12px_rgba(251,191,36,0.7)]',
-  info: 'bg-sky-400 shadow-[0_0_12px_rgba(56,189,248,0.7)]',
-  loading: 'bg-sky-400 shadow-[0_0_12px_rgba(56,189,248,0.7)]',
+  success: 'bg-emerald-500 dark:bg-emerald-400 shadow-[0_0_12px_rgba(52,211,153,0.55)]',
+  error: 'bg-rose-500 dark:bg-rose-400 shadow-[0_0_12px_rgba(251,113,133,0.55)]',
+  warning: 'bg-amber-500 dark:bg-amber-400 shadow-[0_0_12px_rgba(251,191,36,0.55)]',
+  info: 'bg-sky-500 dark:bg-sky-400 shadow-[0_0_12px_rgba(56,189,248,0.55)]',
+  loading: 'bg-sky-500 dark:bg-sky-400 shadow-[0_0_12px_rgba(56,189,248,0.55)]',
 };
 
 const VARIANT_ICON_WRAP: Record<ToastVariant, string> = {
-  success: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/25',
-  error: 'bg-rose-500/15 text-rose-300 border-rose-500/25',
-  warning: 'bg-amber-500/15 text-amber-300 border-amber-500/25',
-  info: 'bg-sky-500/15 text-sky-300 border-sky-500/25',
-  loading: 'bg-sky-500/15 text-sky-300 border-sky-500/25',
+  success:
+    'bg-emerald-500/10 text-emerald-700 border-emerald-500/30 dark:bg-emerald-500/15 dark:text-emerald-300 dark:border-emerald-500/25',
+  error:
+    'bg-rose-500/10 text-rose-700 border-rose-500/30 dark:bg-rose-500/15 dark:text-rose-300 dark:border-rose-500/25',
+  warning:
+    'bg-amber-500/10 text-amber-800 border-amber-500/30 dark:bg-amber-500/15 dark:text-amber-300 dark:border-amber-500/25',
+  info:
+    'bg-sky-500/10 text-sky-700 border-sky-500/30 dark:bg-sky-500/15 dark:text-sky-300 dark:border-sky-500/25',
+  loading:
+    'bg-sky-500/10 text-sky-700 border-sky-500/30 dark:bg-sky-500/15 dark:text-sky-300 dark:border-sky-500/25',
 };
 
 const VARIANT_LINK: Record<ToastVariant, string> = {
-  success: 'text-emerald-300 hover:text-emerald-200',
-  error: 'text-rose-300 hover:text-rose-200',
-  warning: 'text-amber-300 hover:text-amber-200',
-  info: 'text-sky-300 hover:text-sky-200',
-  loading: 'text-sky-300 hover:text-sky-200',
+  success: 'text-emerald-700 hover:text-emerald-800 dark:text-emerald-300 dark:hover:text-emerald-200',
+  error: 'text-rose-700 hover:text-rose-800 dark:text-rose-300 dark:hover:text-rose-200',
+  warning: 'text-amber-800 hover:text-amber-900 dark:text-amber-300 dark:hover:text-amber-200',
+  info: 'text-sky-700 hover:text-sky-800 dark:text-sky-300 dark:hover:text-sky-200',
+  loading: 'text-sky-700 hover:text-sky-800 dark:text-sky-300 dark:hover:text-sky-200',
 };
 
 function VariantIcon({ variant }: { variant: ToastVariant }) {
@@ -280,11 +285,11 @@ function ToastItem({ data, onDismiss }: { data: ToastData; onDismiss: () => void
           <VariantIcon variant={data.variant} />
         </div>
         <div className="min-w-0 flex-1 pt-0.5">
-          <Toast.Title className="text-sm font-semibold leading-snug text-zinc-50">
+          <Toast.Title className="text-sm font-semibold leading-snug text-zinc-900 dark:text-zinc-50">
             {data.title}
           </Toast.Title>
           {data.description ? (
-            <Toast.Description className="mt-0.5 text-xs leading-relaxed text-zinc-400">
+            <Toast.Description className="mt-0.5 text-xs leading-snug text-zinc-600 dark:text-zinc-400">
               {data.description}
             </Toast.Description>
           ) : null}
@@ -308,7 +313,7 @@ function ToastItem({ data, onDismiss }: { data: ToastData; onDismiss: () => void
           ) : null}
         </div>
         <Toast.Close
-          className="shrink-0 rounded-md p-1 text-zinc-500 outline-none transition-colors hover:bg-white/10 hover:text-zinc-200"
+          className="shrink-0 rounded-md p-1 text-zinc-500 outline-none transition-colors hover:bg-zinc-100 hover:text-zinc-800 dark:hover:bg-white/10 dark:hover:text-zinc-200"
           aria-label="Close"
         >
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>

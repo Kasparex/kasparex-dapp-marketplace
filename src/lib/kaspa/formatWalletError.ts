@@ -15,9 +15,12 @@ function rpcDisconnectHelp(text: string): string | null {
     return null;
   }
   if (
+    lower.includes('websocket is not connected') ||
     lower.includes('websocket disconnected') ||
+    (lower.includes('websocket') && lower.includes('not connected')) ||
     (lower.includes('websocket') && lower.includes('disconnect')) ||
-    (lower.includes('rpc server') && lower.includes('remote error') && !lower.includes('->'))
+    (lower.includes('rpc server') && lower.includes('remote error')) ||
+    (lower.includes('rpc') && lower.includes('websocket'))
   ) {
     return (
       'Your wallet lost its Kaspa RPC connection (WebSocket disconnected). ' +
@@ -40,7 +43,10 @@ function orphanTxHelp(text: string): string | null {
  */
 export function formatKaspaWalletError(err: unknown): string {
   if (err instanceof SyntaxError) {
-    return 'Received an invalid or empty response from the server or wallet. Check KasWare for pending transactions, then retry.';
+    return (
+      'Received an invalid or empty response from the wallet or RPC. ' +
+      'Unlock KasWare, confirm the WebSocket/RPC is connected, then retry.'
+    );
   }
 
   if (err instanceof Error) {
@@ -51,8 +57,11 @@ export function formatKaspaWalletError(err: unknown): string {
       if (orphanHelp) return orphanHelp;
       const rpcHelp = rpcDisconnectHelp(direct);
       if (rpcHelp) return rpcHelp;
-      if (direct.toLowerCase().includes('json')) {
-        return 'Received an invalid or empty response from the server or wallet. Check KasWare for pending transactions, then retry.';
+      if (direct.toLowerCase().includes('json') || /unexpected end of json/i.test(direct)) {
+        return (
+          'Received an invalid or empty response from the wallet or RPC. ' +
+          'Unlock KasWare, confirm the WebSocket/RPC is connected, then retry.'
+        );
       }
       return direct;
     }

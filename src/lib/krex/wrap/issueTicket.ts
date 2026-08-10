@@ -401,13 +401,13 @@ export async function issueMigrateTicket(input: IssueTicketInput): Promise<Issue
     if (!genesisTxId) return { ok: false, error: 'Genesis submit returned no txid' };
 
     let genesisUtxo: FetchedUtxo | undefined;
-    for (let i = 0; i < 12; i++) {
+    for (let i = 0; i < 20; i++) {
       const list = await fetchUtxos(inactiveAddress, Address);
       genesisUtxo = list.find(
         (u) => u.outpoint.transactionId.toLowerCase() === genesisTxId && u.outpoint.index === 0,
       );
       if (genesisUtxo) break;
-      await new Promise((r) => setTimeout(r, 2500));
+      await new Promise((r) => setTimeout(r, 1000));
     }
     if (!genesisUtxo) {
       return { ok: false, genesisTxId, error: `Genesis UTXO ${genesisTxId}:0 not found on ${inactiveAddress}` };

@@ -36,7 +36,7 @@ KCC20 balances are covenant UTXOs (not KasWare KRC-20). After Claim, open the Cl
 
 ## Attestor GHA (keep in sync)
 
-Workflow: `.github/workflows/tn10-migrate-attestor.yml` (cron `*/5`; sync uses GitHub Contents API).
+Workflow: `.github/workflows/tn10-migrate-attestor.yml` (cron `*/2`; sync uses GitHub Contents API).
 
 Hub also has a fast `observe-burn` path (Kasplex check) so History leaves Confirm without waiting
 for the full GHA ticket job. Ticket issue still needs Hub auto-issue (privkeys on Vercel) or the

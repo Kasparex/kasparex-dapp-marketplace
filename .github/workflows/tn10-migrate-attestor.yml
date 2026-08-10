@@ -8,10 +8,9 @@
 name: TN10 migrate attestor
 
 on:
-  # Every 5 min is enough. cancel-in-progress:true + */2 cancelled free-tier
-  # queued runs before a runner started, so tickets never issued.
+  # */2 with cancel-in-progress:false keeps tickets flowing without cancelling queued runs.
   schedule:
-    - cron: '*/5 * * * *'
+    - cron: '*/2 * * * *'
   workflow_dispatch:
 
 concurrency:
