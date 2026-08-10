@@ -61,6 +61,10 @@ export type VDonateDetailCampaignView = {
   premiumTabTitle?: string;
   premiumTabContent?: string;
   premiumModule?: ReactNode;
+  /** Backer unlocked the campaign premium tab (any active pledge / creator). */
+  premiumUnlocked?: boolean;
+  /** Tier ids whose reward content is unlocked for the viewer. */
+  unlockedTierIds?: Set<string> | ReadonlySet<string>;
   campaignExtras?: ReactNode;
   otherCampaigns?: { href: string; title: string }[];
   commentsSlot?: ReactNode;
@@ -177,6 +181,7 @@ export function VDonateCampaignDetailShell({
 
   const handleRewardPledge = (tier: CrowdfundTier) => {
     onSelectTier?.(tier.id);
+    setTab('rewards');
     if (onRewardPledge) {
       onRewardPledge(tier);
       return;
@@ -249,12 +254,14 @@ export function VDonateCampaignDetailShell({
           <DAppSectionHeader title="Rewards" className="mb-0" />
           <p className="kx-body">
             Pick a reward tier to unlock perks. Pledging runs the L1 covenant lock plus Hub platform fee.
+            After you pledge a tier, its reward content unlocks here.
           </p>
           <VDonateRewardTierList
             tiers={tiers}
             onSelectAndPledge={handleRewardPledge}
             busy={rewardBusy}
             isLive={view.isLive}
+            unlockedTierIds={view.unlockedTierIds}
           />
         </div>
       ) : null}
@@ -371,13 +378,39 @@ export function VDonateCampaignDetailShell({
       {tab === 'premium' ? (
         <div className="space-y-4">
           <DAppSectionHeader title={view.premiumTabTitle?.trim() || 'Premium'} className="mb-0" />
-          {view.premiumModule}
-          {view.premiumTabContent ? (
-            <KxRichTextContent html={view.premiumTabContent} className="kx-prose" />
-          ) : null}
-          {!view.premiumModule && !view.premiumTabContent ? (
-            <p className="kx-body">Premium content is not configured for this campaign.</p>
-          ) : null}
+          {view.premiumUnlocked !== false ? (
+            <>
+              {view.premiumModule}
+              {view.premiumTabContent ? (
+                <KxRichTextContent html={view.premiumTabContent} className="kx-prose" />
+              ) : null}
+              {!view.premiumModule && !view.premiumTabContent ? (
+                <p className="kx-body">Premium content is not configured for this campaign.</p>
+              ) : null}
+            </>
+          ) : (
+            <div className={`${KX_SURFACE_NESTED} p-5 space-y-3`}>
+              <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+                Premium content locked
+              </p>
+              <p className="kx-body">
+                Back this campaign (any reward tier or custom pledge) to unlock premium content for
+                supporters.
+              </p>
+              {view.isLive ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setTab('rewards');
+                    setRightOpen(true);
+                  }}
+                  className="k-control-btn !bg-emerald-600 !text-white !border-emerald-600"
+                >
+                  View rewards and pledge
+                </button>
+              ) : null}
+            </div>
+          )}
         </div>
       ) : null}
     </div>

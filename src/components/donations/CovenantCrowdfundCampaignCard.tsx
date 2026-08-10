@@ -19,11 +19,10 @@ import { useCovenantCrowdfund } from '@/hooks/useCovenantCrowdfund';
 import { COVENANT_LAB_CONFIG } from '@/lib/covenant';
 import { sortTiersByMinKas } from '@/lib/donations/tiers';
 import {
+  VDonateBadgeRow,
   VDonateCampaignMedia,
   VDonateCardShell,
-  VDonateNetworkBadgeGroup,
   VDonatePledgeInline,
-  VDonateStatusBadgeGroup,
 } from '@/components/donations/VDonateCampaignCardChrome';
 import { DonationVoteControls } from '@/components/donations/DonationVoteControls';
 import { KxListingCategoryChip } from '@/components/ui/KxListingCategoryChip';
@@ -105,7 +104,6 @@ export function CovenantCrowdfundCampaignCard({
       await pledge(campaign.id, amount, cheapestTier?.id);
       setPledgeAmount('');
       await refresh();
-      hubNotify.success('Pledge locked', 'Your L1 covenant pledge is on Kaspa.');
     } catch {
       /* hook toasts */
     } finally {
@@ -162,7 +160,7 @@ export function CovenantCrowdfundCampaignCard({
         <VDonateCampaignMedia imageUrl={campaign.imageUrl} imageHash={campaign.imageHash} />
         <div className="p-4 pb-3 flex flex-1 flex-col">
           <div className="mb-3 flex items-center justify-between gap-2">
-            <VDonateStatusBadgeGroup isLive={isLive} goalReached={goalReached} />
+            <VDonateBadgeRow network="l1" isLive={isLive} goalReached={goalReached} />
             {isLive && PLEDGE_HUB_POINTS_BASE > 0 ? (
               <HubPointsEarnBadge
                 basePoints={PLEDGE_HUB_POINTS_BASE}
@@ -175,14 +173,13 @@ export function CovenantCrowdfundCampaignCard({
           <h3 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 mb-2 line-clamp-2 leading-snug">
             {campaign.title}
           </h3>
-          <div className="flex items-center justify-between gap-3 mb-3">
+          <div className="mb-3">
             <AuthorInline
               address={campaign.creator}
               href={`/u/${encodeURIComponent(campaign.creator)}`}
               prefix=""
               className="mt-0 mb-0 min-w-0"
             />
-            <VDonateNetworkBadgeGroup network="l1" />
           </div>
           <div className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
             {raised.toFixed(4)} / {goal.toFixed(4)} KAS

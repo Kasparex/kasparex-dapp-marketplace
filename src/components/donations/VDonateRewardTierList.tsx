@@ -13,6 +13,7 @@ export function VDonateRewardTierList({
   busy,
   compact,
   isLive = true,
+  unlockedTierIds,
 }: {
   tiers: CrowdfundTier[];
   selectedTierId?: string | null;
@@ -22,6 +23,8 @@ export function VDonateRewardTierList({
   /** Rail: denser cards. Tab: larger Kickstarter-style cards. */
   compact?: boolean;
   isLive?: boolean;
+  /** Tiers whose reward content is unlocked for the connected backer. */
+  unlockedTierIds?: Set<string> | ReadonlySet<string>;
 }) {
   const sorted = sortTiersByMinKas(tiers);
   if (sorted.length === 0) {
@@ -45,7 +48,8 @@ export function VDonateRewardTierList({
             ? Math.max(0, tier.limitedQty - (tier.claimedCount ?? 0))
             : null;
         const quote = quoteVDonateL1Pledge(tier.minKas);
-        const includes = [tier.reward, tier.description].filter(
+        const unlocked = unlockedTierIds?.has(tier.id) ?? false;
+        const rewardLines = [tier.reward, tier.description].filter(
           (s): s is string => Boolean(s?.trim()),
         );
 
@@ -54,7 +58,7 @@ export function VDonateRewardTierList({
             key={tier.id}
             className={`${KX_SURFACE_NESTED} overflow-hidden transition-colors ${
               active ? 'ring-2 ring-emerald-500/50 border-emerald-500/40' : ''
-            } ${soldOut ? 'opacity-60' : ''}`}
+            } ${soldOut && !unlocked ? 'opacity-60' : ''}`}
           >
             <div className={compact ? 'p-4 space-y-3' : 'p-5 sm:p-6 space-y-4'}>
               <div className="flex items-start justify-between gap-3">
@@ -70,29 +74,51 @@ export function VDonateRewardTierList({
                     Pledge {tier.minKas} KAS or more
                   </p>
                 </div>
-                {remaining != null ? (
-                  <span className="shrink-0 text-[10px] font-bold uppercase tracking-wide px-2 py-1 rounded-lg bg-amber-500/15 text-amber-800 dark:text-amber-200">
-                    {soldOut ? 'Sold out' : `${remaining} left`}
-                  </span>
-                ) : (
-                  <span className="shrink-0 text-[10px] font-bold uppercase tracking-wide px-2 py-1 rounded-lg bg-zinc-200/80 text-zinc-600 dark:bg-zinc-700 dark:text-zinc-300">
-                    Unlimited
-                  </span>
-                )}
+                <div className="flex flex-col items-end gap-1.5 shrink-0">
+                  {unlocked ? (
+                    <span className="text-[10px] font-bold uppercase tracking-wide px-2 py-1 rounded-lg bg-emerald-500/15 text-emerald-800 dark:text-emerald-200">
+                      Unlocked
+                    </span>
+                  ) : null}
+                  {remaining != null ? (
+                    <span className="text-[10px] font-bold uppercase tracking-wide px-2 py-1 rounded-lg bg-amber-500/15 text-amber-800 dark:text-amber-200">
+                      {soldOut ? 'Sold out' : `${remaining} left`}
+                    </span>
+                  ) : (
+                    <span className="text-[10px] font-bold uppercase tracking-wide px-2 py-1 rounded-lg bg-zinc-200/80 text-zinc-600 dark:bg-zinc-700 dark:text-zinc-300">
+                      Unlimited
+                    </span>
+                  )}
+                </div>
               </div>
 
-              {includes.length > 0 ? (
-                <ul className="space-y-1.5 text-sm text-zinc-600 dark:text-zinc-300">
-                  {includes.map((line) => (
-                    <li key={line} className="flex gap-2">
-                      <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-500" />
-                      <span>{line}</span>
-                    </li>
-                  ))}
-                </ul>
+              {rewardLines.length > 0 ? (
+                unlocked ? (
+                  <ul className="space-y-1.5 text-sm text-zinc-600 dark:text-zinc-300">
+                    {rewardLines.map((line) => (
+                      <li key={line} className="flex gap-2">
+                        <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-500" />
+                        <span>{line}</span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <div className="rounded-xl border border-dashed border-emerald-500/30 bg-emerald-500/[0.04] px-3 py-3 space-y-1">
+                    <p className="text-sm font-semibold text-zinc-800 dark:text-zinc-200">
+                      Reward content locked
+                    </p>
+                    <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                      Pledge this tier (or more) to unlock the full reward details.
+                    </p>
+                  </div>
+                )
+              ) : unlocked ? (
+                <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                  No extra reward copy on this tier. Your pledge still counts toward the goal.
+                </p>
               ) : null}
 
-              {isLive && !soldOut ? (
+              {isLive && !soldOut && !unlocked ? (
                 <div className="pt-1 space-y-1.5">
                   <button
                     type="button"

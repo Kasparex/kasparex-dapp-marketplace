@@ -76,16 +76,18 @@ export function VDonateStatusBadgeGroup({
   );
 }
 
-/** Network badges (L1 / L2 / Featured). Align right of the author row. */
+/** Network badges (L1 / L2 / Featured). Inline with status badges (left-aligned). */
 export function VDonateNetworkBadgeGroup({
   network,
   featured,
+  className = '',
 }: {
   network: 'l1' | 'l2';
   featured?: boolean;
+  className?: string;
 }) {
   return (
-    <div className="flex flex-wrap items-center justify-end gap-1.5 shrink-0">
+    <div className={`flex flex-wrap items-center gap-1.5 shrink-0 ${className}`.trim()}>
       {network === 'l1' ? (
         <KxBadge variant="teal" size="sm">
           L1
@@ -104,20 +106,22 @@ export function VDonateNetworkBadgeGroup({
   );
 }
 
-/** @deprecated Prefer status left + network on author row. */
+/** Status + network badges in one left-aligned row (listing cards). */
 export function VDonateBadgeRow({
   network,
   isLive,
   goalReached,
   featured,
+  className = '',
 }: {
   network: 'l1' | 'l2';
   isLive: boolean;
   goalReached?: boolean;
   featured?: boolean;
+  className?: string;
 }) {
   return (
-    <div className="flex flex-wrap items-center justify-between gap-2">
+    <div className={`flex flex-wrap items-center gap-1.5 ${className}`.trim()}>
       <VDonateStatusBadgeGroup isLive={isLive} goalReached={goalReached} />
       <VDonateNetworkBadgeGroup network={network} featured={featured} />
     </div>

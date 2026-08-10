@@ -8,11 +8,10 @@ import type { DonationCampaignMetadata } from '@/lib/donations/types';
 import { progressPercent, totalDonorCount, totalRaisedWei } from '@/lib/donations/totals';
 import { AuthorInline } from '@/components/ui/AuthorInline';
 import {
+  VDonateBadgeRow,
   VDonateCampaignMedia,
   VDonateCardShell,
-  VDonateNetworkBadgeGroup,
   VDonatePledgeInline,
-  VDonateStatusBadgeGroup,
 } from '@/components/donations/VDonateCampaignCardChrome';
 import { DonationVoteControls } from '@/components/donations/DonationVoteControls';
 import { KxListingCategoryChip } from '@/components/ui/KxListingCategoryChip';
@@ -66,7 +65,6 @@ export function DonationCampaignCard({
     metadata?.title?.trim() ||
     `${campaign.creatorAddress.slice(0, 6)}...${campaign.creatorAddress.slice(-4)}`;
   const category = metadata?.category?.trim() || null;
-  const tags = (metadata?.tags ?? []).slice(0, 3);
   const cardHref =
     href ??
     (campaign.campaignId != null
@@ -165,35 +163,24 @@ export function DonationCampaignCard({
         <VDonateCampaignMedia imageUrl={metadata?.imageUrl} imageHash={metadata?.imageHash} />
         <div className="p-4 pb-3 flex flex-1 flex-col">
           <div className="mb-3">
-            <VDonateStatusBadgeGroup isLive={isLive} goalReached={goalReached} />
+            <VDonateBadgeRow
+              network={network}
+              isLive={isLive}
+              goalReached={goalReached}
+              featured={featured ?? campaign.featuredModuleUnlocked}
+            />
           </div>
           <h3 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 mb-2 line-clamp-2 leading-snug">
             {title}
           </h3>
-          <div className="flex items-center justify-between gap-3 mb-3">
+          <div className="mb-3">
             <AuthorInline
               address={campaign.creatorAddress}
               href={`/u/${encodeURIComponent(campaign.creatorAddress)}`}
               prefix=""
               className="mt-0 mb-0 min-w-0"
             />
-            <VDonateNetworkBadgeGroup
-              network={network}
-              featured={featured ?? campaign.featuredModuleUnlocked}
-            />
           </div>
-          {tags.length > 0 ? (
-            <div className="flex flex-wrap gap-1.5 mb-3">
-              {tags.map((t) => (
-                <span
-                  key={t}
-                  className="text-[11px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20"
-                >
-                  #{t}
-                </span>
-              ))}
-            </div>
-          ) : null}
           <div className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
             {formatEther(raisedDisplay)} / {formatEther(campaign.targetWei)} iKAS
           </div>

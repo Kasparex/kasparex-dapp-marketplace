@@ -24,7 +24,7 @@ import { payCrowdKasL1StudioFee } from '@/lib/donations/l1Payment';
 import { buildVDonateL1PledgeFeeOutputs } from '@/lib/donations/l1PledgePayment';
 import { assertPledgeTierAllowed, sanitizeCrowdfundTiers } from '@/lib/donations/tiers';
 import { placeholderDApps } from '@/lib/dapps';
-import { notifyActionError } from '@/lib/hub/notify';
+import { hubNotify, notifyActionError } from '@/lib/hub/notify';
 import { sompiToKasNumber } from '@/lib/covenant';
 
 const CROWDFUND_DAPP = placeholderDApps.find((d) => d.slug === 'covenant-crowdfund')!;
@@ -112,34 +112,53 @@ export function useCovenantCrowdfund() {
         };
 
         if (args.studioTotalKas != null && args.studioTotalKas > 0) {
-          const feeTxHash = await payCrowdKasL1StudioFee({
-            provider: ctx.provider,
-            totalKas: args.studioTotalKas,
-            action: 'create',
-            senderAddress: state.address,
-          });
-          const campaign = await runtime.create(createParams);
-          appendHubActivityEarn({
-            walletRaw: ctx.userAddress,
-            source: 'crowdkas_campaign_create',
-            redeemableDelta: HUB_EARN_POINTS.crowdkasCampaignCreate,
-            krexBalance: krexBalance ?? 0,
-            idempotencyKey: `vdonate:l1:create:${feeTxHash}`,
-            meta: { escrow: 'l1-covenant', spendKas: args.studioTotalKas },
-          });
-          await refresh();
-          return campaign;
+          const toastId = hubNotify.loading('Creating campaign…', 'Confirm the studio fee in your Kaspa wallet');
+          try {
+            const feeTxHash = await payCrowdKasL1StudioFee({
+              provider: ctx.provider,
+              totalKas: args.studioTotalKas,
+              action: 'create',
+              senderAddress: state.address,
+            });
+            const campaign = await runtime.create(createParams);
+            appendHubActivityEarn({
+              walletRaw: ctx.userAddress,
+              source: 'crowdkas_campaign_create',
+              redeemableDelta: HUB_EARN_POINTS.crowdkasCampaignCreate,
+              krexBalance: krexBalance ?? 0,
+              idempotencyKey: `vdonate:l1:create:${feeTxHash}`,
+              meta: { escrow: 'l1-covenant', spendKas: args.studioTotalKas },
+            });
+            await refresh();
+            hubNotify.txSuccess({
+              id: toastId,
+              title: 'Campaign created',
+              txHash: feeTxHash,
+              description: 'Studio fee paid on Kaspa L1.',
+            });
+            return campaign;
+          } catch (err) {
+            hubNotify.dismiss(toastId);
+            throw err;
+          }
         }
 
-        const pricing = resolveKpxCovenantDeployPrice('crowdfund', krexTier);
-        const campaign = await runKpxCovenantDeployWithFee({
-          template: 'crowdfund',
-          pricing,
-          ctx,
-          create: () => runtime.create(createParams),
-        });
-        await refresh();
-        return campaign;
+        const toastId = hubNotify.loading('Creating campaign…', 'Confirm in your Kaspa wallet');
+        try {
+          const pricing = resolveKpxCovenantDeployPrice('crowdfund', krexTier);
+          const campaign = await runKpxCovenantDeployWithFee({
+            template: 'crowdfund',
+            pricing,
+            ctx,
+            create: () => runtime.create(createParams),
+          });
+          await refresh();
+          hubNotify.success('Campaign created', 'Your L1 covenant campaign is live.', { id: toastId });
+          return campaign;
+        } catch (err) {
+          hubNotify.dismiss(toastId);
+          throw err;
+        }
       } catch (err) {
         const msg = notifyActionError('Create failed', err, 'Failed to create campaign');
         setError(msg);
@@ -152,6 +171,7 @@ export function useCovenantCrowdfund() {
   const pledge = useCallback(
     async (campaignId: string, amountKas: number, tierId?: string) => {
       setError(null);
+      const toastId = hubNotify.loading('Pledging…', 'Confirm the multi-output pledge in your Kaspa wallet');
       try {
         const ctx = walletCtx();
         const existing = (await runtime.listAll()).find((c) => c.id === campaignId);
@@ -191,8 +211,17 @@ export function useCovenantCrowdfund() {
           baseSpendKas: amountKas + (feeBuilt.platformFeeKas || 0),
         });
         await refresh();
+        hubNotify.txSuccess({
+          id: toastId,
+          title: 'Pledge locked',
+          txHash,
+          description: tierId
+            ? 'Reward tier unlocked. Open Rewards to view your perks.'
+            : 'Your L1 covenant pledge is on Kaspa.',
+        });
         return c;
       } catch (err) {
+        hubNotify.dismiss(toastId);
         const msg = notifyActionError('Pledge failed', err, 'Failed to pledge');
         setError(msg);
         throw err;
@@ -204,6 +233,7 @@ export function useCovenantCrowdfund() {
   const claimFunds = useCallback(
     async (campaignId: string) => {
       setError(null);
+      const toastId = hubNotify.loading('Claiming funds…', 'Confirm in your Kaspa wallet');
       try {
         const pricing = resolveKpxCovenantClaimPrice('crowdfund', krexTier);
         const existing = (await runtime.listAll()).find((c) => c.id === campaignId)?.claimFeeTxHash;
@@ -218,8 +248,10 @@ export function useCovenantCrowdfund() {
           claim: () => runtime.claimByCreator(campaignId, walletCtx().userAddress, walletCtx()),
         });
         await refresh();
+        hubNotify.success('Funds claimed', 'Raised KAS moved to your wallet flow.', { id: toastId });
         return c;
       } catch (err) {
+        hubNotify.dismiss(toastId);
         const msg = notifyActionError('Claim failed', err, 'Failed to claim funds');
         setError(msg);
         throw err;
@@ -231,6 +263,7 @@ export function useCovenantCrowdfund() {
   const refund = useCallback(
     async (campaignId: string, pledgeId: string) => {
       setError(null);
+      const toastId = hubNotify.loading('Refunding…', 'Confirm in your Kaspa wallet');
       try {
         const c = await runtime.refundPledge(
           campaignId,
@@ -239,8 +272,10 @@ export function useCovenantCrowdfund() {
           walletCtx()
         );
         await refresh();
+        hubNotify.success('Refund complete', 'Your pledge was refunded.', { id: toastId });
         return c;
       } catch (err) {
+        hubNotify.dismiss(toastId);
         const msg = notifyActionError('Refund failed', err, 'Failed to refund pledge');
         setError(msg);
         throw err;
@@ -250,24 +285,57 @@ export function useCovenantCrowdfund() {
   );
 
   const updateCampaign = useCallback(
-    async (campaignId: string, patch: CrowdfundCampaignPatch) => {
+    async (
+      campaignId: string,
+      patch: CrowdfundCampaignPatch,
+      opts?: { studioTotalKas?: number },
+    ) => {
       setError(null);
+      const toastId = hubNotify.loading(
+        'Updating campaign…',
+        opts?.studioTotalKas && opts.studioTotalKas > 0
+          ? 'Confirm the edit fee in your Kaspa wallet'
+          : 'Saving campaign changes',
+      );
       try {
         if (!state.address) throw new Error('Connect wallet first');
+        if (!state.provider) throw new Error('Kaspa wallet provider unavailable');
         const nextPatch: CrowdfundCampaignPatch = {
           ...patch,
           tiers: patch.tiers !== undefined ? sanitizeCrowdfundTiers(patch.tiers) : undefined,
         };
+
+        let feeTxHash: string | undefined;
+        if (opts?.studioTotalKas != null && opts.studioTotalKas > 0) {
+          feeTxHash = await payCrowdKasL1StudioFee({
+            provider: state.provider,
+            totalKas: opts.studioTotalKas,
+            action: 'edit',
+            senderAddress: state.address,
+          });
+        }
+
         const c = await runtime.updateCampaign(campaignId, state.address, nextPatch);
         await refresh();
+        if (feeTxHash) {
+          hubNotify.txSuccess({
+            id: toastId,
+            title: 'Campaign updated',
+            txHash: feeTxHash,
+            description: 'Edit fee paid on Kaspa L1.',
+          });
+        } else {
+          hubNotify.success('Campaign updated', 'Your changes are saved.', { id: toastId });
+        }
         return c;
       } catch (err) {
+        hubNotify.dismiss(toastId);
         const msg = notifyActionError('Update failed', err, 'Failed to update campaign');
         setError(msg);
         throw err;
       }
     },
-    [refresh, runtime, state.address],
+    [refresh, runtime, state.address, state.provider],
   );
 
   const deleteCampaign = useCallback(

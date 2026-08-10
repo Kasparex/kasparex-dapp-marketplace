@@ -494,7 +494,9 @@ function DonationsStudioPageContent() {
     setCovenantEditSubmitting(true);
     setCovenantEditError(null);
     try {
-      await updateCovenantCampaign(editingCovenantId, covenantEditDraftToPatch(covenantEditDraft));
+      await updateCovenantCampaign(editingCovenantId, covenantEditDraftToPatch(covenantEditDraft), {
+        studioTotalKas: l1EditQuote.totalKas,
+      });
       closeEditCampaignForm();
       void refreshCovenantCampaigns();
     } catch (e) {
@@ -1869,7 +1871,7 @@ function DonationsStudioPageContent() {
                           krexBalance={krexBalance}
                           infoText="Update L2 campaign metadata on Igra. New paid modules selected here are billed in iKAS on L2."
                           onSubmit={editingV2CampaignId != null ? handleUpdateCampaignV2 : handleUpdateCampaign}
-                          submitLabel="Save changes"
+                          submitLabel="Save & pay edit fee"
                           submittingLabel="Updating…"
                           isSubmitting={editSubmitting || isUpdatePending}
                           submitDisabled={editSubmitting || isUpdatePending}

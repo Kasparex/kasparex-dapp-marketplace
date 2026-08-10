@@ -16,6 +16,8 @@ import {
 } from '@/lib/donations/covenantCrowdfund';
 import { VDonateCampaignDetailShell } from '@/components/donations/VDonateCampaignDetailShell';
 import type { CrowdfundTier } from '@/lib/covenant/crowdfund-types';
+import { useKaspaWallet } from '@/lib/kaspa/context';
+import { getViewerUnlockedTierIds, viewerHasPremiumAccess } from '@/lib/donations/tiers';
 
 export default function CovenantCrowdfundPage({
   params,
@@ -23,13 +25,14 @@ export default function CovenantCrowdfundPage({
   params: Promise<{ campaignId: string }>;
 }) {
   const { campaignId } = use(params);
+  const { state } = useKaspaWallet();
   const { allCampaigns, loading, pledge, refresh } = useCovenantCrowdfund();
   const [selectedTierId, setSelectedTierId] = useState<string | null>(null);
   const [rewardBusy, setRewardBusy] = useState(false);
 
   const campaign = useMemo(
     () => allCampaigns.find((c) => c.id === campaignId) ?? null,
-    [allCampaigns, campaignId]
+    [allCampaigns, campaignId],
   );
 
   const otherCampaigns = useMemo(() => {
@@ -39,6 +42,15 @@ export default function CovenantCrowdfundPage({
       .slice(0, 6)
       .map((c) => ({ href: `/donations/covenant/${c.id}`, title: c.title }));
   }, [allCampaigns, campaign]);
+
+  const unlockedTierIds = useMemo(
+    () => (campaign ? getViewerUnlockedTierIds(campaign, state.address) : new Set<string>()),
+    [campaign, state.address],
+  );
+  const premiumUnlocked = useMemo(
+    () => (campaign ? viewerHasPremiumAccess(campaign, state.address) : false),
+    [campaign, state.address],
+  );
 
   const handleRewardPledge = async (tier: CrowdfundTier) => {
     if (!campaign) return;
@@ -128,6 +140,8 @@ export default function CovenantCrowdfundPage({
         premiumTabEnabled: campaign.premiumTabEnabled,
         premiumTabTitle: campaign.premiumTabTitle,
         premiumTabContent: campaign.premiumTabContent,
+        premiumUnlocked,
+        unlockedTierIds,
         otherCampaigns,
       }}
       onSelectTier={(id) => setSelectedTierId(id)}
