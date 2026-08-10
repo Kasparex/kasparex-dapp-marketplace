@@ -34,6 +34,7 @@ import {
   updateKrexWrapStatus,
   applyMintReceiptToHistory,
   updateKrexWrapStatusByBurn,
+  findResumableFeePaidWrap,
 } from '@/lib/krex/wrap/history';
 import type { Krc20BridgeNetwork, KrexWrapRecord, KrexWrapStatus } from '@/lib/krex/wrap/types';
 import { formatKaspaWalletError } from '@/lib/kaspa/formatWalletError';
@@ -385,14 +386,17 @@ function isTransientWalletRpcError(err: unknown): boolean {
   return (
     msg.includes('websocket') ||
     msg.includes('rpc connection') ||
+    msg.includes('empty response') ||
+    msg.includes('invalid or empty response') ||
     raw.includes('websocket') ||
     raw.includes('unexpected end of json') ||
+    raw.includes('empty response') ||
     raw.includes('json') ||
     err instanceof SyntaxError
   );
 }
 
-async function withWalletRpcRetry<T>(fn: () => Promise<T>, attempts = 2): Promise<T> {
+async function withWalletRpcRetry<T>(fn: () => Promise<T>, attempts = 3): Promise<T> {
   let lastErr: unknown;
   for (let i = 0; i < attempts; i++) {
     try {
@@ -400,7 +404,7 @@ async function withWalletRpcRetry<T>(fn: () => Promise<T>, attempts = 2): Promis
     } catch (err) {
       lastErr = err;
       if (i + 1 >= attempts || !isTransientWalletRpcError(err)) throw err;
-      await new Promise((r) => setTimeout(r, 1500));
+      await new Promise((r) => setTimeout(r, 1500 * (i + 1)));
     }
   }
   throw lastErr;
@@ -874,25 +878,46 @@ export function KrexWrapBridgeWidget() {
 
     setIsWorking(true);
     setSuccess(null);
-    const loadingId = hubNotify.loading(
-      migrateV2 ? 'Burning to sink…' : 'Migrating…',
-      migrateV2 ? 'Confirm fee and burn in your wallet' : 'Confirm fee and deposit in your wallet',
-    );
 
-    const wrapId = newKrexWrapId();
-    upsertKrexWrapRecord({
-      id: wrapId,
+    const resume = findResumableFeePaidWrap({
       wallet: state.address,
       tick,
-      network,
       amount: parsedAmount,
+      network,
       feeKas,
-      status: 'draft',
-      migrateVersion: migrateV2 ? 2 : 1,
     });
+    const wrapId = resume?.id || newKrexWrapId();
+    const skipFee = Boolean(resume?.feeTxHash);
 
+    const loadingId = hubNotify.loading(
+      migrateV2
+        ? skipFee
+          ? 'Burning to sink…'
+          : 'Burning to sink…'
+        : 'Migrating…',
+      skipFee
+        ? 'Fee already paid. Confirm the burn in your wallet.'
+        : migrateV2
+          ? 'Confirm fee and burn in your wallet'
+          : 'Confirm fee and deposit in your wallet',
+    );
+
+    if (!resume) {
+      upsertKrexWrapRecord({
+        id: wrapId,
+        wallet: state.address,
+        tick,
+        network,
+        amount: parsedAmount,
+        feeKas,
+        status: 'draft',
+        migrateVersion: migrateV2 ? 2 : 1,
+      });
+    }
+
+    let feePaid = skipFee;
     try {
-      if (feeKas > 0) {
+      if (feeKas > 0 && !skipFee) {
         const plan = buildHubKasListingPlan({
           feeKas,
           treasuryAddress: config.treasuryAddress,
@@ -908,6 +933,14 @@ export function KrexWrapBridgeWidget() {
           }),
         );
         updateKrexWrapStatus(wrapId, 'fee_paid', { feeTxHash: feeHash });
+        feePaid = true;
+        hubNotify.update(loadingId, {
+          variant: 'loading',
+          title: migrateV2 ? 'Burning to sink…' : 'Migrating…',
+          description: 'Fee confirmed. Waiting for wallet RPC, then confirm the token transfer.',
+        });
+        // Give KasWare WebSocket a moment after the fee tx before the next sign request.
+        await new Promise((r) => setTimeout(r, 2500));
       }
 
       const depositTo = normalizeKaspaAddress(depositTarget);
@@ -923,6 +956,11 @@ export function KrexWrapBridgeWidget() {
         signKrc20Transfer(state.provider!, JSON.stringify(inscribeJson), 4, depositTo, 0.001),
       );
       const hash = extractTxId(rawHash) || (typeof rawHash === 'string' ? rawHash : '');
+      if (!hash || !/^[a-fA-F0-9]{64}$/.test(hash.replace(/^0x/i, ''))) {
+        throw new Error(
+          'Wallet returned an empty response (RPC/WebSocket). Unlock KasWare, wait a few seconds, then retry.',
+        );
+      }
       const nextStatus = migrateV2
         ? mintLive
           ? 'burned'
@@ -973,7 +1011,7 @@ export function KrexWrapBridgeWidget() {
 
       const successMsg = migrateV2
         ? mintLive
-          ? `Burned ${parsedAmount} ${tick}. Opening History. Claim appears after confirmation (usually under 10 min).`
+          ? `Burned ${parsedAmount} ${tick}. Opening History. Claim appears after confirmation (usually under 1h).`
           : `Burned ${parsedAmount} ${tick} to the keyless sink on ${networkLabel(network)}.`
         : mintLive
           ? `Deposited ${parsedAmount} ${tick}. Kasparex mints matching KCC20 next; History flips when the receipt lands.`
@@ -1004,18 +1042,31 @@ export function KrexWrapBridgeWidget() {
         setTokenBalance(await fetchKrc20BalanceOnNetwork(state.address, selectedToken.ticker, network));
       }
     } catch (err) {
-      updateKrexWrapStatus(wrapId, 'failed', {
-        note: formatKaspaWalletError(err),
-      });
       let msg = formatKaspaWalletError(err);
       if (/rejected/i.test(msg) && !/orphan/i.test(msg)) {
         msg = 'Transaction was rejected';
       }
-      hubNotify.update(loadingId, {
-        title: 'Migration failed',
-        description: msg,
-        variant: 'error',
-      });
+      if (feePaid) {
+        updateKrexWrapStatus(wrapId, 'fee_paid', {
+          note: `Fee paid. Burn not finished: ${msg}`,
+        });
+        hubNotify.update(loadingId, {
+          title: 'Burn not finished',
+          description: `${msg} Your bridge fee is already paid. Tap Migrate again to burn only.`,
+          variant: 'warning',
+          duration: 0,
+        });
+      } else {
+        updateKrexWrapStatus(wrapId, 'failed', {
+          note: msg,
+        });
+        hubNotify.update(loadingId, {
+          title: 'Migration failed',
+          description: msg,
+          variant: 'error',
+          duration: 0,
+        });
+      }
       refreshHistory();
     } finally {
       setIsWorking(false);

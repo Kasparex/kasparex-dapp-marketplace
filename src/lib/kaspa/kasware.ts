@@ -437,6 +437,11 @@ export async function signKRC20Transaction(
           ) => Promise<string>
         )(payload, typeParam, undefined, priorityFeeNum)
       : await kasware.signKRC20Transaction(payload, typeParam, dest, priorityFeeNum);
+    if (result == null || (typeof result === 'string' && !String(result).trim())) {
+      throw new Error(
+        'Wallet returned an empty response (RPC/WebSocket). Unlock KasWare, confirm it is connected, wait a few seconds, then retry.',
+      );
+    }
     console.log('[KasWare] signKRC20Transaction success, txHash:', result);
     return result;
   } catch (err) {

@@ -44,8 +44,8 @@ function orphanTxHelp(text: string): string | null {
 export function formatKaspaWalletError(err: unknown): string {
   if (err instanceof SyntaxError) {
     return (
-      'Received an invalid or empty response from the wallet or RPC. ' +
-      'Unlock KasWare, confirm the WebSocket/RPC is connected, then retry.'
+      'Wallet or RPC returned an empty response. Unlock KasWare, wait a few seconds for the WebSocket to reconnect, then retry. ' +
+      'If the bridge fee already confirmed, retry Migrate to burn only (you will not pay the fee again).'
     );
   }
 
@@ -57,10 +57,14 @@ export function formatKaspaWalletError(err: unknown): string {
       if (orphanHelp) return orphanHelp;
       const rpcHelp = rpcDisconnectHelp(direct);
       if (rpcHelp) return rpcHelp;
-      if (direct.toLowerCase().includes('json') || /unexpected end of json/i.test(direct)) {
+      if (
+        direct.toLowerCase().includes('empty response') ||
+        direct.toLowerCase().includes('json') ||
+        /unexpected end of json/i.test(direct)
+      ) {
         return (
-          'Received an invalid or empty response from the wallet or RPC. ' +
-          'Unlock KasWare, confirm the WebSocket/RPC is connected, then retry.'
+          'Wallet or RPC returned an empty response. Unlock KasWare, wait a few seconds for the WebSocket to reconnect, then retry. ' +
+          'If the bridge fee already confirmed, retry Migrate to burn only (you will not pay the fee again).'
         );
       }
       return direct;

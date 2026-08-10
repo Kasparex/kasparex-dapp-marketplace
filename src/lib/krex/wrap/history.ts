@@ -166,6 +166,31 @@ export function applyMintReceiptToHistory(input: {
   return changed;
 }
 
+/** Resume after fee paid but burn failed (avoid charging the bridge fee twice). */
+export function findResumableFeePaidWrap(input: {
+  wallet: string;
+  tick: string;
+  amount: number;
+  network: KrexWrapRecord['network'];
+  feeKas: number;
+}): KrexWrapRecord | null {
+  const walletNorm = input.wallet.replace(/^kaspa(test)?:/i, '').toLowerCase();
+  const tick = input.tick.trim().toUpperCase();
+  const candidates = readAll().filter((row) => {
+    if (row.status !== 'fee_paid') return false;
+    if (row.depositTxHash) return false;
+    if (!row.feeTxHash) return false;
+    if ((row.tick || '').toUpperCase() !== tick) return false;
+    if (row.network && input.network && row.network !== input.network) return false;
+    if (Math.abs((row.amount || 0) - input.amount) > 1e-12) return false;
+    if (Math.abs((row.feeKas || 0) - input.feeKas) > 1e-8) return false;
+    const rowWallet = (row.wallet || '').replace(/^kaspa(test)?:/i, '').toLowerCase();
+    return rowWallet === walletNorm;
+  });
+  candidates.sort((a, b) => String(b.updatedAt || '').localeCompare(String(a.updatedAt || '')));
+  return candidates[0] || null;
+}
+
 /** Soft-update status for a burn/deposit hash without requiring the local wrap id. */
 export function updateKrexWrapStatusByBurn(
   burnTxHash: string,
