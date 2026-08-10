@@ -123,7 +123,7 @@ export function CovenantCrowdfundRightColumn({
   const amountKas = quote?.totalKas ?? 0;
 
   const { catalogEntries, pricingSnapshot } = useHubPayWithCatalog({
-    amountKas: amountKas > 0 ? amountKas : null,
+    amountKas: amountKas > 0 ? amountKas : undefined,
   });
   const paymentOption = resolveCatalogPaymentOption(catalogEntries, paymentCurrency);
 
