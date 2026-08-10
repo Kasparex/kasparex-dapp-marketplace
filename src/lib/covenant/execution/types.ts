@@ -54,6 +54,8 @@ export interface CovenantDeployRequest {
   payloadMeta?: Record<string, string>;
   /** Extra params forwarded to the wallet adapter */
   params?: Record<string, unknown>;
+  /** Platform fee / rewards P2PK outputs in the same deploy tx as the lock. */
+  extraPaymentOutputs?: Array<{ address: string; amountSompi: string }>;
 }
 
 export interface CovenantSpendRequest {

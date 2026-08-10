@@ -1,8 +1,9 @@
 /**
- * L1 covenant pledge payments: platform fee (multi-out rail) + covenant lock principal.
+ * L1 covenant pledge payments: platform fee as extra outputs on the same deploy tx.
  */
 
 import type { KaspaWalletProvider } from '@/lib/kaspa/types';
+import { kasToSompi } from '@/lib/ads/config';
 import { extractKaspaTransactionId } from '@/lib/kaspa/transactionId';
 import { computeL1FeeKAS, getPlatformL1Address } from '@/lib/donations/config';
 import { payKasPaymentPlan } from '@/lib/payments/kasMultiOutPay';
@@ -13,6 +14,11 @@ export type VDonatePledgeQuote = {
   pledgeKas: number;
   platformFeeKas: number;
   totalKas: number;
+};
+
+export type CovenantFeePaymentOutput = {
+  address: string;
+  amountSompi: string;
 };
 
 /** Quote donor pays: pledge principal + L1 platform fee (1%, min 1 KAS). */
@@ -26,9 +32,38 @@ export function quoteVDonateL1Pledge(pledgeKas: number): VDonatePledgeQuote {
   };
 }
 
+/** Build platform fee / rewards legs as deploy-tx payment outputs (same multi-out as lock). */
+export function buildVDonateL1PledgeFeeOutputs(args: {
+  pledgeKas: number;
+  campaignId: string;
+}): { outputs: CovenantFeePaymentOutput[]; platformFeeKas: number; note: string } {
+  const quote = quoteVDonateL1Pledge(args.pledgeKas);
+  if (!(quote.platformFeeKas > 0)) {
+    return { outputs: [], platformFeeKas: 0, note: '' };
+  }
+  const treasury = getPlatformL1Address();
+  if (!treasury) {
+    throw new Error(`${VDONATE_SHORT_NAME} platform fee address is not configured.`);
+  }
+  const note = `vdonate|action=pledge|campaign=${args.campaignId}|hub=Kasparex`;
+  const plan = buildHubPlatformFeePlan({
+    totalKas: quote.platformFeeKas,
+    treasuryAddress: treasury,
+    note,
+  });
+  const outputs: CovenantFeePaymentOutput[] = plan.legs
+    .filter((leg) => leg.amount > 0 && leg.address?.trim())
+    .map((leg) => ({
+      address: leg.address.trim(),
+      amountSompi: String(Math.floor(kasToSompi(leg.amount))),
+    }))
+    .filter((o) => BigInt(o.amountSompi) > 0n);
+  return { outputs, platformFeeKas: quote.platformFeeKas, note };
+}
+
 /**
- * Pay the Hub platform fee for an L1 covenant pledge via the shared multi-out KAS rail.
- * Returns the fee tx hash (undefined when fee is zero).
+ * @deprecated Prefer embedding fee via buildVDonateL1PledgeFeeOutputs on the covenant deploy.
+ * Kept for callers that still need a standalone fee payment.
  */
 export async function payVDonateL1PledgePlatformFee(args: {
   provider: KaspaWalletProvider;
@@ -36,34 +71,34 @@ export async function payVDonateL1PledgePlatformFee(args: {
   pledgeKas: number;
   campaignId: string;
 }): Promise<{ feeTxHash?: string; platformFeeKas: number }> {
-  const quote = quoteVDonateL1Pledge(args.pledgeKas);
-  if (!(quote.platformFeeKas > 0)) {
+  const built = buildVDonateL1PledgeFeeOutputs({
+    pledgeKas: args.pledgeKas,
+    campaignId: args.campaignId,
+  });
+  if (!(built.platformFeeKas > 0) || built.outputs.length === 0) {
     return { platformFeeKas: 0 };
-  }
-
-  const treasury = getPlatformL1Address();
-  if (!treasury) {
-    throw new Error(`${VDONATE_SHORT_NAME} platform fee address is not configured.`);
   }
   if (!args.senderAddress?.trim()) {
     throw new Error(`Connect your Kaspa wallet to pay the ${VDONATE_SHORT_NAME} platform fee.`);
   }
-
+  const treasury = getPlatformL1Address();
+  if (!treasury) {
+    throw new Error(`${VDONATE_SHORT_NAME} platform fee address is not configured.`);
+  }
   const plan = buildHubPlatformFeePlan({
-    totalKas: quote.platformFeeKas,
+    totalKas: built.platformFeeKas,
     treasuryAddress: treasury,
-    note: `vdonate|action=pledge|campaign=${args.campaignId}|hub=Kasparex`,
+    note: built.note,
   });
   if (!(paymentPlanTotal(plan) > 0)) {
     return { platformFeeKas: 0 };
   }
-
   const sent = await payKasPaymentPlan(args.provider, plan, args.senderAddress);
   if (!sent.txHash) {
     throw new Error('Platform fee payment failed');
   }
   return {
     feeTxHash: extractKaspaTransactionId(sent.txHash) ?? sent.txHash,
-    platformFeeKas: quote.platformFeeKas,
+    platformFeeKas: built.platformFeeKas,
   };
 }

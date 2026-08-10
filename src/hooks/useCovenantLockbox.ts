@@ -182,7 +182,7 @@ export function useCovenantLockbox(): UseCovenantLockboxReturn {
           template: 'lockbox',
           pricing,
           ctx,
-          create: async () => {
+          create: async (opts) => {
             const vaultsCreated: CovenantVault[] = [];
             for (let i = 0; i < recipients.length; i++) {
               const vault = await runtime.createVault(
@@ -197,12 +197,18 @@ export function useCovenantLockbox(): UseCovenantLockboxReturn {
                   memo,
                   unlockAt: unlockAtMs,
                   deadlineAt: deadlineAtMs,
+                  extraPaymentOutputs: i === 0 ? opts?.extraPaymentOutputs : undefined,
                 },
                 ctx,
               );
               vaultsCreated.push(vault);
             }
-            return vaultsCreated[0];
+            const primary = vaultsCreated[0]!;
+            return {
+              ...primary,
+              txHash: primary.lockTxHash,
+              platformFeeEmbedded: Boolean(opts?.extraPaymentOutputs?.length),
+            };
           },
         });
 

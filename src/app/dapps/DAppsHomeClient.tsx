@@ -16,7 +16,7 @@ import { sortDApps } from '@/lib/sorting';
 import type { Category } from '@/lib/categories';
 import { categories } from '@/lib/categories';
 import { useFavorites } from '@/hooks/useFavorites';
-import { useLikes } from '@/hooks/useLikes';
+import { hubListingVoteScores } from '@/components/payments/HubListingVoteControls';
 import { HubNetworkFilterDropdown } from '@/components/hub/HubNetworkFilterDropdown';
 import { DAppSourceSwitcher, type DAppSourceFilter } from '@/components/dapps/DAppSourceSwitcher';
 import { useDirectoryListings } from '@/hooks/useDirectoryListings';
@@ -68,7 +68,17 @@ export function DAppsHomeContent() {
   const [viewMode, setViewMode] = useState<ViewMode>('cards');
   const [displayedCount, setDisplayedCount] = useState(50);
   const { favoritesSet } = useFavorites();
-  const { likes } = useLikes();
+  const [voteTick, setVoteTick] = useState(0);
+
+  useEffect(() => {
+    const bump = () => setVoteTick((n) => n + 1);
+    window.addEventListener('storage', bump);
+    window.addEventListener('kasparex-listing-votes', bump);
+    return () => {
+      window.removeEventListener('storage', bump);
+      window.removeEventListener('kasparex-listing-votes', bump);
+    };
+  }, []);
 
   useEffect(() => {
     if (sortBy === 'favorites' && favoritesSet.size === 0) {
@@ -119,8 +129,12 @@ export function DAppsHomeContent() {
     if (sortBy === 'favorites') {
       filtered = filtered.filter((dapp) => favoritesSet.has(dapp.id));
     }
-    return sortDApps(filtered, sortBy, favoritesSet, likes);
-  }, [catalogDApps, selectedCategories, filters, searchQuery, sortBy, favoritesSet, likes, networkFilter, sourceFilter, selectedTags, selectedCurrencies]);
+    const voteScores =
+      sortBy === 'votes-high' || sortBy === 'votes-low'
+        ? hubListingVoteScores('dapps_listing_votes', filtered.map((d) => d.id))
+        : undefined;
+    return sortDApps(filtered, sortBy, favoritesSet, voteScores);
+  }, [catalogDApps, selectedCategories, filters, searchQuery, sortBy, favoritesSet, networkFilter, sourceFilter, selectedTags, selectedCurrencies, voteTick]);
 
   useEffect(() => {
     setDisplayedCount(50);

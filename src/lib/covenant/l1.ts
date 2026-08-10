@@ -88,6 +88,8 @@ export async function deployL1CovenantLock(
     payloadArgs?: KaspaComPayloadArg[];
     payloadMeta?: Record<string, string>;
     params?: Record<string, unknown>;
+    /** Platform fee / rewards in the same multi-output deploy tx. */
+    extraPaymentOutputs?: Array<{ address: string; amountSompi: string }>;
   },
 ): Promise<L1DeployResult> {
   const networkId = covenantNetworkIdFromContext(ctx);
@@ -99,6 +101,7 @@ export async function deployL1CovenantLock(
     payloadArgs: args.payloadArgs,
     payloadMeta: args.payloadMeta,
     params: args.params,
+    extraPaymentOutputs: args.extraPaymentOutputs,
   });
 
   if (!tx.txHash) throw new Error(`${args.template} deploy did not return a transaction id`);

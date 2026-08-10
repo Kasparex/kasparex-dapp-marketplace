@@ -17,13 +17,13 @@ import { placeholderDApps } from '@/lib/dapps';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useCovenantCrowdfund } from '@/hooks/useCovenantCrowdfund';
 import { COVENANT_LAB_CONFIG } from '@/lib/covenant';
-import { quoteVDonateL1Pledge } from '@/lib/donations/l1PledgePayment';
 import { sortTiersByMinKas } from '@/lib/donations/tiers';
 import {
-  VDonateBadgeRow,
   VDonateCampaignMedia,
   VDonateCardShell,
+  VDonateNetworkBadgeGroup,
   VDonatePledgeInline,
+  VDonateStatusBadgeGroup,
 } from '@/components/donations/VDonateCampaignCardChrome';
 import { DonationVoteControls } from '@/components/donations/DonationVoteControls';
 import { KxListingCategoryChip } from '@/components/ui/KxListingCategoryChip';
@@ -91,12 +91,7 @@ export function CovenantCrowdfundCampaignCard({
   };
 
   const pledgeNum = parseFloat(pledgeAmount);
-  const feeHint =
-    Number.isFinite(pledgeNum) && pledgeNum > 0
-      ? `Total ~${quoteVDonateL1Pledge(pledgeNum).totalKas} KAS (pledge + platform fee)`
-      : cheapestTier
-        ? `From ${cheapestTier.minKas} KAS · ${campaign.tiers!.length} reward tier${campaign.tiers!.length === 1 ? '' : 's'}`
-        : undefined;
+  void pledgeNum;
 
   const handlePledge = async () => {
     if (!requireWallet()) return;
@@ -127,7 +122,6 @@ export function CovenantCrowdfundCampaignCard({
           onPledge={() => void handlePledge()}
           busy={busy}
           minKas={minKas}
-          feeHint={feeHint}
         />
       ) : null}
       {showPledge ? (
@@ -166,29 +160,30 @@ export function CovenantCrowdfundCampaignCard({
     <>
       <VDonateCardShell href={href} footer={listingFooter} onNavigate={() => requireWallet()}>
         <VDonateCampaignMedia imageUrl={campaign.imageUrl} imageHash={campaign.imageHash} />
-        <div className="p-4 pb-3">
-          <div className="mb-3">
-            <VDonateBadgeRow network="l1" isLive={isLive} goalReached={goalReached} />
+        <div className="p-4 pb-3 flex flex-1 flex-col">
+          <div className="mb-3 flex items-center justify-between gap-2">
+            <VDonateStatusBadgeGroup isLive={isLive} goalReached={goalReached} />
             {isLive && PLEDGE_HUB_POINTS_BASE > 0 ? (
-              <div className="mt-2 flex justify-end">
-                <HubPointsEarnBadge
-                  basePoints={PLEDGE_HUB_POINTS_BASE}
-                  tier="Tier0"
-                  showMinSpendTooltip={false}
-                  size="sm"
-                />
-              </div>
+              <HubPointsEarnBadge
+                basePoints={PLEDGE_HUB_POINTS_BASE}
+                tier="Tier0"
+                showMinSpendTooltip={false}
+                size="sm"
+              />
             ) : null}
           </div>
           <h3 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 mb-2 line-clamp-2 leading-snug">
             {campaign.title}
           </h3>
-          <AuthorInline
-            address={campaign.creator}
-            href={`/u/${encodeURIComponent(campaign.creator)}`}
-            prefix=""
-            className="mt-0 mb-3"
-          />
+          <div className="flex items-center justify-between gap-3 mb-3">
+            <AuthorInline
+              address={campaign.creator}
+              href={`/u/${encodeURIComponent(campaign.creator)}`}
+              prefix=""
+              className="mt-0 mb-0 min-w-0"
+            />
+            <VDonateNetworkBadgeGroup network="l1" />
+          </div>
           <div className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
             {raised.toFixed(4)} / {goal.toFixed(4)} KAS
           </div>

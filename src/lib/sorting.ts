@@ -1,14 +1,12 @@
 import { DApp } from './dapps';
 import type { SortOption } from '@/components/SortFilters';
 
-export interface LikesData {
-  [dappId: string]: {
-    count: number;
-    wallets: string[];
-  };
-}
-
-export function sortDApps(dapps: DApp[], sortBy: SortOption, favorites?: Set<string>, likes?: LikesData): DApp[] {
+export function sortDApps(
+  dapps: DApp[],
+  sortBy: SortOption,
+  favorites?: Set<string>,
+  voteScores?: Record<string, number>,
+): DApp[] {
   const sorted = [...dapps];
 
   switch (sortBy) {
@@ -87,27 +85,19 @@ export function sortDApps(dapps: DApp[], sortBy: SortOption, favorites?: Set<str
         return a.name.localeCompare(b.name);
       });
 
-    case 'likes-high':
-      // Sort by like count descending (highest first)
+    case 'votes-high':
       return sorted.sort((a, b) => {
-        const aLikes = likes?.[a.id]?.count || 0;
-        const bLikes = likes?.[b.id]?.count || 0;
-        if (aLikes !== bLikes) {
-          return bLikes - aLikes; // Descending order
-        }
-        // If same likes, sort alphabetically
+        const aScore = voteScores?.[a.id] ?? 0;
+        const bScore = voteScores?.[b.id] ?? 0;
+        if (aScore !== bScore) return bScore - aScore;
         return a.name.localeCompare(b.name);
       });
 
-    case 'likes-low':
-      // Sort by like count ascending (lowest first)
+    case 'votes-low':
       return sorted.sort((a, b) => {
-        const aLikes = likes?.[a.id]?.count || 0;
-        const bLikes = likes?.[b.id]?.count || 0;
-        if (aLikes !== bLikes) {
-          return aLikes - bLikes; // Ascending order
-        }
-        // If same likes, sort alphabetically
+        const aScore = voteScores?.[a.id] ?? 0;
+        const bScore = voteScores?.[b.id] ?? 0;
+        if (aScore !== bScore) return aScore - bScore;
         return a.name.localeCompare(b.name);
       });
 

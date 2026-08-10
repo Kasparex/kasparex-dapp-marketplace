@@ -71,6 +71,7 @@ export function createWalletCovenantProvider(
             amountSompi: request.amountSompi,
             compiled,
             transactionPayloadHex: payloadHex,
+            extraPaymentOutputs: request.extraPaymentOutputs,
             ctx: {
               provider,
               networkId: request.networkId,

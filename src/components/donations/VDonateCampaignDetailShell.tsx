@@ -16,8 +16,9 @@ import { HUB_MAIN_COLUMN, HUB_MAIN_INNER, HUB_PAGE_BG } from '@/lib/hub/hubLayou
 import { KxRichTextContent } from '@/components/ui/KxRichTextContent';
 import { AuthorInline } from '@/components/ui/AuthorInline';
 import {
-  VDonateBadgeRow,
   VDonateCampaignMedia,
+  VDonateNetworkBadgeGroup,
+  VDonateStatusBadgeGroup,
 } from '@/components/donations/VDonateCampaignCardChrome';
 import { KX_PANEL, KX_SURFACE_NESTED } from '@/lib/hub/shellTokens';
 import type { CrowdfundFaqItem, CrowdfundTier, CrowdfundUpdate } from '@/lib/covenant/crowdfund-types';
@@ -25,6 +26,7 @@ import { sortTiersByMinKas } from '@/lib/donations/tiers';
 import { useDonationsRightPanelOpen } from '@/hooks/useDonationsRightPanelOpen';
 import { SidePanelCollapsedContentWrap } from '@/components/layout/SidePanelCollapsedContentWrap';
 import { VDonateRewardTierList } from '@/components/donations/VDonateRewardTierList';
+import { HubFaqAccordion } from '@/components/hub/HubFaqAccordion';
 
 export type VDonateDetailTab =
   | 'campaign'
@@ -186,20 +188,18 @@ export function VDonateCampaignDetailShell({
     <div className={`${KX_PANEL} overflow-hidden`}>
       <VDonateCampaignMedia imageUrl={view.imageUrl} imageHash={view.imageHash} />
       <div className="p-6 md:p-8 space-y-4">
-        <VDonateBadgeRow
-          network={view.network}
-          isLive={view.isLive}
-          goalReached={view.goalReached}
-          featured={view.featured}
-        />
+        <VDonateStatusBadgeGroup isLive={view.isLive} goalReached={view.goalReached} />
         <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-zinc-900 dark:text-zinc-100">
           {view.title}
         </h1>
-        <AuthorInline
-          address={view.creatorAddress}
-          href={`/u/${encodeURIComponent(view.creatorAddress)}`}
-          prefix=""
-        />
+        <div className="flex items-center justify-between gap-3">
+          <AuthorInline
+            address={view.creatorAddress}
+            href={`/u/${encodeURIComponent(view.creatorAddress)}`}
+            prefix=""
+          />
+          <VDonateNetworkBadgeGroup network={view.network} featured={view.featured} />
+        </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-1">
           <div>
             <p className="text-xs text-zinc-500 uppercase tracking-wider">Raised</p>
@@ -308,28 +308,30 @@ export function VDonateCampaignDetailShell({
         <div className="space-y-4">
           <DAppSectionHeader title="FAQ" className="mb-0" />
           {(view.faq ?? []).length === 0 ? (
-            <div className="space-y-3 text-sm text-zinc-600 dark:text-zinc-300">
-              <p>
-                <strong className="text-zinc-900 dark:text-zinc-100">What happens if the goal is not met?</strong>
-                <br />
-                Backers can refund after the deadline on L1 covenant campaigns. L2 escrow follows the campaign contract
-                refund rules.
-              </p>
-              <p>
-                <strong className="text-zinc-900 dark:text-zinc-100">When does the creator receive funds?</strong>
-                <br />
-                After a successful raise, the creator claims raised funds (goal met before deadline).
-              </p>
-            </div>
+            <HubFaqAccordion
+              items={[
+                {
+                  id: 'default-goal',
+                  question: 'What happens if the goal is not met?',
+                  answer:
+                    'Backers can refund after the deadline on L1 covenant campaigns. L2 escrow follows the campaign contract refund rules.',
+                },
+                {
+                  id: 'default-claim',
+                  question: 'When does the creator receive funds?',
+                  answer:
+                    'After a successful raise, the creator claims raised funds (goal met before deadline).',
+                },
+              ]}
+            />
           ) : (
-            <div className="space-y-3">
-              {view.faq!.map((item) => (
-                <div key={item.id} className={`${KX_SURFACE_NESTED} p-4`}>
-                  <p className="font-semibold text-zinc-900 dark:text-zinc-100 mb-1">{item.question}</p>
-                  <p className="text-sm text-zinc-600 dark:text-zinc-300 whitespace-pre-wrap">{item.answer}</p>
-                </div>
-              ))}
-            </div>
+            <HubFaqAccordion
+              items={(view.faq ?? []).map((item) => ({
+                id: item.id,
+                question: item.question,
+                answer: item.answer,
+              }))}
+            />
           )}
         </div>
       ) : null}

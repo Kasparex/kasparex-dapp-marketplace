@@ -1,14 +1,28 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState } from 'react';
 import type { DonationCampaignListItem } from '@/hooks/useDonationCampaigns';
 import { totalDonorCount, totalRaisedWei } from '@/lib/donations/totals';
+import { hubListingVoteScore } from '@/components/payments/HubListingVoteControls';
 
-export type DonationSortOption = 'newest' | 'oldest' | 'most-raised' | 'least-raised' | 'ending-soon' | 'most-donors';
+export type DonationSortOption =
+  | 'newest'
+  | 'oldest'
+  | 'most-raised'
+  | 'least-raised'
+  | 'ending-soon'
+  | 'most-donors'
+  | 'votes-high'
+  | 'votes-low';
+
+function campaignVoteEntityId(c: DonationCampaignListItem): string {
+  if (c.campaignId != null) return `v2:${c.campaignId.toString()}`;
+  return `v1:${c.creatorAddress.toLowerCase()}`;
+}
 
 export function sortCampaigns(
   campaigns: DonationCampaignListItem[],
-  sortBy: DonationSortOption
+  sortBy: DonationSortOption,
 ): DonationCampaignListItem[] {
   const arr = [...campaigns];
   switch (sortBy) {
@@ -18,14 +32,16 @@ export function sortCampaigns(
       return arr.sort((a, b) => Number(a.deadline - b.deadline));
     case 'most-raised':
       return arr.sort((a, b) => {
-        const sortRaised = (c: DonationCampaignListItem) => (c.campaignId != null ? c.raisedWei : totalRaisedWei(c));
+        const sortRaised = (c: DonationCampaignListItem) =>
+          c.campaignId != null ? c.raisedWei : totalRaisedWei(c);
         const rb = sortRaised(b);
         const ra = sortRaised(a);
         return rb > ra ? 1 : rb < ra ? -1 : 0;
       });
     case 'least-raised':
       return arr.sort((a, b) => {
-        const sortRaised = (c: DonationCampaignListItem) => (c.campaignId != null ? c.raisedWei : totalRaisedWei(c));
+        const sortRaised = (c: DonationCampaignListItem) =>
+          c.campaignId != null ? c.raisedWei : totalRaisedWei(c);
         const ra = sortRaised(a);
         const rb = sortRaised(b);
         return ra > rb ? 1 : ra < rb ? -1 : 0;
@@ -34,10 +50,25 @@ export function sortCampaigns(
       return arr.sort((a, b) => Number(a.deadline - b.deadline));
     case 'most-donors':
       return arr.sort((a, b) => {
-        const sortDonors = (c: DonationCampaignListItem) => (c.campaignId != null ? c.donorCount : totalDonorCount(c));
+        const sortDonors = (c: DonationCampaignListItem) =>
+          c.campaignId != null ? c.donorCount : totalDonorCount(c);
         const db = sortDonors(b);
         const da = sortDonors(a);
         return db > da ? 1 : db < da ? -1 : 0;
+      });
+    case 'votes-high':
+      return arr.sort((a, b) => {
+        const sa = hubListingVoteScore('vdonate_listing_votes', campaignVoteEntityId(a));
+        const sb = hubListingVoteScore('vdonate_listing_votes', campaignVoteEntityId(b));
+        if (sa !== sb) return sb - sa;
+        return Number(b.deadline - a.deadline);
+      });
+    case 'votes-low':
+      return arr.sort((a, b) => {
+        const sa = hubListingVoteScore('vdonate_listing_votes', campaignVoteEntityId(a));
+        const sb = hubListingVoteScore('vdonate_listing_votes', campaignVoteEntityId(b));
+        if (sa !== sb) return sa - sb;
+        return Number(b.deadline - a.deadline);
       });
     default:
       return arr;
@@ -51,6 +82,8 @@ const SORT_OPTIONS: { value: DonationSortOption; label: string }[] = [
   { value: 'least-raised', label: 'Least raised' },
   { value: 'ending-soon', label: 'Ending soon' },
   { value: 'most-donors', label: 'Most donors' },
+  { value: 'votes-high', label: 'Most votes' },
+  { value: 'votes-low', label: 'Least votes' },
 ];
 
 interface DonationSortFiltersProps {
@@ -60,29 +93,11 @@ interface DonationSortFiltersProps {
 
 export function DonationSortFilters({ sortBy, onSortChange }: DonationSortFiltersProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const sortContainerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (sortContainerRef.current && !sortContainerRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
-      }
-    };
-
-    if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [isOpen]);
-
   const currentLabel = SORT_OPTIONS.find((opt) => opt.value === sortBy)?.label ?? 'Sort by…';
 
   return (
     <div className="flex items-center gap-2">
-      <div className="relative flex-shrink-0 overflow-visible" ref={sortContainerRef}>
+      <div className="relative flex-shrink-0 overflow-visible">
         <button
           type="button"
           onClick={() => setIsOpen(!isOpen)}
@@ -94,7 +109,7 @@ export function DonationSortFilters({ sortBy, onSortChange }: DonationSortFilter
           </svg>
         </button>
 
-        {isOpen && (
+        {isOpen ? (
           <div className="absolute left-0 top-full mt-1.5 w-56 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-lg z-[9999] overflow-hidden">
             {SORT_OPTIONS.map((option) => (
               <button
@@ -106,7 +121,7 @@ export function DonationSortFilters({ sortBy, onSortChange }: DonationSortFilter
                 }}
                 className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${
                   sortBy === option.value
-                    ? 'bg-[#02abb8]/10 text-[#02abb8] dark:bg-[#02abb8]/20 font-medium'
+                    ? 'hub-filter-dropdown-item-active'
                     : 'text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100'
                 }`}
               >
@@ -114,7 +129,7 @@ export function DonationSortFilters({ sortBy, onSortChange }: DonationSortFilter
               </button>
             ))}
           </div>
-        )}
+        ) : null}
       </div>
     </div>
   );

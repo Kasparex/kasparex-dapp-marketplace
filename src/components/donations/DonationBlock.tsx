@@ -302,10 +302,14 @@ export function DonationBlock({
 
   return (
     <div id="crowdkas-donate" className={shellClass}>
-      <div className="flex items-start justify-between gap-2">
-        <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">Donate</h3>
-        {!deadlinePassed ? <DonationL2FeeInfoModal /> : null}
-      </div>
+      {layoutVariant === 'panel' ? (
+        <div className="flex items-start justify-between gap-2">
+          <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">Donate</h3>
+          {!deadlinePassed ? <DonationL2FeeInfoModal /> : null}
+        </div>
+      ) : !deadlinePassed ? (
+        <div className="flex justify-end">{<DonationL2FeeInfoModal />}</div>
+      ) : null}
 
       {!deadlinePassed && (
         <div className="space-y-4">

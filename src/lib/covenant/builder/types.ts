@@ -45,12 +45,20 @@ export interface CovenantBuilderContext {
   priorityFeeSompi?: string;
 }
 
+/** Plain payment outputs included in the same deploy tx as the covenant lock (e.g. platform fee). */
+export type CovenantExtraPaymentOutput = {
+  address: string;
+  amountSompi: string;
+};
+
 export interface BuildDeployInput {
   template: CovenantTemplate;
   amountSompi: string;
   compiled: CovenantCompiledContract;
   transactionPayloadHex?: string;
   ctx: CovenantBuilderContext;
+  /** Extra P2PK outputs (platform fee / rewards) in the same multi-output deploy tx. */
+  extraPaymentOutputs?: CovenantExtraPaymentOutput[];
 }
 
 export interface BuildSpendInput {

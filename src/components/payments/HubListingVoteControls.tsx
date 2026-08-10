@@ -113,6 +113,25 @@ function scoreFor(storageKey: string, entityId: string): number {
   return readVotes(storageKey, entityId).reduce((sum, v) => sum + (v.vote === 'up' ? 1 : -1), 0);
 }
 
+/** Net vote score for listing sort (up − down). */
+export function hubListingVoteScore(storageKey: string, entityId: string): number {
+  if (typeof window === 'undefined') return 0;
+  return scoreFor(storageKey, entityId);
+}
+
+/** Build id → score map for a batch of listing entities. */
+export function hubListingVoteScores(
+  storageKey: string,
+  entityIds: string[],
+): Record<string, number> {
+  if (typeof window === 'undefined') return {};
+  const out: Record<string, number> = {};
+  for (const id of entityIds) {
+    out[id] = scoreFor(storageKey, id);
+  }
+  return out;
+}
+
 /** Append-only: wallets may vote unlimited times; each paid vote counts toward the score. */
 function saveVote(
   storageKey: string,
@@ -134,6 +153,11 @@ function saveVote(
     rail: record.rail,
   });
   localStorage.setItem(storageKey, JSON.stringify(all));
+  try {
+    window.dispatchEvent(new Event('kasparex-listing-votes'));
+  } catch {
+    /* ignore */
+  }
   onSaved?.();
 }
 

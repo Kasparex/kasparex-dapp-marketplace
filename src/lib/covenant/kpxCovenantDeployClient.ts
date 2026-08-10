@@ -8,10 +8,14 @@ import type { KREXTier } from '@/lib/rewards/types';
 import type { CovenantWalletContext } from './context';
 import { covenantNetworkIdFromContext } from './context';
 import { awaitCovenantSettlement } from './execution/await-settlement';
-import { payKpxCovenantPlatformFee } from './platform-fee';
+import { buildKpxCovenantFeeOutputs, payKpxCovenantPlatformFee } from './platform-fee';
 import type { KpxCovenantDeployPrice } from './kpxCovenantPricing';
 import { resolveKpxCovenantClaimPoints } from './kpxCovenantPricing';
 import { reportHubFlowStep } from '@/lib/hub/hubFlowProgress';
+
+export type KpxDeployCreateOpts = {
+  extraPaymentOutputs?: Array<{ address: string; amountSompi: string }>;
+};
 
 export async function verifyKpxCovenantFeeOnServer(args: {
   template: CovenantTemplate;
@@ -50,22 +54,31 @@ export async function verifyKpxCovenantDeployOnServer(args: {
   return verifyKpxCovenantFeeOnServer({ ...args, action: 'deploy' });
 }
 
-export async function runKpxCovenantDeployWithFee<T extends { id: string; covenantId?: string }>(args: {
+export async function runKpxCovenantDeployWithFee<
+  T extends { id: string; covenantId?: string; txHash?: string; platformFeeEmbedded?: boolean },
+>(args: {
   template: CovenantTemplate;
   pricing: KpxCovenantDeployPrice;
   ctx: CovenantWalletContext;
-  create: () => Promise<T>;
+  /** Create lock; pass platform fee outputs to embed in the same deploy tx when supported. */
+  create: (opts?: KpxDeployCreateOpts) => Promise<T>;
 }): Promise<T> {
   reportHubFlowStep('create', 'covenantCreate');
-  // Create the lock first so a failed WASM build cannot charge the platform fee
-  // without producing a vault (seen with networkId vs kaspa: change-address mismatch).
+  const feeBuilt = buildKpxCovenantFeeOutputs({ pricing: args.pricing });
   reportHubFlowStep('sign', 'covenantCreate');
-  const created = await args.create();
+  const created = await args.create(
+    feeBuilt.outputs.length ? { extraPaymentOutputs: feeBuilt.outputs } : undefined,
+  );
 
   let feeTxHash: string | undefined;
   if (!args.pricing.waived) {
-    reportHubFlowStep('pay-fee', 'covenantCreate');
-    feeTxHash = await payKpxCovenantPlatformFee({ ctx: args.ctx, pricing: args.pricing });
+    if (created.platformFeeEmbedded && created.txHash?.trim()) {
+      feeTxHash = created.txHash.trim();
+    } else {
+      // Fallback: separate multi-out fee tx when the create path did not embed fee legs.
+      reportHubFlowStep('pay-fee', 'covenantCreate');
+      feeTxHash = await payKpxCovenantPlatformFee({ ctx: args.ctx, pricing: args.pricing });
+    }
   }
 
   reportHubFlowStep('complete', 'covenantCreate');
@@ -88,6 +101,7 @@ export async function runKpxCovenantDeployWithFee<T extends { id: string; covena
         covenantId: created.covenantId,
         feeTxHash,
         feeWaived: args.pricing.waived,
+        feeEmbedded: Boolean(created.platformFeeEmbedded),
         spendKas,
       },
     });

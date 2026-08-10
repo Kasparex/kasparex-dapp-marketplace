@@ -12,8 +12,8 @@ export type SortOption =
   | 'status'
   | 'network'
   | 'favorites'
-  | 'likes-high'
-  | 'likes-low';
+  | 'votes-high'
+  | 'votes-low';
 
 export type ViewMode = 'cards' | 'table' | 'compact';
 
@@ -86,8 +86,8 @@ export function SortFilters({ sortBy, onSortChange, favoritesCount = 0, viewMode
     { value: 'status', label: 'By Status' },
     { value: 'network', label: 'By Network' },
     { value: 'favorites', label: 'Favorites' },
-    { value: 'likes-high', label: 'Most Likes (High)' },
-    { value: 'likes-low', label: 'Most Likes (Low)' },
+    { value: 'votes-high', label: 'Most votes' },
+    { value: 'votes-low', label: 'Least votes' },
   ];
 
   const currentLabel = sortOptions.find((opt) => opt.value === sortBy)?.label || 'Sort by...';

@@ -10,6 +10,8 @@ export type CrowdfundPledgeOptions = {
   tierId?: string;
   feeTxHash?: string;
   platformFeeKas?: number;
+  /** Platform fee / rewards outputs embedded in the same pledge deploy tx. */
+  extraPaymentOutputs?: Array<{ address: string; amountSompi: string }>;
 };
 
 export interface CrowdfundRuntime {

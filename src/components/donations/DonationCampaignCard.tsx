@@ -8,12 +8,12 @@ import type { DonationCampaignMetadata } from '@/lib/donations/types';
 import { progressPercent, totalDonorCount, totalRaisedWei } from '@/lib/donations/totals';
 import { AuthorInline } from '@/components/ui/AuthorInline';
 import {
-  VDonateBadgeRow,
   VDonateCampaignMedia,
   VDonateCardShell,
+  VDonateNetworkBadgeGroup,
   VDonatePledgeInline,
+  VDonateStatusBadgeGroup,
 } from '@/components/donations/VDonateCampaignCardChrome';
-import { quoteVDonateL1Pledge } from '@/lib/donations/l1PledgePayment';
 import { DonationVoteControls } from '@/components/donations/DonationVoteControls';
 import { KxListingCategoryChip } from '@/components/ui/KxListingCategoryChip';
 import { useKaspaWallet } from '@/lib/kaspa/context';
@@ -108,10 +108,7 @@ export function DonationCampaignCard({
   };
 
   const pledgeNum = parseFloat(pledgeAmount);
-  const feeHint =
-    isL1Direct && Number.isFinite(pledgeNum) && pledgeNum > 0
-      ? `Total ~${quoteVDonateL1Pledge(pledgeNum).totalKas} KAS (includes platform fee)`
-      : undefined;
+  void pledgeNum;
 
   const listingFooter = (
     <div className="space-y-3">
@@ -128,7 +125,6 @@ export function DonationCampaignCard({
             window.location.href = `${cardHref.split('?')[0]}${qs ? `?${qs}` : ''}`;
           }}
           minKas={isL1Direct ? 1 : undefined}
-          feeHint={feeHint}
         />
       ) : null}
       {showPledge ? (
@@ -167,24 +163,25 @@ export function DonationCampaignCard({
     <>
       <VDonateCardShell href={cardHref} footer={listingFooter} onNavigate={() => requireWallet()}>
         <VDonateCampaignMedia imageUrl={metadata?.imageUrl} imageHash={metadata?.imageHash} />
-        <div className="p-4 pb-3">
+        <div className="p-4 pb-3 flex flex-1 flex-col">
           <div className="mb-3">
-            <VDonateBadgeRow
-              network={network}
-              isLive={isLive}
-              goalReached={goalReached}
-              featured={featured ?? campaign.featuredModuleUnlocked}
-            />
+            <VDonateStatusBadgeGroup isLive={isLive} goalReached={goalReached} />
           </div>
           <h3 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 mb-2 line-clamp-2 leading-snug">
             {title}
           </h3>
-          <AuthorInline
-            address={campaign.creatorAddress}
-            href={`/u/${encodeURIComponent(campaign.creatorAddress)}`}
-            prefix=""
-            className="mt-0 mb-3"
-          />
+          <div className="flex items-center justify-between gap-3 mb-3">
+            <AuthorInline
+              address={campaign.creatorAddress}
+              href={`/u/${encodeURIComponent(campaign.creatorAddress)}`}
+              prefix=""
+              className="mt-0 mb-0 min-w-0"
+            />
+            <VDonateNetworkBadgeGroup
+              network={network}
+              featured={featured ?? campaign.featuredModuleUnlocked}
+            />
+          </div>
           {tags.length > 0 ? (
             <div className="flex flex-wrap gap-1.5 mb-3">
               {tags.map((t) => (

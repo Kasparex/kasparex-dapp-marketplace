@@ -118,6 +118,7 @@ class SilverscriptCovenantRuntime implements CovenantRuntime {
         deadlineTime: deadlineSeconds,
         memo,
       },
+      extraPaymentOutputs: params.extraPaymentOutputs,
     });
 
     const id = randomId('vault');

@@ -72,9 +72,11 @@ export interface CreateVaultParams {
   groupId?: string;
   memo: string;
   unlockAt: number | null;
-  /** Claim-window end (timelock). Must be after unlockAt when set. */
+  /** Optional claim-window end (timelock). Must be after unlockAt when set. */
   deadlineAt?: number | null;
   lockTxHash?: string;
+  /** Platform fee / rewards outputs to embed on the lock deploy tx. */
+  extraPaymentOutputs?: Array<{ address: string; amountSompi: string }>;
 }
 
 export interface VaultListFilter {

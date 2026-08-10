@@ -706,7 +706,12 @@ class SilverscriptCrowdfundRuntime implements CrowdfundRuntime {
     backer: string,
     amountSompi: string,
     ctx: CovenantWalletContext,
-    options?: { tierId?: string; feeTxHash?: string; platformFeeKas?: number },
+    options?: {
+      tierId?: string;
+      feeTxHash?: string;
+      platformFeeKas?: number;
+      extraPaymentOutputs?: Array<{ address: string; amountSompi: string }>;
+    },
   ): Promise<CrowdfundCampaign> {
     requireCovenantContext(ctx);
     this.reload();
@@ -735,9 +740,13 @@ class SilverscriptCrowdfundRuntime implements CrowdfundRuntime {
         goalSompi: campaign.goalSompi,
         deadline: campaign.deadline,
       },
+      extraPaymentOutputs: options?.extraPaymentOutputs,
     });
 
     const tierId = options?.tierId?.trim() || undefined;
+    const feeTxHash =
+      options?.feeTxHash ??
+      (options?.extraPaymentOutputs?.length ? deployed.txHash : undefined);
     const pledges = [
       ...campaign.pledges,
       {
@@ -745,7 +754,7 @@ class SilverscriptCrowdfundRuntime implements CrowdfundRuntime {
         backer: backer.trim(),
         amountSompi,
         txHash: deployed.txHash,
-        feeTxHash: options?.feeTxHash,
+        feeTxHash,
         platformFeeKas: options?.platformFeeKas,
         tierId,
         refunded: false,

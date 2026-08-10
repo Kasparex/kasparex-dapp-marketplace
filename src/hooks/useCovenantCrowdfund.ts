@@ -21,7 +21,7 @@ import { awardDAppHubPoints } from '@/lib/rewards/awardDAppHubPoints';
 import { appendHubActivityEarn } from '@/lib/rewards/appendHubActivityEarn';
 import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
 import { payCrowdKasL1StudioFee } from '@/lib/donations/l1Payment';
-import { payVDonateL1PledgePlatformFee } from '@/lib/donations/l1PledgePayment';
+import { buildVDonateL1PledgeFeeOutputs } from '@/lib/donations/l1PledgePayment';
 import { assertPledgeTierAllowed, sanitizeCrowdfundTiers } from '@/lib/donations/tiers';
 import { placeholderDApps } from '@/lib/dapps';
 import { notifyActionError } from '@/lib/hub/notify';
@@ -162,10 +162,8 @@ export function useCovenantCrowdfund() {
           pledgeKas: amountKas,
         });
 
-        // Platform fee first (shared multi-out KAS rail), then L1 covenant lock for the pledge.
-        const feePaid = await payVDonateL1PledgePlatformFee({
-          provider: ctx.provider,
-          senderAddress: ctx.userAddress,
+        // One multi-output tx: covenant lock principal + Hub platform fee / rewards legs.
+        const feeBuilt = buildVDonateL1PledgeFeeOutputs({
           pledgeKas: amountKas,
           campaignId,
         });
@@ -177,8 +175,8 @@ export function useCovenantCrowdfund() {
           ctx,
           {
             tierId,
-            feeTxHash: feePaid.feeTxHash,
-            platformFeeKas: feePaid.platformFeeKas,
+            platformFeeKas: feeBuilt.platformFeeKas,
+            extraPaymentOutputs: feeBuilt.outputs,
           },
         );
         const pledgeEntry = c.pledges[c.pledges.length - 1];
@@ -190,7 +188,7 @@ export function useCovenantCrowdfund() {
           txHash,
           krexTier,
           krexBalance: krexBalance ?? 0,
-          baseSpendKas: amountKas + (feePaid.platformFeeKas || 0),
+          baseSpendKas: amountKas + (feeBuilt.platformFeeKas || 0),
         });
         await refresh();
         return c;

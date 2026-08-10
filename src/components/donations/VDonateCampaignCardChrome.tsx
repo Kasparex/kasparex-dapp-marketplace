@@ -48,7 +48,63 @@ export function VDonateCampaignMedia({
   );
 }
 
-/** One row: network (left) · status (right). */
+/** Status badges only (Active / Ended / Goal reached). Place where network badges used to sit. */
+export function VDonateStatusBadgeGroup({
+  isLive,
+  goalReached,
+}: {
+  isLive: boolean;
+  goalReached?: boolean;
+}) {
+  return (
+    <div className="flex flex-wrap items-center gap-1.5">
+      {isLive ? (
+        <KxBadge variant="emerald" size="sm">
+          Active
+        </KxBadge>
+      ) : (
+        <KxBadge variant="rose" size="sm">
+          Ended
+        </KxBadge>
+      )}
+      {goalReached ? (
+        <KxBadge variant="sky" size="sm">
+          Goal reached
+        </KxBadge>
+      ) : null}
+    </div>
+  );
+}
+
+/** Network badges (L1 / L2 / Featured). Align right of the author row. */
+export function VDonateNetworkBadgeGroup({
+  network,
+  featured,
+}: {
+  network: 'l1' | 'l2';
+  featured?: boolean;
+}) {
+  return (
+    <div className="flex flex-wrap items-center justify-end gap-1.5 shrink-0">
+      {network === 'l1' ? (
+        <KxBadge variant="teal" size="sm">
+          L1
+        </KxBadge>
+      ) : (
+        <KxBadge variant="cyan" size="sm">
+          L2
+        </KxBadge>
+      )}
+      {featured ? (
+        <KxBadge variant="amber" size="sm">
+          Featured
+        </KxBadge>
+      ) : null}
+    </div>
+  );
+}
+
+/** @deprecated Prefer status left + network on author row. */
 export function VDonateBadgeRow({
   network,
   isLive,
@@ -62,84 +118,20 @@ export function VDonateBadgeRow({
 }) {
   return (
     <div className="flex flex-wrap items-center justify-between gap-2">
-      <div className="flex flex-wrap items-center gap-1.5">
-        {network === 'l1' ? (
-          <KxBadge variant="teal" size="sm">
-            L1
-          </KxBadge>
-        ) : (
-          <KxBadge variant="cyan" size="sm">
-            L2
-          </KxBadge>
-        )}
-        {featured ? (
-          <KxBadge variant="amber" size="sm">
-            Featured
-          </KxBadge>
-        ) : null}
-      </div>
-      <div className="flex flex-wrap items-center justify-end gap-1.5">
-        {isLive ? (
-          <KxBadge variant="emerald" size="sm">
-            Active
-          </KxBadge>
-        ) : (
-          <KxBadge variant="rose" size="sm">
-            Ended
-          </KxBadge>
-        )}
-        {goalReached ? (
-          <KxBadge variant="sky" size="sm">
-            Goal reached
-          </KxBadge>
-        ) : null}
-      </div>
+      <VDonateStatusBadgeGroup isLive={isLive} goalReached={goalReached} />
+      <VDonateNetworkBadgeGroup network={network} featured={featured} />
     </div>
   );
 }
 
-/** @deprecated Prefer VDonateBadgeRow */
+/** @deprecated Prefer VDonateStatusBadgeGroup */
 export function VDonateStatusBadges(props: { isLive: boolean; goalReached?: boolean }) {
-  return (
-    <div className="flex flex-wrap items-center gap-1.5">
-      {props.isLive ? (
-        <KxBadge variant="emerald" size="sm">
-          Active
-        </KxBadge>
-      ) : (
-        <KxBadge variant="rose" size="sm">
-          Ended
-        </KxBadge>
-      )}
-      {props.goalReached ? (
-        <KxBadge variant="sky" size="sm">
-          Goal reached
-        </KxBadge>
-      ) : null}
-    </div>
-  );
+  return <VDonateStatusBadgeGroup {...props} />;
 }
 
-/** @deprecated Prefer VDonateBadgeRow */
+/** @deprecated Prefer VDonateNetworkBadgeGroup */
 export function VDonateNetworkBadges(props: { network: 'l1' | 'l2'; featured?: boolean }) {
-  return (
-    <div className="flex flex-wrap items-center gap-1.5">
-      {props.network === 'l1' ? (
-        <KxBadge variant="teal" size="sm">
-          L1
-        </KxBadge>
-      ) : (
-        <KxBadge variant="cyan" size="sm">
-          L2
-        </KxBadge>
-      )}
-      {props.featured ? (
-        <KxBadge variant="amber" size="sm">
-          Featured
-        </KxBadge>
-      ) : null}
-    </div>
-  );
+  return <VDonateNetworkBadgeGroup {...props} />;
 }
 
 export function VDonatePledgeInline({
@@ -149,7 +141,6 @@ export function VDonatePledgeInline({
   busy,
   disabled,
   minKas,
-  feeHint,
 }: {
   amount: string;
   onAmountChange: (v: string) => void;
@@ -157,6 +148,7 @@ export function VDonatePledgeInline({
   busy?: boolean;
   disabled?: boolean;
   minKas?: number;
+  /** @deprecated Unused; fee hint removed from listing cards. */
   feeHint?: string;
 }) {
   return (
@@ -165,12 +157,12 @@ export function VDonatePledgeInline({
       onClick={(e) => e.stopPropagation()}
       onKeyDown={(e) => e.stopPropagation()}
     >
-      <div className="flex gap-2">
+      <div className="flex items-stretch gap-2">
         <input
           type="number"
           min={minKas ?? 0.01}
           step="0.01"
-          className="k-input text-sm flex-1"
+          className="k-input text-sm flex-1 h-10"
           placeholder={minKas != null ? `Min ${minKas} KAS` : 'Pledge KAS'}
           value={amount}
           onChange={(e) => onAmountChange(e.target.value)}
@@ -180,16 +172,16 @@ export function VDonatePledgeInline({
           type="button"
           disabled={disabled || busy || !amount}
           onClick={onPledge}
-          className="px-4 py-2 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700 disabled:opacity-50 shrink-0"
+          className="h-10 px-4 rounded-lg border border-emerald-600 bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700 disabled:opacity-50 shrink-0 box-border"
         >
           {busy ? '…' : 'Pledge'}
         </button>
       </div>
-      {feeHint ? <p className="mt-1.5 text-[11px] text-zinc-500 dark:text-zinc-400">{feeHint}</p> : null}
     </div>
   );
 }
 
+/** Listing card shell: full height + footer pinned like DAppCard. */
 export function VDonateCardShell({
   href,
   children,
@@ -203,19 +195,23 @@ export function VDonateCardShell({
   onNavigate?: () => boolean | void;
 }) {
   return (
-    <div className="flex flex-col rounded-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden bg-white dark:bg-zinc-900 hover:border-emerald-500 dark:hover:border-emerald-500 transition-colors">
+    <div className="h-full flex flex-col rounded-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden bg-white dark:bg-zinc-900 hover:border-emerald-500 dark:hover:border-emerald-500 transition-colors min-h-0">
       <Link
         href={href}
-        className="block min-w-0"
+        className="flex flex-1 min-h-0 min-w-0 flex-col"
         onClick={(e) => {
           if (onNavigate && onNavigate() === false) {
             e.preventDefault();
           }
         }}
       >
-        {children}
+        <div className="flex flex-1 min-h-0 flex-col">{children}</div>
       </Link>
-      {footer ? <div className="px-4 pb-4 border-t border-zinc-200 dark:border-zinc-800 pt-3">{footer}</div> : null}
+      {footer ? (
+        <div className="mt-auto px-4 pb-4 border-t border-zinc-200 dark:border-zinc-800 pt-3 shrink-0">
+          {footer}
+        </div>
+      ) : null}
     </div>
   );
 }

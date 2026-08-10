@@ -88,10 +88,20 @@ export async function buildGenericUnsignedDeploy(
   const computeBudget = ctx.computeBudget ?? DEFAULT_COMPUTE_BUDGET;
   const priorityFee = BigInt(ctx.priorityFeeSompi ?? '0');
 
+  const extraOutputs = (input.extraPaymentOutputs ?? [])
+    .map((o) => {
+      const addr = o.address?.trim();
+      const amt = BigInt(o.amountSompi || '0');
+      if (!addr || amt <= 0n) return null;
+      return { address: addr, amount: amt };
+    })
+    .filter((o): o is { address: string; amount: bigint } => Boolean(o));
+
+  // Covenant UTXO first (genesis binding uses index 0), then platform fee / rewards legs.
   const created = await kaspa.createTransactions({
     version: 1,
     entries,
-    outputs: [{ address: contractAddress, amount }],
+    outputs: [{ address: contractAddress, amount }, ...extraOutputs],
     changeAddress: ctx.senderAddress,
     priorityFee,
     networkId,
