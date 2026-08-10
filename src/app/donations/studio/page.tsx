@@ -14,6 +14,7 @@ import { getIPFSClient } from '@/lib/ipfs/client';
 import { VDONATIONS_MIN_VERIFY_WEI } from '@/lib/donations/config';
 import type { DonationCampaignMetadata } from '@/lib/donations/types';
 import { getErrorMessage } from '@/lib/utils';
+import { notifyActionError } from '@/lib/hub/notify';
 import { getChainById } from '@/lib/wagmi';
 import { CHAIN_IDS } from '@/lib/wagmi';
 import { fetchCampaignMetadata } from '@/hooks/useDonationCampaign';
@@ -227,6 +228,11 @@ function DonationsStudioPageContent() {
   const createError = txError;
   const claimError = txError;
   const updateError = txError;
+
+  useEffect(() => {
+    if (txError) notifyActionError('Transaction failed', txError);
+  }, [txError]);
+
   type FeaturedImageMode = 'url' | 'ipfs';
   type StudioCampaignForm = DonationCampaignMetadata & {
     targetKAS: string;
@@ -300,7 +306,6 @@ function DonationsStudioPageContent() {
   const [editModulesConfig, setEditModulesConfig] = useState<CrowdKasModulesConfig>({});
   const [deleteTarget, setDeleteTarget] = useState<StudioDeleteTarget | null>(null);
   const [deleteSubmitting, setDeleteSubmitting] = useState(false);
-  const [deleteErrorMsg, setDeleteErrorMsg] = useState<string | null>(null);
 
   const searchParams = useSearchParams();
   const pricing = useCrowdKasPricing();
@@ -472,7 +477,7 @@ function DonationsStudioPageContent() {
   const handleSaveCovenantEdit = async () => {
     if (!editingCovenantId || !covenantEditTitle.trim()) {
       setCovenantEditRequirements(['Campaign title']);
-      setCovenantEditError('Complete required fields before saving.');
+      setCovenantEditError(notifyActionError('Update failed', 'Complete required fields before saving.'));
       scrollToCrowdKasField('crowdkas-edit-campaign');
       return;
     }
@@ -487,6 +492,7 @@ function DonationsStudioPageContent() {
       closeEditCampaignForm();
       void refreshCovenantCampaigns();
     } catch (e) {
+      /* L1 update toast comes from useCovenantCrowdfund */
       setCovenantEditError(getErrorMessage(e, 'Failed to update campaign'));
     } finally {
       setCovenantEditSubmitting(false);
@@ -495,22 +501,20 @@ function DonationsStudioPageContent() {
 
   const closeDeleteModal = () => {
     setDeleteTarget(null);
-    setDeleteErrorMsg(null);
   };
 
   const confirmDeleteCampaign = async () => {
     if (!deleteTarget) return;
     setDeleteSubmitting(true);
-    setDeleteErrorMsg(null);
     try {
       if (deleteTarget.network === 'l2') {
         if (!address || !igraEscrowV2Address) {
-          setDeleteErrorMsg('Connect your Igra (EVM) wallet to cancel this campaign on-chain.');
+          notifyActionError('Delete failed', 'Connect your Igra (EVM) wallet to cancel this campaign on-chain.');
           return;
         }
         const campaign = myCampaignsV2.find((c) => c.campaignId === deleteTarget.campaignId);
         if (!campaign) {
-          setDeleteErrorMsg('Campaign not found.');
+          notifyActionError('Delete failed', 'Campaign not found.');
           return;
         }
         const canDelete =
@@ -520,7 +524,7 @@ function DonationsStudioPageContent() {
           (campaign.l1RecordedTotalWei ?? 0n) === 0n &&
           (campaign.l1RecordedDonationCount ?? 0n) === 0n;
         if (!canDelete) {
-          setDeleteErrorMsg('Cannot delete a campaign that has received donations.');
+          notifyActionError('Delete failed', 'Cannot delete a campaign that has received donations.');
           return;
         }
         const hash = await writeContractAsync({
@@ -537,12 +541,12 @@ function DonationsStudioPageContent() {
       } else {
         const campaign = covenantCampaigns.find((c) => c.id === deleteTarget.campaignId);
         if (!campaign) {
-          setDeleteErrorMsg('Campaign not found.');
+          notifyActionError('Delete failed', 'Campaign not found.');
           return;
         }
         const backers = campaign.pledges.filter((p) => !p.refunded).length;
         if (backers > 0) {
-          setDeleteErrorMsg('Cannot delete a campaign that has received pledges.');
+          notifyActionError('Delete failed', 'Cannot delete a campaign that has received pledges.');
           return;
         }
         await deleteCovenantCampaign(deleteTarget.campaignId, campaign.creator);
@@ -551,19 +555,20 @@ function DonationsStudioPageContent() {
         void refreshCovenantCampaigns();
       }
     } catch (e) {
-      setDeleteErrorMsg(getErrorMessage(e, 'Delete failed'));
+      /* L1 delete toast comes from useCovenantCrowdfund; L2 still needs a toast here */
+      if (deleteTarget.network === 'l2') {
+        notifyActionError('Delete failed', getErrorMessage(e, 'Delete failed'));
+      }
     } finally {
       setDeleteSubmitting(false);
     }
   };
 
   const handleDeleteCovenantCampaign = (campaignId: string) => {
-    setDeleteErrorMsg(null);
     setDeleteTarget({ network: 'l1', campaignId });
   };
 
   const handleDeleteL2Campaign = (campaignId: bigint) => {
-    setDeleteErrorMsg(null);
     setDeleteTarget({ network: 'l2', campaignId });
   };
 
@@ -661,7 +666,7 @@ function DonationsStudioPageContent() {
     const validation = covenantPanelRef.current?.validate();
     if (!validation?.ok) {
       setCreateFormRequirements(validation?.requirements ?? []);
-      setCreateErrorMsg(validation?.error ?? 'Complete required fields before paying.');
+      setCreateErrorMsg(notifyActionError('Create failed', validation?.error ?? 'Complete required fields before paying.'));
       scrollToCrowdKasField(validation?.focusId);
       return;
     }
@@ -671,6 +676,7 @@ function DonationsStudioPageContent() {
     try {
       await covenantPanelRef.current?.submit();
     } catch (e) {
+      /* L1 create toast comes from useCovenantCrowdfund */
       setCreateErrorMsg(getErrorMessage(e, 'Failed to create campaign'));
     } finally {
       setL1Submitting(false);
@@ -695,12 +701,12 @@ function DonationsStudioPageContent() {
     });
     if (!validation.ok) {
       setCreateFormRequirements(validation.requirements);
-      setCreateErrorMsg(validation.error ?? 'Complete required fields before paying.');
+      setCreateErrorMsg(notifyActionError('Create failed', validation.error ?? 'Complete required fields before paying.'));
       scrollToCrowdKasField(validation.focusId);
       return;
     }
     if (!address || !igraEscrowV2Address) {
-      setCreateErrorMsg('Connect your Igra wallet and ensure DonationEscrowV2 is configured.');
+      setCreateErrorMsg(notifyActionError('Create failed', 'Connect your Igra wallet and ensure DonationEscrowV2 is configured.'));
       return;
     }
     setCreateFormRequirements([]);
@@ -749,7 +755,7 @@ function DonationsStudioPageContent() {
         });
       }
     } catch (e) {
-      setCreateErrorMsg(getErrorMessage(e, 'Failed to create campaign'));
+      setCreateErrorMsg(notifyActionError('Create failed', getErrorMessage(e, 'Failed to create campaign')));
     } finally {
       setCreateSubmitting(false);
     }
@@ -757,17 +763,17 @@ function DonationsStudioPageContent() {
 
   const handleCreateCampaign = async () => {
     if (!address || !writeEscrowAddress || !createForm.title.trim() || !createForm.l1KaspaAddress?.trim()) {
-      setCreateErrorMsg('Please fill title and L1 Kaspa address.');
+      setCreateErrorMsg(notifyActionError('Create failed', 'Please fill title and L1 Kaspa address.'));
       return;
     }
     const targetNum = parseFloat(createForm.targetKAS);
     if (isNaN(targetNum) || targetNum < 100) {
-      setCreateErrorMsg('Target must be at least 100 iKAS.');
+      setCreateErrorMsg(notifyActionError('Create failed', 'Target must be at least 100 iKAS.'));
       return;
     }
     const endDate = new Date(createForm.endDate);
     if (isNaN(endDate.getTime()) || endDate.getTime() <= Date.now()) {
-      setCreateErrorMsg('Please set a valid future end date.');
+      setCreateErrorMsg(notifyActionError('Create failed', 'Please set a valid future end date.'));
       return;
     }
     setCreateSubmitting(true);
@@ -814,7 +820,7 @@ function DonationsStudioPageContent() {
         });
       }
     } catch (e) {
-      setCreateErrorMsg(getErrorMessage(e, 'Failed to create campaign'));
+      setCreateErrorMsg(notifyActionError('Create failed', getErrorMessage(e, 'Failed to create campaign')));
     } finally {
       setCreateSubmitting(false);
     }
@@ -878,7 +884,7 @@ function DonationsStudioPageContent() {
         document.getElementById('crowdkas-edit-campaign')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       });
     } catch (e) {
-      setEditErrorMsg(getErrorMessage(e, 'Failed to load campaign data'));
+      setEditErrorMsg(notifyActionError('Update failed', getErrorMessage(e, 'Failed to load campaign data')));
     } finally {
       setEditLoadingMeta(false);
     }
@@ -918,7 +924,7 @@ function DonationsStudioPageContent() {
       });
       setShowEditForm(true);
     } catch (e) {
-      setEditErrorMsg(getErrorMessage(e, 'Failed to load campaign data'));
+      setEditErrorMsg(notifyActionError('Update failed', getErrorMessage(e, 'Failed to load campaign data')));
     } finally {
       setEditLoadingMeta(false);
     }
@@ -960,12 +966,12 @@ function DonationsStudioPageContent() {
     });
     if (!validation.ok) {
       setEditFormRequirements(validation.requirements);
-      setEditErrorMsg(validation.error ?? 'Complete required fields before saving.');
+      setEditErrorMsg(notifyActionError('Update failed', validation.error ?? 'Complete required fields before saving.'));
       scrollToCrowdKasField(validation.focusId);
       return;
     }
     if (!address || !igraEscrowV2Address || editingV2CampaignId == null || !editOnChainLock) {
-      setEditErrorMsg('Connect your Igra wallet to save changes.');
+      setEditErrorMsg(notifyActionError('Update failed', 'Connect your Igra wallet to save changes.'));
       return;
     }
     setEditFormRequirements([]);
@@ -1013,7 +1019,7 @@ function DonationsStudioPageContent() {
       });
     } catch (e) {
       editTxPendingRef.current = false;
-      setEditErrorMsg(getErrorMessage(e, 'Failed to update campaign'));
+      setEditErrorMsg(notifyActionError('Update failed', getErrorMessage(e, 'Failed to update campaign')));
       setEditSubmitting(false);
     }
   };
@@ -1021,7 +1027,7 @@ function DonationsStudioPageContent() {
   const handleUpdateCampaign = async () => {
     if (!address || !writeEscrowAddress || !campaign || !editOnChainLock) return;
     if (!editForm.title.trim()) {
-      setEditErrorMsg('Please fill title.');
+      setEditErrorMsg(notifyActionError('Update failed', 'Please fill title.'));
       return;
     }
     setEditSubmitting(true);
@@ -1055,7 +1061,7 @@ function DonationsStudioPageContent() {
       });
     } catch (e) {
       editTxPendingRef.current = false;
-      setEditErrorMsg(getErrorMessage(e, 'Failed to update campaign'));
+      setEditErrorMsg(notifyActionError('Update failed', getErrorMessage(e, 'Failed to update campaign')));
       setEditSubmitting(false);
     }
   };
@@ -1110,9 +1116,7 @@ function DonationsStudioPageContent() {
                 when the campaign has no pledges.
               </p>
             )}
-            {deleteErrorMsg ? (
-              <p className="text-sm text-red-600 dark:text-red-400 mt-3">{deleteErrorMsg}</p>
-            ) : null}
+
             <div className="flex flex-wrap justify-end gap-2 mt-6">
               <button
                 type="button"
@@ -1240,9 +1244,6 @@ function DonationsStudioPageContent() {
                                 >
                                   {isVerifyPending ? 'Confirming…' : 'Verify (1 wei)'}
                                 </button>
-                                {verifyError && (
-                                  <p className="text-sm text-red-600 dark:text-red-400">{getErrorMessage(verifyError, 'Verify failed')}</p>
-                                )}
                               </>
                             )}
                           </div>
@@ -1407,8 +1408,7 @@ function DonationsStudioPageContent() {
                                   onFileNameChange={setL2ImageFileName}
                                   label="Cover image"
                                 />
-                                {createErrorMsg && <p className="text-sm text-red-600 dark:text-red-400">{createErrorMsg}</p>}
-                                {createError && <p className="text-sm text-red-600 dark:text-red-400">{getErrorMessage(createError, 'Create failed')}</p>}
+
                               </div>
                             </div>
 
@@ -1443,9 +1443,6 @@ function DonationsStudioPageContent() {
                   >
                     {isVerifyPending ? 'Confirming…' : 'Verify (1 wei)'}
                   </button>
-                  {verifyError && (
-                    <p className="text-sm text-red-600 dark:text-red-400 mt-2">{getErrorMessage(verifyError, 'Verify failed')}</p>
-                  )}
                 </>
               )}
             </section>
@@ -1635,8 +1632,7 @@ function DonationsStudioPageContent() {
                     value={createForm.endDate}
                     onChange={(next) => setCreateForm((f) => ({ ...f, endDate: next }))}
                   />
-                  {createErrorMsg && <p className="text-sm text-red-600 dark:text-red-400">{createErrorMsg}</p>}
-                  {createError && <p className="text-sm text-red-600 dark:text-red-400">{getErrorMessage(createError, 'Create failed')}</p>}
+
                   <button
                     type="button"
                     onClick={() => {
@@ -1749,9 +1745,7 @@ function DonationsStudioPageContent() {
                     >
                       {isClaimPending ? 'Claiming…' : 'Claim funds'}
                     </button>
-                    {claimError && (
-                      <p className="text-sm text-red-600 dark:text-red-400 mt-2">{getErrorMessage(claimError, 'Claim failed')}</p>
-                    )}
+
                   </div>
                 )}
               </section>
@@ -1807,9 +1801,7 @@ function DonationsStudioPageContent() {
                                     placeholder="Brief summary for cards and listings"
                                   />
                                 </div>
-                                {covenantEditError ? (
-                                  <p className="text-sm text-red-600 dark:text-red-400">{covenantEditError}</p>
-                                ) : null}
+
                               </div>
                             ) : showEditForm ? (
                               <div id="crowdkas-edit-campaign" className="scroll-mt-24">

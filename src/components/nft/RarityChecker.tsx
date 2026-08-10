@@ -1,5 +1,6 @@
 'use client';
 
+import { notifyActionError, notifyActionWarning } from '@/lib/hub/notify';
 import { useState, useEffect } from 'react';
 import { fetchNFTMetadata, getNFTMetadata } from '@/lib/nft/metadata';
 import { type NFTRarity } from '@/lib/nft/rarity';
@@ -19,7 +20,6 @@ export function RarityChecker({ collectionId }: RarityCheckerProps) {
   const [loadingProgress, setLoadingProgress] = useState<string>('');
   const [rarity, setRarity] = useState<NFTRarity | null>(null);
   const [rank, setRank] = useState<number | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
 
   const collection = getCollectionById(collectionId);
@@ -29,24 +29,22 @@ export function RarityChecker({ collectionId }: RarityCheckerProps) {
     setTokenId('');
     setRarity(null);
     setRank(null);
-    setError(null);
     setImageUrl(null);
   }, [collectionId]);
 
   const handleCheckRarity = async () => {
     if (!tokenId || !collection) {
-      setError('Please enter a valid token ID');
+      notifyActionWarning('Invalid token', 'Please enter a valid token ID');
       return;
     }
 
     const tokenIdNum = parseInt(tokenId, 10);
     if (isNaN(tokenIdNum) || tokenIdNum < 0) {
-      setError('Please enter a valid token ID number');
+      notifyActionWarning('Invalid token', 'Please enter a valid token ID number');
       return;
     }
 
     setIsLoading(true);
-    setError(null);
     setRarity(null);
     setRank(null);
     setImageUrl(null);
@@ -56,7 +54,7 @@ export function RarityChecker({ collectionId }: RarityCheckerProps) {
       // Fetch metadata for the specific NFT
       const metadata = await getNFTMetadata(collectionId, tokenIdNum);
       if (!metadata) {
-        setError(`NFT #${tokenIdNum} not found in ${collection.name} collection`);
+        notifyActionError('Not found', `NFT #${tokenIdNum} not found in ${collection.name} collection`);
         setIsLoading(false);
         return;
       }
@@ -65,7 +63,7 @@ export function RarityChecker({ collectionId }: RarityCheckerProps) {
       setLoadingProgress('Loading collection data for rarity calculation...');
       const allMetadata = await getCollectionMetadata(collectionId);
       if (allMetadata.length === 0) {
-        setError('Failed to load collection data for rarity calculation');
+        notifyActionError('Rarity check failed', 'Failed to load collection data for rarity calculation');
         setIsLoading(false);
         return;
       }
@@ -74,7 +72,7 @@ export function RarityChecker({ collectionId }: RarityCheckerProps) {
       setLoadingProgress('Calculating rarity score...');
       const rarityResult = await getNFTRarityCached(collectionId, tokenIdNum, allMetadata);
       if (!rarityResult) {
-        setError('Failed to calculate rarity score');
+        notifyActionError('Rarity check failed', 'Failed to calculate rarity score');
         setIsLoading(false);
         return;
       }
@@ -99,7 +97,7 @@ export function RarityChecker({ collectionId }: RarityCheckerProps) {
       setImageUrl(imgUrl);
     } catch (err) {
       console.error('Error checking rarity:', err);
-      setError(err instanceof Error ? err.message : 'Failed to check rarity');
+      notifyActionError('Rarity check failed', err instanceof Error ? err.message : 'Failed to check rarity');
       setLoadingProgress('');
     } finally {
       setIsLoading(false);
@@ -130,13 +128,6 @@ export function RarityChecker({ collectionId }: RarityCheckerProps) {
           {isLoading ? (loadingProgress || 'Checking...') : 'Check Rarity'}
         </button>
       </div>
-
-      {/* Error Message */}
-      {error && (
-        <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-red-800 dark:text-red-200">
-          {error}
-        </div>
-      )}
 
       {/* Results */}
       {rarity && (
@@ -205,7 +196,7 @@ export function RarityChecker({ collectionId }: RarityCheckerProps) {
       )}
 
       {/* Info Note */}
-      {!rarity && !error && (
+      {!rarity && (
         <div className="p-4 bg-zinc-50 dark:bg-zinc-900 rounded-lg kx-body">
           <p>
             Enter a token ID to check its rarity score and trait breakdown. Rarity is calculated using the standard method:

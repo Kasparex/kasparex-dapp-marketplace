@@ -1,5 +1,6 @@
 'use client';
 
+import { notifyActionError } from '@/lib/hub/notify';
 import { useState } from 'react';
 import { downloadIssuePdf } from '@/lib/pdf/buildIssuePdf';
 import type { ComposedSection } from '@/lib/magazines/composeIssue';
@@ -22,16 +23,14 @@ export function DownloadIssuePdfButton({
   className = '',
 }: DownloadIssuePdfButtonProps) {
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   const handleDownload = async () => {
     if (disabled || sections.length === 0) return;
     setBusy(true);
-    setError(null);
     try {
       await downloadIssuePdf({ magazineName, issueNumber, issueTitle, sections });
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'PDF export failed.');
+      notifyActionError('PDF export failed', e instanceof Error ? e.message : 'PDF export failed.');
     } finally {
       setBusy(false);
     }
@@ -68,7 +67,6 @@ export function DownloadIssuePdfButton({
       <p className="mt-2 text-[10px] text-zinc-500 text-center">
         Generated on your device. Nothing is stored on Kasparex servers.
       </p>
-      {error ? <p className="mt-2 text-xs text-red-500 text-center">{error}</p> : null}
     </div>
   );
 }

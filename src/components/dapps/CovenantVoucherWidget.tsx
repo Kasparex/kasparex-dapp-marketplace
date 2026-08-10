@@ -39,7 +39,7 @@ type BusyKey = null | 'create' | 'claim';
 
 export function CovenantVoucherWidget() {
   const { state } = useKaspaWallet();
-  const { openVouchers, loading, error, createVoucher, claimVoucher, refresh, runtimeMode, effectiveMode } =
+  const { openVouchers, loading, createVoucher, claimVoucher, refresh, runtimeMode, effectiveMode } =
     useCovenantVoucher();
   const { pricing, krexTier, krexBalance } = useKpxCovenantDeployFee('voucher');
   const { pricing: claimPricing } = useKpxCovenantClaimFee('voucher');
@@ -74,6 +74,8 @@ export function CovenantVoucherWidget() {
       setIssuedSecret(secret);
       setIssuedId(voucher.id);
       navigateTab('claim');
+    } catch (e) {
+      console.error(e);
     } finally {
       setBusyKey(null);
     }
@@ -85,6 +87,8 @@ export function CovenantVoucherWidget() {
       await claimVoucher(claimId.trim(), claimSecret);
       setClaimSecret('');
       await refresh();
+    } catch (e) {
+      console.error(e);
     } finally {
       setBusyKey(null);
     }
@@ -103,11 +107,6 @@ export function CovenantVoucherWidget() {
     flowFeeWaived: isClaimTab || busyKey === 'claim' ? claimPricing.waived : pricing.waived,
     alerts: (
       <CovenantRailAlerts>
-        {error ? (
-          <Alert type="error" compact region>
-            {error}
-          </Alert>
-        ) : null}
         {issuedSecret && issuedId ? (
           <Alert type="warning" compact region>
             <p className="font-medium">Save this secret (shown once)</p>
@@ -162,7 +161,6 @@ export function CovenantVoucherWidget() {
       memo,
       claimId,
       claimSecret,
-      error,
       issuedSecret,
       issuedId,
     ],

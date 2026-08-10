@@ -28,8 +28,7 @@ import { KxRichTextEditor } from '@/components/ui/KxRichTextEditor';
 import { KxImageSourceField } from '@/components/ui/KxImageSourceField';
 import { KxFilterDropdown } from '@/components/ui/KxFilterDropdown';
 import { KxSegmentToggle } from '@/components/ui/KxSegmentToggle';
-import { KxAlertRegion } from '@/components/ui/KxAlertRegion';
-import { hubNotify } from '@/lib/hub/notify';
+import { hubNotify, notifyActionWarning } from '@/lib/hub/notify';
 import { StorePaymentCurrencyDropdown } from '@/components/payments/StorePaymentCurrencyDropdown';
 import {
   buildSellerListingCurrencyOptions,
@@ -117,7 +116,6 @@ export function StoreProductForm({ product }: StoreProductFormProps) {
     [integratedStoreTokens],
   );
 
-  const [error, setError] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [step, setStep] = useState<'form' | 'payment' | 'complete'>('form');
 
@@ -202,11 +200,9 @@ export function StoreProductForm({ product }: StoreProductFormProps) {
       setThumbnailName(file.name);
       setThumbnailUrl(normalizeIpfsUrlForForm(null, cid));
       setThumbnailSource('url');
-      setError(null);
       hubNotify.success('Thumbnail uploaded', 'Image is ready for the listing.');
     } else {
       hubNotify.error('Upload failed', 'Failed to upload thumbnail');
-      setError('Failed to upload thumbnail');
     }
     e.target.value = '';
   };
@@ -218,7 +214,7 @@ export function StoreProductForm({ product }: StoreProductFormProps) {
     const names: string[] = [];
     for (const file of files) {
       if (file.size > maxSize) {
-        setError(`${file.name} exceeds ${IPFS_MAX_UPLOAD_MB}MB limit`);
+        notifyActionWarning('File too large', `${file.name} exceeds ${IPFS_MAX_UPLOAD_MB}MB limit`);
         continue;
       }
       const cid = await upload(file, { filename: file.name });
@@ -246,7 +242,6 @@ export function StoreProductForm({ product }: StoreProductFormProps) {
     }
 
     setIsProcessing(true);
-    setError(null);
     setStep('payment');
 
     try {
@@ -327,7 +322,6 @@ export function StoreProductForm({ product }: StoreProductFormProps) {
       setTimeout(() => router.push('/store/dashboard?tab=products'), 2000);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to submit product';
-      setError(message);
       hubNotify.error(isEdit ? 'Update failed' : 'Publish failed', message);
       setStep('form');
     } finally {
@@ -538,12 +532,6 @@ export function StoreProductForm({ product }: StoreProductFormProps) {
             onChange={handleAssetChange}
             disabled={isUploading || isProcessing}
           />
-
-          <KxAlertRegion>
-            {error ? (
-              <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
-            ) : null}
-          </KxAlertRegion>
         </div>
 
         <div className={`${FORM_PANEL_CLASS} space-y-4`}>

@@ -1,5 +1,6 @@
 'use client';
 
+import { notifyActionError, notifyActionWarning } from '@/lib/hub/notify';
 import { useMemo, useState } from 'react';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
@@ -50,7 +51,7 @@ export function useChroniclesVaultUnlock(offer: EntitlementOffer | null | undefi
     setPayError(null);
     setVerifyNote(null);
     if (!offer || !state.isConnected || !state.provider || !payerNorm || baseKas <= 0) {
-      setPayError('Connect your wallet to continue.');
+      notifyActionWarning('Wallet required', 'Connect your wallet to continue.');
       return false;
     }
     setPayBusy(true);
@@ -111,11 +112,14 @@ export function useChroniclesVaultUnlock(offer: EntitlementOffer | null | undefi
         return true;
       }
       if (!lastMsg) {
-        setPayError('Payment sent but not verified yet. Check again in a minute or contact support with your tx id.');
+        notifyActionError(
+          'Unlock failed',
+          'Payment sent but not verified yet. Check again in a minute or contact support with your tx id.',
+        );
       }
       return false;
     } catch (e) {
-      setPayError(e instanceof Error ? e.message : 'Payment failed');
+      notifyActionError('Unlock failed', e instanceof Error ? e.message : 'Payment failed');
       return false;
     } finally {
       setPayBusy(false);

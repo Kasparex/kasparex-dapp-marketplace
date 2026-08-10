@@ -51,6 +51,52 @@ function explorerForTx(
   return getExplorerTxUrl(txHash, network);
 }
 
+/** Normalize unknown thrown values / API strings for toast copy. */
+export function hubNotifyMessage(err: unknown, fallback = 'Something went wrong'): string {
+  if (err == null) return fallback;
+  if (typeof err === 'string') {
+    const t = err.trim();
+    return t || fallback;
+  }
+  if (err instanceof Error) {
+    const t = err.message.trim();
+    return t || fallback;
+  }
+  try {
+    const s = String(err).trim();
+    return s || fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+/**
+ * One-shot action error toast. Prefer this (or hubNotify.*) over inline Alert banners.
+ * Returns the message so callers can drop local error display state.
+ */
+export function notifyActionError(
+  title: string,
+  err: unknown,
+  fallback = 'Something went wrong',
+  extra?: Omit<HubNotifyOptions, 'title' | 'description' | 'variant'>,
+): string {
+  const message = hubNotifyMessage(err, fallback);
+  push({ title, description: message, variant: 'error', ...extra });
+  return message;
+}
+
+/** One-shot action warning (validation, user reject, soft blocks). */
+export function notifyActionWarning(
+  title: string,
+  err: unknown,
+  fallback = 'Please check and try again',
+  extra?: Omit<HubNotifyOptions, 'title' | 'description' | 'variant'>,
+): string {
+  const message = hubNotifyMessage(err, fallback);
+  push({ title, description: message, variant: 'warning', ...extra });
+  return message;
+}
+
 function push(options: HubNotifyOptions): string {
   const api = getHubNotifyApi();
   if (!api) {

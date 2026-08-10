@@ -9,7 +9,7 @@ import { getEntrySku, type UnifiedGame } from '@/lib/games/registry';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { applyKrexFeeDiscount } from '@/lib/hub/applyKrexFeeDiscount';
 import { krexTierDiscountPercent } from '@/lib/chronicles/vault/pricing';
-import { hubNotify } from '@/lib/hub/notify';
+import { hubNotify, notifyActionError, notifyActionWarning } from '@/lib/hub/notify';
 
 interface GamePaymentProps {
   game: Game;
@@ -19,10 +19,7 @@ export function GamePayment({ game }: GamePaymentProps) {
   const { state, connect } = useKaspaWallet();
   const { tier: krexTier } = useKREXBalance();
   const [isProcessing, setIsProcessing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
-  const [txHash, setTxHash] = useState<string | null>(null);
-  const [diamondsMinted, setDiamondsMinted] = useState<number | null>(null);
+  const [entryPaid, setEntryPaid] = useState(false);
 
   const entrySku = getEntrySku(game as UnifiedGame);
   const entryCurrency = entrySku?.currency ?? 'KAS';
@@ -39,9 +36,7 @@ export function GamePayment({ game }: GamePaymentProps) {
 
   const handlePlay = async () => {
     if (!state.isConnected || !state.provider) {
-      hubNotify.error('Wallet required', 'Please connect your Kaspa wallet first');
-      setError('Please connect your Kaspa wallet first');
-      // Try to connect automatically
+      notifyActionError('Wallet required', 'Please connect your Kaspa wallet first');
       try {
         const { detectKaspaWallets } = await import('@/lib/kaspa/wallet');
         const wallets = detectKaspaWallets();
@@ -55,29 +50,25 @@ export function GamePayment({ game }: GamePaymentProps) {
     }
 
     if (!state.address) {
-      hubNotify.error('Wallet required', 'Wallet address not available');
-      setError('Wallet address not available');
+      notifyActionError('Wallet required', 'Wallet address not available');
       return;
     }
 
     if (entryCurrency !== 'KAS') {
-      const msg = `This game entry requires ${entryCurrency}. This payment method is not wired yet.`;
-      hubNotify.warning('Payment unavailable', msg);
-      setError(msg);
+      notifyActionWarning(
+        'Payment unavailable',
+        `This game entry requires ${entryCurrency}. This payment method is not wired yet.`,
+      );
       return;
     }
 
     if (!kasTreasuryAddress || !isValidKaspaAddress(kasTreasuryAddress)) {
-      hubNotify.error('Treasury missing', 'Game treasury address not configured');
-      setError('Game treasury address not configured');
+      notifyActionError('Treasury missing', 'Game treasury address not configured');
       return;
     }
 
     setIsProcessing(true);
-    setError(null);
-    setSuccess(false);
-    setTxHash(null);
-    setDiamondsMinted(null);
+    setEntryPaid(false);
     const loadingId = hubNotify.loading('Paying game entry…', 'Confirm in your wallet');
 
     try {
@@ -92,8 +83,7 @@ export function GamePayment({ game }: GamePaymentProps) {
       });
       if (!pay.ok) throw new Error(pay.error);
 
-      setTxHash(pay.txHash);
-      setSuccess(true);
+      setEntryPaid(true);
       hubNotify.txSuccess({
         id: loadingId,
         title: 'Entry paid',
@@ -101,7 +91,6 @@ export function GamePayment({ game }: GamePaymentProps) {
         txHash: pay.txHash,
       });
 
-      // Record reward transaction
       try {
         await recordL1Reward({
           userAddress: state.address,
@@ -113,10 +102,8 @@ export function GamePayment({ game }: GamePaymentProps) {
         });
       } catch (rewardError) {
         console.error('Error recording reward:', rewardError);
-        // Don't fail the payment if reward recording fails
       }
 
-      // Verify payment via unified Worker endpoint (node-first infra will consume this later for Diamonds/unlocks).
       try {
         const vr = await verifyKaspaL1Payment({
           txHash: pay.txHash,
@@ -128,22 +115,14 @@ export function GamePayment({ game }: GamePaymentProps) {
           purchaseType: 'entry',
           sessionId: pay.sessionId,
         });
-        if (vr.ok && typeof vr.diamondsMinted === 'number') {
-          setDiamondsMinted(vr.diamondsMinted);
+        if (vr.ok && typeof vr.diamondsMinted === 'number' && vr.diamondsMinted > 0) {
+          hubNotify.success('Diamonds minted', `Bonus: +${vr.diamondsMinted} Diamonds`);
         }
       } catch {
         // Verification is best-effort for now; core loop should not break on transient indexer delays.
       }
-
-      // Clear success message after 5 seconds
-      setTimeout(() => {
-        setSuccess(false);
-        setTxHash(null);
-        setDiamondsMinted(null);
-      }, 5000);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to process payment';
-      setError(errorMessage);
       hubNotify.update(loadingId, {
         title: 'Entry payment failed',
         description: errorMessage,
@@ -174,10 +153,13 @@ export function GamePayment({ game }: GamePaymentProps) {
                 if (wallets.length > 0) {
                   await connect(wallets[0].id);
                 } else {
-                  setError('No Kaspa wallet detected. Please install KasWare or Kastle.');
+                  notifyActionError(
+                    'Wallet required',
+                    'No Kaspa wallet detected. Please install KasWare or Kastle.',
+                  );
                 }
               } catch (err) {
-                setError('Failed to connect wallet');
+                notifyActionError('Wallet required', err, 'Failed to connect wallet');
                 console.error(err);
               }
             }}
@@ -239,31 +221,9 @@ export function GamePayment({ game }: GamePaymentProps) {
           )}
         </div>
 
-        {error && (
-          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3">
-            <p className="text-sm text-red-800 dark:text-red-300">{error}</p>
-          </div>
-        )}
-
-        {success && txHash && (
-          <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-3">
-            <p className="text-sm text-green-800 dark:text-green-300 mb-1">
-              Payment successful! Transaction: {txHash.slice(0, 10)}...{txHash.slice(-8)}
-            </p>
-            {typeof diamondsMinted === 'number' && diamondsMinted > 0 ? (
-              <p className="text-xs text-green-700 dark:text-green-400">
-                Bonus: +{diamondsMinted} Diamonds
-              </p>
-            ) : null}
-            <p className="text-xs text-green-700 dark:text-green-400">
-              You can now play the game. Rewards will be processed automatically.
-            </p>
-          </div>
-        )}
-
         <button
           onClick={handlePlay}
-          disabled={isProcessing || success}
+          disabled={isProcessing || entryPaid}
           className="k-cta-games h-11 w-full px-6 disabled:opacity-60 disabled:cursor-not-allowed"
         >
           {isProcessing ? (
@@ -274,7 +234,7 @@ export function GamePayment({ game }: GamePaymentProps) {
               </svg>
               Processing...
             </span>
-          ) : success ? (
+          ) : entryPaid ? (
             'Payment Complete!'
           ) : (
             `Pay ${entryAmount} ${entryCurrency} to Play`

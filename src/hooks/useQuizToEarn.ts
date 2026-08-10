@@ -7,6 +7,7 @@ import { QUIZ_TO_EARN_ABI } from '@/lib/contracts/abis';
 import { getContractAddress } from '@/lib/contracts/addresses';
 import { useSafeError } from './useSafeError';
 import { getErrorMessage } from '@/lib/utils';
+import { notifyActionError } from '@/lib/hub/notify';
 
 export interface Question {
   id: bigint;
@@ -506,7 +507,8 @@ export function useQuizToEarn(): UseQuizToEarnReturn {
   // Submit answer
   const submitAnswer = useCallback(async (questionId: bigint, selectedAnswerIndex: bigint) => {
     if (!isConnected || !address) {
-      setError('Wallet not connected');
+      const msg = notifyActionError('Wallet required', 'Wallet not connected');
+      setError(msg);
       return;
     }
 
@@ -514,6 +516,7 @@ export function useQuizToEarn(): UseQuizToEarnReturn {
     // Empty or invalid addresses cause wagmi to return function-type errors
     if (!contractAddress || contractAddress === '' || !contractAddress.startsWith('0x') || contractAddress.length !== 42) {
       const errorMsg = 'Quiz-to-Earn contract is not deployed on this network. Please switch to Kasplex Testnet (Chain ID: 167012).';
+      notifyActionError('Contract unavailable', errorMsg);
       setError(errorMsg);
       console.warn('Invalid contract address:', contractAddress, 'Chain ID:', chainId);
       return;
@@ -562,6 +565,7 @@ export function useQuizToEarn(): UseQuizToEarnReturn {
         safeError = new Error(errorMessage);
       }
       
+      notifyActionError('Submit failed', errorMessage);
       setError(errorMessage);
       setIsLoading(false);
       // Always throw an Error object, never a function or raw error
@@ -569,7 +573,7 @@ export function useQuizToEarn(): UseQuizToEarnReturn {
     }
   }, [contractAddress, isConnected, address, writeContract, chainId]);
 
-  // Update error state from transaction
+  // Toast write/tx failures from the submit action
   // CRITICAL: Convert errors immediately to prevent React Query serialization issues
   useEffect(() => {
     if (safeWriteError || safeTxError) {
@@ -580,6 +584,7 @@ export function useQuizToEarn(): UseQuizToEarnReturn {
         const errorStr = typeof errorToSet === 'string' 
           ? errorToSet 
           : getErrorMessage(errorToSet, 'Transaction failed');
+        notifyActionError('Submit failed', errorStr);
         setError(errorStr);
       } else {
         setError(null);

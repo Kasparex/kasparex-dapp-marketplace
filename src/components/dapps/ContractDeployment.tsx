@@ -1,15 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useAccount, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
 import { DApp } from '@/lib/dapps';
 import { DAPP_REGISTRY_ABI } from '@/lib/contracts/abis';
 import { getContractAddress, CONTRACT_ADDRESSES } from '@/lib/contracts/addresses';
 import { useChainId } from 'wagmi';
-import { parseEther } from 'viem';
-import { getErrorMessage } from '@/lib/utils';
 import { useSafeError } from '@/hooks/useSafeError';
-import { hubNotify } from '@/lib/hub/notify';
+import { hubNotify, notifyActionError } from '@/lib/hub/notify';
 
 interface ContractStepProps {
   formData: Partial<DApp>;
@@ -51,6 +49,20 @@ export function ContractStep({ formData, onUpdate }: ContractStepProps) {
   // Safely convert error to string immediately
   const safeError = useSafeError(error);
 
+  useEffect(() => {
+    if (safeError) notifyActionError('Registration failed', safeError);
+  }, [safeError]);
+
+  useEffect(() => {
+    if (isSuccess && hash) {
+      hubNotify.txSuccess({
+        title: 'dApp registered',
+        txHash: hash,
+        chainId: chainId || undefined,
+      });
+    }
+  }, [isSuccess, hash, chainId]);
+
   const handleRegister = async () => {
     if (!isConnected || !address) {
       hubNotify.error('Wallet required', 'Please connect your wallet');
@@ -91,6 +103,7 @@ export function ContractStep({ formData, onUpdate }: ContractStepProps) {
       });
     } catch (err) {
       console.error('Error registering dApp:', err);
+      notifyActionError('Registration failed', err, 'Failed to register dApp');
       setIsRegistering(false);
     }
   };
@@ -140,18 +153,6 @@ export function ContractStep({ formData, onUpdate }: ContractStepProps) {
             Register your dApp on-chain to enable on-chain verification and integration with the marketplace.
           </p>
           
-          {safeError && (
-            <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-sm text-red-600 dark:text-red-400">
-              {safeError}
-            </div>
-          )}
-
-          {isSuccess && (
-            <div className="mb-4 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg text-sm text-green-600 dark:text-green-400">
-              dApp registered successfully! Transaction: {hash?.slice(0, 10)}...
-            </div>
-          )}
-
           <button
             onClick={handleRegister}
             disabled={isPending || isConfirming || isRegistering || isSuccess || !formData.name}

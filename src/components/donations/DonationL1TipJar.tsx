@@ -13,6 +13,7 @@ import { buildDonationsL1TipPlainNote } from '@/lib/donations/l1TipPayload';
 import { normalizeKaspaAddress } from '@/lib/kaspa/sdk';
 import { extractKaspaTransactionId } from '@/lib/kaspa/transactionId';
 import { KaspaL1WalletButton } from '@/components/KaspaL1WalletButton';
+import { notifyActionError, notifyActionWarning } from '@/lib/hub/notify';
 
 interface DonationL1TipJarProps {
   campaign: DonationCampaign;
@@ -35,7 +36,6 @@ export function DonationL1TipJar({
   const [amountKas, setAmountKas] = useState('1');
   const [revealed, setRevealed] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [err, setErr] = useState<string | null>(null);
   const [note, setNote] = useState<string | null>(null);
 
   const cid = campaign.campaignIdV2?.toString();
@@ -52,25 +52,27 @@ export function DonationL1TipJar({
   const minKas = Math.max(0.001, parseFloat(amountKas) || 0);
 
   const handleSendTip = async () => {
-    setErr(null);
     setNote(null);
     if (!donorL2) {
-      setErr('Connect your Igra (EVM) wallet so the tip can be tied to your donor profile and leaderboard points.');
+      notifyActionWarning(
+        'Wallet required',
+        'Connect your Igra (EVM) wallet so the tip can be tied to your donor profile and leaderboard points.',
+      );
       return;
     }
     if (!kaspaState.isConnected || !kaspaState.provider || !kaspaState.address) {
-      setErr('Connect your Kaspa wallet to send KAS on L1.');
+      notifyActionWarning('Wallet required', 'Connect your Kaspa wallet to send KAS on L1.');
       return;
     }
     let destDisplay: string;
     try {
       destDisplay = normalizeKaspaAddress(tipAddress.trim());
     } catch (e) {
-      setErr(e instanceof Error ? e.message : 'Invalid Kaspa address');
+      notifyActionWarning('Invalid address', e instanceof Error ? e.message : 'Invalid Kaspa address');
       return;
     }
     if (!Number.isFinite(minKas) || minKas < 0.001) {
-      setErr('Enter an amount of at least 0.001 KAS.');
+      notifyActionWarning('Invalid amount', 'Enter an amount of at least 0.001 KAS.');
       return;
     }
 
@@ -78,7 +80,7 @@ export function DonationL1TipJar({
     try {
       donorChecksum = getAddress(donorL2);
     } catch {
-      setErr('Invalid EVM wallet address.');
+      notifyActionWarning('Invalid address', 'Invalid EVM wallet address.');
       return;
     }
 
@@ -147,7 +149,7 @@ export function DonationL1TipJar({
       }
       if (lastErr) throw new Error(lastErr);
     } catch (e) {
-      setErr(e instanceof Error ? e.message : 'Tip failed');
+      notifyActionError('Tip failed', e instanceof Error ? e.message : 'Tip failed');
       setNote(null);
     } finally {
       setBusy(false);
@@ -204,7 +206,6 @@ export function DonationL1TipJar({
         </button>
       </div>
 
-      {err ? <p className="text-xs text-red-600 dark:text-red-400 mt-2">{err}</p> : null}
       {note ? <p className="text-xs text-emerald-800 dark:text-emerald-300 mt-2">{note}</p> : null}
 
       {giftOn && (

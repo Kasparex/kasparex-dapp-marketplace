@@ -14,7 +14,7 @@ import { VDONATIONS_MIN_DONATION_WEI } from '@/lib/donations/config';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { useNFTStatus } from '@/hooks/useNFTStatus';
 import type { DonationCampaign } from '@/lib/donations/types';
-import { getErrorMessage } from '@/lib/utils';
+import { notifyActionError } from '@/lib/hub/notify';
 import { getExplorerUrl } from '@/lib/dapps/deployer';
 import { TransactionSuccessModal } from '@/components/modals/TransactionSuccessModal';
 import { TransactionPendingModal } from '@/components/donations/TransactionPendingModal';
@@ -105,6 +105,10 @@ export function DonationBlock({
   useEffect(() => {
     if (isConfirmed && onL2DonationConfirmed) onL2DonationConfirmed();
   }, [isConfirmed, onL2DonationConfirmed]);
+
+  useEffect(() => {
+    if (writeError) notifyActionError('Transaction failed', writeError);
+  }, [writeError]);
 
   const { balance: krexBalance, tier } = useKREXBalance();
   const { nftStatus } = useNFTStatus();
@@ -310,9 +314,6 @@ export function DonationBlock({
           {paymentCostBreakdown && (
             <FeeDisplay breakdown={paymentCostBreakdown} label="You pay" currency={nativeSymbol} />
           )}
-          {writeError && (
-            <p className="text-sm text-red-600 dark:text-red-400">{getErrorMessage(writeError, 'Transaction failed')}</p>
-          )}
           <button
             type="button"
             onClick={handleDonateL2}
@@ -382,9 +383,6 @@ export function DonationBlock({
                 Goal reached: only the campaign creator can claim pooled escrow funds after the deadline.
               </p>
             )}
-          {writeError && (
-            <p className="text-sm text-red-600 dark:text-red-400">{getErrorMessage(writeError, 'Transaction failed')}</p>
-          )}
         </div>
       )}
 

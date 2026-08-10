@@ -1,5 +1,6 @@
 'use client';
 
+import { notifyActionError } from '@/lib/hub/notify';
 import { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { erc20Abi, isAddress, parseUnits } from 'viem';
@@ -47,7 +48,6 @@ export function SendL2TransactionModal({
   const [tab, setTab] = useState<'kas' | 'krex'>('kas');
   const [toAddress, setToAddress] = useState('');
   const [amount, setAmount] = useState('');
-  const [error, setError] = useState<string | null>(null);
   const [txHash, setTxHash] = useState<string | null>(null);
   const [resolution, setResolution] = useState<RecipientResolution>({
     resolvedAddress: null,
@@ -97,7 +97,6 @@ export function SendL2TransactionModal({
       setTab('kas');
       setToAddress('');
       setAmount('');
-      setError(null);
       setTxHash(null);
       setResolution({
         resolvedAddress: null,
@@ -229,7 +228,6 @@ export function SendL2TransactionModal({
   );
 
   const handleSend = async () => {
-    setError(null);
     try {
       if (!address) throw new Error('Connect your L2 wallet first.');
       const to = resolution.resolvedAddress;
@@ -253,7 +251,7 @@ export function SendL2TransactionModal({
         void refetchKrex();
       }
     } catch (e: any) {
-      setError(e?.shortMessage || e?.message || 'Failed to send.');
+      notifyActionError('Send failed', e?.shortMessage || e?.message || 'Failed to send.');
     }
   };
 
@@ -378,14 +376,7 @@ export function SendL2TransactionModal({
                   className="k-input"
                 />
               </div>
-
-              {error ? (
-                <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3">
-                  <p className="text-sm text-red-700 dark:text-red-400">{error}</p>
-                </div>
-              ) : null}
-
-              <div className="flex gap-3 pt-2">
+<div className="flex gap-3 pt-2">
                 <button
                   onClick={onClose}
                   className="flex-1 px-4 py-2 bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 rounded-lg hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"

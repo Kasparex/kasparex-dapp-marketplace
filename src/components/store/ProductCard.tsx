@@ -30,7 +30,7 @@ export function ProductCard({ product }: ProductCardProps) {
   const { state } = useKaspaWallet();
   const gateConfig = storeProductGateConfig(product);
   const { promptGate, isOpenable, l1Modal, closeL1Modal } = useHubListingGate(gateConfig);
-  const { purchase, isProcessing, error, success, clearError } = useStoreProductPurchase(product);
+  const { purchase, isProcessing, success, clearError } = useStoreProductPurchase(product);
   const { tokens: sellerIntegratedTokens } = useIntegratedTokens(product.sellerAddress, 'store');
 
   const thumbnailUrl = resolveStoreProductImageUrl(product);
@@ -87,11 +87,6 @@ export function ProductCard({ product }: ProductCardProps) {
             router.push(`/store/${product.slug}`);
           }
         }}
-        pricingFooterExtra={() =>
-          error ? (
-            <p className="text-xs font-medium text-red-600 dark:text-red-400">{error}</p>
-          ) : null
-        }
       />
 
       {l1Modal ? <HubWalletGateModal isOpen onClose={closeL1Modal} {...l1Modal} /> : null}

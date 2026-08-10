@@ -10,10 +10,10 @@ import { CreateArticleForm } from './CreateArticleForm';
 import { EditArticleForm } from './EditArticleForm';
 import { ArticleList } from './ArticleList';
 import { AuthorPricing } from './AuthorPricing';
-import { Alert } from '@/components/Alert';
 import { useVBlogPricing } from '@/hooks/useVBlogPricing';
 import { useKxSystemDialog } from '@/hooks/useKxSystemDialog';
 import type { VBlogDashboardNavTarget } from '@/components/vblog/VBlogSidebar';
+import { hubNotify, notifyActionError } from '@/lib/hub/notify';
 
 interface AuthorDashboardProps {
   createIntentKey?: number;
@@ -49,8 +49,6 @@ export function AuthorDashboard({
   const pricing = useVBlogPricing();
   const { confirm } = useKxSystemDialog();
   const [editingArticle, setEditingArticle] = useState<VBlogArticle | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const editAppliedRef = useRef(false);
   const prevCreateIntentRef = useRef(createIntentKey);
 
@@ -140,11 +138,8 @@ export function AuthorDashboard({
 
     await createNewArticle(articleWithAuthor);
     loadArticles();
-    setSuccessMessage('Article created successfully!');
-    setTimeout(() => {
-      setSuccessMessage(null);
-      setActiveTab('my-articles');
-    }, 2000);
+    hubNotify.success('Article created', 'Your article was published successfully.');
+    setActiveTab('my-articles');
   };
 
   const handleUpdateArticle = async (articleId: string, updates: Partial<Omit<VBlogArticle, 'id' | 'author' | 'publishDate'>>) => {
@@ -152,13 +147,11 @@ export function AuthorDashboard({
     loadArticles();
     setEditingArticle(null);
     if (updated?.slug) {
+      hubNotify.success('Article updated', 'Your changes were saved.');
       router.push(`/vblog/${encodeURIComponent(updated.slug)}`);
       return;
     }
-    setSuccessMessage('Article updated successfully!');
-    setTimeout(() => {
-      setSuccessMessage(null);
-    }, 2000);
+    hubNotify.success('Article updated', 'Your changes were saved.');
   };
 
   const handleEdit = (article: VBlogArticle) => {
@@ -193,16 +186,13 @@ export function AuthorDashboard({
         throw new Error('Article could not be removed locally.');
       }
       loadArticles();
-      setSuccessMessage('Article deleted successfully!');
-      setTimeout(() => {
-        setSuccessMessage(null);
-      }, 2000);
+      hubNotify.success('Article deleted', 'The article was removed.');
     } catch (error) {
       console.error('Error deleting article:', error);
-      setErrorMessage(error instanceof Error ? error.message : 'Failed to delete article. Please try again.');
-      setTimeout(() => {
-        setErrorMessage(null);
-      }, 4000);
+      notifyActionError(
+        'Delete failed',
+        error instanceof Error ? error.message : 'Failed to delete article. Please try again.',
+      );
     }
   };
 
@@ -243,22 +233,6 @@ export function AuthorDashboard({
           <AuthorPricing />
         </div>
       ) : null}
-
-      {errorMessage && (
-        <div className="fixed bottom-12 right-12 z-[100] animate-in slide-in-from-bottom-5">
-          <Alert type="error" onDismiss={() => setErrorMessage(null)}>
-            {errorMessage}
-          </Alert>
-        </div>
-      )}
-
-      {successMessage && (
-        <div className="fixed bottom-12 right-12 z-[100] animate-in slide-in-from-bottom-5">
-          <Alert type="success" onDismiss={() => setSuccessMessage(null)}>
-            {successMessage}
-          </Alert>
-        </div>
-      )}
 
       <div className="min-h-[400px]">
         {activeTab === 'create' ? (

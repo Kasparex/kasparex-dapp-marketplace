@@ -15,6 +15,7 @@ import {
   type SplitRecipientInput,
 } from '@/lib/covenant';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
+import { notifyActionError } from '@/lib/hub/notify';
 
 interface UseCovenantSplitReturn {
   splits: SplitPayment[];
@@ -74,13 +75,12 @@ export function useCovenantSplit(): UseCovenantSplitReturn {
 
   const createSplit = useCallback(
     async (args: { totalKas: number; memo: string; recipients: SplitRecipientInput[] }) => {
-      if (args.totalKas <= 0) throw new Error('Total must be positive');
-
-      const totalSompi = String(Math.round(args.totalKas * 100_000_000));
-
       setIsLoading(true);
       setError(null);
       try {
+        if (args.totalKas <= 0) throw new Error('Total must be positive');
+
+        const totalSompi = String(Math.round(args.totalKas * 100_000_000));
         const pricing = resolveKpxCovenantDeployPrice('split', krexTier, {
           premiumSlotCount: args.recipients.length,
         });
@@ -102,7 +102,7 @@ export function useCovenantSplit(): UseCovenantSplitReturn {
         await refreshSplits();
         return split;
       } catch (err) {
-        const msg = err instanceof Error ? err.message : 'Failed to create split';
+        const msg = notifyActionError('Create failed', err, 'Failed to create split');
         setError(msg);
         throw err;
       } finally {
@@ -137,7 +137,7 @@ export function useCovenantSplit(): UseCovenantSplitReturn {
         await refreshSplits();
         return split;
       } catch (err) {
-        const msg = err instanceof Error ? err.message : 'Failed to claim share';
+        const msg = notifyActionError('Claim failed', err, 'Failed to claim share');
         setError(msg);
         throw err;
       } finally {

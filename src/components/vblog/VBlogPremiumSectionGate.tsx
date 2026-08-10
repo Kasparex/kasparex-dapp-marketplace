@@ -37,7 +37,6 @@ type VBlogPremiumSectionGateProps = {
   flowBusy?: boolean;
   flowComplete?: boolean;
   flowActiveStepId?: string | null;
-  actionError?: string | null;
   onUnlock: () => void;
 };
 
@@ -62,7 +61,6 @@ export function VBlogPremiumSectionGate({
   flowBusy,
   flowComplete = false,
   flowActiveStepId = null,
-  actionError = null,
   onUnlock,
 }: VBlogPremiumSectionGateProps) {
   const { catalogEntries } = useHubPayWithCatalog({
@@ -160,11 +158,7 @@ export function VBlogPremiumSectionGate({
             </button>
           }
           alerts={
-            actionError ? (
-              <p className="rounded-xl border border-red-300/70 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-500/40 dark:bg-red-950/40 dark:text-red-200">
-                {actionError}
-              </p>
-            ) : hasPendingPayment && !isProcessing ? (
+            hasPendingPayment && !isProcessing ? (
               <p className="rounded-xl border border-amber-300/70 bg-amber-50 px-3 py-2 text-sm text-amber-900 dark:border-amber-500/40 dark:bg-amber-950/40 dark:text-amber-100">
                 A previous payment step already succeeded in your wallet. Continue to finish unlock without
                 re-paying completed steps.

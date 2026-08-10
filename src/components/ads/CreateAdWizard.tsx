@@ -48,6 +48,7 @@ import {
   transferKrexForAdsPayment,
   useAdsPayment,
 } from '@/hooks/useAdsPayment';
+import { hubNotify, notifyActionError, notifyActionWarning } from '@/lib/hub/notify';
 import { formatKaspaWalletError } from '@/lib/kaspa/formatWalletError';
 import { readJsonResponse } from '@/lib/http/readJsonResponse';
 import { exposureBonusSecondsFromPremium } from '@/lib/ads/carouselTiming';
@@ -104,7 +105,6 @@ export function CreateAdWizard({
   const [isKrexWizardOpen, setIsKrexWizardOpen] = useState(false);
   const [txHash, setTxHash] = useState<string | null>(null);
   const [metadataCid, setMetadataCid] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [verifyNote, setVerifyNote] = useState<string | null>(null);
   const [connectBusy, setConnectBusy] = useState(false);
   const ipfsFileInputRef = useRef<HTMLInputElement>(null);
@@ -202,7 +202,6 @@ export function CreateAdWizard({
       setImageSpecError(null);
       setTxHash(null);
       setMetadataCid(null);
-      setError(null);
       setVerifyNote(null);
       setSyncAdsAfterPayment(false);
       lastPaymentSyncRef.current = null;
@@ -325,15 +324,16 @@ export function CreateAdWizard({
   };
 
   const handlePay = async () => {
-    setError(null);
-
     const provider = kaspaState.provider;
     if (!provider) {
-      setError('Connect your Kaspa (L1) wallet to pay.');
+      hubNotify.error('Wallet required', 'Connect your Kaspa (L1) wallet to pay.');
       return;
     }
     if (!getWalletProvider(provider)) {
-      setError('Wallet extension is not available. Refresh the page or reconnect your wallet.');
+      hubNotify.error(
+        'Wallet unavailable',
+        'Wallet extension is not available. Refresh the page or reconnect your wallet.',
+      );
       return;
     }
 
@@ -348,15 +348,15 @@ export function CreateAdWizard({
     }
 
     if (!payerAddress) {
-      setError('Connect your Kaspa (L1) wallet to pay.');
+      hubNotify.error('Wallet required', 'Connect your Kaspa (L1) wallet to pay.');
       return;
     }
     if (!slotId || !slotConfig) {
-      setError('Select a slot.');
+      notifyActionWarning('Slot required', 'Select a slot.');
       return;
     }
     if (!canProceedDetails || !slotAvailable) {
-      setError('Fill in all details and pick an available slot.');
+      notifyActionWarning('Incomplete details', 'Fill in all details and pick an available slot.');
       return;
     }
 
@@ -364,7 +364,10 @@ export function CreateAdWizard({
     if (payCur === 'KREX') {
       const priceKrex = adsPriceKrexFromKas(priceKas, pricingSnapshot);
       if (krexL1Balance + 1e-12 < priceKrex) {
-        setError(`Insufficient KREX on your L1 wallet (${krexL1Balance.toFixed(2)} available, ${priceKrex} required).`);
+        notifyActionWarning(
+          'Insufficient KREX',
+          `Insufficient KREX on your L1 wallet (${krexL1Balance.toFixed(2)} available, ${priceKrex} required).`,
+        );
         return;
       }
     }
@@ -373,7 +376,7 @@ export function CreateAdWizard({
     try {
       payerL1 = normalizeKaspaAddress(payerAddress);
     } catch {
-      setError('Invalid Kaspa wallet address.');
+      notifyActionError('Invalid address', 'Invalid Kaspa wallet address.');
       return;
     }
 
@@ -419,12 +422,19 @@ export function CreateAdWizard({
       });
       setMetadataCid(cid);
 
-      const { txHash: hash } = await payAdCampaign({
-        currency: payCur,
-        priceKas,
-        metadataCid: cid,
-        krexPaymentTxHash,
-      });
+      let hash: string;
+      try {
+        const paid = await payAdCampaign({
+          currency: payCur,
+          priceKas,
+          metadataCid: cid,
+          krexPaymentTxHash,
+        });
+        hash = paid.txHash;
+      } catch {
+        /* useAdsPayment already toasts */
+        return;
+      }
       setTxHash(hash);
       lastPaymentSyncRef.current = { txHash: hash, metadataCid: cid };
 
@@ -508,7 +518,7 @@ export function CreateAdWizard({
       }
       setVerifyNote(lastVerifyMessage);
     } catch (e) {
-      setError(formatKaspaWalletError(e));
+      notifyActionError('Campaign failed', formatKaspaWalletError(e));
     } finally {
       setIsSubmitting(false);
     }
@@ -518,7 +528,6 @@ export function CreateAdWizard({
 
   const handleWalletConnect = async (provider: KaspaWalletProvider) => {
     setConnectBusy(true);
-    setError(null);
     try {
       await connectKaspa(provider, {
         enableSIWK: true,
@@ -529,7 +538,7 @@ export function CreateAdWizard({
         },
       });
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Connection failed');
+      notifyActionError('Connection failed', e instanceof Error ? e.message : 'Connection failed');
     } finally {
       setConnectBusy(false);
     }
@@ -1074,11 +1083,6 @@ export function CreateAdWizard({
             </div>
           )}
 
-          {error && (
-            <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-600 dark:text-red-400 text-sm">
-              {error}
-            </div>
-          )}
         </div>
 
         <div className="px-6 py-4 border-t border-zinc-200 dark:border-zinc-800 flex flex-wrap items-center justify-between gap-3">

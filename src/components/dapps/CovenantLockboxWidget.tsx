@@ -19,7 +19,6 @@ import {
   CovenantRailAlerts,
   renderCovenantFormAlerts,
 } from '@/components/dapps/covenant/CovenantRailAlerts';
-import { Alert } from '@/components/Alert';
 import { DAppWidgetShell } from '@/components/dapps/DAppWidgetShell';
 import { getKpxCovenantBrand } from '@/lib/covenant/kpxBranding';
 import {
@@ -97,7 +96,6 @@ export function CovenantLockboxWidget() {
   const {
     vaults,
     isLoading,
-    error,
     createVault,
     claimVault,
     reclaimVault,
@@ -215,15 +213,10 @@ export function CovenantLockboxWidget() {
   const railAlerts = useMemo(
     () => (
       <CovenantRailAlerts>
-        {error ? (
-          <Alert type="error" compact region>
-            {error}
-          </Alert>
-        ) : null}
         {tab === 'create' ? renderCovenantFormAlerts(formAlerts) : null}
       </CovenantRailAlerts>
     ),
-    [error, tab, formAlerts],
+    [tab, formAlerts],
   );
 
   const updateClaimerRow = (key: string, patch: Partial<ClaimerRow>) => {
@@ -366,7 +359,6 @@ export function CovenantLockboxWidget() {
       memo,
       percentSum,
       railAlerts,
-      error,
     ],
   });
 

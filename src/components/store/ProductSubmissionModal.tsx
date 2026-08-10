@@ -12,6 +12,7 @@ import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { KxFormDropdown } from '@/components/ui/KxFormDropdown';
 import { payKasPaymentPlan } from '@/lib/payments/kasMultiOutPay';
 import { buildHubPlatformFeePlan } from '@/lib/payments/paymentPlan';
+import { hubNotify, notifyActionError, notifyActionWarning } from '@/lib/hub/notify';
 
 interface ProductSubmissionModalProps {
   isOpen: boolean;
@@ -45,7 +46,6 @@ export function ProductSubmissionModal({
   const [thumbnailCid, setThumbnailCid] = useState<string | null>(null);
   const [assetCids, setAssetCids] = useState<string[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [step, setStep] = useState<'form' | 'upload' | 'payment' | 'complete'>('form');
 
   const categories: ProductCategory[] = ['Software', 'Art', 'Music', 'Templates', 'Other'];
@@ -57,20 +57,22 @@ export function ProductSubmissionModal({
     // Check file size (2MB limit)
     const maxSize = 2 * 1024 * 1024; // 2MB in bytes
     if (file.size > maxSize) {
-      setError(`Image size exceeds 2MB limit. Please use a smaller image. (Current: ${(file.size / 1024 / 1024).toFixed(2)}MB)`);
+      notifyActionWarning(
+        'Image too large',
+        `Image size exceeds 2MB limit. Please use a smaller image. (Current: ${(file.size / 1024 / 1024).toFixed(2)}MB)`,
+      );
       e.target.value = ''; // Clear the input
       return;
     }
 
     setThumbnailFile(file);
-    setError(null);
 
     // Upload thumbnail
     const cid = await upload(file, { filename: file.name });
     if (cid) {
       setThumbnailCid(cid);
     } else {
-      setError('Failed to upload thumbnail');
+      notifyActionError('Upload failed', 'Failed to upload thumbnail');
     }
   };
 
@@ -84,13 +86,12 @@ export function ProductSubmissionModal({
 
     if (oversizedFiles.length > 0) {
       const fileNames = oversizedFiles.map(f => `${f.name} (${(f.size / 1024 / 1024).toFixed(2)}MB)`).join(', ');
-      setError(`Some files exceed 2MB limit: ${fileNames}. Please use smaller files.`);
+      notifyActionWarning('Files too large', `Some files exceed 2MB limit: ${fileNames}. Please use smaller files.`);
       e.target.value = ''; // Clear the input
       return;
     }
 
     setAssetFiles((prev) => [...prev, ...files]);
-    setError(null);
 
     // Upload all files
     const cids: string[] = [];
@@ -107,28 +108,27 @@ export function ProductSubmissionModal({
   const handleSubmit = async () => {
     // Validation
     if (!formData.title.trim()) {
-      setError('Title is required');
+      notifyActionWarning('Title required', 'Title is required');
       return;
     }
     if (!formData.description.trim()) {
-      setError('Description is required');
+      notifyActionWarning('Description required', 'Description is required');
       return;
     }
     if (!formData.priceKAS || parseFloat(formData.priceKAS) <= 0) {
-      setError('Valid price is required');
+      notifyActionWarning('Price required', 'Valid price is required');
       return;
     }
     if (!thumbnailCid) {
-      setError('Thumbnail image is required');
+      notifyActionWarning('Thumbnail required', 'Thumbnail image is required');
       return;
     }
     if (!state.isConnected || !state.address) {
-      setError('Please connect your wallet');
+      hubNotify.error('Wallet required', 'Please connect your wallet');
       return;
     }
 
     setIsProcessing(true);
-    setError(null);
     setStep('payment');
 
     try {
@@ -183,6 +183,7 @@ export function ProductSubmissionModal({
       }
 
       setStep('complete');
+      hubNotify.success('Product published', 'Your Store listing is live.');
 
       // Call onSuccess to refresh product list
       if (onSuccess) {
@@ -197,8 +198,7 @@ export function ProductSubmissionModal({
         handleClose();
       }, 2000);
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to submit product';
-      setError(errorMessage);
+      notifyActionError('Publish failed', err instanceof Error ? err.message : 'Failed to submit product');
       setStep('form');
     } finally {
       setIsProcessing(false);
@@ -218,7 +218,6 @@ export function ProductSubmissionModal({
     setAssetFiles([]);
     setThumbnailCid(null);
     setAssetCids([]);
-    setError(null);
     setStep('form');
     onClose();
   };
@@ -382,12 +381,6 @@ export function ProductSubmissionModal({
                   Listing fee: <span className="font-semibold">{LISTING_FEE_KAS} KAS</span>
                 </p>
               </div>
-
-              {error && (
-                <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3">
-                  <p className="text-sm text-red-800 dark:text-red-300">{error}</p>
-                </div>
-              )}
 
               {/* Submit Button */}
               <div className="flex gap-3">

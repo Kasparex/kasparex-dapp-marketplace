@@ -38,7 +38,7 @@ type BusyKey = null | 'create' | `pledge:${string}` | `claim:${string}` | `refun
 
 export function CovenantCrowdfundWidget() {
   const { state } = useKaspaWallet();
-  const { allCampaigns, loading, error, createCampaign, pledge, claimFunds, refund, refresh, runtimeMode, effectiveMode } =
+  const { allCampaigns, loading, createCampaign, pledge, claimFunds, refund, refresh, runtimeMode, effectiveMode } =
     useCovenantCrowdfund();
   const { pricing, krexTier, krexBalance } = useKpxCovenantDeployFee('crowdfund');
   const { pricing: claimPricing } = useKpxCovenantClaimFee('crowdfund');
@@ -71,6 +71,8 @@ export function CovenantCrowdfundWidget() {
         deadline: new Date(deadline),
       });
       navigateTab('browse');
+    } catch (e) {
+      console.error(e);
     } finally {
       setBusyKey(null);
     }
@@ -81,6 +83,8 @@ export function CovenantCrowdfundWidget() {
     try {
       await pledge(campaignId, amountKas);
       setPledgeAmounts((p) => ({ ...p, [campaignId]: '' }));
+    } catch (e) {
+      console.error(e);
     } finally {
       setBusyKey(null);
     }
@@ -90,6 +94,8 @@ export function CovenantCrowdfundWidget() {
     setBusyKey(`claim:${campaignId}`);
     try {
       await claimFunds(campaignId);
+    } catch (e) {
+      console.error(e);
     } finally {
       setBusyKey(null);
     }
@@ -99,6 +105,8 @@ export function CovenantCrowdfundWidget() {
     setBusyKey(`refund:${pledgeId}`);
     try {
       await refund(campaignId, pledgeId);
+    } catch (e) {
+      console.error(e);
     } finally {
       setBusyKey(null);
     }
@@ -119,11 +127,6 @@ export function CovenantCrowdfundWidget() {
         : pricing.waived,
     alerts: (
       <CovenantRailAlerts>
-        {error ? (
-          <Alert type="error" compact region>
-            {error}
-          </Alert>
-        ) : null}
         {tab === 'create' ? (
           <>
             <Alert type="info" compact region>
@@ -156,7 +159,7 @@ export function CovenantCrowdfundWidget() {
             : `Pay ${pricing.feeKas.toFixed(2)} KAS fee & launch`}
       </button>
     ),
-    deps: [tab, busyKey, title, deadline, pricing, claimPricing, goalKas, memo, error],
+    deps: [tab, busyKey, title, deadline, pricing, claimPricing, goalKas, memo],
   });
 
   if (!state.isConnected) {

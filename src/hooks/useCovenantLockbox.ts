@@ -25,6 +25,7 @@ import {
 import { normalizeCovenantClaimers, normalizeCovenantMemo } from '@/lib/covenant/participants';
 import { COVENANT_LAB_CONFIG } from '@/lib/covenant/config';
 import { allocateBps, randomId } from '@/lib/covenant/utils';
+import { notifyActionError } from '@/lib/hub/notify';
 
 export type LockboxRecipientInput = {
   address: string;
@@ -139,40 +140,40 @@ export function useCovenantLockbox(): UseCovenantLockboxReturn {
       unlockAt: Date | null;
       deadlineAt?: Date | null;
     }) => {
-      if (args.amountKas <= 0) throw new Error('Amount must be positive');
-      if (args.kind === 'timelock' && !args.unlockAt) {
-        throw new Error('Timelock requires an unlock date');
-      }
-      if (args.kind === 'timelock' && args.unlockAt && args.deadlineAt) {
-        if (args.deadlineAt.getTime() <= args.unlockAt.getTime()) {
-          throw new Error('Deadline must be after the unlock time');
-        }
-      }
-
-      const recipients = validateLockboxRecipients(args.recipients);
-      const memo = normalizeCovenantMemo(args.memo, COVENANT_LAB_CONFIG.maxMemoLength);
-      const totalSompi = BigInt(Math.round(args.amountKas * 100_000_000));
-      const unlockAtMs = args.unlockAt ? args.unlockAt.getTime() : null;
-      const deadlineAtMs =
-        args.kind === 'timelock' && args.deadlineAt ? args.deadlineAt.getTime() : null;
-      const amounts = allocateBps(
-        totalSompi,
-        recipients.map((r) => r.shareBps),
-      );
-      const min = BigInt(COVENANT_LAB_CONFIG.minLockSompi);
-      for (const amountSompi of amounts) {
-        if (BigInt(amountSompi) < min) {
-          throw new Error(
-            `Each claimer share must be at least ${Number(min) / 1e8} KAS (raise the total or adjust %)`,
-          );
-        }
-      }
-
-      const groupId = recipients.length > 1 ? randomId('lbg') : undefined;
-
       setIsLoading(true);
       setError(null);
       try {
+        if (args.amountKas <= 0) throw new Error('Amount must be positive');
+        if (args.kind === 'timelock' && !args.unlockAt) {
+          throw new Error('Timelock requires an unlock date');
+        }
+        if (args.kind === 'timelock' && args.unlockAt && args.deadlineAt) {
+          if (args.deadlineAt.getTime() <= args.unlockAt.getTime()) {
+            throw new Error('Deadline must be after the unlock time');
+          }
+        }
+
+        const recipients = validateLockboxRecipients(args.recipients);
+        const memo = normalizeCovenantMemo(args.memo, COVENANT_LAB_CONFIG.maxMemoLength);
+        const totalSompi = BigInt(Math.round(args.amountKas * 100_000_000));
+        const unlockAtMs = args.unlockAt ? args.unlockAt.getTime() : null;
+        const deadlineAtMs =
+          args.kind === 'timelock' && args.deadlineAt ? args.deadlineAt.getTime() : null;
+        const amounts = allocateBps(
+          totalSompi,
+          recipients.map((r) => r.shareBps),
+        );
+        const min = BigInt(COVENANT_LAB_CONFIG.minLockSompi);
+        for (const amountSompi of amounts) {
+          if (BigInt(amountSompi) < min) {
+            throw new Error(
+              `Each claimer share must be at least ${Number(min) / 1e8} KAS (raise the total or adjust %)`,
+            );
+          }
+        }
+
+        const groupId = recipients.length > 1 ? randomId('lbg') : undefined;
+
         const pricing = resolveKpxCovenantDeployPrice('lockbox', krexTier, {
           premiumSlotCount: recipients.length,
         });
@@ -229,7 +230,7 @@ export function useCovenantLockbox(): UseCovenantLockboxReturn {
         await refreshVaults();
         return primary;
       } catch (err) {
-        const msg = err instanceof Error ? err.message : 'Failed to create vault';
+        const msg = notifyActionError('Create failed', err, 'Failed to create vault');
         setError(msg);
         throw err;
       } finally {
@@ -260,7 +261,7 @@ export function useCovenantLockbox(): UseCovenantLockboxReturn {
         await refreshVaults();
         return vault;
       } catch (err) {
-        const msg = err instanceof Error ? err.message : 'Failed to claim vault';
+        const msg = notifyActionError('Claim failed', err, 'Failed to claim vault');
         setError(msg);
         throw err;
       } finally {
@@ -294,7 +295,7 @@ export function useCovenantLockbox(): UseCovenantLockboxReturn {
         await refreshVaults();
         return vault;
       } catch (err) {
-        const msg = err instanceof Error ? err.message : 'Failed to reclaim vault';
+        const msg = notifyActionError('Reclaim failed', err, 'Failed to reclaim vault');
         setError(msg);
         throw err;
       } finally {
@@ -357,7 +358,7 @@ export function useCovenantLockbox(): UseCovenantLockboxReturn {
         await refreshVaults();
         return vault;
       } catch (err) {
-        const msg = err instanceof Error ? err.message : 'Import failed';
+        const msg = notifyActionError('Import failed', err, 'Import failed');
         setError(msg);
         throw err;
       } finally {

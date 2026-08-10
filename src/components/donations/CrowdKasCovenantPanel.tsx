@@ -10,7 +10,7 @@ import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { CROWDKAS_FORM_PANEL_CLASS, CROWDKAS_PREMIUM_MODULE_CARD_CLASS } from '@/components/donations/crowdkasFormTheme';
 import { VDONATE_PRODUCT_NAME, VDONATE_SHORT_NAME } from '@/lib/donations/brand';
-import { CrowdKasShell, CrowdKasError, CrowdKasPrototypeNotice } from '@/components/donations/CrowdKasUi';
+import { CrowdKasShell, CrowdKasPrototypeNotice } from '@/components/donations/CrowdKasUi';
 import { CrowdKasCampaignMediaField } from '@/components/donations/CrowdKasCampaignMediaField';
 import { CovenantDatetimeField } from '@/components/dapps/covenant/CovenantDatetimeField';
 import { DonationCategoryField } from '@/components/donations/DonationCategoryField';
@@ -70,7 +70,7 @@ export const CrowdKasCovenantPanel = forwardRef<CrowdKasCovenantPanelHandle, Cro
     ref,
   ) {
     const { state } = useKaspaWallet();
-    const { error, createCampaign, runtimeMode, effectiveMode } = useCovenantCrowdfund();
+    const { createCampaign, runtimeMode, effectiveMode } = useCovenantCrowdfund();
     const [title, setTitle] = useState('');
     const [shortDescription, setShortDescription] = useState('');
     const [mainContent, setMainContent] = useState('');
@@ -179,6 +179,9 @@ export const CrowdKasCovenantPanel = forwardRef<CrowdKasCovenantPanelHandle, Cro
         setImageCid(null);
         setImageFileName(null);
         setModules({});
+      } catch (e) {
+        /* useCovenantCrowdfund already toasts; rethrow for studio callers */
+        throw e;
       } finally {
         setBusy(false);
       }
@@ -355,8 +358,6 @@ export const CrowdKasCovenantPanel = forwardRef<CrowdKasCovenantPanelHandle, Cro
         ) : null}
 
         {!studioMode ? <CrowdKasPrototypeNotice /> : null}
-
-        {error && <CrowdKasError message={error} />}
 
         {createdId && (
           <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-sm space-y-2">

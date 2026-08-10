@@ -113,9 +113,7 @@ export function MinecoreDashboard(_props: {
   const {
     state,
     actions,
-    lastPaymentError,
     lastSetupError,
-    dismissLastPaymentError,
     dismissLastSetupError,
     getKasPriceAfterDiscount,
     slotPurchaseKasByType,
@@ -366,7 +364,7 @@ export function MinecoreDashboard(_props: {
     <TooltipProvider>
       <KREXBuyWizard isOpen={krexWizardOpen} onClose={() => setKrexWizardOpen(false)} />
       <div className="flex flex-col space-y-6">
-        {profileNotice || lastPaymentError || lastSetupError ? (
+        {profileNotice || lastSetupError ? (
           <div className="space-y-3">
             {profileNotice ? (
               <div className="relative rounded-2xl border border-sky-500/30 bg-sky-500/10 p-4 pr-11 text-sm font-semibold text-sky-900 dark:text-sky-100">
@@ -379,19 +377,6 @@ export function MinecoreDashboard(_props: {
                   <Icons.X className="h-4 w-4" />
                 </button>
                 {profileNotice}
-              </div>
-            ) : null}
-            {lastPaymentError ? (
-              <div className="relative rounded-2xl border border-rose-500/30 bg-rose-500/10 p-4 pr-11 text-sm font-semibold text-rose-800 dark:text-rose-200">
-                <button
-                  type="button"
-                  onClick={() => dismissLastPaymentError()}
-                  className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-lg border border-rose-500/30 text-rose-700 transition-colors hover:bg-rose-500/20 dark:text-rose-200 dark:hover:bg-rose-500/15"
-                  aria-label="Dismiss error"
-                >
-                  <Icons.X className="h-4 w-4" />
-                </button>
-                {lastPaymentError}
               </div>
             ) : null}
             {lastSetupError ? (

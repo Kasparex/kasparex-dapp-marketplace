@@ -17,6 +17,7 @@ import {
   type VoucherLock,
 } from '@/lib/covenant';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
+import { notifyActionError } from '@/lib/hub/notify';
 
 export function useCovenantVoucher() {
   const { state } = useKaspaWallet();
@@ -59,50 +60,64 @@ export function useCovenantVoucher() {
 
   const createVoucher = useCallback(
     async (args: { amountKas: number; memo: string; expiresAt: Date }) => {
-      const secret = `kpx-${randomHex(16)}`;
-      const secretHash = await sha256Hex(secret);
-      const pricing = resolveKpxCovenantDeployPrice('voucher', krexTier);
-      const voucher = await runKpxCovenantDeployWithFee({
-        template: 'voucher',
-        pricing,
-        ctx: walletCtx(),
-        create: () =>
-          runtime.create(
-            {
-              creator: walletCtx().userAddress,
-              amountSompi: kasToSompiString(args.amountKas),
-              secretHash,
-              memo: args.memo,
-              expiresAt: args.expiresAt.getTime(),
-            },
-            walletCtx(),
-          ),
-      });
-      await refresh();
-      return { voucher, secret };
+      setError(null);
+      try {
+        const secret = `kpx-${randomHex(16)}`;
+        const secretHash = await sha256Hex(secret);
+        const pricing = resolveKpxCovenantDeployPrice('voucher', krexTier);
+        const voucher = await runKpxCovenantDeployWithFee({
+          template: 'voucher',
+          pricing,
+          ctx: walletCtx(),
+          create: () =>
+            runtime.create(
+              {
+                creator: walletCtx().userAddress,
+                amountSompi: kasToSompiString(args.amountKas),
+                secretHash,
+                memo: args.memo,
+                expiresAt: args.expiresAt.getTime(),
+              },
+              walletCtx(),
+            ),
+        });
+        await refresh();
+        return { voucher, secret };
+      } catch (err) {
+        const msg = notifyActionError('Create failed', err, 'Failed to create voucher');
+        setError(msg);
+        throw err;
+      }
     },
     [refresh, runtime, walletCtx, krexTier]
   );
 
   const claimVoucher = useCallback(
     async (voucherId: string, secret: string) => {
-      const pricing = resolveKpxCovenantClaimPrice('voucher', krexTier);
-      const existing = (await runtime.listForAddress(walletCtx().userAddress)).find(
-        (v) => v.id === voucherId,
-      )?.claimFeeTxHash;
-      const v = await runKpxCovenantClaimWithFee({
-        template: 'voucher',
-        pricing,
-        ctx: walletCtx(),
-        instanceId: voucherId,
-        existingFeeTxHash: existing,
-        onFeePaid: async (feeTxHash) => {
-          await getSilverscriptVoucherRuntime().setClaimFeeTxHash(voucherId, feeTxHash);
-        },
-        claim: () => runtime.claim(voucherId, secret, walletCtx().userAddress, walletCtx()),
-      });
-      await refresh();
-      return v;
+      setError(null);
+      try {
+        const pricing = resolveKpxCovenantClaimPrice('voucher', krexTier);
+        const existing = (await runtime.listForAddress(walletCtx().userAddress)).find(
+          (v) => v.id === voucherId,
+        )?.claimFeeTxHash;
+        const v = await runKpxCovenantClaimWithFee({
+          template: 'voucher',
+          pricing,
+          ctx: walletCtx(),
+          instanceId: voucherId,
+          existingFeeTxHash: existing,
+          onFeePaid: async (feeTxHash) => {
+            await getSilverscriptVoucherRuntime().setClaimFeeTxHash(voucherId, feeTxHash);
+          },
+          claim: () => runtime.claim(voucherId, secret, walletCtx().userAddress, walletCtx()),
+        });
+        await refresh();
+        return v;
+      } catch (err) {
+        const msg = notifyActionError('Claim failed', err, 'Failed to claim voucher');
+        setError(msg);
+        throw err;
+      }
     },
     [refresh, runtime, walletCtx, krexTier]
   );

@@ -175,7 +175,6 @@ export function HubListingVoteControls({
   const authorIsL1 = isKaspaPayee(creatorWallet);
   const [tick, setTick] = useState(0);
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   const voterWallet = authorIsL2 ? evmAddress?.trim() || null : kaspaWallet;
   const score = scoreFor(storageKey, entityId) + tick * 0;
@@ -211,7 +210,6 @@ export function HubListingVoteControls({
     if (!canVote || busy || !voterWallet) return;
 
     setBusy(true);
-    setError(null);
     const loadingId = hubNotify.loading(
       vote === 'up' ? 'Casting upvote…' : 'Casting downvote…',
       authorIsL2 ? 'Saving vote' : 'Confirm KAS payment in your wallet',
@@ -286,7 +284,6 @@ export function HubListingVoteControls({
     } catch (err) {
       const message = formatKaspaWalletError(err);
       console.error('[HubListingVoteControls] vote failed', err);
-      setError(message);
       hubNotify.update(loadingId, {
         title: 'Vote failed',
         description: message,
@@ -333,11 +330,6 @@ export function HubListingVoteControls({
           </button>
         </Tooltip>
       </div>
-      {error ? (
-        <p className="mt-1 max-w-[16rem] text-[10px] leading-snug text-rose-600 dark:text-rose-400">
-          {error}
-        </p>
-      ) : null}
     </div>
   );
 }

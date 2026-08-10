@@ -27,6 +27,7 @@ import { formatKaspaWalletError } from '@/lib/kaspa/formatWalletError';
 import { buildKasKrexCurrencyOptions } from '@/lib/payments/hubPaymentTypes';
 import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
 import { appendHubActivityEarn } from '@/lib/rewards/appendHubActivityEarn';
+import { notifyActionError } from '@/lib/hub/notify';
 
 export function CrowdKasPremiumSectionUnlock({
   campaign,
@@ -53,7 +54,6 @@ export function CrowdKasPremiumSectionUnlock({
   const [premiumCurrency, setPremiumCurrency] = useState('KAS');
   const [isProcessing, setIsProcessing] = useState(false);
   const [flowComplete, setFlowComplete] = useState(false);
-  const [actionError, setActionError] = useState<string | null>(null);
   const [refreshTick, setRefreshTick] = useState(0);
 
   const discountPercent = getVBlogModuleDiscountPercent(tier);
@@ -101,7 +101,6 @@ export function CrowdKasPremiumSectionUnlock({
     });
 
     setIsProcessing(true);
-    setActionError(null);
     setFlowComplete(false);
     try {
       reportHubFlowStep('sign-pay', 'hubPay', 'Approve the creator payout in your wallet');
@@ -159,7 +158,7 @@ export function CrowdKasPremiumSectionUnlock({
       setRefreshTick((x) => x + 1);
       onDonationRecorded?.();
     } catch (e) {
-      setActionError(formatKaspaWalletError(e) || 'Unlock failed');
+      notifyActionError('Unlock failed', formatKaspaWalletError(e) || 'Unlock failed');
     } finally {
       setIsProcessing(false);
     }
@@ -205,7 +204,6 @@ export function CrowdKasPremiumSectionUnlock({
       pricingSnapshot={pricingSnapshot}
       flowBusy={isProcessing}
       flowComplete={flowComplete && unlocked}
-      actionError={actionError}
       onUnlock={() => void handleUnlock()}
     />
   );

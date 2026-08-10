@@ -65,13 +65,14 @@ export function CrowdKasEditCampaignForm<T extends CrowdKasEditFormState>({
   editingV2CampaignId,
   l1TipsUnlockedV2,
   paidModulesUnlocked,
-  editErrorMsg,
-  updateErrorMsg,
+  editErrorMsg: _editErrorMsg,
+  updateErrorMsg: _updateErrorMsg,
   isSubmitting,
   onSave,
   onCancel,
   hideActions = false,
 }: {
+  // Action errors toast at the studio source; props kept for call-site compat.
   form: T;
   onFormChange: Dispatch<SetStateAction<T>>;
   onChainLock: CrowdKasEditOnChainLock | null;
@@ -103,6 +104,8 @@ export function CrowdKasEditCampaignForm<T extends CrowdKasEditFormState>({
   onCancel: () => void;
   hideActions?: boolean;
 }) {
+  void _editErrorMsg;
+  void _updateErrorMsg;
   return (
     <div className={`${CROWDKAS_FORM_PANEL_CLASS} space-y-6`}>
       <div>
@@ -384,13 +387,6 @@ export function CrowdKasEditCampaignForm<T extends CrowdKasEditFormState>({
             hidePremiumSection
           />
         </div>
-
-        {editErrorMsg && hideActions ? null : editErrorMsg ? (
-          <p className="text-sm text-red-600 dark:text-red-400">{editErrorMsg}</p>
-        ) : null}
-        {updateErrorMsg && hideActions ? null : updateErrorMsg ? (
-          <p className="text-sm text-red-600 dark:text-red-400">{updateErrorMsg}</p>
-        ) : null}
 
         {hideActions ? (
           <div className="flex gap-2">

@@ -1,5 +1,6 @@
 'use client';
 
+import { notifyActionError } from '@/lib/hub/notify';
 import { useState, useRef, useCallback } from 'react';
 import { ImagePreview } from '@/components/ImagePreview';
 
@@ -36,7 +37,6 @@ export function ImageUpload({
 }: ImageUploadProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
-  const [uploadError, setUploadError] = useState<string | null>(null);
   const [urlInput, setUrlInput] = useState(value || '');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -58,17 +58,16 @@ export function ImageUpload({
   const handleFileUpload = useCallback(async (file: File) => {
     const validationError = validateFile(file);
     if (validationError) {
-      setUploadError(validationError);
+      notifyActionError('Upload failed', validationError);
       return;
     }
 
     if (!onFileSelect) {
-      setUploadError('File upload not configured');
+      notifyActionError('Upload failed', 'File upload not configured');
       return;
     }
 
     setIsUploading(true);
-    setUploadError(null);
 
     try {
       const cid = await onFileSelect(file);
@@ -76,11 +75,11 @@ export function ImageUpload({
         onChange(cid);
         setUrlInput(cid);
       } else {
-        setUploadError('Failed to upload file');
+        notifyActionError('Upload failed', 'Failed to upload file');
       }
     } catch (error) {
       console.error('File upload error:', error);
-      setUploadError(error instanceof Error ? error.message : 'Upload failed');
+      notifyActionError('Upload failed', error instanceof Error ? error.message : 'Upload failed');
     } finally {
       setIsUploading(false);
     }
@@ -113,7 +112,7 @@ export function ImageUpload({
     if (imageFile) {
       handleFileUpload(imageFile);
     } else {
-      setUploadError('Please drop an image file');
+      notifyActionError('Upload failed', 'Please drop an image file');
     }
   }, [disabled, showFileUpload, handleFileUpload]);
 
@@ -229,15 +228,7 @@ export function ImageUpload({
           )}
         </div>
       )}
-
-      {/* Error Message */}
-      {uploadError && (
-        <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-          <p className="text-sm text-red-600 dark:text-red-400">{uploadError}</p>
-        </div>
-      )}
-
-      {/* Preview */}
+{/* Preview */}
       {value && (
         <div className="space-y-2">
           <div className="flex items-center justify-between">

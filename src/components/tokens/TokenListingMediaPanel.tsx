@@ -1,12 +1,12 @@
 'use client';
 
-import { useState } from 'react';
 import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 import { KxFormFieldLabel } from '@/components/ui/KxFormFieldLabel';
 import { KxImageSourceField } from '@/components/ui/KxImageSourceField';
 import { useIPFSUpload } from '@/lib/ipfs/hooks';
 import { getBestGatewayUrl, normalizeIpfsUrlForForm } from '@/lib/ipfs/gateway';
 import { TOKEN_MEDIA_MAX_KB, validateTokenImage } from '@/lib/tokens/limits';
+import { notifyActionError } from '@/lib/hub/notify';
 
 export type TokenListingMediaState = {
   logoSource: 'url' | 'file';
@@ -69,17 +69,14 @@ const PANEL_CLASS =
 
 export function TokenListingMediaPanel({ media, onChange, disabled, embedded = false }: TokenListingMediaPanelProps) {
   const { upload, isUploading } = useIPFSUpload();
-  const [logoError, setLogoError] = useState<string | null>(null);
-  const [featuredError, setFeaturedError] = useState<string | null>(null);
 
   const uploadLogo = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     e.target.value = '';
     if (!file) return;
-    setLogoError(null);
     const validation = validateTokenImage(file);
     if (!validation.valid) {
-      setLogoError(validation.error ?? 'Invalid image.');
+      notifyActionError('Upload failed', validation.error ?? 'Invalid image.');
       return;
     }
     const cid = await upload(file, { filename: file.name });
@@ -91,6 +88,8 @@ export function TokenListingMediaPanel({ media, onChange, disabled, embedded = f
         logoName: file.name,
         logoUrl: normalizeIpfsUrlForForm(null, cid),
       });
+    } else {
+      notifyActionError('Upload failed', 'Failed to upload logo.');
     }
   };
 
@@ -98,10 +97,9 @@ export function TokenListingMediaPanel({ media, onChange, disabled, embedded = f
     const file = e.target.files?.[0];
     e.target.value = '';
     if (!file) return;
-    setFeaturedError(null);
     const validation = validateTokenImage(file);
     if (!validation.valid) {
-      setFeaturedError(validation.error ?? 'Invalid image.');
+      notifyActionError('Upload failed', validation.error ?? 'Invalid image.');
       return;
     }
     const cid = await upload(file, { filename: file.name });
@@ -113,6 +111,8 @@ export function TokenListingMediaPanel({ media, onChange, disabled, embedded = f
         featuredName: file.name,
         featuredUrl: normalizeIpfsUrlForForm(null, cid),
       });
+    } else {
+      notifyActionError('Upload failed', 'Failed to upload featured image.');
     }
   };
 
@@ -139,7 +139,6 @@ export function TokenListingMediaPanel({ media, onChange, disabled, embedded = f
           isUploading={isUploading || disabled}
           inputClassName="k-input"
         />
-        {logoError ? <p className="mt-1.5 text-xs font-medium text-red-500">{logoError}</p> : null}
       </div>
 
       <div>
@@ -168,7 +167,6 @@ export function TokenListingMediaPanel({ media, onChange, disabled, embedded = f
           isUploading={isUploading || disabled}
           inputClassName="k-input"
         />
-        {featuredError ? <p className="mt-1.5 text-xs font-medium text-red-500">{featuredError}</p> : null}
       </div>
     </>
   );

@@ -1,5 +1,6 @@
 'use client';
 
+import { notifyActionError } from '@/lib/hub/notify';
 import { useState, useEffect } from 'react';
 import { getL1RewardStatus } from '@/lib/rewards/l1Distribution';
 import { useAccount, useChainId, useWaitForTransactionReceipt } from 'wagmi';
@@ -25,7 +26,6 @@ export function RewardStatusBox({
   const [rewardStatus, setRewardStatus] = useState<'pending' | 'processing' | 'completed' | 'failed' | null>(null);
   const [gridReward, setGridReward] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   // For L2, check transaction receipt
   const { data: receipt, isSuccess: isTxSuccess } = useWaitForTransactionReceipt({
@@ -55,7 +55,6 @@ export function RewardStatusBox({
     if (!rewardId) return;
 
     setIsLoading(true);
-    setError(null);
 
     try {
       const status = await getL1RewardStatus(rewardId);
@@ -67,7 +66,7 @@ export function RewardStatusBox({
         setIsLoading(false);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to check reward status');
+      notifyActionError('Reward status', err instanceof Error ? err.message : 'Failed to check reward status');
       setIsLoading(false);
     }
   };
@@ -169,13 +168,6 @@ export function RewardStatusBox({
           </div>
         )}
       </div>
-
-      {/* Error */}
-      {error && (
-        <div className="p-3 bg-red-500/20 border border-red-500/50 rounded-lg">
-          <p className="text-sm text-red-400">{error}</p>
-        </div>
-      )}
 
       {/* Refresh Button */}
       {network === 'L1' && rewardId && (

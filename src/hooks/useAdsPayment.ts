@@ -17,6 +17,7 @@ import { listPublicVerifiedPaymentTokens } from '@/lib/payments/publicPaymentTok
 import { resolveTokenAmountFromKas } from '@/lib/pricing/registry';
 import { mergePricingTickers } from '@/lib/pricing';
 import type { KaspaWalletProvider } from '@/lib/kaspa/types';
+import { notifyActionError } from '@/lib/hub/notify';
 
 export function useAdsPayment() {
   const { state } = useKaspaWallet();
@@ -30,7 +31,6 @@ export function useAdsPayment() {
   );
   const { snapshot: pricingSnapshot } = usePricingSnapshot(mergePricingTickers(['KREX', ...publicTicks]));
   const [isProcessing, setIsProcessing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   const payAdCampaign = useCallback(
     async ({
@@ -46,10 +46,15 @@ export function useAdsPayment() {
       krexPaymentTxHash?: string;
     }): Promise<{ txHash: string; krexPaymentTxHash?: string }> => {
       if (!state.provider || !state.address) {
-        throw new Error('Connect your Kaspa (L1) wallet to pay.');
+        const message = notifyActionError('Wallet required', 'Connect your Kaspa (L1) wallet to pay.');
+        throw new Error(message);
       }
       if (!getWalletProvider(state.provider)) {
-        throw new Error('Wallet extension is not available. Refresh the page or reconnect your wallet.');
+        const message = notifyActionError(
+          'Wallet unavailable',
+          'Wallet extension is not available. Refresh the page or reconnect your wallet.',
+        );
+        throw new Error(message);
       }
 
       const treasuryAddress = getAdsTreasuryL1Address();
@@ -57,7 +62,6 @@ export function useAdsPayment() {
       const currencyId = String(currency || 'KAS').trim();
 
       setIsProcessing(true);
-      setError(null);
 
       try {
         if (currencyId.startsWith('kcc20:')) {
@@ -103,8 +107,7 @@ export function useAdsPayment() {
         const txHash = await sendAdsMetadataBindingTx(provider, metadataCid, priceKas);
         return { txHash };
       } catch (err) {
-        const message = formatKaspaWalletError(err);
-        setError(message);
+        const message = notifyActionError('Payment failed', formatKaspaWalletError(err));
         throw new Error(message);
       } finally {
         setIsProcessing(false);
@@ -113,7 +116,7 @@ export function useAdsPayment() {
     [state.address, state.provider, krexL1Balance, pricingSnapshot],
   );
 
-  return { payAdCampaign, isProcessing, error, setError };
+  return { payAdCampaign, isProcessing };
 }
 
 export async function transferKrexForAdsPayment(

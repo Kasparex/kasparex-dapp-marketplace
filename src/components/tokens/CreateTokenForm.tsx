@@ -430,7 +430,6 @@ export function CreateTokenForm({
   });
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   const tierDiscount = krexTierDiscountPercent(tier);
   const moduleDiscountPercent = getTokenModuleDiscountPercent(tier);
@@ -780,12 +779,10 @@ export function CreateTokenForm({
   };
 
   const failPublish = (message: string) => {
-    setError(message);
     hubNotify.error(listing ? 'Cannot update' : 'Cannot publish', message);
   };
 
   const handlePublish = async () => {
-    setError(null);
     if (!symbol.trim() || !name.trim() || !shortDescription.trim()) {
       failPublish('Ticker, name, and short description are required.');
       return;
@@ -883,7 +880,6 @@ export function CreateTokenForm({
       onSuccess?.(result);
     } catch (e) {
       const message = e instanceof Error ? e.message : 'Publish failed. Try again.';
-      setError(message);
       hubNotify.update(loadingId, {
         title: listing ? 'Update failed' : 'Publish failed',
         description: message,
@@ -1462,21 +1458,12 @@ export function CreateTokenForm({
               </>
             }
             alerts={
-              error || (!canPublish && (walletAddress || isEvmConnected)) ? (
-                <>
-                  {error ? (
-                    <Alert type="error" compact region>
-                      Could not publish: {error}
-                    </Alert>
-                  ) : null}
-                  {!canPublish && (walletAddress || isEvmConnected) ? (
-                    <Alert type="info" compact region>
-                      {!kaspaState.isConnected || !kaspaState.address
-                        ? 'Connect Kasware (or another Kaspa L1 wallet) to pay the listing fee.'
-                        : 'Verify ownership in the form above to unlock publish.'}
-                    </Alert>
-                  ) : null}
-                </>
+              !canPublish && (walletAddress || isEvmConnected) ? (
+                <Alert type="info" compact region>
+                  {!kaspaState.isConnected || !kaspaState.address
+                    ? 'Connect Kasware (or another Kaspa L1 wallet) to pay the listing fee.'
+                    : 'Verify ownership in the form above to unlock publish.'}
+                </Alert>
               ) : null
             }
           />

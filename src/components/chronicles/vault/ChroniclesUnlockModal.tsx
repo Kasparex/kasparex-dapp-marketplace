@@ -91,12 +91,7 @@ export function ChroniclesUnlockModal({
                 </>
               ) : (
                 <>
-                  {unlock.payError ? (
-                    <div className="p-3 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-sm text-red-800 dark:text-red-300">
-                      {unlock.payError}
-                    </div>
-                  ) : null}
-                  {unlock.verifyNote ? (
+{unlock.verifyNote ? (
                     <p className="text-sm text-amber-700 dark:text-amber-400">{unlock.verifyNote}</p>
                   ) : null}
                   <button

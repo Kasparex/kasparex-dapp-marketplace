@@ -1,6 +1,5 @@
 'use client';
 
-import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { CreateTokenForm } from '@/components/tokens/CreateTokenForm';
@@ -18,6 +17,7 @@ import { normalizeIpfsUrlForForm } from '@/lib/hub/ipfsStandard';
 import { HUB_DELETE_FEE_KAS } from '@/lib/hub/paidDelete';
 import { useKxSystemDialog } from '@/hooks/useKxSystemDialog';
 import { Alert } from '@/components/Alert';
+import { hubNotify, notifyActionError } from '@/lib/hub/notify';
 import { useIsMobileViewport } from '@/hooks/useIsMobileViewport';
 import { MobileWalletUnavailableNotice } from '@/components/hub/MobileWalletUnavailableNotice';
 import {
@@ -69,7 +69,6 @@ export function TokenDeveloperDashboard() {
   const [activeTab, setActiveTab] = useState<'create' | 'archive'>('create');
   const [editingListing, setEditingListing] = useState<PublishedTokenListing | null>(null);
   const [media, setMedia] = useState<TokenListingMediaState>(EMPTY_TOKEN_LISTING_MEDIA);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [verifyBannerListing, setVerifyBannerListing] = useState<PublishedTokenListing | null>(null);
 
   const authorListings = walletAddress ? getAuthorListings(walletAddress) : [];
@@ -115,10 +114,12 @@ export function TokenDeveloperDashboard() {
   }, [editingListing]);
 
   const handlePublishSuccess = (listing: PublishedTokenListing) => {
-    setSuccessMessage(
+    hubNotify.success(
+      'Listing saved',
       listing.status === 'verified' || listing.status === 'published'
         ? `Token page published at /tokens/${listing.slug}`
-        : `Listing saved. Payment pending for /tokens/${listing.slug}`,
+        : `Payment pending for /tokens/${listing.slug}`,
+      { href: '/tokens', linkLabel: 'View directory' },
     );
     setEditingListing(null);
     setMedia(EMPTY_TOKEN_LISTING_MEDIA);
@@ -126,7 +127,6 @@ export function TokenDeveloperDashboard() {
     if (listing.assetKind === 'real' && listing.ownership !== 'deployer_verified') {
       setVerifyBannerListing(listing);
     }
-    window.setTimeout(() => setSuccessMessage(null), 8000);
   };
 
   const handleDelete = async (id: string) => {
@@ -140,9 +140,9 @@ export function TokenDeveloperDashboard() {
     if (!ok) return;
     try {
       await removeListing(id);
+      hubNotify.success('Listing removed', 'The listing was removed from your dashboard.');
     } catch (e) {
-      setSuccessMessage(e instanceof Error ? e.message : 'Could not remove listing.');
-      window.setTimeout(() => setSuccessMessage(null), 8000);
+      notifyActionError('Remove failed', e instanceof Error ? e.message : 'Could not remove listing.');
     }
   };
 
@@ -150,16 +150,20 @@ export function TokenDeveloperDashboard() {
     const result = await verifyDeployer(id, proof);
     if (result) {
       setVerifyBannerListing(null);
-      setSuccessMessage(`${result.symbol} deployer verified. +1000 Hub Points awarded. Hub integrations can go live.`);
-      window.setTimeout(() => setSuccessMessage(null), 8000);
+      hubNotify.success(
+        'Deployer verified',
+        `${result.symbol} deployer verified. +1000 Hub Points awarded. Hub integrations can go live.`,
+      );
     }
   };
 
   const handleAssignWallet = async (id: string, proof: { method: string; walletAddress: string; signature?: string }) => {
     const result = await assignWallet(id, proof);
     if (result) {
-      setSuccessMessage(`Wallet assigned to ${result.symbol}. Listing stays under Community Collaboration Tokens.`);
-      window.setTimeout(() => setSuccessMessage(null), 8000);
+      hubNotify.success(
+        'Wallet assigned',
+        `Wallet assigned to ${result.symbol}. Listing stays under Community Collaboration Tokens.`,
+      );
     }
   };
 
@@ -174,12 +178,10 @@ export function TokenDeveloperDashboard() {
     try {
       const result = await unassignWallet(id);
       if (result) {
-        setSuccessMessage(`Wallet unassigned from ${result.symbol}.`);
-        window.setTimeout(() => setSuccessMessage(null), 8000);
+        hubNotify.success('Wallet unassigned', `Wallet unassigned from ${result.symbol}.`);
       }
     } catch (e) {
-      setSuccessMessage(e instanceof Error ? e.message : 'Could not unassign wallet.');
-      window.setTimeout(() => setSuccessMessage(null), 8000);
+      notifyActionError('Unassign failed', e instanceof Error ? e.message : 'Could not unassign wallet.');
     }
   };
 
@@ -187,8 +189,10 @@ export function TokenDeveloperDashboard() {
     if (!kaspaState.address) return;
     const result = await claimSeedToken(seed, kaspaState.address);
     if (result) {
-      setSuccessMessage(`${result.symbol} page claimed. You can now edit and manage it from your dashboard.`);
-      window.setTimeout(() => setSuccessMessage(null), 8000);
+      hubNotify.success(
+        'Page claimed',
+        `${result.symbol} page claimed. You can now edit and manage it from your dashboard.`,
+      );
     }
   };
 
@@ -198,15 +202,6 @@ export function TokenDeveloperDashboard() {
   return (
     <div className="space-y-8">
       <div id="tokens-dashboard-create" className="scroll-mt-24" />
-
-      {successMessage ? (
-        <Alert type="success" title="Success">
-          {successMessage}{' '}
-          <Link href="/tokens" className="underline font-semibold">
-            View directory
-          </Link>
-        </Alert>
-      ) : null}
 
       {verifyBannerListing ? (
         <Alert type="info" title="Activate Hub integrations">

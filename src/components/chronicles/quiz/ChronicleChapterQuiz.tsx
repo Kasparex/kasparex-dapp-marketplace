@@ -1,5 +1,6 @@
 'use client';
 
+import { notifyActionWarning } from '@/lib/hub/notify';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
@@ -95,7 +96,7 @@ export function ChronicleChapterQuiz({
   const handlePay = async () => {
     setError(null);
     if (!state.isConnected || !state.address) {
-      setError('Connect your Kaspa wallet to enter the quiz.');
+      notifyActionWarning('Wallet required', 'Connect your Kaspa wallet to enter the quiz.');
       return;
     }
     try {
@@ -105,7 +106,7 @@ export function ChronicleChapterQuiz({
       setAnswers({});
       setPhase('quiz');
     } catch {
-      /* payActionFee sets error */
+      /* payActionFee already toasts via hubNotify */
     }
   };
 
@@ -221,12 +222,7 @@ export function ChronicleChapterQuiz({
                 KREX tier discount applied ({listingFee.discountPercent}% off)
               </p>
             ) : null}
-            {error ? (
-              <KxAlert variant="error" title="Payment failed">
-                {error}
-              </KxAlert>
-            ) : null}
-            <button
+<button
               type="button"
               disabled={!state.isConnected || isProcessing}
               onClick={() => void handlePay()}

@@ -11,6 +11,7 @@ import { MediaLinksStep } from './DAppFormSteps';
 import { ContractStep } from './ContractDeployment';
 import { SubscriptionStep } from './DAppFormSteps';
 import { DAppPreview } from './DAppPreview';
+import { notifyActionError } from '@/lib/hub/notify';
 
 interface BuildDAppWizardProps {
   onComplete: (dapp: Partial<DApp>) => void;
@@ -22,7 +23,6 @@ export type WizardStep = 'basic' | 'media' | 'contract' | 'subscription' | 'revi
 export function BuildDAppWizard({ onComplete, onCancel }: BuildDAppWizardProps) {
   const { address, isConnected } = useAccount();
   const [currentStep, setCurrentStep] = useState<WizardStep>('basic');
-  const [errors, setErrors] = useState<Record<string, string[]>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Form state
@@ -84,11 +84,14 @@ export function BuildDAppWizard({ onComplete, onCancel }: BuildDAppWizardProps) 
     }
 
     if (stepErrors.length > 0) {
-      setErrors({ [step]: stepErrors });
+      const joined =
+        stepErrors.length === 1
+          ? stepErrors[0]
+          : `${stepErrors.slice(0, 3).join(' · ')}${stepErrors.length > 3 ? '…' : ''}`;
+      notifyActionError('Check this step', joined);
       return false;
     }
 
-    setErrors({});
     return true;
   };
 
@@ -116,7 +119,7 @@ export function BuildDAppWizard({ onComplete, onCancel }: BuildDAppWizardProps) 
     }
 
     if (!isConnected || !address) {
-      setErrors({ review: ['Please connect your wallet'] });
+      notifyActionError('Wallet required', 'Please connect your wallet');
       return;
     }
 
@@ -138,7 +141,7 @@ export function BuildDAppWizard({ onComplete, onCancel }: BuildDAppWizardProps) 
       onComplete(finalDApp);
     } catch (error) {
       console.error('Error submitting dApp:', error);
-      setErrors({ review: ['Failed to submit dApp. Please try again.'] });
+      notifyActionError('Submit failed', 'Failed to submit dApp. Please try again.');
       setIsSubmitting(false);
     }
   };
@@ -209,16 +212,6 @@ export function BuildDAppWizard({ onComplete, onCancel }: BuildDAppWizardProps) 
 
       {/* Step Content */}
       <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-6">
-        {errors[currentStep] && errors[currentStep].length > 0 && (
-          <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-            <ul className="list-disc list-inside text-sm text-red-600 dark:text-red-400">
-              {errors[currentStep].map((error, idx) => (
-                <li key={idx}>{error}</li>
-              ))}
-            </ul>
-          </div>
-        )}
-
         {currentStep === 'basic' && (
           <BasicInfoStep formData={formData} onUpdate={updateFormData} />
         )}

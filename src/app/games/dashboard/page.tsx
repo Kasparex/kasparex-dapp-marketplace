@@ -48,6 +48,7 @@ import { extractKaspaTransactionId } from '@/lib/kaspa/transactionId';
 import { useKxSystemDialog } from '@/hooks/useKxSystemDialog';
 import { collectGamesPromoMediaCids, requestIpfsUnpin } from '@/lib/ipfs/cidUtils';
 import { htmlToPlainText } from '@/lib/richText/html';
+import { notifyActionError, notifyActionWarning } from '@/lib/hub/notify';
 import { computeEarnedHubPoints } from '@/lib/rewards/hub-points';
 import { KxTabStrip } from '@/components/ui/KxTabStrip';
 import { KxFilterDropdown } from '@/components/ui/KxFilterDropdown';
@@ -143,7 +144,7 @@ function slugify(value: string): string {
 
 export default function GamesDashboardPage() {
   const { state } = useKaspaWallet();
-  const { payActionFee, isProcessing, error, setError } = useDAppListingPayment();
+  const { payActionFee, isProcessing, setError } = useDAppListingPayment();
   const { upload, isUploading } = useIPFSUpload();
   const { tier: krexTier, balance: krexBalance } = useKREXBalance();
   const { confirm, alert } = useKxSystemDialog();
@@ -255,7 +256,10 @@ export default function GamesDashboardPage() {
     if (!file) return;
     const maxSize = FEATURED_IMAGE_MAX_SIZE_MB * 1024 * 1024;
     if (file.size > maxSize) {
-      setError(`Featured image must be under ${FEATURED_IMAGE_MAX_SIZE_MB}MB`);
+      notifyActionWarning(
+        'Image too large',
+        `Featured image must be under ${FEATURED_IMAGE_MAX_SIZE_MB}MB`,
+      );
       e.target.value = '';
       return;
     }
@@ -268,10 +272,10 @@ export default function GamesDashboardPage() {
         setFeaturedImageSource('url');
         setError(null);
       } else {
-        setError('Failed to upload featured image to IPFS');
+        notifyActionError('Upload failed', 'Failed to upload featured image to IPFS');
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to upload featured image');
+      notifyActionError('Upload failed', err, 'Failed to upload featured image');
     }
     e.target.value = '';
   };
@@ -366,11 +370,7 @@ export default function GamesDashboardPage() {
       if (editingId === id) resetForm();
       setListingsVersion((v) => v + 1);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to delete game listing');
-      await alert({
-        title: 'Delete failed',
-        message: err instanceof Error ? err.message : 'Failed to delete game listing',
-      });
+      notifyActionError('Delete failed', err, 'Failed to delete game listing');
     } finally {
       setDeletingId(null);
     }
@@ -379,11 +379,11 @@ export default function GamesDashboardPage() {
   const handleSave = async () => {
     setError(null);
     if (!state.isConnected || !state.address) {
-      setError('Connect your Kaspa wallet to publish a game.');
+      notifyActionWarning('Wallet required', 'Connect your Kaspa wallet to publish a game.');
       return;
     }
     if (!title.trim() || !shortDescription.trim()) {
-      setError('Title and short description are required.');
+      notifyActionWarning('Missing fields', 'Title and short description are required.');
       return;
     }
 
@@ -902,12 +902,6 @@ export default function GamesDashboardPage() {
                       setPaymentCurrency(hubCatalogSelectionToStoreCurrency(opt));
                     }}
                   />
-
-                  {error ? (
-                    <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-800 dark:border-red-800 dark:bg-red-900/20 dark:text-red-300">
-                      {error}
-                    </div>
-                  ) : null}
 
                   <button
                     type="button"

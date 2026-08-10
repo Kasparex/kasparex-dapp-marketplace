@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { HubPaymentPanel } from '@/components/payments/HubPaymentPanel';
 import { ToggleSwitch } from '@/components/ui/ToggleSwitch';
 import { Tooltip } from '@/components/ui/Tooltip';
@@ -11,6 +11,7 @@ import { formatHubPaymentAmount, type HubPaymentQuoteLine } from '@/lib/payments
 import { resolveCatalogPaymentOption } from '@/lib/payments/currencyCatalog';
 import { krexTierDiscountPercent } from '@/lib/chronicles/vault/pricing';
 import { KX_SURFACE_NESTED } from '@/lib/hub/shellTokens';
+import { hubNotify, notifyActionError } from '@/lib/hub/notify';
 import {
   CIPHER_ENTRY_ADDONS,
   CIPHER_VAULT_PASS_TIER,
@@ -42,6 +43,14 @@ export function CipherVaultsEntryPanel(props: {
   const [selectedAddons, setSelectedAddons] = useState<CipherAddonId[]>([]);
   const [payCurrencyId, setPayCurrencyId] = useState('KAS');
   const [useVaultPass, setUseVaultPass] = useState(false);
+
+  useEffect(() => {
+    if (props.error) notifyActionError('Cipher Vaults', props.error);
+  }, [props.error]);
+
+  useEffect(() => {
+    if (props.success) hubNotify.success('Cipher Vaults', props.success);
+  }, [props.success]);
 
   const vault = CIPHER_VAULT_TIERS.find((t) => t.id === props.selectedTierId) ?? CIPHER_VAULT_TIERS[0]!;
   const addonsKas = selectedAddons.reduce((sum, id) => {
@@ -249,22 +258,6 @@ export function CipherVaultsEntryPanel(props: {
                     : `Pay ${fmt(payKas)} to open covenant`}
           </button>
         </div>
-      }
-      alerts={
-        props.error || props.success ? (
-          <div className="space-y-2">
-            {props.error ? (
-              <p className="rounded-xl border border-red-300/70 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-500/40 dark:bg-red-950/40 dark:text-red-200">
-                {props.error}
-              </p>
-            ) : null}
-            {props.success ? (
-              <p className="rounded-xl border border-emerald-300/70 bg-emerald-50 px-3 py-2 text-sm text-emerald-800 dark:border-emerald-500/40 dark:bg-emerald-950/40 dark:text-emerald-200">
-                {props.success}
-              </p>
-            ) : null}
-          </div>
-        ) : null
       }
     />
   );

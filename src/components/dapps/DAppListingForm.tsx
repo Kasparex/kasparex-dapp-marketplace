@@ -16,6 +16,7 @@ import { KxFilterDropdown } from '@/components/ui/KxFilterDropdown';
 import { StoreFileUpload } from '@/components/store/StoreFileUpload';
 import { useDAppListingPayment } from '@/hooks/useDAppListingPayment';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
+import { notifyActionWarning } from '@/lib/hub/notify';
 import {
   DAPP_LISTING_ACTION_FEE_KAS,
   DAPP_LISTING_FEE_KAS,
@@ -117,7 +118,7 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
   const router = useRouter();
   const { state } = useKaspaWallet();
   const { upload, isUploading } = useIPFSUpload();
-  const { payActionFee, isProcessing, error, setError } = useDAppListingPayment();
+  const { payActionFee, isProcessing } = useDAppListingPayment();
   const { tier: krexTier, balance: krexBalance } = useKREXBalance();
 
   const [name, setName] = useState(listing?.name ?? '');
@@ -310,7 +311,7 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
   const uploadFile = async (file: File, maxSizeMb = IMAGE_MAX_SIZE_MB): Promise<string | null> => {
     const maxSize = maxSizeMb * 1024 * 1024;
     if (file.size > maxSize) {
-      setError(`${file.name} must be under ${maxSizeMb}MB`);
+      notifyActionWarning('Image too large', `${file.name} must be under ${maxSizeMb}MB`);
       return null;
     }
     return upload(file, { filename: file.name });
@@ -325,7 +326,6 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
       setFeatureImageName(file.name);
       setFeatureImageUrl(normalizeIpfsUrlForForm(null, cid));
       setFeatureImageSource('url');
-      setError(null);
     }
     e.target.value = '';
   };
@@ -339,7 +339,6 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
       setLogoName(file.name);
       setLogoUrl(normalizeIpfsUrlForForm(null, cid));
       setLogoSource('url');
-      setError(null);
     }
     e.target.value = '';
   };
@@ -415,7 +414,6 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
     e.preventDefault();
     if (!canSubmit || !state.address) return;
 
-    setError(null);
     setStep('payment');
 
     try {
@@ -889,12 +887,6 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
           />
 
           <p className="text-xs text-zinc-500">Amount due: {feeLabel}</p>
-
-          {error ? (
-            <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-800 dark:border-red-800 dark:bg-red-900/20 dark:text-red-300">
-              {error}
-            </div>
-          ) : null}
 
           <button
             type="submit"

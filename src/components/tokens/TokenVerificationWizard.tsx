@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 import { useAccount, useSignMessage } from 'wagmi';
 import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 import { Alert } from '@/components/Alert';
+import { notifyActionError, notifyActionWarning } from '@/lib/hub/notify';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { signKaspaMessage } from '@/lib/kaspa/wallet';
 import { normalizeKaspaAddress } from '@/lib/kaspa/sdk';
@@ -84,7 +85,6 @@ export function TokenVerificationWizard({ listing, mode, onComplete, onClose }: 
   const l2NoOwner = mode === 'deployer' && isL2 && listing.assetKind === 'real' && !expectedDeployer;
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   const alreadyDeployerVerified = listing.ownership === 'deployer_verified';
   const alreadyWalletAssigned = listing.ownership === 'wallet_assigned' && mode === 'assign';
@@ -106,10 +106,11 @@ export function TokenVerificationWizard({ listing, mode, onComplete, onClose }: 
         : 'Link your Kaspa L1 wallet to this token page. This does not prove deployer ownership and will not grant the verified developer badge.';
 
   const handleSubmit = async () => {
-    setError(null);
-
     if (l2NoOwner) {
-      setError('This contract has no readable owner(). Use Assign Wallet instead.');
+      notifyActionWarning(
+        'Owner not available',
+        'This contract has no readable owner(). Use Assign Wallet instead.',
+      );
       return;
     }
 
@@ -121,11 +122,14 @@ export function TokenVerificationWizard({ listing, mode, onComplete, onClose }: 
       if (mode === 'deployer') {
         if (isL2) {
           if (!evmReady) {
-            setError('Connect the EVM wallet that owns this contract.');
+            notifyActionWarning('Wallet required', 'Connect the EVM wallet that owns this contract.');
             return;
           }
           if (deployerMismatch) {
-            setError('Connected wallet is not the on-chain owner. Switch to the owner wallet.');
+            notifyActionWarning(
+              'Wallet mismatch',
+              'Connected wallet is not the on-chain owner. Switch to the owner wallet.',
+            );
             return;
           }
           walletAddress = activeEvm;
@@ -133,11 +137,14 @@ export function TokenVerificationWizard({ listing, mode, onComplete, onClose }: 
           signature = await signMessageAsync({ message });
         } else {
           if (!kaspaReady || !kaspaState.provider) {
-            setError('Connect the Kaspa wallet that deployed this token.');
+            notifyActionWarning('Wallet required', 'Connect the Kaspa wallet that deployed this token.');
             return;
           }
           if (deployerMismatch) {
-            setError('Connected wallet is not the on-chain deployer. Switch to the deployer wallet.');
+            notifyActionWarning(
+              'Wallet mismatch',
+              'Connected wallet is not the on-chain deployer. Switch to the deployer wallet.',
+            );
             return;
           }
           walletAddress = activeKaspa;
@@ -149,7 +156,7 @@ export function TokenVerificationWizard({ listing, mode, onComplete, onClose }: 
         // wallet connector; only EVM L2 tokens use the EVM connector.
         if (isL2) {
           if (!evmReady) {
-            setError('Connect your EVM wallet to assign this L2 token.');
+            notifyActionWarning('Wallet required', 'Connect your EVM wallet to assign this L2 token.');
             return;
           }
           walletAddress = activeEvm;
@@ -157,7 +164,7 @@ export function TokenVerificationWizard({ listing, mode, onComplete, onClose }: 
           signature = await signMessageAsync({ message });
         } else {
           if (!kaspaReady || !kaspaState.provider) {
-            setError('Connect your Kaspa L1 wallet to assign this token.');
+            notifyActionWarning('Wallet required', 'Connect your Kaspa L1 wallet to assign this token.');
             return;
           }
           walletAddress = activeKaspa;
@@ -167,7 +174,7 @@ export function TokenVerificationWizard({ listing, mode, onComplete, onClose }: 
       }
 
       if (!signature) {
-        setError('Signature was not provided.');
+        notifyActionError('Action failed', 'Signature was not provided.');
         return;
       }
 
@@ -177,7 +184,7 @@ export function TokenVerificationWizard({ listing, mode, onComplete, onClose }: 
         signature,
       });
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Action failed. Try again.');
+      notifyActionError('Action failed', e instanceof Error ? e.message : 'Action failed. Try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -234,12 +241,6 @@ export function TokenVerificationWizard({ listing, mode, onComplete, onClose }: 
               {l2NoOwner ? (
                 <Alert type="info" title="Owner not available">
                   This contract does not expose owner(). Automatic deployer verification is unavailable. You can still assign a wallet to this listing.
-                </Alert>
-              ) : null}
-
-              {error ? (
-                <Alert type="error" title="Error">
-                  {error}
                 </Alert>
               ) : null}
 

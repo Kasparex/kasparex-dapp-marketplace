@@ -1,5 +1,6 @@
 'use client';
 
+import { notifyActionError } from '@/lib/hub/notify';
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useKaspaWallet } from '@/lib/kaspa/context';
@@ -38,7 +39,6 @@ export function StoreSellerHubContent() {
   const [products, setProducts] = useState<Product[]>([]);
   const [myPurchases, setMyPurchases] = useState<Purchase[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [actionProductId, setActionProductId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -65,7 +65,6 @@ export function StoreSellerHubContent() {
 
     async function loadDashboard() {
       setIsLoading(true);
-      setError(null);
       try {
         const sellerProducts = await getProductsBySeller(currentAddress);
         setProducts(sellerProducts);
@@ -73,7 +72,7 @@ export function StoreSellerHubContent() {
         setMyPurchases(buyerPurchases);
       } catch (err) {
         console.error('Failed to load dashboard:', err);
-        setError('Failed to load dashboard data');
+        notifyActionError('Load failed', 'Failed to load dashboard data');
       } finally {
         setIsLoading(false);
       }
@@ -169,12 +168,6 @@ export function StoreSellerHubContent() {
             </button>
           ))}
         </div>
-
-        {error ? (
-          <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl">
-            <p className="text-sm font-bold text-red-800 dark:text-red-300">{error}</p>
-          </div>
-        ) : null}
 
         <div className="min-h-[400px]">
           {activeTab === 'create' ? (

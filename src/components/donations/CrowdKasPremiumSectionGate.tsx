@@ -33,7 +33,6 @@ type CrowdKasPremiumSectionGateProps = {
   flowSteps?: HubFlowStep[];
   flowBusy?: boolean;
   flowComplete?: boolean;
-  actionError?: string | null;
   onUnlock: () => void;
 };
 
@@ -54,7 +53,6 @@ export function CrowdKasPremiumSectionGate({
   flowSteps,
   flowBusy,
   flowComplete = false,
-  actionError = null,
   onUnlock,
 }: CrowdKasPremiumSectionGateProps) {
   const { catalogEntries } = useHubPayWithCatalog({
@@ -139,13 +137,6 @@ export function CrowdKasPremiumSectionGate({
                   ? 'Unlock premium content'
                   : 'Connect wallet to unlock'}
             </button>
-          }
-          alerts={
-            actionError ? (
-              <p className="rounded-xl border border-red-300/70 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-500/40 dark:bg-red-950/40 dark:text-red-200">
-                {actionError}
-              </p>
-            ) : null
           }
         />
       </div>

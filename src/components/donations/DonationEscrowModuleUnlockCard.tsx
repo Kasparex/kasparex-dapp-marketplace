@@ -19,7 +19,7 @@ import {
 import { KREX_TIERS, type KREXTier } from '@/lib/rewards/types';
 import { buildDonationsModuleUnlockPayloadHex, buildDonationsModuleUnlockPlainNote } from '@/lib/donations/modulePayload';
 import { DONATION_ESCROW_V2_ABI } from '@/lib/contracts/abis';
-import { getErrorMessage } from '@/lib/utils';
+import { notifyActionError, notifyActionWarning } from '@/lib/hub/notify';
 import type { Address } from 'viem';
 
 export type DonationModuleOffer = (typeof DONATION_MODULE_OFFERS)[DonationPaidModuleId];
@@ -54,7 +54,6 @@ export function DonationEscrowModuleUnlockCard({
   const { nftStatus } = useNFTStatus();
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState<string | null>(null);
-  const [err, setErr] = useState<string | null>(null);
 
   const moduleNftFlags = useMemo(
     () => ({
@@ -102,6 +101,10 @@ export function DonationEscrowModuleUnlockCard({
     }
   }, [isConfirmed, onUnlockedOnChain]);
 
+  useEffect(() => {
+    if (writeErr) notifyActionError('Unlock failed', writeErr, 'EVM tx failed');
+  }, [writeErr]);
+
   const borderClass =
     accent === 'amber'
       ? 'border-amber-300/50 dark:border-amber-600/35'
@@ -125,15 +128,17 @@ export function DonationEscrowModuleUnlockCard({
     !onCrowdkasChain;
 
   const handlePay = async () => {
-    setErr(null);
     setNote(null);
     if (!writeEscrowV2Address || !kaspaState.provider || !kaspaState.address) {
-      setErr('Connect your Kaspa L1 wallet (header) and use an EVM wallet on Igra for the final unlock step.');
+      notifyActionWarning(
+        'Wallet required',
+        'Connect your Kaspa L1 wallet (header) and use an EVM wallet on Igra for the final unlock step.',
+      );
       return;
     }
     const treasury = getDonationsModulesTreasuryL1Address();
     if (!treasury) {
-      setErr('Treasury is not configured.');
+      notifyActionError('Unlock unavailable', 'Treasury is not configured.');
       return;
     }
 
@@ -220,7 +225,7 @@ export function DonationEscrowModuleUnlockCard({
         ],
       });
     } catch (e) {
-      setErr(e instanceof Error ? e.message : 'Unlock failed');
+      notifyActionError('Unlock failed', e instanceof Error ? e.message : 'Unlock failed');
     } finally {
       setBusy(false);
     }
@@ -281,8 +286,6 @@ export function DonationEscrowModuleUnlockCard({
           </>
         )}
         {isUnlocked && <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-300">Active for this campaign.</p>}
-        {err ? <p className="text-sm text-red-600 dark:text-red-400">{err}</p> : null}
-        {writeErr ? <p className="text-sm text-red-600 dark:text-red-400">{getErrorMessage(writeErr, 'EVM tx failed')}</p> : null}
         {note ? <p className="text-sm text-amber-800 dark:text-amber-300">{note}</p> : null}
       </div>
     </div>

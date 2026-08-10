@@ -12,6 +12,7 @@ import { useKREXBalance } from './useKREXBalance';
 import { useNFTStatus } from './useNFTStatus';
 import { placeholderDApps } from '@/lib/dapps';
 import { storeTransaction } from '@/lib/transactions/tracker';
+import { notifyActionError } from '@/lib/hub/notify';
 
 export interface Proposal {
   id: bigint;
@@ -249,8 +250,8 @@ export function useDAOVoting(): UseDAOVotingReturn {
         value: finalFee,
       });
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to submit proposal';
-      setError(errorMessage);
+      // Toast comes from write/tx error effect (wagmi surfaces reject there).
+      setError(err instanceof Error ? err.message : 'Failed to submit proposal');
       setLastActionType(null);
       setLastActionCost(null);
       throw err;
@@ -291,19 +292,17 @@ export function useDAOVoting(): UseDAOVotingReturn {
         value: finalFee,
       });
     } catch (err: any) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to vote';
-      
-      // Provide more helpful error messages
-      if (errorMessage.includes('user rejected') || errorMessage.includes('User rejected')) {
-        setError('Transaction rejected by user');
-      } else if (errorMessage.includes('insufficient funds') || errorMessage.includes('Insufficient funds')) {
-        setError('Insufficient balance. Make sure you have enough KAS for the transaction and gas fees.');
-      } else if (errorMessage.includes('wallet') || errorMessage.includes('connection')) {
-        setError('Wallet connection issue. Please reconnect your wallet and try again.');
-      } else {
-        setError(errorMessage);
+      const rawMessage = err instanceof Error ? err.message : 'Failed to vote';
+      let friendly = rawMessage;
+      if (rawMessage.includes('user rejected') || rawMessage.includes('User rejected')) {
+        friendly = 'Transaction rejected by user';
+      } else if (rawMessage.includes('insufficient funds') || rawMessage.includes('Insufficient funds')) {
+        friendly = 'Insufficient balance. Make sure you have enough KAS for the transaction and gas fees.';
+      } else if (rawMessage.includes('wallet') || rawMessage.includes('connection')) {
+        friendly = 'Wallet connection issue. Please reconnect your wallet and try again.';
       }
-      
+      // Toast comes from write/tx error effect (wagmi surfaces reject there).
+      setError(friendly);
       setLastActionType(null);
       setLastActionCost(null);
       throw err;
@@ -338,8 +337,8 @@ export function useDAOVoting(): UseDAOVotingReturn {
         value: finalFee,
       });
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to change vote';
-      setError(errorMessage);
+      // Toast comes from write/tx error effect (wagmi surfaces reject there).
+      setError(err instanceof Error ? err.message : 'Failed to change vote');
       setLastActionType(null);
       setLastActionCost(null);
       throw err;
@@ -446,13 +445,23 @@ export function useDAOVoting(): UseDAOVotingReturn {
     }
   }, [contractAddress, proposalCount, loadProposals]);
 
-  // Update error from transaction; rail alerts handle user-facing feedback (no top-right toast).
+  // Toast write/tx failures from the wallet (user reject, gas, etc.).
   const currentTxError = safeWriteError || safeTxError || null;
   useEffect(() => {
-    if (safeWriteError || safeTxError) {
-      setError(currentTxError);
+    if (!currentTxError) return;
+    let friendly = currentTxError;
+    if (currentTxError.includes('user rejected') || currentTxError.includes('User rejected')) {
+      friendly = 'Transaction rejected by user';
+    } else if (
+      currentTxError.includes('insufficient funds') ||
+      currentTxError.includes('Insufficient funds')
+    ) {
+      friendly =
+        'Insufficient balance. Make sure you have enough KAS for the transaction and gas fees.';
     }
-  }, [safeWriteError, safeTxError, currentTxError]);
+    notifyActionError('Action failed', friendly);
+    setError(friendly);
+  }, [currentTxError]);
 
   // Calculate loading state - only true when actively processing, not after confirmation
   const isLoadingState = isLoading || (isPendingWrite && !isConfirmed) || (isConfirming && !isConfirmed);

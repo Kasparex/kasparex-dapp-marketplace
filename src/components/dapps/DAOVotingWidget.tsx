@@ -33,7 +33,6 @@ export function DAOVotingWidget() {
   const {
     proposals,
     isLoading,
-    error,
     submitProposal,
     vote,
     changeVote,
@@ -139,10 +138,6 @@ export function DAOVotingWidget() {
     description,
     isConnected,
   ]);
-
-  useEffect(() => {
-    if (error) hubNotify.error('Action failed', error);
-  }, [error]);
 
   useEffect(() => {
     if (isConfirmed && txHash) {

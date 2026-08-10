@@ -24,7 +24,6 @@ export function QuizToEarnWidget() {
     questions,
     userAnswers,
     isLoading,
-    error,
     submitAnswer,
     refreshQuestions,
     refreshUserAnswers,
@@ -167,12 +166,6 @@ export function QuizToEarnWidget() {
                 </span>
               )}
             </div>
-          </div>
-        )}
-
-        {error && (
-          <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-            <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
           </div>
         )}
 
@@ -441,12 +434,6 @@ export function QuizToEarnWidget() {
           </button>
         )}
       </div>
-
-      {error && (
-        <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-          <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
-        </div>
-      )}
 
       {/* My Rewards Section */}
       {isConnected && gridTokenAddress && (

@@ -5,9 +5,8 @@ import { createPortal } from 'react-dom';
 import { useAccount, useChainId } from 'wagmi';
 import type { ProfileData } from '@/hooks/useProfile';
 import { useTreasuryPayment } from '@/hooks/useTreasuryPayment';
-import { hubNotify } from '@/lib/hub/notify';
+import { hubNotify, notifyActionError, notifyActionWarning } from '@/lib/hub/notify';
 import { getErrorMessage } from '@/lib/utils';
-import { useSafeError } from '@/hooks/useSafeError';
 import { CollapsibleSection } from '@/components/ui/CollapsibleSection';
 import { ProgressBar, type ProgressStage } from '@/components/ui/ProgressBar';
 import { FormCompletionIndicator } from '@/components/ui/FormCompletionIndicator';
@@ -29,10 +28,6 @@ export function ProfileEditModal({
 }: ProfileEditModalProps) {
   const { address: connectedAddress, isConnected } = useAccount();
   const chainId = useChainId();
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
-  const [draftSaved, setDraftSaved] = useState(false);
-
   // Section states
   const [profileInfoOpen, setProfileInfoOpen] = useState(true);
   const [imagesOpen, setImagesOpen] = useState(false);
@@ -82,13 +77,12 @@ export function ProfileEditModal({
     isPaying,
     isConfirming,
     isSuccess: paymentSuccess,
-    error: paymentError,
     treasuryAddress,
     isTreasuryAvailable,
   } = useTreasuryPayment({
     amount: '10',
     showToast: false,
-    onSuccess: (txHash) => {
+    onSuccess: () => {
       hubNotify.success('Profile updated', 'Your profile has been saved.');
       // Save all data to localStorage
       try {
@@ -113,24 +107,21 @@ export function ProfileEditModal({
           onSave(updates);
         }
 
-        setSuccess(true);
         setTimeout(() => {
           onClose();
           window.location.reload();
         }, 1500);
       } catch (err) {
         console.error('Error saving profile:', err);
-        setError('Failed to save changes');
+        notifyActionError('Save failed', 'Failed to save changes');
       }
     },
     onError: (err) => {
       try {
         const errorMessage = getErrorMessage(err, 'Payment failed');
-        setError(errorMessage);
-        hubNotify.error('Payment failed', errorMessage);
+        notifyActionError('Payment failed', errorMessage);
       } catch {
-        setError('Payment failed');
-        hubNotify.error('Payment failed', 'Payment failed');
+        notifyActionError('Payment failed', 'Payment failed');
       }
     },
   });
@@ -162,31 +153,29 @@ export function ProfileEditModal({
   };
 
   const handleSave = async () => {
-    setError(null);
-
     if (!isConnected || !connectedAddress) {
-      setError('Please connect your wallet');
+      notifyActionWarning('Wallet required', 'Please connect your wallet');
       return;
     }
 
     if (connectedAddress.toLowerCase() !== walletAddress.toLowerCase()) {
-      setError('You can only edit your own profile');
+      notifyActionWarning('Wrong wallet', 'You can only edit your own profile');
       return;
     }
 
     // Validate image URLs
     if (profilePictureUrl.trim() && !validateImageUrl(profilePictureUrl)) {
-      setError('Profile picture URL is invalid. Must be http:// or https://');
+      notifyActionWarning('Invalid URL', 'Profile picture URL is invalid. Must be http:// or https://');
       return;
     }
 
     if (featuredImageUrl.trim() && !validateImageUrl(featuredImageUrl)) {
-      setError('Featured image URL is invalid. Must be http:// or https://');
+      notifyActionWarning('Invalid URL', 'Featured image URL is invalid. Must be http:// or https://');
       return;
     }
 
     if (!isTreasuryAvailable) {
-      setError('Treasury address not available for this network');
+      notifyActionError('Treasury unavailable', 'Treasury address not available for this network');
       return;
     }
 
@@ -219,11 +208,10 @@ export function ProfileEditModal({
 
       const draftKey = `profile_${walletAddress.toLowerCase()}_draft`;
       localStorage.setItem(draftKey, JSON.stringify(draftData));
-      setDraftSaved(true);
-      setTimeout(() => setDraftSaved(false), 3000);
+      hubNotify.success('Draft saved', 'Your changes will be restored when you reopen this editor.');
     } catch (err) {
       console.error('Error saving draft:', err);
-      setError('Failed to save draft');
+      notifyActionError('Draft failed', 'Failed to save draft');
     }
   };
 
@@ -239,9 +227,6 @@ export function ProfileEditModal({
   };
 
   const isLoading = isPaying || isConfirming;
-  // Safely convert errors to strings immediately
-  const safePaymentError = useSafeError(paymentError);
-  const displayError = error || safePaymentError;
 
   const buttonDisabledReasons = getButtonDisabledReasons();
   const isSaveButtonDisabled = isLoading || !isConnected || !isTreasuryAvailable ||
@@ -307,30 +292,6 @@ export function ProfileEditModal({
 
         {/* Content */}
         <div className="p-4 sm:p-6 space-y-4">
-          {displayError && (
-            <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-red-600 dark:text-red-400 text-sm">
-              {displayError}
-            </div>
-          )}
-
-          {success && (
-            <div className="p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg text-green-600 dark:text-green-400 text-sm flex items-center gap-2">
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
-              Profile updated successfully!
-            </div>
-          )}
-
-          {draftSaved && (
-            <div className="p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg text-blue-600 dark:text-blue-400 text-sm flex items-center gap-2">
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
-              Draft saved! Your changes will be restored when you reopen this editor.
-            </div>
-          )}
-
           {/* Button disabled reasons */}
           {isSaveButtonDisabled && buttonDisabledReasons.length > 0 && (
             <div className="p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">

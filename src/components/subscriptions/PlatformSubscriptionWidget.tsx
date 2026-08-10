@@ -1,11 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useAccount, useWriteContract, useWaitForTransactionReceipt, useReadContract, useChainId } from 'wagmi';
 import { parseKAS, formatKAS } from '@/lib/revenue/feeCalculator';
 import { CONTRACT_ADDRESSES, getContractAddress } from '@/lib/contracts/addresses';
 import { PLATFORM_SUBSCRIPTION_ABI } from '@/lib/contracts/abis';
 import { getErrorMessage } from '@/lib/utils';
+import { hubNotify, notifyActionError, notifyActionWarning } from '@/lib/hub/notify';
 import { useSafeError } from '@/hooks/useSafeError';
 
 /**
@@ -16,7 +17,6 @@ import { useSafeError } from '@/hooks/useSafeError';
 export function PlatformSubscriptionWidget() {
   const { address, isConnected } = useAccount();
   const chainId = useChainId();
-  const [error, setError] = useState<string | null>(null);
 
   let contractAddress = '';
   try {
@@ -74,20 +74,18 @@ export function PlatformSubscriptionWidget() {
   });
 
   const handleSubscribe = async () => {
-    setError(null);
-
     if (!isConnected) {
-      setError('Please connect your wallet');
+      notifyActionWarning('Wallet required', 'Please connect your wallet');
       return;
     }
 
     if (!contractAddress) {
-      setError('Contract not deployed on this network');
+      notifyActionError('Unavailable', 'Contract not deployed on this network');
       return;
     }
 
     if (!monthlyPrice) {
-      setError('Unable to fetch subscription price');
+      notifyActionError('Price unavailable', 'Unable to fetch subscription price');
       return;
     }
 
@@ -99,15 +97,24 @@ export function PlatformSubscriptionWidget() {
         value: monthlyPrice as bigint,
       });
     } catch (err) {
-      setError(getErrorMessage(err, 'Failed to subscribe'));
+      notifyActionError('Subscribe failed', getErrorMessage(err, 'Failed to subscribe'));
     }
   };
 
   const isLoading = isPendingWrite || isConfirming;
-  // Safely convert errors to strings immediately
   const safeWriteError = useSafeError(writeError);
   const safeTxError = useSafeError(txError);
-  const displayError = error || safeWriteError || safeTxError;
+  useEffect(() => {
+    if (safeWriteError) notifyActionError('Subscribe failed', safeWriteError);
+  }, [safeWriteError]);
+  useEffect(() => {
+    if (safeTxError) notifyActionError('Subscribe failed', safeTxError);
+  }, [safeTxError]);
+  useEffect(() => {
+    if (isConfirmed && hash) {
+      hubNotify.txSuccess({ title: 'Subscription active', txHash: hash, chainId });
+    }
+  }, [isConfirmed, hash, chainId]);
   const priceString = monthlyPrice ? formatKAS(monthlyPrice as bigint) : '0';
 
   if (!isConnected) {
@@ -152,22 +159,7 @@ export function PlatformSubscriptionWidget() {
               Access all premium dApps for 30 days
             </p>
           </div>
-
-          {displayError && (
-            <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-              <p className="text-sm text-red-600 dark:text-red-400">{displayError}</p>
-            </div>
-          )}
-
-          {isConfirmed && (
-            <div className="p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
-              <p className="text-sm text-green-600 dark:text-green-400">
-                Subscription successful! Transaction: {hash?.slice(0, 10)}...
-              </p>
-            </div>
-          )}
-
-          <button
+<button
             onClick={handleSubscribe}
             disabled={isLoading || !monthlyPrice || !contractAddress || isLoadingPrice}
             className="w-full px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-semibold rounded-lg transition-colors duration-200"

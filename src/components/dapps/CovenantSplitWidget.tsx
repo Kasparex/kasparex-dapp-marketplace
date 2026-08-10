@@ -19,7 +19,6 @@ import {
   CovenantRailAlerts,
   renderCovenantFormAlerts,
 } from '@/components/dapps/covenant/CovenantRailAlerts';
-import { Alert } from '@/components/Alert';
 import { KpxCovenantDisconnected, KpxCovenantShell } from '@/components/dapps/covenant/KpxCovenantShell';
 import { KpxCovenantMetadataView } from '@/components/dapps/covenant/KpxCovenantMetadataView';
 import { useCovenantWidgetRail } from '@/hooks/useCovenantWidgetRail';
@@ -68,7 +67,7 @@ function newRow(): RecipientRow {
 
 export function CovenantSplitWidget() {
   const { state: kaspaState } = useKaspaWallet();
-  const { splits, isLoading, error, createSplit, claimShare, refreshSplits, runtimeMode, effectiveMode } =
+  const { splits, isLoading, createSplit, claimShare, refreshSplits, runtimeMode, effectiveMode } =
     useCovenantSplit();
   const tab = useDAppWidgetSection('create') as TabId;
   const navigateTab = useNavigateDAppWidgetTab();
@@ -178,15 +177,10 @@ export function CovenantSplitWidget() {
   const railAlerts = useMemo(
     () => (
       <CovenantRailAlerts>
-        {error ? (
-          <Alert type="error" compact region>
-            {error}
-          </Alert>
-        ) : null}
         {tab === 'create' ? renderCovenantFormAlerts(formAlerts) : null}
       </CovenantRailAlerts>
     ),
-    [error, tab, formAlerts],
+    [tab, formAlerts],
   );
 
   useCovenantWidgetRail(pricing, krexBalance, {

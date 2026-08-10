@@ -118,7 +118,6 @@ export function ArticleDetail({
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showConnectWallet, setShowConnectWallet] = useState(false);
   const [customTipKas, setCustomTipKas] = useState('25');
-  const [actionError, setActionError] = useState<string | null>(null);
   const [isProcessingAction, setIsProcessingAction] = useState(false);
   const [flowComplete, setFlowComplete] = useState(false);
   const [refreshTick, setRefreshTick] = useState(0);
@@ -446,7 +445,6 @@ export function ArticleDetail({
   const handlePremiumUnlock = async () => {
     const loadingId = hubNotify.loading('Unlocking premium…', 'Confirm payment in your wallet');
     try {
-      setActionError(null);
       setFlowComplete(false);
       setIsProcessingAction(true);
       const payAmount =
@@ -477,14 +475,6 @@ export function ArticleDetail({
       });
     } catch (e) {
       const msg = formatKaspaWalletError(e) || 'Unlock failed';
-      const lower = msg.toLowerCase();
-      if (lower.includes('insufficient')) {
-        setActionError(
-          `${msg} If a previous wallet prompt already succeeded, tap Continue unlock after funding your wallet. Completed steps are not charged again.`,
-        );
-      } else {
-        setActionError(msg);
-      }
       hubNotify.update(loadingId, {
         title: 'Unlock failed',
         description: msg,
@@ -499,7 +489,6 @@ export function ArticleDetail({
   const handleTip = async (amount: number, currency: string = 'KAS') => {
     const loadingId = hubNotify.loading('Sending tip…', 'Confirm in your wallet');
     try {
-      setActionError(null);
       setFlowComplete(false);
       setIsProcessingAction(true);
       reportHubFlowStep('sign-pay', 'hubPay');
@@ -537,7 +526,6 @@ export function ArticleDetail({
       });
     } catch (e) {
       const msg = formatKaspaWalletError(e) || 'Tip failed';
-      setActionError(msg);
       hubNotify.update(loadingId, {
         title: 'Tip failed',
         description: msg,
@@ -563,7 +551,6 @@ export function ArticleDetail({
     if (!kaspaState.address || !kaspaState.provider || !kaspaState.isConnected) return;
     const loadingId = hubNotify.loading('Sending reading receipt…', 'Confirm 1 KAS in your wallet');
     try {
-      setActionError(null);
       setFlowComplete(false);
       setIsProcessingAction(true);
       reportHubFlowStep('sign-pay', 'hubPay', 'Approve the 1 KAS reading receipt');
@@ -595,7 +582,6 @@ export function ArticleDetail({
       });
     } catch (e) {
       const msg = formatKaspaWalletError(e) || 'Receipt failed';
-      setActionError(msg);
       hubNotify.update(loadingId, {
         title: 'Receipt failed',
         description: msg,
@@ -744,10 +730,6 @@ export function ArticleDetail({
         >
           <SidePanelCollapsedContentWrap panelOpen={rightOpen}>
             <div className="flex min-w-0 flex-col space-y-6">
-                {actionError && !article.modules?.premiumSectionEnabled ? (
-                  <p className="text-sm text-red-600 dark:text-red-300">{actionError}</p>
-                ) : null}
-
                 {contentTab === 'article' ? (
                   <div className="space-y-6">
                     <DAppSectionHeader title="Article" className="mb-0" />
@@ -783,7 +765,6 @@ export function ArticleDetail({
                         flowSteps={premiumUnlockFlowSteps}
                         flowBusy={isProcessingAction}
                         flowComplete={flowComplete && premiumUnlockEntitled}
-                        actionError={actionError}
                         onUnlock={() => {
                           if (!kaspaState.isConnected) {
                             setShowConnectWallet(true);

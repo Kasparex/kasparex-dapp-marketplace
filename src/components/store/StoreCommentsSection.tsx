@@ -38,8 +38,6 @@ export function StoreCommentsSection({ productId, showSectionHeader = false }: S
     const [displayedCount, setDisplayedCount] = useState(COMMENTS_PER_PAGE);
     const [newComment, setNewComment] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [error, setError] = useState<string | null>(null);
-    const [success, setSuccess] = useState(false);
     const [isCollapsed, setIsCollapsed] = useState(false);
     const [showModal, setShowModal] = useState(false);
     const [showInfoModal, setShowInfoModal] = useState(false);
@@ -93,8 +91,6 @@ export function StoreCommentsSection({ productId, showSectionHeader = false }: S
         }
 
         setIsSubmitting(true);
-        setError(null);
-        setSuccess(false);
 
         try {
             // Use credit first
@@ -109,16 +105,13 @@ export function StoreCommentsSection({ productId, showSectionHeader = false }: S
             await addComment(newComment.trim(), walletAddress);
 
             setNewComment('');
-            setSuccess(true);
             hubNotify.success('Comment posted', 'Your comment was added.');
-            setTimeout(() => setSuccess(false), 3000);
 
             // Refresh credits display
             refreshCredits();
         } catch (err) {
             console.error('Error adding comment:', err);
             const message = err instanceof Error ? err.message : 'Failed to add comment. Please try again.';
-            setError(message);
             hubNotify.error('Comment failed', message);
         } finally {
             setIsSubmitting(false);
@@ -138,7 +131,6 @@ export function StoreCommentsSection({ productId, showSectionHeader = false }: S
         } catch (err) {
             console.error('Error deleting comment:', err);
             const message = err instanceof Error ? err.message : 'Failed to delete comment';
-            setError(message);
             hubNotify.error('Delete failed', message);
         } finally {
             setIsDeleting(false);
@@ -295,20 +287,6 @@ export function StoreCommentsSection({ productId, showSectionHeader = false }: S
                                         className="w-full px-3 py-2 text-sm border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#02abb8] resize-none"
                                         disabled={isSubmitting}
                                     />
-                                    {error && (
-                                        <div className="mt-2">
-                                            <Alert type="error" compact onDismiss={() => setError(null)}>
-                                                <p>{error}</p>
-                                            </Alert>
-                                        </div>
-                                    )}
-                                    {success && (
-                                        <div className="mt-2">
-                                            <Alert type="success" compact>
-                                                <p>Comment recorded on-chain!</p>
-                                            </Alert>
-                                        </div>
-                                    )}
                                 </div>
                                 <div className="flex items-center justify-between">
                                     <p className="text-xs text-zinc-500 dark:text-zinc-400">

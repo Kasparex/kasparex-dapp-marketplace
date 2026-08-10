@@ -42,8 +42,6 @@ export function CommentsSection({ articleId, dappSectionHeader = false }: Commen
   const [displayedComments, setDisplayedComments] = useState<VBlogComment[]>([]);
   const [newComment, setNewComment] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [showInfoModal, setShowInfoModal] = useState(false);
@@ -103,8 +101,6 @@ export function CommentsSection({ articleId, dappSectionHeader = false }: Commen
     }
 
     setIsSubmitting(true);
-    setError(null);
-    setSuccess(false);
 
     try {
       // Check if user has credits before submitting
@@ -137,16 +133,13 @@ export function CommentsSection({ articleId, dappSectionHeader = false }: Commen
       setAllComments(updatedComments);
       setDisplayedComments(updatedComments.slice(0, displayedComments.length + 1));
       setNewComment('');
-      setSuccess(true);
       hubNotify.success('Comment posted', 'Your comment was added.');
-      setTimeout(() => setSuccess(false), 3000);
 
       // Refresh credits display to ensure UI is in sync
       refreshCredits();
     } catch (err) {
       console.error('Error adding comment:', err);
       const message = err instanceof Error ? err.message : 'Failed to add comment. Please try again.';
-      setError(message);
       hubNotify.error('Comment failed', message);
     } finally {
       setIsSubmitting(false);
@@ -172,7 +165,6 @@ export function CommentsSection({ articleId, dappSectionHeader = false }: Commen
     } catch (err) {
       console.error('Error deleting comment:', err);
       const message = err instanceof Error ? err.message : 'Failed to delete comment';
-      setError(message);
       hubNotify.error('Delete failed', message);
     } finally {
       setIsDeleting(false);
@@ -362,18 +354,6 @@ export function CommentsSection({ articleId, dappSectionHeader = false }: Commen
                     {isSubmitting ? 'Submitting...' : hasCredits() ? 'Submit Comment' : 'Purchase Credits'}
                   </button>
                 </div>
-                <KxAlertRegion>
-                  {error ? (
-                    <Alert type="error" compact onDismiss={() => setError(null)} region>
-                      {error}
-                    </Alert>
-                  ) : null}
-                  {success ? (
-                    <Alert type="success" compact region>
-                      Comment added successfully!
-                    </Alert>
-                  ) : null}
-                </KxAlertRegion>
               </form>
             ) : (
               <KxAlertRegion>

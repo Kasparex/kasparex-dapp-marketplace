@@ -43,6 +43,7 @@ import { executeHubPaidDelete, HUB_DELETE_FEE_KAS } from '@/lib/hub/paidDelete';
 import { useKxSystemDialog } from '@/hooks/useKxSystemDialog';
 import { collectDappMediaCids } from '@/lib/ipfs/cidUtils';
 import type { KaspaWalletProvider } from '@/lib/kaspa/types';
+import { hubNotify, notifyActionError } from '@/lib/hub/notify';
 
 const DASHBOARD_TABS: DAppDashboardTab[] = ['create', 'listings'];
 
@@ -149,7 +150,6 @@ export function DAppDashboardContent() {
   const [categoryFilter, setCategoryFilter] = useState<Category | 'all'>('all');
   const [editId, setEditId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [actionError, setActionError] = useState<string | null>(null);
 
   useEffect(() => {
     setActiveTab(parseDAppDashboardTab(searchParams.get('tab')));
@@ -197,7 +197,7 @@ export function DAppDashboardContent() {
 
   const handleDelete = async (id: string) => {
     if (!state.address || !state.provider) {
-      setActionError('Connect your Kaspa wallet to delete a listing.');
+      hubNotify.error('Wallet required', 'Connect your Kaspa wallet to delete a listing.');
       return;
     }
     const listing = getDirectoryListingById(id);
@@ -218,7 +218,6 @@ export function DAppDashboardContent() {
     if (!ok) return;
 
     setDeletingId(id);
-    setActionError(null);
     try {
       const result = await executeHubPaidDelete({
         kind: 'dapps',
@@ -230,9 +229,10 @@ export function DAppDashboardContent() {
         removeLocal: () => archiveDirectoryListingLocal(id, state.address!),
       });
       if (!result.ok) throw new Error(result.error ?? 'Failed to remove listing');
+      hubNotify.success('Listing removed', `"${listing.name}" was removed from the directory.`);
       refresh();
     } catch (err) {
-      setActionError(err instanceof Error ? err.message : 'Failed to remove listing');
+      notifyActionError('Remove failed', err instanceof Error ? err.message : 'Failed to remove listing');
     } finally {
       setDeletingId(null);
     }
@@ -288,12 +288,6 @@ export function DAppDashboardContent() {
             feeKas={applyKrexFeeDiscount(HUB_DELETE_FEE_KAS.dapps, krexTier)}
             tier={krexTier}
           />
-        </div>
-      ) : null}
-
-      {actionError ? (
-        <div className="mb-6 rounded-xl border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-900/20">
-          <p className="text-sm font-bold text-red-800 dark:text-red-300">{actionError}</p>
         </div>
       ) : null}
 

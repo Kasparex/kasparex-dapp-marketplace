@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import type { DApp } from '@/lib/dapps';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useGenesisDapp } from '@/hooks/useGenesisDapp';
@@ -44,12 +44,10 @@ export function GenesisDappWidget({ dapp }: { dapp?: DApp }) {
   const navigateTab = useNavigateDAppWidgetTab();
   const [contentHtml, setContentHtml] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [success, setSuccess] = useState<string | null>(null);
 
   const {
     messages,
     isLoading,
-    error,
     leaveMessage,
     deleteMessage,
     refreshMessages,
@@ -57,10 +55,6 @@ export function GenesisDappWidget({ dapp }: { dapp?: DApp }) {
   } = useGenesisDapp();
 
   useRegisterWidgetTabLabel('messages', `Messages (${messageCount})`, [messageCount]);
-
-  useEffect(() => {
-    if (error) hubNotify.error('Capsule error', error);
-  }, [error]);
 
   const plainLen = genesisPlainTextLength(contentHtml);
   const validationError = useMemo(() => {
@@ -85,25 +79,19 @@ export function GenesisDappWidget({ dapp }: { dapp?: DApp }) {
     }
 
     setIsSubmitting(true);
-    setSuccess(null);
     const loadingId = hubNotify.loading('Publishing message…', 'Confirm in your wallet');
     try {
       await leaveMessage(normalized, dapp);
       setContentHtml('');
-      const msg = 'Your message was published on-chain and added to the Capsule archive.';
-      setSuccess(msg);
       hubNotify.update(loadingId, {
         title: 'Message published',
-        description: msg,
+        description: 'Your message was published on-chain and added to the Capsule archive.',
         variant: 'success',
       });
     } catch (e) {
       console.error(e);
-      hubNotify.update(loadingId, {
-        title: 'Publish failed',
-        description: e instanceof Error ? e.message : 'Could not publish message',
-        variant: 'error',
-      });
+      // Hook already toasted the action error; dismiss the loading card.
+      hubNotify.dismiss(loadingId);
     } finally {
       setIsSubmitting(false);
     }
@@ -144,8 +132,6 @@ export function GenesisDappWidget({ dapp }: { dapp?: DApp }) {
       validationError,
       quote,
       kaspaState.isConnected,
-      error,
-      success,
     ],
   });
 

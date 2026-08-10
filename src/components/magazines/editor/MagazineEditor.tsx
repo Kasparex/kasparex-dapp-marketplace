@@ -29,6 +29,7 @@ import {
 import { creditHubListingEarn } from '@/lib/rewards/creditHubListingEarn';
 import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
+import { hubNotify, notifyActionError, notifyActionWarning } from '@/lib/hub/notify';
 import { KxRichTextEditor } from '@/components/ui/KxRichTextEditor';
 import { KxInFormPremiumRow } from '@/components/ui/KxInFormPremiumRow';
 import { KxFormFieldLabel } from '@/components/ui/KxFormFieldLabel';
@@ -88,7 +89,6 @@ export function MagazineEditor() {
   const [contributors, setContributors] = useState<ContributorShare[]>([
     { address: '', role: 'Author', sharePercentage: 95 },
   ]);
-  const [publishNote, setPublishNote] = useState<string | null>(null);
   const [includedVblogSlugs, setIncludedVblogSlugs] = useState<string[]>([]);
   const [spotlightEnabled, setSpotlightEnabled] = useState(false);
   const [collectibleCoverEnabled, setCollectibleCoverEnabled] = useState(false);
@@ -116,10 +116,6 @@ export function MagazineEditor() {
       /* ignore */
     }
   }, [kaspa.isConnected, kaspa.address]);
-
-  useEffect(() => {
-    setPublishNote(null);
-  }, [existingMagazineId, magazineSlug, title]);
 
   const addBlock = (type: EditorBlock['type']) => {
     const newBlock: EditorBlock = {
@@ -249,31 +245,30 @@ export function MagazineEditor() {
   };
 
   const handlePublish = async () => {
-    setPublishNote(null);
     if (totalShare !== 100) {
-      setPublishNote('Total share (contributors + treasury) must equal 100%.');
+      notifyActionWarning('Invalid shares', 'Total share (contributors + treasury) must equal 100%.');
       return;
     }
     if (!kaspa.isConnected || !kaspa.provider || !kaspa.address) {
-      setPublishNote('Connect your Kaspa wallet.');
+      hubNotify.error('Wallet required', 'Connect your Kaspa wallet.');
       return;
     }
     if (!MAGAZINE_TREASURY) {
-      setPublishNote('Publishing treasury is not configured (NEXT_PUBLIC_STORE_TREASURY_ADDRESS).');
+      notifyActionError('Treasury unavailable', 'Publishing treasury is not configured yet.');
       return;
     }
     const payer = normalizeKaspaAddress(kaspa.address);
 
     const mag = resolveMagazineHeading();
     if (!mag) {
-      setPublishNote('Pick an existing magazine or enter a slug for a new one.');
+      notifyActionWarning('Magazine required', 'Pick an existing magazine or enter a slug for a new one.');
       return;
     }
 
     for (const c of contributors) {
       const addr = c.address.trim();
       if (!addr || !isValidKaspaAddress(addr)) {
-        setPublishNote('Every contributor row needs a valid Kaspa address.');
+        notifyActionWarning('Invalid contributor', 'Every contributor row needs a valid Kaspa address.');
         return;
       }
     }
@@ -301,7 +296,7 @@ export function MagazineEditor() {
     try {
       const cid = await uploadJSON(payloadJson as unknown as Record<string, unknown>);
       if (!cid) {
-        setPublishNote('Could not publish metadata to IPFS.');
+        notifyActionError('Upload failed', 'Could not publish metadata to IPFS.');
         return;
       }
 
@@ -358,10 +353,14 @@ export function MagazineEditor() {
         meta: { cid, slug: mag.slug, issueNumber, magazineId: mag.id },
       });
 
-      setPublishNote(`Published. Issue bound on-chain (${txHash.slice(0, 12)}…). Redeemable points update on your Rewards hub.`);
+      hubNotify.txSuccess({
+        title: 'Issue published',
+        description: 'Redeemable points update on your Rewards hub.',
+        txHash,
+      });
       setIncludedVblogSlugs([]);
     } catch (e) {
-      setPublishNote(e instanceof Error ? e.message : 'Publishing failed.');
+      notifyActionError('Publishing failed', e instanceof Error ? e.message : 'Publishing failed.');
     }
   };
 
@@ -643,11 +642,6 @@ export function MagazineEditor() {
               setPaymentCurrency(hubCatalogSelectionToStoreCurrency(opt));
             }}
           />
-          {publishNote ? (
-            <p className="text-xs text-zinc-600 dark:text-zinc-400" role="status">
-              {publishNote}
-            </p>
-          ) : null}
           <button
             type="submit"
             disabled={busyPublish || isPaying || totalShare !== 100}

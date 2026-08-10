@@ -7,6 +7,7 @@ import { isValidKaspaAddress } from '@/lib/kaspa/sdk';
 import { useKrexBoosters } from '@/hooks/useKrexBoosters';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { GameItemCard } from '@/components/games/shop/GameItemCard';
+import { hubNotify, notifyActionError, notifyActionWarning } from '@/lib/hub/notify';
 
 const DEFAULT_PRIORITY_FEE_KAS = 0.001;
 const KREX_DECIMALS = 8;
@@ -33,7 +34,6 @@ export function KrexBoosterCard(props: { gameId: string; title?: string }) {
   const { multiplier, isActive, until, txHash, activate, clear } = useKrexBoosters(props.gameId);
 
   const [isBuying, setIsBuying] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   const treasury = (process.env.NEXT_PUBLIC_KREX_BOOSTER_TREASURY_ADDRESS || '').trim();
   const canPay =
@@ -49,22 +49,22 @@ export function KrexBoosterCard(props: { gameId: string; title?: string }) {
   );
 
   const handleBuy = async (opt: BoosterOption) => {
-    setError(null);
     if (!canPay || !kaspaState.provider) {
-      setError('Connect KasWare or Kastle to buy KREX boosters.');
+      notifyActionWarning('Wallet required', 'Connect KasWare or Kastle to buy KREX boosters.');
       return;
     }
     if (!treasury || !isValidKaspaAddress(treasury)) {
-      setError('KREX booster treasury is not configured.');
+      notifyActionError('Treasury missing', 'KREX booster treasury is not configured.');
       return;
     }
     if (opt.priceKrex <= 0) return;
     if (l1Balance < opt.priceKrex) {
-      setError('Insufficient KREX balance on L1 for this booster.');
+      notifyActionWarning('Insufficient balance', 'Insufficient KREX balance on L1 for this booster.');
       return;
     }
 
     setIsBuying(true);
+    const loadingId = hubNotify.loading('Buying booster…', 'Confirm KREX transfer in your wallet');
     try {
       const amountSmallest = Math.floor(opt.priceKrex * Math.pow(10, KREX_DECIMALS));
       const inscribeJson = {
@@ -79,6 +79,12 @@ export function KrexBoosterCard(props: { gameId: string; title?: string }) {
       const tx = await signKrc20Transfer(kaspaState.provider, payload, 4, treasury, DEFAULT_PRIORITY_FEE_KAS);
 
       activate({ mult: opt.mult, durationMs: opt.durationMs, txHash: tx });
+      hubNotify.txSuccess({
+        id: loadingId,
+        title: `${opt.label} active`,
+        description: `×${opt.mult.toFixed(2)} for ${Math.round(opt.durationMs / 60000)} minutes`,
+        txHash: tx,
+      });
 
       // Best-effort analytics hook (consistent with other parts of the app)
       try {
@@ -101,7 +107,11 @@ export function KrexBoosterCard(props: { gameId: string; title?: string }) {
         // ignore
       }
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Booster purchase failed');
+      hubNotify.update(loadingId, {
+        title: 'Booster purchase failed',
+        description: e instanceof Error ? e.message : 'Booster purchase failed',
+        variant: 'error',
+      });
     } finally {
       setIsBuying(false);
     }
@@ -134,12 +144,6 @@ export function KrexBoosterCard(props: { gameId: string; title?: string }) {
               Clear
             </button>
           </div>
-        </div>
-      ) : null}
-
-      {error ? (
-        <div className="rounded-2xl border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-900/20">
-          <div className="text-sm text-red-800 dark:text-red-300">{error}</div>
         </div>
       ) : null}
 

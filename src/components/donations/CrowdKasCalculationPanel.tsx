@@ -3,7 +3,6 @@
 import { useMemo, useState } from 'react';
 import { HubPaymentPanel } from '@/components/payments/HubPaymentPanel';
 import { KREXBuyWizard } from '@/components/rewards/KREXBuyWizard';
-import { Alert } from '@/components/Alert';
 import { buildKasKrexCurrencyOptions, formatHubPaymentAmount } from '@/lib/payments/hubPaymentTypes';
 import type { HubPaymentCurrencyOption } from '@/lib/payments/hubPaymentTypes';
 import { resolveCatalogPaymentOption } from '@/lib/payments/currencyCatalog';
@@ -83,7 +82,7 @@ export function CrowdKasL1CalculationPanel({
   previewLabel = 'Preview campaign',
   onCancel,
   cancelLabel = 'Cancel',
-  error,
+  error: _error,
   requirementsNote,
 }: {
   quote: CrowdKasL1PriceQuote;
@@ -98,9 +97,11 @@ export function CrowdKasL1CalculationPanel({
   previewLabel?: string;
   onCancel?: () => void;
   cancelLabel?: string;
+  /** @deprecated Action errors toast at the source via hubNotify. Kept for call-site compat. */
   error?: string | null;
   requirementsNote?: string[];
 }) {
+  void _error;
   const [paymentCurrency, setPaymentCurrency] = useState<StorePaymentCurrency>('KAS');
   const [isKrexWizardOpen, setIsKrexWizardOpen] = useState(false);
   const { balance: krexBalance } = useKREXBalance();
@@ -200,13 +201,6 @@ export function CrowdKasL1CalculationPanel({
             ) : null}
           </>
         }
-        alerts={
-          error ? (
-            <Alert type="error" compact region>
-              {error}
-            </Alert>
-          ) : null
-        }
       />
       <KREXBuyWizard isOpen={isKrexWizardOpen} onClose={() => setIsKrexWizardOpen(false)} />
     </>
@@ -252,7 +246,7 @@ export function CrowdKasL2CalculationPanel({
   previewLabel = 'Preview campaign',
   onCancel,
   cancelLabel = 'Cancel',
-  error,
+  error: _error,
   requirementsNote,
 }: {
   quote: CrowdKasL2PriceQuote;
@@ -268,9 +262,11 @@ export function CrowdKasL2CalculationPanel({
   previewLabel?: string;
   onCancel?: () => void;
   cancelLabel?: string;
+  /** @deprecated Action errors toast at the source via hubNotify. Kept for call-site compat. */
   error?: string | null;
   requirementsNote?: string[];
 }) {
+  void _error;
   const isEdit = quote.action === 'edit';
   const lines = useMemo(() => buildL2BreakdownLines(quote), [quote]);
 
@@ -336,13 +332,6 @@ export function CrowdKasL2CalculationPanel({
             </button>
           ) : null}
         </>
-      }
-      alerts={
-        error ? (
-          <Alert type="error" compact region>
-            {error}
-          </Alert>
-        ) : null
       }
     />
   );

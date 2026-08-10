@@ -43,6 +43,7 @@ import { useKREXBalance } from '@/hooks/useKREXBalance'
 import { usePricingSnapshot } from '@/hooks/usePricingSnapshot';
 import { KRC20_TRANSFER_TYPE, KREX_DECIMALS } from '@/lib/game/diamond-veins-config';
 import { applyKrexFeeDiscount } from '@/lib/hub/applyKrexFeeDiscount';
+import { notifyActionError, notifyActionWarning } from '@/lib/hub/notify';
 import type { KREXTier } from '@/lib/rewards/types';
 import { signKrc20Transfer } from '@/lib/kaspa/l1WalletActions';
 import { getNFTTier } from '@/lib/game/diamond-bonuses';
@@ -186,7 +187,6 @@ export function useMinecore() {
   const nowTick = useNowTick(1000);
   const derived = useMemo(() => deriveState(mc, nowTick, minecoreComputeContext), [mc, nowTick, minecoreComputeContext]);
 
-  const [lastPaymentError, setLastPaymentError] = useState<string | null>(null);
   const [lastSetupError, setLastSetupError] = useState<string | null>(null);
 
   /** Applies Minecore events; InstallPart is validated first so inventory rejects never bump version silently. */
@@ -346,13 +346,12 @@ export function useMinecore() {
 
   const payKasBestEffort = useCallback(
     async (params: { amountKas: number; skuId: string; purchaseType: 'slot' | 'unlock' | 'other' }) => {
-      setLastPaymentError(null);
       if (!walletState.isConnected || !walletState.provider || !walletState.address) {
-        setLastPaymentError('Wallet connection required');
+        notifyActionWarning('Wallet required', 'Wallet connection required');
         return { ok: false as const };
       }
       if (!DEFAULT_TREASURY) {
-        setLastPaymentError('Treasury address not configured');
+        notifyActionError('Treasury missing', 'Treasury address not configured');
         return { ok: false as const };
       }
 
@@ -366,7 +365,7 @@ export function useMinecore() {
         purchaseType: params.purchaseType,
       });
       if (!pay.ok) {
-        setLastPaymentError(pay.error);
+        notifyActionError('Payment failed', pay.error);
         return { ok: false as const };
       }
 
@@ -416,23 +415,22 @@ export function useMinecore() {
       amountKrex: number,
       meta: { skuId: string; recordActionType: string; transactionDetail?: Record<string, unknown> },
     ) => {
-      setLastPaymentError(null);
       if (!walletState.isConnected || !walletState.provider || !walletState.address) {
-        setLastPaymentError('Wallet connection required');
+        notifyActionWarning('Wallet required', 'Wallet connection required');
         return { ok: false as const };
       }
       if (!DEFAULT_TREASURY) {
-        setLastPaymentError('Treasury address not configured');
+        notifyActionError('Treasury missing', 'Treasury address not configured');
         return { ok: false as const };
       }
       if (krexL1Balance + 1e-12 < amountKrex) {
-        setLastPaymentError('Insufficient KREX balance on L1 for this purchase');
+        notifyActionWarning('Insufficient balance', 'Insufficient KREX balance on L1 for this purchase');
         return { ok: false as const };
       }
       try {
         const amountSmallest = Math.floor(amountKrex * Math.pow(10, KREX_DECIMALS));
         if (!Number.isFinite(amountSmallest) || amountSmallest <= 0) {
-          setLastPaymentError('KREX amount too small to transfer');
+          notifyActionWarning('Invalid amount', 'KREX amount too small to transfer');
           return { ok: false as const };
         }
         const inscribeJson = {
@@ -488,7 +486,7 @@ export function useMinecore() {
 
         return { ok: true as const, txHash };
       } catch (e) {
-        setLastPaymentError(e instanceof Error ? e.message : 'KREX payment failed');
+        notifyActionError('Payment failed', e, 'KREX payment failed');
         return { ok: false as const };
       }
     },
@@ -520,7 +518,8 @@ export function useMinecore() {
         return true;
       }
       if (!minecoreEligiblePremiumOperatorLinkedForKasPlantExpand(mcRef.current, minecoreComputeContextRef.current)) {
-        setLastPaymentError(
+        notifyActionWarning(
+          'Crew required',
           'KAS expansion requires a Diamond or Rarest KREXPRIME or PIXELKREX assigned on your Operator crew deck link.',
         );
         return false;
@@ -1051,10 +1050,12 @@ export function useMinecore() {
     (ingredient: MinecoreIngredient, opts: { amount: number; gridCost: number }) => {
       const bal = mcRef.current.gridRedeemableTotal ?? 0;
       if (bal + 1e-9 < opts.gridCost) {
-        setLastPaymentError('Insufficient GRID redeemable balance for this purchase');
+        notifyActionWarning(
+          'Insufficient balance',
+          'Insufficient GRID redeemable balance for this purchase',
+        );
         return false;
       }
-      setLastPaymentError(null);
       dispatch({
         type: 'BuyIngredientWithGrid',
         at: Date.now(),
@@ -1074,14 +1075,12 @@ export function useMinecore() {
     miningAllowed,
     profileNotice,
     dismissProfileNotice: () => setProfileNotice(null),
-    dismissLastPaymentError: () => setLastPaymentError(null),
     dismissLastSetupError: () => setLastSetupError(null),
     wallet: {
       isConnected: walletState.isConnected,
       address: walletState.address ?? null,
       provider: walletState.provider ?? null,
     },
-    lastPaymentError,
     lastSetupError,
     actions: {
       unlockSlot,

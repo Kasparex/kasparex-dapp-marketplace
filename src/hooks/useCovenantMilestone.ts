@@ -16,6 +16,7 @@ import {
   type MilestoneInput,
 } from '@/lib/covenant';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
+import { notifyActionError } from '@/lib/hub/notify';
 
 export function useCovenantMilestone() {
   const { state } = useKaspaWallet();
@@ -58,75 +59,96 @@ export function useCovenantMilestone() {
       memo: string;
       milestones: MilestoneInput[];
     }) => {
-      const pricing = resolveKpxCovenantDeployPrice('milestone', krexTier, {
-        premiumSlotCount: args.milestones.length,
-      });
-      const deal = await runKpxCovenantDeployWithFee({
-        template: 'milestone',
-        pricing,
-        ctx: walletCtx(),
-        create: () =>
-          runtime.create(
-            {
-              depositor: walletCtx().userAddress,
-              beneficiary: args.beneficiary,
-              totalSompi: kasToSompiString(args.totalKas),
-              memo: args.memo,
-              milestones: args.milestones,
-            },
-            walletCtx(),
-          ),
-      });
-      await refresh();
-      return deal;
+      setError(null);
+      try {
+        const pricing = resolveKpxCovenantDeployPrice('milestone', krexTier, {
+          premiumSlotCount: args.milestones.length,
+        });
+        const deal = await runKpxCovenantDeployWithFee({
+          template: 'milestone',
+          pricing,
+          ctx: walletCtx(),
+          create: () =>
+            runtime.create(
+              {
+                depositor: walletCtx().userAddress,
+                beneficiary: args.beneficiary,
+                totalSompi: kasToSompiString(args.totalKas),
+                memo: args.memo,
+                milestones: args.milestones,
+              },
+              walletCtx(),
+            ),
+        });
+        await refresh();
+        return deal;
+      } catch (err) {
+        const msg = notifyActionError('Create failed', err, 'Failed to create deal');
+        setError(msg);
+        throw err;
+      }
     },
     [refresh, runtime, walletCtx, krexTier]
   );
 
   const claimStep = useCallback(
     async (dealId: string, stepId: string) => {
-      const pricing = resolveKpxCovenantClaimPrice('milestone', krexTier);
-      const existing = (await runtime.listForAddress(walletCtx().userAddress))
-        .find((d) => d.id === dealId)
-        ?.milestones.find((s) => s.id === stepId)?.claimFeeTxHash;
-      const deal = await runKpxCovenantClaimWithFee({
-        template: 'milestone',
-        pricing,
-        ctx: walletCtx(),
-        instanceId: `${dealId}:${stepId}`,
-        existingFeeTxHash: existing,
-        onFeePaid: async (feeTxHash) => {
-          await getSilverscriptMilestoneRuntime().setClaimFeeTxHash(dealId, stepId, feeTxHash);
-        },
-        claim: () =>
-          runtime.claimMilestone(dealId, stepId, walletCtx().userAddress, walletCtx()),
-      });
-      await refresh();
-      return deal;
+      setError(null);
+      try {
+        const pricing = resolveKpxCovenantClaimPrice('milestone', krexTier);
+        const existing = (await runtime.listForAddress(walletCtx().userAddress))
+          .find((d) => d.id === dealId)
+          ?.milestones.find((s) => s.id === stepId)?.claimFeeTxHash;
+        const deal = await runKpxCovenantClaimWithFee({
+          template: 'milestone',
+          pricing,
+          ctx: walletCtx(),
+          instanceId: `${dealId}:${stepId}`,
+          existingFeeTxHash: existing,
+          onFeePaid: async (feeTxHash) => {
+            await getSilverscriptMilestoneRuntime().setClaimFeeTxHash(dealId, stepId, feeTxHash);
+          },
+          claim: () =>
+            runtime.claimMilestone(dealId, stepId, walletCtx().userAddress, walletCtx()),
+        });
+        await refresh();
+        return deal;
+      } catch (err) {
+        const msg = notifyActionError('Claim failed', err, 'Failed to claim milestone');
+        setError(msg);
+        throw err;
+      }
     },
     [refresh, runtime, walletCtx, krexTier]
   );
 
   const reclaimStep = useCallback(
     async (dealId: string, stepId: string) => {
-      const pricing = resolveKpxCovenantClaimPrice('milestone', krexTier);
-      const existing = (await runtime.listForAddress(walletCtx().userAddress))
-        .find((d) => d.id === dealId)
-        ?.milestones.find((s) => s.id === stepId)?.claimFeeTxHash;
-      const deal = await runKpxCovenantClaimWithFee({
-        template: 'milestone',
-        pricing,
-        ctx: walletCtx(),
-        instanceId: `${dealId}:${stepId}:reclaim`,
-        existingFeeTxHash: existing,
-        onFeePaid: async (feeTxHash) => {
-          await getSilverscriptMilestoneRuntime().setClaimFeeTxHash(dealId, stepId, feeTxHash);
-        },
-        claim: () =>
-          runtime.reclaimMilestone(dealId, stepId, walletCtx().userAddress, walletCtx()),
-      });
-      await refresh();
-      return deal;
+      setError(null);
+      try {
+        const pricing = resolveKpxCovenantClaimPrice('milestone', krexTier);
+        const existing = (await runtime.listForAddress(walletCtx().userAddress))
+          .find((d) => d.id === dealId)
+          ?.milestones.find((s) => s.id === stepId)?.claimFeeTxHash;
+        const deal = await runKpxCovenantClaimWithFee({
+          template: 'milestone',
+          pricing,
+          ctx: walletCtx(),
+          instanceId: `${dealId}:${stepId}:reclaim`,
+          existingFeeTxHash: existing,
+          onFeePaid: async (feeTxHash) => {
+            await getSilverscriptMilestoneRuntime().setClaimFeeTxHash(dealId, stepId, feeTxHash);
+          },
+          claim: () =>
+            runtime.reclaimMilestone(dealId, stepId, walletCtx().userAddress, walletCtx()),
+        });
+        await refresh();
+        return deal;
+      } catch (err) {
+        const msg = notifyActionError('Reclaim failed', err, 'Failed to reclaim milestone');
+        setError(msg);
+        throw err;
+      }
     },
     [refresh, runtime, walletCtx, krexTier]
   );

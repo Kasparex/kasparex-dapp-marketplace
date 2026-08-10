@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 import { useAccount, useSignMessage } from 'wagmi';
 import { Alert } from '@/components/Alert';
 import { KX_FORM_ADD_BTN_CLASS } from '@/components/ui/KxLinkRowsEditor';
+import { notifyActionError, notifyActionWarning } from '@/lib/hub/notify';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { getWalletProvider, signKaspaMessage } from '@/lib/kaspa/wallet';
 import { normalizeKaspaAddress } from '@/lib/kaspa/sdk';
@@ -97,7 +98,6 @@ export function TokenFormOwnershipGate({
   const { address: evmAddress, isConnected: isEvmConnected } = useAccount();
   const { signMessageAsync } = useSignMessage();
   const [isSigning, setIsSigning] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   const isL2 = listingNetwork === 'l2_kasplex' || listingNetwork === 'l2_igra';
   const isKcc20 = listingNetwork === 'kcc20';
@@ -141,19 +141,25 @@ export function TokenFormOwnershipGate({
   const canAttemptVerify = !l2NoOwner && !kcc20Unmatchable && Boolean(expectedDeployer?.trim());
 
   const handleVerify = async () => {
-    setError(null);
     if (l2NoOwner) {
-      setError('This L2 contract has no readable owner(). Deployer verification is unavailable.');
+      notifyActionWarning(
+        'Verification unavailable',
+        'This L2 contract has no readable owner(). Deployer verification is unavailable.',
+      );
       return;
     }
     if (kcc20Unmatchable) {
-      setError(
+      notifyActionWarning(
+        'Verification unavailable',
         'This KCC-20 genesis owner is another covenant (no P2PK pubkey). Hub cannot prove deployer control without a matchable genesis owner. Publish stays locked.',
       );
       return;
     }
     if (!expectedDeployer?.trim()) {
-      setError('Load on-chain token data first so we can match the deployer or owner.');
+      notifyActionWarning(
+        'Load token first',
+        'Load on-chain token data first so we can match the deployer or owner.',
+      );
       return;
     }
 
@@ -164,11 +170,14 @@ export function TokenFormOwnershipGate({
 
       if (isL2) {
         if (!evmReady || !evmAddress) {
-          setError('Connect the EVM owner wallet (Kasplex / Igra) to verify.');
+          notifyActionWarning('Wallet required', 'Connect the EVM owner wallet (Kasplex / Igra) to verify.');
           return;
         }
         if (mismatch) {
-          setError('Connected EVM wallet is not the on-chain owner. Switch wallets and try again.');
+          notifyActionWarning(
+            'Wallet mismatch',
+            'Connected EVM wallet is not the on-chain owner. Switch wallets and try again.',
+          );
           return;
         }
         walletAddress = evmAddress;
@@ -183,7 +192,7 @@ export function TokenFormOwnershipGate({
         });
       } else {
         if (!kaspaReady || !kaspaState.provider || !kaspaState.address) {
-          setError('Connect the Kaspa deployer wallet to verify.');
+          notifyActionWarning('Wallet required', 'Connect the Kaspa deployer wallet to verify.');
           return;
         }
 
@@ -191,18 +200,27 @@ export function TokenFormOwnershipGate({
           const wallet = getWalletProvider(kaspaState.provider as KaspaWalletProvider);
           const getPk = wallet?.getPublicKey;
           if (typeof getPk !== 'function') {
-            setError('This wallet cannot expose a public key for deployer matching. Try KasWare / Kastle.');
+            notifyActionWarning(
+              'Wallet unsupported',
+              'This wallet cannot expose a public key for deployer matching. Try KasWare / Kastle.',
+            );
             return;
           }
           const pk = await getPk.call(wallet);
           const expectedX = toXOnlyPubkeyHex(expectedDeployer);
           const walletX = pk ? toXOnlyPubkeyHex(pk) : null;
           if (!expectedX || !walletX || expectedX !== walletX) {
-            setError('Connected Kaspa wallet public key does not match the on-chain genesis owner.');
+            notifyActionWarning(
+              'Wallet mismatch',
+              'Connected Kaspa wallet public key does not match the on-chain genesis owner.',
+            );
             return;
           }
         } else if (mismatch) {
-          setError('Connected Kaspa wallet is not the on-chain deployer. Switch wallets and try again.');
+          notifyActionWarning(
+            'Wallet mismatch',
+            'Connected Kaspa wallet is not the on-chain deployer. Switch wallets and try again.',
+          );
           return;
         }
 
@@ -220,7 +238,7 @@ export function TokenFormOwnershipGate({
       }
 
       if (!signature) {
-        setError('Signature was not provided.');
+        notifyActionError('Verification failed', 'Signature was not provided.');
         return;
       }
 
@@ -231,7 +249,7 @@ export function TokenFormOwnershipGate({
         verifiedAt: new Date().toISOString(),
       });
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Verification failed. Try again.');
+      notifyActionError('Verification failed', e instanceof Error ? e.message : 'Verification failed. Try again.');
     } finally {
       setIsSigning(false);
     }
@@ -292,12 +310,6 @@ export function TokenFormOwnershipGate({
       {mismatch ? (
         <Alert type="error" compact>
           Connected wallet does not match the on-chain {isL2 ? 'owner' : 'deployer'}.
-        </Alert>
-      ) : null}
-
-      {error ? (
-        <Alert type="error" compact onDismiss={() => setError(null)}>
-          {error}
         </Alert>
       ) : null}
 

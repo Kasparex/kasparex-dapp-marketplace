@@ -23,8 +23,8 @@ import {
   CovenantRailAlerts,
   renderCovenantFormAlerts,
 } from '@/components/dapps/covenant/CovenantRailAlerts';
-import { Alert } from '@/components/Alert';
 import { KpxCovenantDisconnected, KpxCovenantShell } from '@/components/dapps/covenant/KpxCovenantShell';
+import { notifyActionError } from '@/lib/hub/notify';
 import { KpxCovenantMetadataView } from '@/components/dapps/covenant/KpxCovenantMetadataView';
 import { useCovenantWidgetRail } from '@/hooks/useCovenantWidgetRail';
 import { useKpxCovenantDeployFee, useKpxCovenantClaimFee } from '@/hooks/useKpxCovenantDeployFee';
@@ -83,7 +83,6 @@ export function CovenantMilestoneWidget() {
   const {
     deals,
     loading,
-    error,
     createDeal,
     claimStep,
     reclaimStep,
@@ -155,26 +154,32 @@ export function CovenantMilestoneWidget() {
   const handleCreate = async () => {
     setBusyKey('create');
     try {
-      const milestones = milestoneRows.map((row) => {
-        const unlockAt = new Date(row.unlock).getTime();
-        const deadlineRaw = row.deadline.trim();
-        const deadlineAt = deadlineRaw ? new Date(row.deadline).getTime() : null;
-        if (!Number.isFinite(unlockAt)) {
-          throw new Error(`Choose an unlock time for "${row.label || 'milestone'}"`);
-        }
-        if (deadlineRaw && !Number.isFinite(deadlineAt)) {
-          throw new Error(`Claim deadline is invalid for "${row.label || 'milestone'}"`);
-        }
-        if (deadlineAt != null && deadlineAt <= unlockAt) {
-          throw new Error(`Deadline must be after unlock for "${row.label || 'milestone'}"`);
-        }
-        return {
-          label: row.label,
-          shareBps: Math.round(parseFloat(row.pct) * 100),
-          unlockAt,
-          deadlineAt,
-        };
-      });
+      let milestones;
+      try {
+        milestones = milestoneRows.map((row) => {
+          const unlockAt = new Date(row.unlock).getTime();
+          const deadlineRaw = row.deadline.trim();
+          const deadlineAt = deadlineRaw ? new Date(row.deadline).getTime() : null;
+          if (!Number.isFinite(unlockAt)) {
+            throw new Error(`Choose an unlock time for "${row.label || 'milestone'}"`);
+          }
+          if (deadlineRaw && !Number.isFinite(deadlineAt)) {
+            throw new Error(`Claim deadline is invalid for "${row.label || 'milestone'}"`);
+          }
+          if (deadlineAt != null && deadlineAt <= unlockAt) {
+            throw new Error(`Deadline must be after unlock for "${row.label || 'milestone'}"`);
+          }
+          return {
+            label: row.label,
+            shareBps: Math.round(parseFloat(row.pct) * 100),
+            unlockAt,
+            deadlineAt,
+          };
+        });
+      } catch (e) {
+        notifyActionError('Invalid milestones', e, 'Check milestone dates and shares');
+        return;
+      }
       await createDeal({
         beneficiary: beneficiary.trim(),
         totalKas: parseFloat(totalKas),
@@ -182,6 +187,8 @@ export function CovenantMilestoneWidget() {
         milestones,
       });
       navigateTab('deals');
+    } catch (e) {
+      console.error(e);
     } finally {
       setBusyKey(null);
     }
@@ -191,6 +198,8 @@ export function CovenantMilestoneWidget() {
     setBusyKey(`claim:${dealId}:${stepId}`);
     try {
       await claimStep(dealId, stepId);
+    } catch (e) {
+      console.error(e);
     } finally {
       setBusyKey(null);
     }
@@ -200,6 +209,8 @@ export function CovenantMilestoneWidget() {
     setBusyKey(`reclaim:${dealId}:${stepId}`);
     try {
       await reclaimStep(dealId, stepId);
+    } catch (e) {
+      console.error(e);
     } finally {
       setBusyKey(null);
     }
@@ -240,15 +251,10 @@ export function CovenantMilestoneWidget() {
   const railAlerts = useMemo(
     () => (
       <CovenantRailAlerts>
-        {error ? (
-          <Alert type="error" compact region>
-            {error}
-          </Alert>
-        ) : null}
         {tab === 'create' ? renderCovenantFormAlerts(formAlerts) : null}
       </CovenantRailAlerts>
     ),
-    [error, tab, formAlerts],
+    [tab, formAlerts],
   );
 
   useCovenantWidgetRail(pricing, krexBalance, {

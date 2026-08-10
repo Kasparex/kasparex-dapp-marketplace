@@ -5,6 +5,7 @@ import { calculateTraitFrequencies, type CollectionTraitStats } from '@/lib/nft/
 import { getCollectionById } from '@/lib/nft/collections';
 import { getCollectionMetadata } from '@/lib/nft/collection-loader';
 import { getCachedTraitStats, setCachedTraitStats } from '@/lib/nft/cache';
+import { notifyActionError } from '@/lib/hub/notify';
 
 interface TraitAnalysisProps {
   collectionId: string;
@@ -14,7 +15,6 @@ export function TraitAnalysis({ collectionId }: TraitAnalysisProps) {
   const [stats, setStats] = useState<CollectionTraitStats | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [loadingProgress, setLoadingProgress] = useState<string>('');
-  const [error, setError] = useState<string | null>(null);
   const [selectedTraitType, setSelectedTraitType] = useState<string | null>(null);
 
   const collection = getCollectionById(collectionId);
@@ -47,12 +47,11 @@ export function TraitAnalysis({ collectionId }: TraitAnalysisProps) {
 
   const handleLoadStats = async () => {
     if (!collection) {
-      setError('Collection not found');
+      notifyActionError('Collection missing', 'Collection not found');
       return;
     }
 
     setIsLoading(true);
-    setError(null);
     setLoadingProgress('Loading collection metadata...');
 
     try {
@@ -80,7 +79,7 @@ export function TraitAnalysis({ collectionId }: TraitAnalysisProps) {
       setLoadingProgress('Analyzing traits...');
 
       if (metadataList.length === 0) {
-        setError('No metadata found for this collection');
+        notifyActionError('No metadata', 'No metadata found for this collection');
         setIsLoading(false);
         return;
       }
@@ -99,7 +98,7 @@ export function TraitAnalysis({ collectionId }: TraitAnalysisProps) {
       }
     } catch (err) {
       console.error('Error loading trait stats:', err);
-      setError(err instanceof Error ? err.message : 'Failed to load trait statistics');
+      notifyActionError('Trait load failed', err, 'Failed to load trait statistics');
       setLoadingProgress('');
     } finally {
       setIsLoading(false);
@@ -118,13 +117,6 @@ export function TraitAnalysis({ collectionId }: TraitAnalysisProps) {
             >
               {isLoading ? (loadingProgress || 'Loading...') : 'Load Trait Statistics'}
             </button>
-        </div>
-      )}
-
-      {/* Error Message */}
-      {error && (
-        <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-red-800 dark:text-red-200">
-          {error}
         </div>
       )}
 

@@ -1,5 +1,6 @@
 'use client';
 
+import { hubNotify, notifyActionError } from '@/lib/hub/notify';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -1410,8 +1411,6 @@ function SettingsTab({
   const [b, setB] = useState(bio);
   const [avatar, setAvatar] = useState(avatarUrl);
   const [banner, setBanner] = useState(bannerUrl);
-  const [linkError, setLinkError] = useState<string | null>(null);
-  const [linkSuccess, setLinkSuccess] = useState<string | null>(null);
 
   useEffect(() => {
     setName(displayName);
@@ -1449,13 +1448,11 @@ function SettingsTab({
                 disabled={!connectedEvmAddress || !kaspaAddress || isLinking}
                 onClick={async () => {
                   if (!connectedEvmAddress) return;
-                  setLinkError(null);
-                  setLinkSuccess(null);
                   try {
                     await onLinkEvm(connectedEvmAddress);
-                    setLinkSuccess('Linked successfully (signature stored in draft).');
+                    hubNotify.success('Wallet linked', 'Linked successfully (signature stored in draft).');
                   } catch (e: any) {
-                    setLinkError(e?.message || 'Failed to link wallet');
+                    notifyActionError('Link failed', e?.message || 'Failed to link wallet');
                   }
                 }}
                 className={`k-control-btn flex-1 ${!connectedEvmAddress || !kaspaAddress || isLinking ? 'opacity-60 cursor-not-allowed' : ''}`}
@@ -1463,18 +1460,7 @@ function SettingsTab({
                 {isLinking ? 'Signing…' : 'Link EVM wallet'}
               </button>
             </div>
-
-            {linkError && (
-              <div className="mt-3 text-[11px] font-semibold text-red-600 dark:text-red-400">
-                {linkError}
-              </div>
-            )}
-            {linkSuccess && (
-              <div className="mt-3 text-[11px] font-semibold text-green-600 dark:text-green-400">
-                {linkSuccess}
-              </div>
-            )}
-            {linkedEvmAddress && insPrimaryName ? (
+{linkedEvmAddress && insPrimaryName ? (
               <div className="mt-3 rounded-lg border border-[#02abb8]/20 bg-[#02abb8]/5 px-3 py-2">
                 <div className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">INS unlocked</div>
                 <div className="text-sm font-semibold text-[#02abb8] mt-0.5">{insPrimaryName}</div>

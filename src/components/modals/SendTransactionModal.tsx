@@ -1,5 +1,6 @@
 'use client';
 
+import { notifyActionError, notifyActionWarning } from '@/lib/hub/notify';
 import { useMemo, useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { sendKaspaTransaction } from '@/lib/kaspa/wallet';
@@ -30,7 +31,6 @@ export function SendTransactionModal({ isOpen, onClose, currentBalance, address,
   const [amount, setAmount] = useState('');
   const [priorityFee, setPriorityFee] = useState('');
   const [isSending, setIsSending] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [txHash, setTxHash] = useState<string | null>(null);
   const [txHashCopied, setTxHashCopied] = useState(false);
   const [sentToAddress, setSentToAddress] = useState<string | null>(null);
@@ -53,7 +53,6 @@ export function SendTransactionModal({ isOpen, onClose, currentBalance, address,
       setToAddress('');
       setAmount('');
       setPriorityFee('');
-      setError(null);
       setTxHash(null);
       setSentAmount(null);
       setTab('kas');
@@ -65,12 +64,12 @@ export function SendTransactionModal({ isOpen, onClose, currentBalance, address,
 
   const handleSend = async () => {
     if (!toAddress.trim()) {
-      setError('Please enter a recipient address');
+      notifyActionWarning('Recipient required', 'Please enter a recipient address');
       return;
     }
 
     if (!amount || parseFloat(amount) <= 0) {
-      setError('Please enter a valid amount');
+      notifyActionWarning('Invalid amount', 'Please enter a valid amount');
       return;
     }
 
@@ -78,12 +77,11 @@ export function SendTransactionModal({ isOpen, onClose, currentBalance, address,
     const amountNum = parseFloat(amount);
 
     if (amountNum > balanceNum) {
-      setError('Insufficient balance');
+      notifyActionWarning('Insufficient balance', 'Insufficient balance');
       return;
     }
 
     setIsSending(true);
-    setError(null);
 
     try {
       if (!state.provider) {
@@ -117,7 +115,7 @@ export function SendTransactionModal({ isOpen, onClose, currentBalance, address,
       }, 2000);
     } catch (err) {
       const errorMessage = getErrorMessage(err, 'Failed to send transaction');
-      setError(errorMessage);
+      notifyActionError('Send failed', errorMessage);
       console.error('Send transaction error:', err);
     } finally {
       setIsSending(false);
@@ -368,14 +366,7 @@ export function SendTransactionModal({ isOpen, onClose, currentBalance, address,
                   Higher fees may result in faster confirmation
                 </p>
               </div>
-
-              {error && (
-                <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3">
-                  <p className="text-sm text-red-700 dark:text-red-400">{error}</p>
-                </div>
-              )}
-
-              <div className="flex gap-3 pt-2">
+<div className="flex gap-3 pt-2">
                 <button
                   onClick={onClose}
                   className="flex-1 px-4 py-2 bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 rounded-lg hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"

@@ -15,10 +15,8 @@ import {
 } from '@/lib/donations/covenantCrowdfund';
 import { CampaignEndCountdown } from '@/components/donations/CampaignEndCountdown';
 import {
-  CrowdKasError,
   CrowdKasFieldLabel,
   crowdkasCardClass,
-  crowdkasInputClass,
   crowdkasPrimaryBtnClass,
   crowdkasSecondaryBtnClass,
   crowdkasSmallInputClass,
@@ -29,7 +27,7 @@ import { HubAsideRail } from '@/components/hub/HubAsideRail';
 
 export function CovenantCrowdfundRightColumn({ campaign }: { campaign: CrowdfundCampaign }) {
   const { state } = useKaspaWallet();
-  const { pledge, claimFunds, refund, error, refresh } = useCovenantCrowdfund();
+  const { pledge, claimFunds, refund, refresh } = useCovenantCrowdfund();
   const [pledgeKas, setPledgeKas] = useState('');
   const [busy, setBusy] = useState(false);
   const minKas = Number(COVENANT_LAB_CONFIG.minLockSompi) / 1e8;
@@ -49,6 +47,32 @@ export function CovenantCrowdfundRightColumn({ campaign }: { campaign: Crowdfund
       await pledge(campaign.id, parseFloat(pledgeKas));
       setPledgeKas('');
       await refresh();
+    } catch {
+      /* useCovenantCrowdfund already toasts */
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleClaim = async () => {
+    setBusy(true);
+    try {
+      await claimFunds(campaign.id);
+      await refresh();
+    } catch {
+      /* useCovenantCrowdfund already toasts */
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleRefund = async (pledgeId: string) => {
+    setBusy(true);
+    try {
+      await refund(campaign.id, pledgeId);
+      await refresh();
+    } catch {
+      /* useCovenantCrowdfund already toasts */
     } finally {
       setBusy(false);
     }
@@ -70,7 +94,6 @@ export function CovenantCrowdfundRightColumn({ campaign }: { campaign: Crowdfund
           </p>
         ) : isLive ? (
           <>
-            {error ? <CrowdKasError message={error} /> : null}
             <CrowdKasFieldLabel
               label={`Amount (KAS, min ${minKas})`}
               htmlFor="ck-pledge-amount"
@@ -105,7 +128,7 @@ export function CovenantCrowdfundRightColumn({ campaign }: { campaign: Crowdfund
           <button
             type="button"
             disabled={busy}
-            onClick={() => void claimFunds(campaign.id)}
+            onClick={() => void handleClaim()}
             className={crowdkasPrimaryBtnClass}
           >
             Claim raised funds
@@ -125,7 +148,7 @@ export function CovenantCrowdfundRightColumn({ campaign }: { campaign: Crowdfund
                 key={p.id}
                 type="button"
                 disabled={busy}
-                onClick={() => void refund(campaign.id, p.id)}
+                onClick={() => void handleRefund(p.id)}
                 className={crowdkasSecondaryBtnClass}
               >
                 Refund {sompiToKasNumber(p.amountSompi)} KAS

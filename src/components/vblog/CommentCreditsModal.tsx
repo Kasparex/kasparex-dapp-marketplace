@@ -1,11 +1,11 @@
 'use client';
 
+import { notifyActionError, notifyActionWarning } from '@/lib/hub/notify';
 import { useState, useEffect } from 'react';
 import { useCommentCredits } from '@/hooks/useCommentCredits';
 import { useCommentCreditsPayment } from '@/hooks/useCommentCreditsPayment';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useAccount } from 'wagmi';
-import { getErrorMessage } from '@/lib/utils';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { KxSegmentToggle } from '@/components/ui/KxSegmentToggle';
 import { HubPaymentCurrencyCatalogTrigger } from '@/components/payments/HubPaymentCurrencyCatalogModal';
@@ -108,15 +108,15 @@ export function CommentCreditsModal({ isOpen, onClose }: CommentCreditsModalProp
 
   const handlePurchase = async () => {
     if (!walletAddress) {
-      setError('Wallet not connected');
+      notifyActionWarning('Wallet required', 'Wallet not connected');
       return;
     }
     if (hasUnlimitedCredits) {
-      setError('You already have unlimited credits with 100M+ KREX!');
+      notifyActionWarning('Already unlimited', 'You already have unlimited credits with 100M+ KREX!');
       return;
     }
     if (finalPriceKas <= 0) {
-      setError('Invalid purchase amount');
+      notifyActionWarning('Invalid amount', 'Invalid purchase amount');
       return;
     }
 
@@ -131,17 +131,10 @@ export function CommentCreditsModal({ isOpen, onClose }: CommentCreditsModalProp
       if (success) {
         setTimeout(() => onClose(), 1500);
       } else {
-        setError('Transaction succeeded but credit update failed.');
+        notifyActionError('Credits update failed', 'Transaction succeeded but credit update failed.');
       }
-    } catch (err) {
-      const errorMessage = getErrorMessage(err, 'Failed to purchase credits');
-      if (errorMessage.includes('user rejected') || errorMessage.includes('rejected')) {
-        setError('Transaction was cancelled');
-      } else if (errorMessage.includes('insufficient')) {
-        setError(`Insufficient ${paymentCurrency} balance.`);
-      } else {
-        setError(errorMessage);
-      }
+    } catch {
+      /* payCredits already toasts via hubNotify */
     }
   };
 
@@ -271,13 +264,7 @@ export function CommentCreditsModal({ isOpen, onClose }: CommentCreditsModalProp
                   </p>
                 )}
               </KxPaymentSummary>
-
-              {error && (
-                <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-600 dark:text-red-400 text-sm">
-                  {error}
-                </div>
-              )}
-            </>
+</>
           )}
         </div>
 

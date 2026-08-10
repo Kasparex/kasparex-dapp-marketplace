@@ -1,5 +1,6 @@
 'use client';
 
+import { notifyActionError, notifyActionWarning } from '@/lib/hub/notify';
 import { useEffect, useMemo, useState } from 'react';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { isValidKaspaAddress } from '@/lib/kaspa/sdk';
@@ -48,10 +49,8 @@ export function NodesPremiumPanel() {
   const unlocked = Boolean(kaspa.address && unlock?.wallet && unlock.wallet.toLowerCase() === kaspa.address.toLowerCase());
 
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   const pay = async () => {
-    setError(null);
     if (!kaspa.isConnected || !kaspa.provider || !kaspa.address) {
       try {
         const { detectKaspaWallets } = await import('@/lib/kaspa/wallet');
@@ -60,11 +59,11 @@ export function NodesPremiumPanel() {
       } catch {
         // ignore
       }
-      setError('Connect your Kaspa wallet to continue.');
+      notifyActionWarning('Wallet required', 'Connect your Kaspa wallet to continue.');
       return;
     }
     if (!treasury || !isValidKaspaAddress(treasury)) {
-      setError('Treasury address is not configured. Set NEXT_PUBLIC_NODES_PREMIUM_TREASURY_L1 (or game / donations treasury).');
+      notifyActionError('Unlock unavailable', 'Treasury address is not configured.');
       return;
     }
     setBusy(true);
@@ -83,7 +82,7 @@ export function NodesPremiumPanel() {
       writeUnlock(rec);
       setUnlock(rec);
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Payment failed');
+      notifyActionError('Payment failed', e instanceof Error ? e.message : 'Payment failed');
     } finally {
       setBusy(false);
     }
@@ -109,7 +108,6 @@ export function NodesPremiumPanel() {
                 {treasury}
               </div>
             ) : null}
-            {error ? <div className="text-sm text-red-600 dark:text-red-400">{error}</div> : null}
             <button
               type="button"
               disabled={busy}

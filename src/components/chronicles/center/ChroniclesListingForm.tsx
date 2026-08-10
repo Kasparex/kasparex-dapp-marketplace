@@ -6,6 +6,7 @@ import { useKaspaWallet } from '@/lib/kaspa/context';
 import { KxTabStrip } from '@/components/ui/KxTabStrip';
 import { useDAppListingPayment } from '@/hooks/useDAppListingPayment';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
+import { hubNotify, notifyActionError, notifyActionWarning } from '@/lib/hub/notify';
 import { HubListingCalculationBreakdown } from '@/components/hub/HubListingCalculationBreakdown';
 import { hubCatalogSelectionToStoreCurrency, useHubPayWithCatalog } from '@/hooks/useHubPayWithCatalog';
 import type { StorePaymentCurrency } from '@/lib/store/currencies';
@@ -82,7 +83,7 @@ function FeaturedImageSourceToggle({
 export function ChroniclesListingForm({ onSubmitted }: { onSubmitted?: () => void }) {
   const router = useRouter();
   const { state } = useKaspaWallet();
-  const { payActionFee, isProcessing, error, setError } = useDAppListingPayment();
+  const { payActionFee, isProcessing } = useDAppListingPayment();
   const { upload, isUploading } = useIPFSUpload();
   const { tier: krexTier, balance: krexBalance } = useKREXBalance();
 
@@ -178,7 +179,7 @@ export function ChroniclesListingForm({ onSubmitted }: { onSubmitted?: () => voi
     if (!file) return;
     const maxSize = FEATURED_IMAGE_MAX_SIZE_MB * 1024 * 1024;
     if (file.size > maxSize) {
-      setError(`Featured image must be under ${FEATURED_IMAGE_MAX_SIZE_MB}MB`);
+      notifyActionWarning('Image too large', `Featured image must be under ${FEATURED_IMAGE_MAX_SIZE_MB}MB`);
       e.target.value = '';
       return;
     }
@@ -187,9 +188,8 @@ export function ChroniclesListingForm({ onSubmitted }: { onSubmitted?: () => voi
       setFeaturedImageCid(cid);
       setFeaturedImageName(file.name);
       setFeaturedImageUrl('');
-      setError(null);
     } else {
-      setError('Failed to upload featured image to IPFS');
+      notifyActionError('Upload failed', 'Failed to upload featured image to IPFS');
     }
     e.target.value = '';
   };
@@ -203,9 +203,8 @@ export function ChroniclesListingForm({ onSubmitted }: { onSubmitted?: () => voi
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
     if (!state.isConnected || !state.address) {
-      setError('Connect your Kaspa wallet to submit community lore.');
+      hubNotify.error('Wallet required', 'Connect your Kaspa wallet to submit community lore.');
       return;
     }
 
@@ -252,7 +251,7 @@ export function ChroniclesListingForm({ onSubmitted }: { onSubmitted?: () => voi
       onSubmitted?.();
       router.replace(communityDetailHref(entry.kind, entry.slug));
     } catch {
-      /* payActionFee sets error */
+      /* payActionFee already toasts */
     }
   };
 
@@ -527,12 +526,6 @@ export function ChroniclesListingForm({ onSubmitted }: { onSubmitted?: () => voi
               setPaymentCurrency(hubCatalogSelectionToStoreCurrency(opt));
             }}
           />
-
-          {error ? (
-            <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-800 dark:border-red-800 dark:bg-red-900/20 dark:text-red-300">
-              {error}
-            </div>
-          ) : null}
 
           <button
             type="submit"

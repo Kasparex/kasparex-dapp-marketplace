@@ -1,5 +1,6 @@
 'use client';
 
+import { notifyActionError, notifyActionWarning } from '@/lib/hub/notify';
 import { createPortal } from 'react-dom';
 import { useEffect, useMemo, useState } from 'react';
 import { ApiClientError, apiClient } from '@/lib/api/client';
@@ -131,7 +132,6 @@ export function KrexNodeEnrollmentModal(props: {
 
   const [step, setStep] = useState<Step>('connect');
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   const [challenge, setChallenge] = useState<ChallengeResponse | null>(null);
   const [enrollmentToken, setEnrollmentToken] = useState<string | null>(null);
@@ -220,7 +220,6 @@ export function KrexNodeEnrollmentModal(props: {
 
   const close = () => {
     setBusy(false);
-    setError(null);
     setChallenge(null);
     setEnrollmentToken(null);
     setVerifyPayload(null);
@@ -259,7 +258,6 @@ export function KrexNodeEnrollmentModal(props: {
   };
 
   const startChallenge = async () => {
-    setError(null);
     setBusy(true);
     try {
       await ensureWalletConnected();
@@ -284,14 +282,13 @@ export function KrexNodeEnrollmentModal(props: {
       // Manage existing node: wallet signature is enough. New enroll: verify only when Worker enables it.
       setStep(props.existingNode ? 'enroll' : onchainRequired ? 'verify' : 'enroll');
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed');
+      notifyActionError('Enrollment failed', e instanceof Error ? e.message : 'Failed');
     } finally {
       setBusy(false);
     }
   };
 
   const runOnchainVerification = async () => {
-    setError(null);
     setBusy(true);
     setVerifyPending(true);
     setVerifyAttempts(0);
@@ -430,7 +427,7 @@ export function KrexNodeEnrollmentModal(props: {
       );
 
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed');
+      notifyActionError('Enrollment failed', e instanceof Error ? e.message : 'Failed');
     } finally {
       setBusy(false);
       setVerifyPending(false);
@@ -441,7 +438,7 @@ export function KrexNodeEnrollmentModal(props: {
     const next = sanitizeKaspaTxId(verifyTxidDraft || verifyTxid);
     if (!next) return;
     if (!/^[0-9a-f]{64}$/.test(next)) {
-      setError('Enter a valid 64-character transaction id.');
+      notifyActionWarning('Invalid tx id', 'Enter a valid 64-character transaction id.');
       return;
     }
     setVerifyTxid(next);
@@ -450,7 +447,6 @@ export function KrexNodeEnrollmentModal(props: {
   };
 
   const submitDeactivate = async () => {
-    setError(null);
     setBusy(true);
     try {
       if (!props.existingNode?.node_id) throw new Error('Missing node_id');
@@ -468,14 +464,13 @@ export function KrexNodeEnrollmentModal(props: {
       });
       setStep('done');
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed');
+      notifyActionError('Enrollment failed', e instanceof Error ? e.message : 'Failed');
     } finally {
       setBusy(false);
     }
   };
 
   const submitTransferOwnership = async () => {
-    setError(null);
     setBusy(true);
     try {
       if (!props.existingNode?.node_id) throw new Error('Missing node_id');
@@ -496,14 +491,13 @@ export function KrexNodeEnrollmentModal(props: {
       });
       setStep('done');
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed');
+      notifyActionError('Enrollment failed', e instanceof Error ? e.message : 'Failed');
     } finally {
       setBusy(false);
     }
   };
 
   const submitIssueSecret = async () => {
-    setError(null);
     setBusy(true);
     try {
       if (!props.existingNode?.node_id) throw new Error('Missing node_id');
@@ -528,14 +522,13 @@ export function KrexNodeEnrollmentModal(props: {
       });
       setStep('done');
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed');
+      notifyActionError('Enrollment failed', e instanceof Error ? e.message : 'Failed');
     } finally {
       setBusy(false);
     }
   };
 
   const submitEnroll = async () => {
-    setError(null);
     setBusy(true);
     try {
       if (!enrollmentToken) throw new Error('Missing enrollment token');
@@ -559,18 +552,17 @@ export function KrexNodeEnrollmentModal(props: {
         const rc = await loadRuntimeConfig();
         if (rc?.onchainVerify?.enabled) {
           setStep('verify');
-          setError('Complete the 1 KAS verification step below, then enroll again.');
+          notifyActionWarning('Verification needed', 'Complete the 1 KAS verification step below, then enroll again.');
           return;
         }
       }
-      setError(msg);
+      notifyActionError('Enrollment failed', msg);
     } finally {
       setBusy(false);
     }
   };
 
   const submitUpdate = async () => {
-    setError(null);
     setBusy(true);
     try {
       if (!props.existingNode?.node_id) throw new Error('Missing node_id');
@@ -594,7 +586,7 @@ export function KrexNodeEnrollmentModal(props: {
       });
       setStep('done');
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed');
+      notifyActionError('Enrollment failed', e instanceof Error ? e.message : 'Failed');
     } finally {
       setBusy(false);
     }
@@ -654,13 +646,7 @@ export function KrexNodeEnrollmentModal(props: {
         </div>
 
         <div className={props.embedded ? 'space-y-4' : 'p-5 space-y-4 overflow-y-auto'}>
-          {error && (
-            <div className="rounded-xl border border-red-200 dark:border-red-900/50 bg-red-50 dark:bg-red-950/30 p-3 text-sm text-red-700 dark:text-red-300">
-              {error}
-            </div>
-          )}
-
-          {step !== 'done' && (
+{step !== 'done' && (
             <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 space-y-3">
               <div className="text-sm font-bold text-zinc-900 dark:text-zinc-100 inline-flex items-center gap-2">
                 Wallet
@@ -739,10 +725,9 @@ export function KrexNodeEnrollmentModal(props: {
                   onClick={() => {
                     const next = sanitizeKaspaTxId(verifyTxidDraft || verifyTxid);
                     if (!/^[0-9a-f]{64}$/.test(next)) {
-                      setError('Enter a valid 64-character transaction id.');
+                      notifyActionWarning('Invalid tx id', 'Enter a valid 64-character transaction id.');
                       return;
                     }
-                    setError(null);
                     setVerifyTxid(next);
                     setVerifyTxidDraft(next);
                   }}

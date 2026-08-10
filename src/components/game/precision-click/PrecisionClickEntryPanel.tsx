@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { HubPaymentPanel } from '@/components/payments/HubPaymentPanel';
 import { ToggleSwitch } from '@/components/ui/ToggleSwitch';
 import { Tooltip } from '@/components/ui/Tooltip';
@@ -11,6 +11,7 @@ import { formatHubPaymentAmount, type HubPaymentQuoteLine } from '@/lib/payments
 import { resolveCatalogPaymentOption } from '@/lib/payments/currencyCatalog';
 import { krexTierDiscountPercent } from '@/lib/chronicles/vault/pricing';
 import { KX_SURFACE_NESTED } from '@/lib/hub/shellTokens';
+import { hubNotify, notifyActionError } from '@/lib/hub/notify';
 import {
   PRECISION_CLICK_ENTRY_KAS,
   PRECISION_ENTRY_ADDONS,
@@ -32,6 +33,14 @@ export function PrecisionClickEntryPanel(props: {
   const { tier, balance: krexBalance } = useKREXBalance();
   const [selectedAddons, setSelectedAddons] = useState<PrecisionAddonId[]>([]);
   const [payCurrencyId, setPayCurrencyId] = useState('KAS');
+
+  useEffect(() => {
+    if (props.error) notifyActionError('Precision Click', props.error);
+  }, [props.error]);
+
+  useEffect(() => {
+    if (props.success) hubNotify.success('Precision Click', props.success);
+  }, [props.success]);
 
   const addonsKas = selectedAddons.reduce((sum, id) => {
     const def = PRECISION_ENTRY_ADDONS.find((a) => a.id === id);
@@ -165,22 +174,6 @@ export function PrecisionClickEntryPanel(props: {
                   : `Pay ${fmt(payKas)} to open lock`}
           </button>
         </div>
-      }
-      alerts={
-        props.error || props.success ? (
-          <div className="space-y-2">
-            {props.error ? (
-              <p className="rounded-xl border border-red-300/70 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-500/40 dark:bg-red-950/40 dark:text-red-200">
-                {props.error}
-              </p>
-            ) : null}
-            {props.success ? (
-              <p className="rounded-xl border border-emerald-300/70 bg-emerald-50 px-3 py-2 text-sm text-emerald-800 dark:border-emerald-500/40 dark:bg-emerald-950/40 dark:text-emerald-200">
-                {props.success}
-              </p>
-            ) : null}
-          </div>
-        ) : null
       }
     />
   );

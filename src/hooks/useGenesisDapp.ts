@@ -13,6 +13,7 @@ import { resolveCatalogPaymentOption } from '@/lib/payments/currencyCatalog';
 import type { KaspaWalletProvider } from '@/lib/kaspa/types';
 import type { DApp } from '@/lib/dapps';
 import type { GenesisMessage, GenesisDappState } from '@/lib/vprogs/genesis-types';
+import { notifyActionError } from '@/lib/hub/notify';
 
 interface UseGenesisDappReturn {
   messages: GenesisMessage[];
@@ -114,7 +115,7 @@ export function useGenesisDapp(): UseGenesisDappReturn {
         setMessageCount(simulator.getMessageCount());
         return newMessage;
       } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : 'Failed to leave message';
+        const errorMessage = notifyActionError('Publish failed', err, 'Failed to leave message');
         setError(errorMessage);
         throw err;
       } finally {
@@ -145,7 +146,7 @@ export function useGenesisDapp(): UseGenesisDappReturn {
         await loadMessages();
         setMessageCount(simulator.getMessageCount());
       } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : 'Failed to delete message';
+        const errorMessage = notifyActionError('Delete failed', err, 'Failed to delete message');
         setError(errorMessage);
         throw err;
       }

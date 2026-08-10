@@ -8,11 +8,10 @@ import { DAPP_SUBSCRIPTION_ABI } from '@/lib/contracts/abis';
 import { getContractAddress, CONTRACT_ADDRESSES } from '@/lib/contracts/addresses';
 import { useChainId } from 'wagmi';
 import { parseEther } from 'viem';
-import { getErrorMessage } from '@/lib/utils';
 import { useSafeError } from '@/hooks/useSafeError';
 import Link from 'next/link';
 import { KxFormDropdown } from '@/components/ui/KxFormDropdown';
-import { hubNotify } from '@/lib/hub/notify';
+import { hubNotify, notifyActionError } from '@/lib/hub/notify';
 
 export function SubscriptionManager() {
   const { dApps } = useMyDApps();
@@ -70,6 +69,20 @@ export function SubscriptionManager() {
     }
   }, [selectedDApp, plan]);
 
+  useEffect(() => {
+    if (safeError) notifyActionError('Subscription failed', safeError);
+  }, [safeError]);
+
+  useEffect(() => {
+    if (isSuccess && hash) {
+      hubNotify.txSuccess({
+        title: 'Subscription plan saved',
+        txHash: hash,
+        chainId: chainId || undefined,
+      });
+    }
+  }, [isSuccess, hash, chainId]);
+
   const handleCreateOrUpdatePlan = async () => {
     if (!isConnected || !address) {
       hubNotify.error('Wallet required', 'Please connect your wallet');
@@ -118,6 +131,7 @@ export function SubscriptionManager() {
       }
     } catch (err) {
       console.error('Error creating/updating subscription plan:', err);
+      notifyActionError('Subscription failed', err, 'Failed to save subscription plan');
     }
   };
 
@@ -204,18 +218,6 @@ export function SubscriptionManager() {
               <p className="text-sm text-green-600 dark:text-green-400">
                 ✓ Subscription plan exists. Update the prices below to modify it.
               </p>
-            </div>
-          )}
-
-          {safeError && (
-            <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-sm text-red-600 dark:text-red-400">
-              {safeError}
-            </div>
-          )}
-
-          {isSuccess && (
-            <div className="mb-4 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg text-sm text-green-600 dark:text-green-400">
-              Subscription plan {plan ? 'updated' : 'created'} successfully!
             </div>
           )}
 

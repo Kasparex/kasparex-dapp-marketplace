@@ -16,6 +16,7 @@ import {
   DIAMOND_VEINS_CONSUMABLES,
 } from '@/lib/game/diamond-veins-config';
 import { applyKrexFeeDiscount } from '@/lib/hub/applyKrexFeeDiscount';
+import { notifyActionError, notifyActionWarning } from '@/lib/hub/notify';
 import type { KREXTier } from '@/lib/rewards/types';
 import { resolveSlotEnergyMax, syncDiamondVeinsEnergyCaps } from '@/lib/game/engine/compute-yield';
 import { fetchNFTMetadata, type ParsedNFTMetadata } from '@/lib/nft/metadata';
@@ -179,7 +180,6 @@ export function useDiamondMining() {
   const [slottedMetadata, setSlottedMetadata] = useState<Record<number, ParsedNFTMetadata>>({});
   const [buyingItemId, setBuyingItemId] = useState<string | null>(null);
   const [lastRefineClaim, setLastRefineClaim] = useState<{ points: number; amount: number } | null>(null);
-  const [lastPaymentError, setLastPaymentError] = useState<string | null>(null);
   const [profileNotice, setProfileNotice] = useState<string | null>(null);
   const metaRef = useRef(slottedMetadata);
   metaRef.current = slottedMetadata;
@@ -401,18 +401,17 @@ export function useDiamondMining() {
 
   const payKasBestEffort = useCallback(
     async (params: { amountKas: number; skuId: string; purchaseType: 'slot' | 'unlock' | 'other' }) => {
-      setLastPaymentError(null);
       if (!walletState.isConnected || !walletState.provider || !walletState.address) {
-        setLastPaymentError('Wallet connection required');
+        notifyActionWarning('Wallet required', 'Wallet connection required');
         return { ok: false as const };
       }
       if (!DEFAULT_TREASURY) {
-        setLastPaymentError('Treasury address not configured');
+        notifyActionError('Treasury missing', 'Treasury address not configured');
         return { ok: false as const };
       }
       const amountKas = Math.round(params.amountKas * 1e8) / 1e8;
       if (!(amountKas > 0)) {
-        setLastPaymentError('Invalid payment amount');
+        notifyActionWarning('Invalid amount', 'Invalid payment amount');
         return { ok: false as const };
       }
 
@@ -446,7 +445,7 @@ export function useDiamondMining() {
         const friendly = /websocket|not connected|remote error|rpc/i.test(message)
           ? 'Wallet RPC disconnected. Reopen KasWare / reconnect your wallet, then try again.'
           : message;
-        setLastPaymentError(friendly);
+        notifyActionError('Payment failed', friendly);
         return { ok: false as const };
       }
 
@@ -805,7 +804,6 @@ export function useDiamondMining() {
     redeemPoints,
     /** @deprecated */
     redeemGrid: redeemPoints,
-    lastPaymentError,
     profileNotice,
   };
 }

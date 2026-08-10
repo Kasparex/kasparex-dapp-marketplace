@@ -19,6 +19,7 @@ import type { StorePaymentCurrency } from '@/lib/store/currencies';
 import { HubListingTitleRow } from '@/components/hub/HubListingTitleRow';
 import { StoreBuyerBenefitsPanel } from '@/components/store/StoreBuyerBenefitsPanel';
 import { bootstrapHubContent } from '@/lib/hub/contentSync';
+import { notifyActionError } from '@/lib/hub/notify';
 
 export type ProductViewMode = 'grid' | 'compact' | 'table';
 
@@ -62,7 +63,8 @@ export default function StorePage() {
       } catch (err) {
         console.error('Failed to load products:', err);
         if (!cancelled && cached.length === 0) {
-          setError('Failed to load products. Please try again later.');
+          notifyActionError('Store unavailable', err, 'Failed to load products. Please try again later.');
+          setError('Could not load products right now.');
         }
       } finally {
         if (!cancelled) setIsLoading(false);
@@ -187,18 +189,14 @@ export default function StorePage() {
         </FilterBar>
       </div>
 
-      {error && (
-        <div className="mb-8 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl">
-          <p className="text-sm text-red-800 dark:text-red-300 font-medium">{error}</p>
-        </div>
-      )}
-
       {isLoading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {[...Array(6)].map((_, i) => (
             <div key={i} className="bg-zinc-100 dark:bg-zinc-900 rounded-2xl h-[420px] animate-pulse" />
           ))}
         </div>
+      ) : error && products.length === 0 ? (
+        <p className="mb-8 text-sm text-zinc-600 dark:text-zinc-400">{error}</p>
       ) : (
         <ProductGrid products={filteredAndSortedProducts} viewMode={viewMode} />
       )}
