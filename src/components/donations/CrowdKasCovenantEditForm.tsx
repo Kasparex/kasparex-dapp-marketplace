@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 import { CrowdKasCampaignMediaField } from '@/components/donations/CrowdKasCampaignMediaField';
 import { DonationCategoryField } from '@/components/donations/DonationCategoryField';
@@ -63,9 +64,9 @@ export function CrowdKasCovenantEditForm({
   draft: CovenantEditDraft;
   onChange: (next: CovenantEditDraft) => void;
 }) {
-  const [tagInput, setTagInput] = useStateLocal('');
-  const [faqQ, setFaqQ] = useStateLocal('');
-  const [faqA, setFaqA] = useStateLocal('');
+  const [tagInput, setTagInput] = useState('');
+  const [faqQ, setFaqQ] = useState('');
+  const [faqA, setFaqA] = useState('');
 
   const addTag = () => {
     const t = tagInput.trim().replace(/^#/, '');
@@ -101,7 +102,9 @@ export function CrowdKasCovenantEditForm({
 
       <div>
         <div className="flex items-center justify-between gap-2 mb-2">
-          <KxFormFieldLabel>Title <span className="text-red-500">*</span></KxFormFieldLabel>
+          <KxFormFieldLabel>
+            Title <span className="text-red-500">*</span>
+          </KxFormFieldLabel>
           <span className="text-xs text-zinc-500">
             {getCrowdKasCharacterCount(draft.title)} / {CROWDKAS_CONTENT_LIMITS.title.max}
           </span>
@@ -214,25 +217,22 @@ export function CrowdKasCovenantEditForm({
             value={faqA}
             onChange={(e) => setFaqA(e.target.value)}
           />
-          <button type="button" className="k-control-btn" onClick={addFaq}>
-            Add FAQ item
-          </button>
-          {draft.faq.length > 0 ? (
-            <button
-              type="button"
-              className="k-control-btn ml-2"
-              onClick={() => onChange({ ...draft, faq: draft.faq.slice(0, -1) })}
-            >
-              Remove last
+          <div className="flex flex-wrap gap-2">
+            <button type="button" className="k-control-btn" onClick={addFaq}>
+              Add FAQ item
             </button>
-          ) : null}
+            {draft.faq.length > 0 ? (
+              <button
+                type="button"
+                className="k-control-btn"
+                onClick={() => onChange({ ...draft, faq: draft.faq.slice(0, -1) })}
+              >
+                Remove last
+              </button>
+            ) : null}
+          </div>
         </div>
       </div>
     </div>
   );
-}
-
-function useStateLocal(initial: string) {
-  const [v, setV] = useState(initial);
-  return [v, setV] as const;
 }
