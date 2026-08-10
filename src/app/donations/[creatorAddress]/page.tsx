@@ -99,8 +99,6 @@ function DonationCampaignPageContent() {
   const goalReached = raisedTotal >= campaign.targetWei;
   const isL1Direct = campaign.methodV2 === 'L1_DIRECT';
 
-  const storyHtml = metadata?.mainContent?.trim() || metadata?.description || '';
-
   return (
     <VDonateCampaignDetailShell
       view={{
@@ -109,7 +107,7 @@ function DonationCampaignPageContent() {
         imageUrl: metadata?.imageUrl,
         imageHash: metadata?.imageHash,
         shortDescription: metadata?.description?.replace(/<[^>]*>/g, '') ?? null,
-        mainContentHtml: storyHtml,
+        mainContentHtml: metadata?.mainContent?.trim() || metadata?.description || '',
         isLive,
         goalReached,
         network: isL1Direct ? 'l1' : 'l2',

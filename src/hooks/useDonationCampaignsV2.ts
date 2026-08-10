@@ -3,7 +3,7 @@
  * Reads always use Igra Mainnet (38833) so listings work without a connected wallet.
  */
 
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useReadContract, useReadContracts } from 'wagmi';
 import type { Address } from 'viem';
 import { getContractAddress } from '@/lib/contracts/addresses';
@@ -11,6 +11,10 @@ import { DONATION_ESCROW_V2_ABI } from '@/lib/contracts/abis';
 import { CROWDKAS_CHAIN_ID } from '@/lib/donations/chain';
 import { DONATION_MODULE_IDS } from '@/lib/donations/modules';
 import { filterTombstonedV2Campaigns } from '@/lib/donations/tombstoneCampaigns';
+import {
+  readCachedDonationCampaignsV2,
+  writeCachedDonationCampaignsV2,
+} from '@/lib/donations/listingCache';
 
 const MAX_CAMPAIGNS_V2 = 200;
 
@@ -63,6 +67,13 @@ export function useDonationCampaignsV2(): {
   refetch: () => void;
 } {
   const escrowV2Address = getContractAddress(CROWDKAS_CHAIN_ID, 'DonationEscrowV2') as Address | undefined;
+  const [cached, setCached] = useState<DonationCampaignV2ListItem[]>(() =>
+    typeof window !== 'undefined' ? readCachedDonationCampaignsV2() : [],
+  );
+
+  useEffect(() => {
+    setCached(readCachedDonationCampaignsV2());
+  }, []);
 
   const { data: countBig, isLoading: loadingCount, error: countError, refetch: refetchCount } = useReadContract({
     chainId: CROWDKAS_CHAIN_ID,
@@ -223,6 +234,15 @@ export function useDonationCampaignsV2(): {
     return filterTombstonedV2Campaigns(rows);
   }, [baseCampaigns, l1Results, moduleFeaturedResults]);
 
+  useEffect(() => {
+    if (campaigns.length > 0) {
+      writeCachedDonationCampaignsV2(campaigns);
+      setCached(campaigns);
+    }
+  }, [campaigns]);
+
+  const displayCampaigns = campaigns.length > 0 ? campaigns : cached;
+
   const refetch = () => {
     void refetchCount();
     void refetchIds();
@@ -232,13 +252,9 @@ export function useDonationCampaignsV2(): {
   };
 
   return {
-    campaigns,
-    isLoading:
-      loadingCount ||
-      loadingIds ||
-      loadingCampaigns ||
-      (baseCampaigns.length > 0 && loadingL1) ||
-      (baseCampaigns.length > 0 && loadingModuleFeatured),
+    campaigns: displayCampaigns,
+    // Paint immediately from cache / base rows; do not block on L1 tip extras.
+    isLoading: displayCampaigns.length === 0 && (loadingCount || loadingIds || loadingCampaigns),
     error: (countError as Error) ?? null,
     refetch,
   };

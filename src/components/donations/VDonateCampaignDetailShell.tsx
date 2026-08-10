@@ -8,17 +8,21 @@ import { DonationsSidebar } from '@/components/donations/DonationsSidebar';
 import { DAppTabs, type DAppTab } from '@/components/dapps/layout/DAppTabs';
 import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 import { HubPageAccentLayout } from '@/components/hub/HubPageAccentLayout';
+import {
+  HubPageRightPanelGrid,
+  HubPageRightPanelToggle,
+} from '@/components/hub/HubPageRightPanel';
 import { HUB_MAIN_COLUMN, HUB_MAIN_INNER, HUB_PAGE_BG } from '@/lib/hub/hubLayout';
 import { KxRichTextContent } from '@/components/ui/KxRichTextContent';
 import { AuthorInline } from '@/components/ui/AuthorInline';
 import {
+  VDonateBadgeRow,
   VDonateCampaignMedia,
-  VDonateNetworkBadges,
-  VDonateStatusBadges,
 } from '@/components/donations/VDonateCampaignCardChrome';
-import { KX_SURFACE_NESTED } from '@/lib/hub/shellTokens';
+import { KX_PANEL, KX_SURFACE_NESTED } from '@/lib/hub/shellTokens';
 import type { CrowdfundFaqItem, CrowdfundTier, CrowdfundUpdate } from '@/lib/covenant/crowdfund-types';
 import { sortTiersByMinKas } from '@/lib/donations/tiers';
+import { useDonationsRightPanelOpen } from '@/hooks/useDonationsRightPanelOpen';
 
 export type VDonateDetailTab =
   | 'campaign'
@@ -52,9 +56,7 @@ export type VDonateDetailCampaignView = {
   premiumTabEnabled?: boolean;
   premiumTabTitle?: string;
   premiumTabContent?: string;
-  /** Optional L2 premium unlock module (existing CrowdKas modules). */
   premiumModule?: ReactNode;
-  /** Extra blocks under the Campaign tab (modules, goals, etc.). */
   campaignExtras?: ReactNode;
   otherCampaigns?: { href: string; title: string }[];
   commentsSlot?: ReactNode;
@@ -140,6 +142,7 @@ export function VDonateCampaignDetailShell({
   onSelectTier?: (tierId: string) => void;
 }) {
   const [tab, setTab] = useState<VDonateDetailTab>(initialTab ?? 'campaign');
+  const [rightOpen, setRightOpen] = useDonationsRightPanelOpen(true);
 
   const tabs = useMemo(() => {
     const list: DAppTab<VDonateDetailTab>[] = [
@@ -162,6 +165,247 @@ export function VDonateCampaignDetailShell({
 
   const tiers = sortTiersByMinKas(view.tiers ?? []);
   const socialEntries = Object.entries(view.socialLinks ?? {}).filter(([, v]) => Boolean(v?.trim()));
+
+  const campaignHero = (
+    <div className={`${KX_PANEL} overflow-hidden`}>
+      <VDonateCampaignMedia imageUrl={view.imageUrl} imageHash={view.imageHash} />
+      <div className="p-6 md:p-8 space-y-4">
+        <VDonateBadgeRow
+          network={view.network}
+          isLive={view.isLive}
+          goalReached={view.goalReached}
+          featured={view.featured}
+        />
+        <h1 className="text-2xl md:text-3xl font-bold text-zinc-900 dark:text-zinc-100">
+          {view.title}
+        </h1>
+        <AuthorInline
+          address={view.creatorAddress}
+          href={`/u/${encodeURIComponent(view.creatorAddress)}`}
+          prefix=""
+        />
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-1">
+          <div>
+            <p className="text-xs text-zinc-500 uppercase tracking-wider">Raised</p>
+            <p className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">{view.raisedLabel}</p>
+          </div>
+          <div>
+            <p className="text-xs text-zinc-500 uppercase tracking-wider">Target</p>
+            <p className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">{view.goalLabel}</p>
+          </div>
+          <div>
+            <p className="text-xs text-zinc-500 uppercase tracking-wider">Backers</p>
+            <p className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">{view.backersLabel}</p>
+          </div>
+          <div>
+            <p className="text-xs text-zinc-500 uppercase tracking-wider">Ends</p>
+            <p className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">{view.endsLabel}</p>
+          </div>
+        </div>
+        <div className="w-full h-3 rounded-full bg-zinc-200 dark:bg-zinc-700 overflow-hidden">
+          <div
+            className="h-full bg-emerald-500 rounded-full transition-all"
+            style={{ width: `${Math.min(view.progressPct, 100)}%` }}
+          />
+        </div>
+      </div>
+    </div>
+  );
+
+  const tabBody = (
+    <div className={`${KX_PANEL} p-6 md:p-8`}>
+      {tab === 'campaign' ? (
+        <div className="space-y-4">
+          <DAppSectionHeader title="Campaign" className="mb-0" />
+          {view.mainContentHtml ? (
+            <KxRichTextContent html={view.mainContentHtml} className="kx-prose" />
+          ) : view.shortDescription ? (
+            <p className="kx-body whitespace-pre-wrap">{view.shortDescription}</p>
+          ) : (
+            <p className="kx-body">No campaign story yet.</p>
+          )}
+          {view.campaignExtras}
+        </div>
+      ) : null}
+
+      {tab === 'rewards' ? (
+        <div className="space-y-4">
+          <DAppSectionHeader title="Rewards" className="mb-0" />
+          {tiers.length === 0 ? (
+            <p className="kx-body">
+              This campaign has no reward tiers. You can still pledge any amount from the panel.
+            </p>
+          ) : (
+            <div className="space-y-3">
+              {tiers.map((tier) => {
+                const soldOut =
+                  tier.limitedQty != null &&
+                  tier.limitedQty > 0 &&
+                  (tier.claimedCount ?? 0) >= tier.limitedQty;
+                return (
+                  <div key={tier.id} className={`${KX_SURFACE_NESTED} p-4 space-y-2`}>
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="font-semibold text-zinc-900 dark:text-zinc-100">{tier.title}</p>
+                        <p className="text-sm text-emerald-700 dark:text-emerald-300 font-medium">
+                          {tier.minKas} KAS or more
+                        </p>
+                      </div>
+                      {onSelectTier && !soldOut ? (
+                        <button
+                          type="button"
+                          className="text-xs px-3 py-1.5 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700"
+                          onClick={() => onSelectTier(tier.id)}
+                        >
+                          Select
+                        </button>
+                      ) : null}
+                      {soldOut ? (
+                        <span className="text-xs text-rose-600 dark:text-rose-400 font-medium">Sold out</span>
+                      ) : null}
+                    </div>
+                    {tier.description ? (
+                      <p className="text-sm text-zinc-600 dark:text-zinc-300">{tier.description}</p>
+                    ) : null}
+                    {tier.reward ? (
+                      <p className="text-sm text-zinc-800 dark:text-zinc-200">
+                        <span className="font-medium">Reward:</span> {tier.reward}
+                      </p>
+                    ) : null}
+                    {tier.limitedQty != null ? (
+                      <p className="text-xs text-zinc-500">
+                        {tier.claimedCount ?? 0} / {tier.limitedQty} claimed
+                      </p>
+                    ) : null}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      ) : null}
+
+      {tab === 'creator' ? (
+        <div className="space-y-4">
+          <DAppSectionHeader title="Creator" className="mb-0" />
+          <AuthorInline
+            address={view.creatorAddress}
+            href={`/u/${encodeURIComponent(view.creatorAddress)}`}
+            prefix=""
+          />
+          {socialEntries.length > 0 ? (
+            <div className="flex flex-wrap gap-3 text-sm">
+              {socialEntries.map(([key, value]) => (
+                <a
+                  key={key}
+                  href={value!.startsWith('http') ? value! : `https://${value}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-emerald-600 dark:text-emerald-400 hover:underline capitalize"
+                >
+                  {key}
+                </a>
+              ))}
+            </div>
+          ) : (
+            <p className="kx-body">No social links published for this campaign.</p>
+          )}
+          {view.otherCampaigns && view.otherCampaigns.length > 0 ? (
+            <div className="pt-2 space-y-2">
+              <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">More from this creator</p>
+              <ul className="space-y-1">
+                {view.otherCampaigns.map((c) => (
+                  <li key={c.href}>
+                    <Link
+                      href={c.href}
+                      className="text-sm text-emerald-600 dark:text-emerald-400 hover:underline"
+                    >
+                      {c.title}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+        </div>
+      ) : null}
+
+      {tab === 'faq' ? (
+        <div className="space-y-4">
+          <DAppSectionHeader title="FAQ" className="mb-0" />
+          {(view.faq ?? []).length === 0 ? (
+            <div className="space-y-3 text-sm text-zinc-600 dark:text-zinc-300">
+              <p>
+                <strong className="text-zinc-900 dark:text-zinc-100">What happens if the goal is not met?</strong>
+                <br />
+                Backers can refund after the deadline on L1 covenant campaigns. L2 escrow follows the campaign contract
+                refund rules.
+              </p>
+              <p>
+                <strong className="text-zinc-900 dark:text-zinc-100">When does the creator receive funds?</strong>
+                <br />
+                After a successful raise, the creator claims raised funds (goal met before deadline).
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {view.faq!.map((item) => (
+                <div key={item.id} className={`${KX_SURFACE_NESTED} p-4`}>
+                  <p className="font-semibold text-zinc-900 dark:text-zinc-100 mb-1">{item.question}</p>
+                  <p className="text-sm text-zinc-600 dark:text-zinc-300 whitespace-pre-wrap">{item.answer}</p>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      ) : null}
+
+      {tab === 'updates' ? (
+        <div className="space-y-4">
+          <DAppSectionHeader title="Updates" className="mb-0" />
+          {(view.updates ?? []).length === 0 ? (
+            <p className="kx-body">No updates yet. Check back after the creator posts progress.</p>
+          ) : (
+            <div className="space-y-3">
+              {[...(view.updates ?? [])]
+                .sort((a, b) => b.createdAt - a.createdAt)
+                .map((u) => (
+                  <div key={u.id} className={`${KX_SURFACE_NESTED} p-4 space-y-1`}>
+                    <p className="font-semibold text-zinc-900 dark:text-zinc-100">{u.title}</p>
+                    <p className="text-xs text-zinc-500">{new Date(u.createdAt).toLocaleString()}</p>
+                    <KxRichTextContent html={u.body} className="kx-prose text-sm" />
+                  </div>
+                ))}
+            </div>
+          )}
+        </div>
+      ) : null}
+
+      {tab === 'comments' ? (
+        <div className="space-y-4">
+          <DAppSectionHeader title="Comments" className="mb-0" />
+          {view.commentsSlot ?? (
+            <p className="kx-body">
+              Comments stay with your Hub wallet session. Connect and back this campaign to join the conversation soon.
+            </p>
+          )}
+        </div>
+      ) : null}
+
+      {tab === 'premium' ? (
+        <div className="space-y-4">
+          <DAppSectionHeader title={view.premiumTabTitle?.trim() || 'Premium'} className="mb-0" />
+          {view.premiumModule}
+          {view.premiumTabContent ? (
+            <KxRichTextContent html={view.premiumTabContent} className="kx-prose" />
+          ) : null}
+          {!view.premiumModule && !view.premiumTabContent ? (
+            <p className="kx-body">Premium content is not configured for this campaign.</p>
+          ) : null}
+        </div>
+      ) : null}
+    </div>
+  );
 
   return (
     <div className={`min-h-screen flex flex-col ${HUB_PAGE_BG}`}>
@@ -186,293 +430,33 @@ export function VDonateCampaignDetailShell({
                 ← All campaigns
               </Link>
 
-              <div className="grid grid-cols-1 items-start lg:grid-cols-5 gap-6 lg:gap-10">
-                <div className="lg:col-span-3 space-y-6 min-w-0">
-                  <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-hidden">
-                    <VDonateCampaignMedia imageUrl={view.imageUrl} imageHash={view.imageHash} />
-                    <div className="p-6 md:p-8 space-y-4">
-                      <div className="flex flex-col gap-2">
-                        <VDonateStatusBadges isLive={view.isLive} goalReached={view.goalReached} />
-                        <VDonateNetworkBadges network={view.network} featured={view.featured} />
-                      </div>
-                      <h1 className="text-2xl md:text-3xl font-bold text-zinc-900 dark:text-zinc-100">
-                        {view.title}
-                      </h1>
-                      <AuthorInline
-                        address={view.creatorAddress}
-                        href={`/u/${encodeURIComponent(view.creatorAddress)}`}
-                        prefix=""
-                      />
-                      {view.shortDescription ? (
-                        <p className="text-sm text-zinc-600 dark:text-zinc-300 leading-relaxed">
-                          {view.shortDescription}
-                        </p>
-                      ) : null}
-
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-2">
-                        <div>
-                          <p className="text-xs text-zinc-500 uppercase tracking-wider">Raised</p>
-                          <p className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
-                            {view.raisedLabel}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-xs text-zinc-500 uppercase tracking-wider">Target</p>
-                          <p className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
-                            {view.goalLabel}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-xs text-zinc-500 uppercase tracking-wider">Backers</p>
-                          <p className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
-                            {view.backersLabel}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-xs text-zinc-500 uppercase tracking-wider">Ends</p>
-                          <p className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
-                            {view.endsLabel}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="w-full h-3 rounded-full bg-zinc-200 dark:bg-zinc-700 overflow-hidden">
-                        <div
-                          className="h-full bg-emerald-500 rounded-full transition-all"
-                          style={{ width: `${Math.min(view.progressPct, 100)}%` }}
-                        />
-                      </div>
-                    </div>
-                  </div>
-
+              <div className="mb-2 flex w-full min-w-0 flex-col gap-2 sm:flex-row sm:items-stretch sm:gap-3">
+                <div className="min-w-0 flex-1">
                   <DAppTabs tabs={tabs} value={tab} onChange={setTab} />
-
-                  <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 md:p-8">
-                    {tab === 'campaign' ? (
-                      <div className="space-y-4">
-                        <DAppSectionHeader title="Campaign" className="mb-0" />
-                        {view.mainContentHtml ? (
-                          <KxRichTextContent html={view.mainContentHtml} className="kx-prose" />
-                        ) : view.shortDescription ? (
-                          <p className="kx-body whitespace-pre-wrap">{view.shortDescription}</p>
-                        ) : (
-                          <p className="kx-body">No campaign story yet.</p>
-                        )}
-                        {view.campaignExtras}
-                      </div>
-                    ) : null}
-
-                    {tab === 'rewards' ? (
-                      <div className="space-y-4">
-                        <DAppSectionHeader title="Rewards" className="mb-0" />
-                        {tiers.length === 0 ? (
-                          <p className="kx-body">
-                            This campaign has no reward tiers. You can still pledge any amount from the panel.
-                          </p>
-                        ) : (
-                          <div className="space-y-3">
-                            {tiers.map((tier) => {
-                              const soldOut =
-                                tier.limitedQty != null &&
-                                tier.limitedQty > 0 &&
-                                (tier.claimedCount ?? 0) >= tier.limitedQty;
-                              return (
-                                <div
-                                  key={tier.id}
-                                  className={`${KX_SURFACE_NESTED} rounded-xl p-4 space-y-2`}
-                                >
-                                  <div className="flex items-start justify-between gap-3">
-                                    <div>
-                                      <p className="font-semibold text-zinc-900 dark:text-zinc-100">
-                                        {tier.title}
-                                      </p>
-                                      <p className="text-sm text-emerald-700 dark:text-emerald-300 font-medium">
-                                        {tier.minKas} KAS or more
-                                      </p>
-                                    </div>
-                                    {onSelectTier && !soldOut ? (
-                                      <button
-                                        type="button"
-                                        className="text-xs px-3 py-1.5 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700"
-                                        onClick={() => onSelectTier(tier.id)}
-                                      >
-                                        Select
-                                      </button>
-                                    ) : null}
-                                    {soldOut ? (
-                                      <span className="text-xs text-rose-600 dark:text-rose-400 font-medium">
-                                        Sold out
-                                      </span>
-                                    ) : null}
-                                  </div>
-                                  {tier.description ? (
-                                    <p className="text-sm text-zinc-600 dark:text-zinc-300">
-                                      {tier.description}
-                                    </p>
-                                  ) : null}
-                                  {tier.reward ? (
-                                    <p className="text-sm text-zinc-800 dark:text-zinc-200">
-                                      <span className="font-medium">Reward:</span> {tier.reward}
-                                    </p>
-                                  ) : null}
-                                  {tier.limitedQty != null ? (
-                                    <p className="text-xs text-zinc-500">
-                                      {tier.claimedCount ?? 0} / {tier.limitedQty} claimed
-                                    </p>
-                                  ) : null}
-                                </div>
-                              );
-                            })}
-                          </div>
-                        )}
-                      </div>
-                    ) : null}
-
-                    {tab === 'creator' ? (
-                      <div className="space-y-4">
-                        <DAppSectionHeader title="Creator" className="mb-0" />
-                        <AuthorInline
-                          address={view.creatorAddress}
-                          href={`/u/${encodeURIComponent(view.creatorAddress)}`}
-                          prefix=""
-                        />
-                        <Link
-                          href={`/u/${encodeURIComponent(view.creatorAddress)}`}
-                          className="text-sm text-emerald-600 dark:text-emerald-400 hover:underline inline-block"
-                        >
-                          View full profile
-                        </Link>
-                        {socialEntries.length > 0 ? (
-                          <div className="flex flex-wrap gap-3 text-sm">
-                            {socialEntries.map(([key, value]) => (
-                              <a
-                                key={key}
-                                href={value!.startsWith('http') ? value! : `https://${value}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-emerald-600 dark:text-emerald-400 hover:underline capitalize"
-                              >
-                                {key}
-                              </a>
-                            ))}
-                          </div>
-                        ) : (
-                          <p className="kx-body">No social links published for this campaign.</p>
-                        )}
-                        {view.otherCampaigns && view.otherCampaigns.length > 0 ? (
-                          <div className="pt-2 space-y-2">
-                            <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-                              More from this creator
-                            </p>
-                            <ul className="space-y-1">
-                              {view.otherCampaigns.map((c) => (
-                                <li key={c.href}>
-                                  <Link
-                                    href={c.href}
-                                    className="text-sm text-emerald-600 dark:text-emerald-400 hover:underline"
-                                  >
-                                    {c.title}
-                                  </Link>
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                        ) : null}
-                      </div>
-                    ) : null}
-
-                    {tab === 'faq' ? (
-                      <div className="space-y-4">
-                        <DAppSectionHeader title="FAQ" className="mb-0" />
-                        {(view.faq ?? []).length === 0 ? (
-                          <div className="space-y-3 text-sm text-zinc-600 dark:text-zinc-300">
-                            <p>
-                              <strong className="text-zinc-900 dark:text-zinc-100">
-                                What happens if the goal is not met?
-                              </strong>
-                              <br />
-                              Backers can refund after the deadline on L1 covenant campaigns. L2 escrow follows the
-                              campaign contract refund rules.
-                            </p>
-                            <p>
-                              <strong className="text-zinc-900 dark:text-zinc-100">
-                                When does the creator receive funds?
-                              </strong>
-                              <br />
-                              After a successful raise, the creator claims raised funds (goal met before deadline).
-                            </p>
-                          </div>
-                        ) : (
-                          <div className="space-y-3">
-                            {view.faq!.map((item) => (
-                              <div key={item.id} className={`${KX_SURFACE_NESTED} rounded-xl p-4`}>
-                                <p className="font-semibold text-zinc-900 dark:text-zinc-100 mb-1">
-                                  {item.question}
-                                </p>
-                                <p className="text-sm text-zinc-600 dark:text-zinc-300 whitespace-pre-wrap">
-                                  {item.answer}
-                                </p>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    ) : null}
-
-                    {tab === 'updates' ? (
-                      <div className="space-y-4">
-                        <DAppSectionHeader title="Updates" className="mb-0" />
-                        {(view.updates ?? []).length === 0 ? (
-                          <p className="kx-body">No updates yet. Check back after the creator posts progress.</p>
-                        ) : (
-                          <div className="space-y-3">
-                            {[...(view.updates ?? [])]
-                              .sort((a, b) => b.createdAt - a.createdAt)
-                              .map((u) => (
-                                <div key={u.id} className={`${KX_SURFACE_NESTED} rounded-xl p-4 space-y-1`}>
-                                  <p className="font-semibold text-zinc-900 dark:text-zinc-100">{u.title}</p>
-                                  <p className="text-xs text-zinc-500">
-                                    {new Date(u.createdAt).toLocaleString()}
-                                  </p>
-                                  <KxRichTextContent html={u.body} className="kx-prose text-sm" />
-                                </div>
-                              ))}
-                          </div>
-                        )}
-                      </div>
-                    ) : null}
-
-                    {tab === 'comments' ? (
-                      <div className="space-y-4">
-                        <DAppSectionHeader title="Comments" className="mb-0" />
-                        {view.commentsSlot ?? (
-                          <p className="kx-body">
-                            Comments stay with your Hub wallet session. Connect and back this campaign to join the
-                            conversation soon.
-                          </p>
-                        )}
-                      </div>
-                    ) : null}
-
-                    {tab === 'premium' ? (
-                      <div className="space-y-4">
-                        <DAppSectionHeader
-                          title={view.premiumTabTitle?.trim() || 'Premium'}
-                          className="mb-0"
-                        />
-                        {view.premiumModule}
-                        {view.premiumTabContent ? (
-                          <KxRichTextContent html={view.premiumTabContent} className="kx-prose" />
-                        ) : null}
-                        {!view.premiumModule && !view.premiumTabContent ? (
-                          <p className="kx-body">Premium content is not configured for this campaign.</p>
-                        ) : null}
-                      </div>
-                    ) : null}
-                  </div>
                 </div>
-
-                <div className="lg:col-span-2 space-y-6">{rightColumn}</div>
+                <HubPageRightPanelToggle
+                  panelId="kasparex-donations-campaign-panel"
+                  rightOpen={rightOpen}
+                  onToggle={() => setRightOpen(!rightOpen)}
+                />
               </div>
+
+              <HubPageRightPanelGrid
+                panelId="kasparex-donations-campaign-panel"
+                panelTitle="Campaign panel"
+                rightOpen={rightOpen}
+                onToggle={() => setRightOpen(!rightOpen)}
+                sidebar={rightColumn}
+                mainColClass="lg:col-span-7"
+                asideColClass="lg:col-span-5"
+                gridClassName="grid grid-cols-1 gap-8 xl:gap-12"
+                hideToggle
+              >
+                <div className="flex min-w-0 flex-col gap-6">
+                  {tab === 'campaign' ? campaignHero : null}
+                  {tabBody}
+                </div>
+              </HubPageRightPanelGrid>
             </div>
           </div>
         </HubPageAccentLayout>

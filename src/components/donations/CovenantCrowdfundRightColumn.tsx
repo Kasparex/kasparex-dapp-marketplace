@@ -16,6 +16,7 @@ import {
 import { CampaignEndCountdown } from '@/components/donations/CampaignEndCountdown';
 import {
   CrowdKasFieldLabel,
+  CrowdKasPrototypeNotice,
   crowdkasCardClass,
   crowdkasPrimaryBtnClass,
   crowdkasSecondaryBtnClass,
@@ -27,7 +28,9 @@ import { HubAsideRail } from '@/components/hub/HubAsideRail';
 import { quoteVDonateL1Pledge } from '@/lib/donations/l1PledgePayment';
 import { findCrowdfundTier, sortTiersByMinKas } from '@/lib/donations/tiers';
 import { KX_SURFACE_NESTED } from '@/lib/hub/shellTokens';
-import { CrowdKasPrototypeNotice } from '@/components/donations/CrowdKasUi';
+import { useHubWalletGate } from '@/hooks/useHubWalletGate';
+import { HubWalletGateModal } from '@/components/hub/HubWalletGateModal';
+import { evaluateHubAccess, getHubGateMessage } from '@/lib/hub/access';
 
 export function CovenantCrowdfundRightColumn({
   campaign,
@@ -44,11 +47,36 @@ export function CovenantCrowdfundRightColumn({
   const [busy, setBusy] = useState(false);
   const [localTierId, setLocalTierId] = useState<string | null>(null);
   const minKas = Number(COVENANT_LAB_CONFIG.minLockSompi) / 1e8;
+  const { l1Modal, closeL1Modal, promptHubGate } = useHubWalletGate();
 
   const tierId = selectedTierId !== undefined ? selectedTierId : localTierId;
   const setTierId = (id: string | null) => {
     onSelectedTierIdChange?.(id);
     setLocalTierId(id);
+  };
+
+  const access = useMemo(
+    () =>
+      evaluateHubAccess({
+        requirement: { layer: 'L1' },
+        isKaspaConnected: Boolean(state.isConnected && state.address),
+        isEvmConnected: false,
+      }),
+    [state.isConnected, state.address],
+  );
+
+  const requireWallet = () => {
+    if (access.isOpenable) return true;
+    promptHubGate(
+      { gateReason: access.reason, isOpenable: false },
+      {
+        title: 'Connect Kaspa wallet',
+        name: campaign.title,
+        message: getHubGateMessage(access.reason, access.requiredChainNames),
+        networkBadge: { layer: 'L1', label: 'Kaspa' },
+      },
+    );
+    return false;
   };
 
   const raised = covenantCampaignRaisedKas(campaign);
@@ -69,6 +97,7 @@ export function CovenantCrowdfundRightColumn({
     Number.isFinite(pledgeNum) && pledgeNum > 0 ? quoteVDonateL1Pledge(pledgeNum) : null;
 
   const handlePledge = async () => {
+    if (!requireWallet()) return;
     setBusy(true);
     try {
       await pledge(campaign.id, parseFloat(pledgeKas), tierId ?? undefined);
@@ -108,6 +137,7 @@ export function CovenantCrowdfundRightColumn({
   const activePledges = campaign.pledges.filter((p) => !p.refunded);
 
   return (
+    <>
     <HubAsideRail
       adSlotId="HALO_DONATIONS_RIGHT"
       adId="ad-slot-vdonate-covenant-rail"
@@ -117,7 +147,12 @@ export function CovenantCrowdfundRightColumn({
         <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Pledge KAS</h3>
         <CrowdKasPrototypeNotice />
         {!state.isConnected ? (
-          <p className="kx-body">Connect your Kaspa wallet to pledge or manage this campaign.</p>
+          <div className="space-y-3">
+            <p className="kx-body">Connect your Kaspa wallet to pledge or manage this campaign.</p>
+            <button type="button" onClick={() => requireWallet()} className={crowdkasPrimaryBtnClass}>
+              Connect Kaspa wallet
+            </button>
+          </div>
         ) : isLive ? (
           <>
             {tiers.length > 0 ? (
@@ -309,5 +344,7 @@ export function CovenantCrowdfundRightColumn({
         )}
       </div>
     </HubAsideRail>
+      {l1Modal ? <HubWalletGateModal isOpen onClose={closeL1Modal} {...l1Modal} /> : null}
+    </>
   );
 }

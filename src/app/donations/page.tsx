@@ -67,7 +67,8 @@ export default function DonationsListingPage() {
     return [...v1.campaigns, ...v2Rows];
   }, [v2Configured, hideV1Listing, v1.campaigns, v2Rows]);
   const isLoading =
-    v2Configured && !hideV1Listing ? v1.isLoading || v2.isLoading : v2Configured ? v2.isLoading : v1.isLoading;
+    campaigns.length === 0 &&
+    (v2Configured && !hideV1Listing ? v1.isLoading || v2.isLoading : v2Configured ? v2.isLoading : v1.isLoading);
   const covenantLoading = covenantCrowdfund.loading && covenantCrowdfund.allCampaigns.length === 0;
   const error =
     (!v2Configured ? v1.error : hideV1Listing ? v2.error : v1.error ?? v2.error) ??
@@ -80,6 +81,34 @@ export default function DonationsListingPage() {
   const [selectedCurrencies, setSelectedCurrencies] = useState<string[]>([]);
   const [selectedNetwork, setSelectedNetwork] = useState<DonationNetworkFilterValue>('all');
   const [metaByCreator, setMetaByCreator] = useState<Record<string, DonationCampaignMetadata | null>>({});
+
+  // Sync hydrate titles/images from localStorage so cards paint with real metadata immediately.
+  useEffect(() => {
+    if (typeof window === 'undefined' || campaigns.length === 0) return;
+    const next: Record<string, DonationCampaignMetadata | null> = {};
+    let hit = false;
+    for (const c of campaigns) {
+      const key = donationListMetaKey(c);
+      if (!c.ipfsHash) {
+        next[key] = null;
+        hit = true;
+        continue;
+      }
+      const clean = c.ipfsHash.replace(/^ipfs:\/\//, '').replace(/^\/ipfs\//, '');
+      try {
+        const raw = window.localStorage.getItem(`crowdkas:meta:${clean}`);
+        if (raw) {
+          next[key] = JSON.parse(raw) as DonationCampaignMetadata;
+          hit = true;
+        }
+      } catch {
+        /* ignore */
+      }
+    }
+    if (hit) {
+      setMetaByCreator((prev) => ({ ...next, ...prev }));
+    }
+  }, [campaigns]);
 
   const allTags = useMemo(() => {
     const set = new Set<string>();

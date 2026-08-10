@@ -21,6 +21,10 @@ import { TransactionPendingModal } from '@/components/donations/TransactionPendi
 import { DonationL2FeeInfoModal } from '@/components/donations/DonationL2FeeInfoModal';
 import { totalRaisedWei } from '@/lib/donations/totals';
 import type { Address } from 'viem';
+import { useHubWalletGate } from '@/hooks/useHubWalletGate';
+import { HubWalletGateModal } from '@/components/hub/HubWalletGateModal';
+import { evaluateHubAccess, getHubGateMessage } from '@/lib/hub/access';
+import { useKaspaWallet } from '@/lib/kaspa/context';
 
 function getCrowdKASDApp(chainId: number | undefined): DApp {
   const chain = chainId ? getChainById(chainId) : undefined;
@@ -60,6 +64,8 @@ export function DonationBlock({
 }: DonationBlockProps) {
   const chainId = useChainId();
   const { isConnected: isL2Connected, address: walletAddress } = useAccount();
+  const { state: kaspaState } = useKaspaWallet();
+  const { l1Modal, closeL1Modal, promptHubGate } = useHubWalletGate();
   const { switchChain, isPending: isSwitchPending } = useSwitchChain();
   const escrowAddress = getContractAddress(CROWDKAS_CHAIN_ID, 'DonationEscrow');
   const escrowV2Address = getContractAddress(CROWDKAS_CHAIN_ID, 'DonationEscrowV2');
@@ -207,6 +213,30 @@ export function DonationBlock({
     donorL2EscrowBalance > 0n;
 
   const handleDonateL2 = () => {
+    if (!isL2Connected || !onCrowdkasChain) {
+      const access = evaluateHubAccess({
+        requirement: { layer: 'L2', chainIds: [CROWDKAS_CHAIN_ID] },
+        isKaspaConnected: Boolean(kaspaState.isConnected && kaspaState.address),
+        isEvmConnected: isL2Connected,
+        chainId,
+      });
+      if (!access.isOpenable) {
+        promptHubGate(
+          { gateReason: access.reason, isOpenable: false },
+          {
+            title: 'Connect wallet',
+            name: 'vDonate',
+            message: getHubGateMessage(access.reason, access.requiredChainNames),
+            networkBadge: { layer: 'L2', label: 'Igra Mainnet' },
+          },
+        );
+        return;
+      }
+      if (!onCrowdkasChain) {
+        switchChain?.({ chainId: CROWDKAS_CHAIN_ID });
+        return;
+      }
+    }
     if (!canDonateL2 || !activeEscrow) return;
     if (useV2Donate && campaign.campaignIdV2 != null) {
       writeContract({
@@ -282,7 +312,26 @@ export function DonationBlock({
             Donate iKAS to the escrow. Min {formatEther(VDONATIONS_MIN_DONATION_WEI)} iKAS (10 iKAS). Rewards (if enabled) are handled automatically on-chain.
           </p>
           {!isL2Connected && (
-            <p className="text-amber-600 dark:text-amber-400 text-sm">Connect your L2 (EVM) wallet to donate.</p>
+            <div className="space-y-2">
+              <p className="text-amber-600 dark:text-amber-400 text-sm">Connect your L2 (EVM) wallet to donate.</p>
+              <button
+                type="button"
+                onClick={() => {
+                  promptHubGate(
+                    { gateReason: 'l2_wallet_required', isOpenable: false },
+                    {
+                      title: 'Connect wallet',
+                      name: 'vDonate',
+                      message: getHubGateMessage('l2_wallet_required', ['Igra Mainnet']),
+                      networkBadge: { layer: 'L2', label: 'Igra Mainnet' },
+                    },
+                  );
+                }}
+                className="w-full px-4 py-2.5 rounded-lg bg-emerald-600 text-white font-medium hover:bg-emerald-700"
+              >
+                Connect L2 wallet
+              </button>
+            </div>
           )}
           {isL2Connected && !onCrowdkasChain && (
             <div className="rounded-lg border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/30 p-3 text-sm text-amber-900 dark:text-amber-200 space-y-2">
@@ -415,6 +464,7 @@ export function DonationBlock({
         }
         autoCloseMs={0}
       />
+      {l1Modal ? <HubWalletGateModal isOpen onClose={closeL1Modal} {...l1Modal} /> : null}
     </div>
   );
 }

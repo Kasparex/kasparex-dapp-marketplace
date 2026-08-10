@@ -1,10 +1,11 @@
 'use client';
 
 import Link from 'next/link';
-import { KxListingFeaturedPlaceholder } from '@/components/kx/KxListingFeaturedPlaceholder';
+import type { ReactNode } from 'react';
 import { KxBadge } from '@/components/ui/KxBadge';
 import { getGatewayUrl } from '@/lib/ipfs/gateway';
 
+/** Same empty media plate as DAppCard (zinc plate + photo SVG). */
 export function VDonateCampaignMedia({
   imageUrl,
   imageHash,
@@ -17,8 +18,25 @@ export function VDonateCampaignMedia({
   const src = imageUrl?.trim() || (imageHash ? getGatewayUrl(imageHash) : '');
   if (!src) {
     return (
-      <div className={`aspect-[16/9] relative overflow-hidden bg-zinc-100 dark:bg-zinc-800 ${className}`}>
-        <KxListingFeaturedPlaceholder className="absolute inset-0" />
+      <div
+        className={`aspect-[16/9] relative overflow-hidden bg-zinc-100 dark:bg-zinc-800 ${className}`}
+      >
+        <div className="absolute inset-0 flex items-center justify-center">
+          <svg
+            className="h-12 w-12 text-zinc-400 dark:text-zinc-600"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            aria-hidden="true"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+            />
+          </svg>
+        </div>
       </div>
     );
   }
@@ -30,16 +48,61 @@ export function VDonateCampaignMedia({
   );
 }
 
-export function VDonateStatusBadges({
+/** One row: network (left) · status (right). */
+export function VDonateBadgeRow({
+  network,
   isLive,
   goalReached,
+  featured,
 }: {
+  network: 'l1' | 'l2';
   isLive: boolean;
   goalReached?: boolean;
+  featured?: boolean;
 }) {
   return (
+    <div className="flex flex-wrap items-center justify-between gap-2">
+      <div className="flex flex-wrap items-center gap-1.5">
+        {network === 'l1' ? (
+          <KxBadge variant="teal" size="sm">
+            L1
+          </KxBadge>
+        ) : (
+          <KxBadge variant="cyan" size="sm">
+            L2
+          </KxBadge>
+        )}
+        {featured ? (
+          <KxBadge variant="amber" size="sm">
+            Featured
+          </KxBadge>
+        ) : null}
+      </div>
+      <div className="flex flex-wrap items-center justify-end gap-1.5">
+        {isLive ? (
+          <KxBadge variant="emerald" size="sm">
+            Active
+          </KxBadge>
+        ) : (
+          <KxBadge variant="rose" size="sm">
+            Ended
+          </KxBadge>
+        )}
+        {goalReached ? (
+          <KxBadge variant="sky" size="sm">
+            Goal reached
+          </KxBadge>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
+/** @deprecated Prefer VDonateBadgeRow */
+export function VDonateStatusBadges(props: { isLive: boolean; goalReached?: boolean }) {
+  return (
     <div className="flex flex-wrap items-center gap-1.5">
-      {isLive ? (
+      {props.isLive ? (
         <KxBadge variant="emerald" size="sm">
           Active
         </KxBadge>
@@ -48,7 +111,7 @@ export function VDonateStatusBadges({
           Ended
         </KxBadge>
       )}
-      {goalReached ? (
+      {props.goalReached ? (
         <KxBadge variant="sky" size="sm">
           Goal reached
         </KxBadge>
@@ -57,25 +120,20 @@ export function VDonateStatusBadges({
   );
 }
 
-export function VDonateNetworkBadges({
-  network,
-  featured,
-}: {
-  network: 'l1' | 'l2';
-  featured?: boolean;
-}) {
+/** @deprecated Prefer VDonateBadgeRow */
+export function VDonateNetworkBadges(props: { network: 'l1' | 'l2'; featured?: boolean }) {
   return (
     <div className="flex flex-wrap items-center gap-1.5">
-      {network === 'l1' ? (
+      {props.network === 'l1' ? (
         <KxBadge variant="teal" size="sm">
           L1
         </KxBadge>
       ) : (
-        <KxBadge variant="indigo" size="sm">
+        <KxBadge variant="cyan" size="sm">
           L2
         </KxBadge>
       )}
-      {featured ? (
+      {props.featured ? (
         <KxBadge variant="amber" size="sm">
           Featured
         </KxBadge>
@@ -103,7 +161,7 @@ export function VDonatePledgeInline({
 }) {
   return (
     <div
-      className="mt-3 pt-3 border-t border-zinc-200 dark:border-zinc-800"
+      className="pt-3"
       onClick={(e) => e.stopPropagation()}
       onKeyDown={(e) => e.stopPropagation()}
     >
@@ -136,17 +194,28 @@ export function VDonateCardShell({
   href,
   children,
   footer,
+  onNavigate,
 }: {
   href: string;
-  children: React.ReactNode;
-  footer?: React.ReactNode;
+  children: ReactNode;
+  footer?: ReactNode;
+  /** Return false to block navigation (e.g. open wallet gate). */
+  onNavigate?: () => boolean | void;
 }) {
   return (
     <div className="flex flex-col rounded-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden bg-white dark:bg-zinc-900 hover:border-emerald-500 dark:hover:border-emerald-500 transition-colors">
-      <Link href={href} className="block min-w-0">
+      <Link
+        href={href}
+        className="block min-w-0"
+        onClick={(e) => {
+          if (onNavigate && onNavigate() === false) {
+            e.preventDefault();
+          }
+        }}
+      >
         {children}
       </Link>
-      {footer ? <div className="px-4 pb-4">{footer}</div> : null}
+      {footer ? <div className="px-4 pb-4 border-t border-zinc-200 dark:border-zinc-800 pt-3">{footer}</div> : null}
     </div>
   );
 }

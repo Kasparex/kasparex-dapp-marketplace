@@ -20,13 +20,18 @@ import { COVENANT_LAB_CONFIG } from '@/lib/covenant';
 import { quoteVDonateL1Pledge } from '@/lib/donations/l1PledgePayment';
 import { sortTiersByMinKas } from '@/lib/donations/tiers';
 import {
+  VDonateBadgeRow,
   VDonateCampaignMedia,
   VDonateCardShell,
-  VDonateNetworkBadges,
   VDonatePledgeInline,
-  VDonateStatusBadges,
 } from '@/components/donations/VDonateCampaignCardChrome';
+import { DonationVoteControls } from '@/components/donations/DonationVoteControls';
+import { KxListingCategoryChip } from '@/components/ui/KxListingCategoryChip';
+import { useHubWalletGate } from '@/hooks/useHubWalletGate';
+import { HubWalletGateModal } from '@/components/hub/HubWalletGateModal';
+import { evaluateHubAccess, getHubGateMessage } from '@/lib/hub/access';
 import { hubNotify } from '@/lib/hub/notify';
+import { VDONATE_SHORT_NAME } from '@/lib/donations/brand';
 
 const CROWDFUND_DAPP = placeholderDApps.find((d) => d.slug === 'covenant-crowdfund')!;
 const PLEDGE_HUB_POINTS_BASE = getHubPointsBaseForAction(CROWDFUND_DAPP, 'pledge');
@@ -42,6 +47,7 @@ export function CovenantCrowdfundCampaignCard({
   const [pledgeAmount, setPledgeAmount] = useState('');
   const [busy, setBusy] = useState(false);
   const minKas = Number(COVENANT_LAB_CONFIG.minLockSompi) / 1e8;
+  const { l1Modal, closeL1Modal, promptHubGate } = useHubWalletGate();
 
   const raised = covenantCampaignRaisedKas(campaign);
   const goal = covenantCampaignGoalKas(campaign);
@@ -56,6 +62,30 @@ export function CovenantCrowdfundCampaignCard({
     [campaign.tiers],
   );
 
+  const access = useMemo(
+    () =>
+      evaluateHubAccess({
+        requirement: { layer: 'L1' },
+        isKaspaConnected: Boolean(state.isConnected && state.address),
+        isEvmConnected: false,
+      }),
+    [state.isConnected, state.address],
+  );
+
+  const requireWallet = () => {
+    if (access.isOpenable) return true;
+    promptHubGate(
+      { gateReason: access.reason, isOpenable: false },
+      {
+        title: 'Connect Kaspa wallet',
+        name: campaign.title,
+        message: getHubGateMessage(access.reason, access.requiredChainNames),
+        networkBadge: { layer: 'L1', label: 'Kaspa' },
+      },
+    );
+    return false;
+  };
+
   const pledgeNum = parseFloat(pledgeAmount);
   const feeHint =
     Number.isFinite(pledgeNum) && pledgeNum > 0
@@ -65,11 +95,7 @@ export function CovenantCrowdfundCampaignCard({
         : undefined;
 
   const handlePledge = async () => {
-    if (!state.isConnected) {
-      hubNotify.info('Connect wallet', 'Connect a Kaspa wallet to pledge from the card.');
-      window.location.href = href;
-      return;
-    }
+    if (!requireWallet()) return;
     const amount = parseFloat(pledgeAmount);
     if (!Number.isFinite(amount) || amount < minKas) {
       hubNotify.error('Invalid amount', `Enter at least ${minKas} KAS.`);
@@ -88,60 +114,84 @@ export function CovenantCrowdfundCampaignCard({
     }
   };
 
+  const listingFooter = (
+    <div className="space-y-3">
+      {isLive ? (
+        <VDonatePledgeInline
+          amount={pledgeAmount}
+          onAmountChange={setPledgeAmount}
+          onPledge={() => void handlePledge()}
+          busy={busy}
+          minKas={minKas}
+          feeHint={feeHint}
+        />
+      ) : null}
+      <div
+        className="flex items-center justify-between gap-3"
+        onClick={(e) => e.stopPropagation()}
+        onKeyDown={(e) => e.stopPropagation()}
+      >
+        <div className="min-w-0">
+          {campaign.category ? (
+            <KxListingCategoryChip title={campaign.category}>{campaign.category}</KxListingCategoryChip>
+          ) : (
+            <span className="text-xs text-zinc-500 dark:text-zinc-400">{VDONATE_SHORT_NAME} L1</span>
+          )}
+        </div>
+        <DonationVoteControls
+          entityId={`covenant:${campaign.id}`}
+          creatorWallet={campaign.creator}
+          title={campaign.title}
+          compact
+        />
+      </div>
+    </div>
+  );
+
   return (
-    <VDonateCardShell
-      href={href}
-      footer={
-        isLive ? (
-          <VDonatePledgeInline
-            amount={pledgeAmount}
-            onAmountChange={setPledgeAmount}
-            onPledge={() => void handlePledge()}
-            busy={busy}
-            minKas={minKas}
-            feeHint={feeHint}
-          />
-        ) : undefined
-      }
-    >
-      <VDonateCampaignMedia imageUrl={campaign.imageUrl} imageHash={campaign.imageHash} />
-      <div className="p-4 pb-0">
-        <div className="flex flex-col gap-2 mb-3">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <VDonateStatusBadges isLive={isLive} goalReached={goalReached} />
+    <>
+      <VDonateCardShell href={href} footer={listingFooter} onNavigate={() => requireWallet()}>
+        <VDonateCampaignMedia imageUrl={campaign.imageUrl} imageHash={campaign.imageHash} />
+        <div className="p-4 pb-3">
+          <div className="mb-3">
+            <VDonateBadgeRow network="l1" isLive={isLive} goalReached={goalReached} />
             {isLive && PLEDGE_HUB_POINTS_BASE > 0 ? (
-              <HubPointsEarnBadge
-                basePoints={PLEDGE_HUB_POINTS_BASE}
-                tier="Tier0"
-                showMinSpendTooltip={false}
-                size="sm"
-              />
+              <div className="mt-2 flex justify-end">
+                <HubPointsEarnBadge
+                  basePoints={PLEDGE_HUB_POINTS_BASE}
+                  tier="Tier0"
+                  showMinSpendTooltip={false}
+                  size="sm"
+                />
+              </div>
             ) : null}
           </div>
-          <VDonateNetworkBadges network="l1" />
-        </div>
-        <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100 mb-2 line-clamp-2 leading-snug">
-          {campaign.title}
-        </h3>
-        <AuthorInline
-          address={campaign.creator}
-          href={`/u/${encodeURIComponent(campaign.creator)}`}
-          prefix=""
-          className="mt-0 mb-3"
-        />
-        <div className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
-          {raised.toFixed(4)} / {goal.toFixed(4)} KAS
-        </div>
-        <div className="w-full h-2 rounded-full bg-zinc-200 dark:bg-zinc-700 overflow-hidden mb-2">
-          <div
-            className="h-full bg-emerald-500 rounded-full transition-all"
-            style={{ width: `${Math.min(progress, 100)}%` }}
+          <h3 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 mb-2 line-clamp-2 leading-snug">
+            {campaign.title}
+          </h3>
+          <AuthorInline
+            address={campaign.creator}
+            href={`/u/${encodeURIComponent(campaign.creator)}`}
+            prefix=""
+            className="mt-0 mb-3"
           />
+          <div className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
+            {raised.toFixed(4)} / {goal.toFixed(4)} KAS
+          </div>
+          <div className="w-full h-2 rounded-full bg-zinc-200 dark:bg-zinc-700 overflow-hidden mb-2">
+            <div
+              className="h-full bg-emerald-500 rounded-full transition-all"
+              style={{ width: `${Math.min(progress, 100)}%` }}
+            />
+          </div>
+          <p className="kx-body pb-1">
+            {backers} backer{backers === 1 ? '' : 's'} · Ends {deadline.toLocaleDateString()}
+          </p>
         </div>
-        <p className="kx-body pb-1">
-          {backers} backer{backers === 1 ? '' : 's'} · Ends {deadline.toLocaleDateString()}
-        </p>
-      </div>
-    </VDonateCardShell>
+      </VDonateCardShell>
+      {l1Modal ? (
+        <HubWalletGateModal isOpen onClose={closeL1Modal} {...l1Modal} />
+      ) : null}
+    </>
   );
 }

@@ -1,19 +1,27 @@
 'use client';
 
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { formatEther } from 'viem';
+import { useAccount, useChainId } from 'wagmi';
 import type { DonationCampaignListItem } from '@/hooks/useDonationCampaigns';
 import type { DonationCampaignMetadata } from '@/lib/donations/types';
 import { progressPercent, totalDonorCount, totalRaisedWei } from '@/lib/donations/totals';
 import { AuthorInline } from '@/components/ui/AuthorInline';
 import {
+  VDonateBadgeRow,
   VDonateCampaignMedia,
   VDonateCardShell,
-  VDonateNetworkBadges,
   VDonatePledgeInline,
-  VDonateStatusBadges,
 } from '@/components/donations/VDonateCampaignCardChrome';
 import { quoteVDonateL1Pledge } from '@/lib/donations/l1PledgePayment';
+import { DonationVoteControls } from '@/components/donations/DonationVoteControls';
+import { KxListingCategoryChip } from '@/components/ui/KxListingCategoryChip';
+import { useKaspaWallet } from '@/lib/kaspa/context';
+import { useHubWalletGate } from '@/hooks/useHubWalletGate';
+import { HubWalletGateModal } from '@/components/hub/HubWalletGateModal';
+import { evaluateHubAccess, getHubGateMessage } from '@/lib/hub/access';
+import { CROWDKAS_CHAIN_ID } from '@/lib/donations/chain';
+import { VDONATE_SHORT_NAME } from '@/lib/donations/brand';
 
 export function DonationCampaignCard({
   campaign,
@@ -27,15 +35,16 @@ export function DonationCampaignCard({
   metadata: DonationCampaignMetadata | null;
   href?: string;
   featured?: boolean;
-  /** Extra actions under the card (studio Edit / Claim). */
   footer?: ReactNode;
-  /** Listing cards show inline pledge; studio cards can disable it. */
   showPledge?: boolean;
-  /** @deprecated Network/status badges are built-in. Kept for call-site compatibility. */
   badges?: { label: string; variant?: 'neutral' | 'emerald' | 'amber' }[];
 }) {
   const [nowSec, setNowSec] = useState(() => Math.floor(Date.now() / 1000));
   const [pledgeAmount, setPledgeAmount] = useState('');
+  const { state: kaspaState } = useKaspaWallet();
+  const { isConnected: evmConnected } = useAccount();
+  const chainId = useChainId();
+  const { l1Modal, closeL1Modal, promptHubGate } = useHubWalletGate();
 
   useEffect(() => {
     const t = setInterval(() => setNowSec(Math.floor(Date.now() / 1000)), 30_000);
@@ -51,6 +60,7 @@ export function DonationCampaignCard({
   const isLive = campaign.active && deadlineSec > nowSec;
   const goalReached = raisedDisplay >= campaign.targetWei;
   const isL1Direct = campaign.donationMethod === 'L1_DIRECT';
+  const network: 'l1' | 'l2' = isL1Direct ? 'l1' : 'l2';
 
   const title =
     metadata?.title?.trim() ||
@@ -63,87 +73,138 @@ export function DonationCampaignCard({
       ? `/donations/${campaign.creatorAddress}?campaignId=${campaign.campaignId.toString()}`
       : `/donations/${campaign.creatorAddress}`);
 
+  const entityId =
+    campaign.campaignId != null
+      ? `v2:${campaign.campaignId.toString()}`
+      : `v1:${campaign.creatorAddress.toLowerCase()}`;
+
+  const access = useMemo(
+    () =>
+      evaluateHubAccess({
+        requirement: isL1Direct
+          ? { layer: 'L1' }
+          : { layer: 'L2', chainIds: [CROWDKAS_CHAIN_ID] },
+        isKaspaConnected: Boolean(kaspaState.isConnected && kaspaState.address),
+        isEvmConnected: evmConnected,
+        chainId,
+      }),
+    [isL1Direct, kaspaState.isConnected, kaspaState.address, evmConnected, chainId],
+  );
+
+  const requireWallet = () => {
+    if (access.isOpenable) return true;
+    promptHubGate(
+      { gateReason: access.reason, isOpenable: false },
+      {
+        title: 'Connect wallet',
+        name: title,
+        message: getHubGateMessage(access.reason, access.requiredChainNames),
+        networkBadge: isL1Direct
+          ? { layer: 'L1', label: 'Kaspa' }
+          : { layer: 'L2', label: 'Igra Mainnet' },
+      },
+    );
+    return false;
+  };
+
   const pledgeNum = parseFloat(pledgeAmount);
   const feeHint =
     isL1Direct && Number.isFinite(pledgeNum) && pledgeNum > 0
       ? `Total ~${quoteVDonateL1Pledge(pledgeNum).totalKas} KAS (includes platform fee)`
       : undefined;
 
-  const pledgeFooter =
-    showPledge && isLive ? (
-      <VDonatePledgeInline
-        amount={pledgeAmount}
-        onAmountChange={setPledgeAmount}
-        onPledge={() => {
-          const q = new URLSearchParams();
-          if (campaign.campaignId != null) q.set('campaignId', campaign.campaignId.toString());
-          if (pledgeAmount.trim()) q.set('pledge', pledgeAmount.trim());
-          const qs = q.toString();
-          window.location.href = `${cardHref.split('?')[0]}${qs ? `?${qs}` : ''}`;
-        }}
-        minKas={isL1Direct ? 1 : undefined}
-        feeHint={feeHint}
-      />
-    ) : null;
-
-  const combinedFooter =
-    pledgeFooter || footer ? (
-      <div className="space-y-3">
-        {pledgeFooter}
-        {footer}
+  const listingFooter = (
+    <div className="space-y-3">
+      {showPledge && isLive ? (
+        <VDonatePledgeInline
+          amount={pledgeAmount}
+          onAmountChange={setPledgeAmount}
+          onPledge={() => {
+            if (!requireWallet()) return;
+            const q = new URLSearchParams();
+            if (campaign.campaignId != null) q.set('campaignId', campaign.campaignId.toString());
+            if (pledgeAmount.trim()) q.set('pledge', pledgeAmount.trim());
+            const qs = q.toString();
+            window.location.href = `${cardHref.split('?')[0]}${qs ? `?${qs}` : ''}`;
+          }}
+          minKas={isL1Direct ? 1 : undefined}
+          feeHint={feeHint}
+        />
+      ) : null}
+      <div
+        className="flex items-center justify-between gap-3"
+        onClick={(e) => e.stopPropagation()}
+        onKeyDown={(e) => e.stopPropagation()}
+      >
+        <div className="min-w-0">
+          {category ? (
+            <KxListingCategoryChip title={category}>{category}</KxListingCategoryChip>
+          ) : (
+            <span className="text-xs text-zinc-500 dark:text-zinc-400">{VDONATE_SHORT_NAME}</span>
+          )}
+        </div>
+        <DonationVoteControls
+          entityId={entityId}
+          creatorWallet={isL1Direct ? campaign.l1Address || campaign.creatorAddress : campaign.creatorAddress}
+          title={title}
+          compact
+        />
       </div>
-    ) : undefined;
+      {footer}
+    </div>
+  );
 
   return (
-    <VDonateCardShell href={cardHref} footer={combinedFooter}>
-      <VDonateCampaignMedia imageUrl={metadata?.imageUrl} imageHash={metadata?.imageHash} />
-      <div className="p-4 pb-0">
-        <div className="flex flex-col gap-2 mb-3">
-          <VDonateStatusBadges isLive={isLive} goalReached={goalReached} />
-          <VDonateNetworkBadges
-            network={isL1Direct ? 'l1' : 'l2'}
-            featured={featured ?? campaign.featuredModuleUnlocked}
-          />
-        </div>
-        <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100 mb-2 line-clamp-2 leading-snug">
-          {title}
-        </h3>
-        <AuthorInline
-          address={campaign.creatorAddress}
-          href={`/u/${encodeURIComponent(campaign.creatorAddress)}`}
-          prefix=""
-          className="mt-0 mb-3"
-        />
-        {(category || tags.length > 0) && (
-          <div className="flex flex-wrap gap-1.5 mb-3">
-            {category ? (
-              <span className="text-[11px] px-2 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-700">
-                {category}
-              </span>
-            ) : null}
-            {tags.map((t) => (
-              <span
-                key={t}
-                className="text-[11px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20"
-              >
-                #{t}
-              </span>
-            ))}
+    <>
+      <VDonateCardShell href={cardHref} footer={listingFooter} onNavigate={() => requireWallet()}>
+        <VDonateCampaignMedia imageUrl={metadata?.imageUrl} imageHash={metadata?.imageHash} />
+        <div className="p-4 pb-3">
+          <div className="mb-3">
+            <VDonateBadgeRow
+              network={network}
+              isLive={isLive}
+              goalReached={goalReached}
+              featured={featured ?? campaign.featuredModuleUnlocked}
+            />
           </div>
-        )}
-        <div className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
-          {formatEther(raisedDisplay)} / {formatEther(campaign.targetWei)} iKAS
-        </div>
-        <div className="w-full h-2 rounded-full bg-zinc-200 dark:bg-zinc-700 overflow-hidden mb-2">
-          <div
-            className="h-full bg-emerald-500 rounded-full transition-all"
-            style={{ width: `${Math.min(progress, 100)}%` }}
+          <h3 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 mb-2 line-clamp-2 leading-snug">
+            {title}
+          </h3>
+          <AuthorInline
+            address={campaign.creatorAddress}
+            href={`/u/${encodeURIComponent(campaign.creatorAddress)}`}
+            prefix=""
+            className="mt-0 mb-3"
           />
+          {tags.length > 0 ? (
+            <div className="flex flex-wrap gap-1.5 mb-3">
+              {tags.map((t) => (
+                <span
+                  key={t}
+                  className="text-[11px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20"
+                >
+                  #{t}
+                </span>
+              ))}
+            </div>
+          ) : null}
+          <div className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
+            {formatEther(raisedDisplay)} / {formatEther(campaign.targetWei)} iKAS
+          </div>
+          <div className="w-full h-2 rounded-full bg-zinc-200 dark:bg-zinc-700 overflow-hidden mb-2">
+            <div
+              className="h-full bg-emerald-500 rounded-full transition-all"
+              style={{ width: `${Math.min(progress, 100)}%` }}
+            />
+          </div>
+          <p className="kx-body pb-1">
+            {donorsDisplay.toString()} donors · Ends {deadline.toLocaleDateString()}
+          </p>
         </div>
-        <p className="kx-body pb-1">
-          {donorsDisplay.toString()} donors · Ends {deadline.toLocaleDateString()}
-        </p>
-      </div>
-    </VDonateCardShell>
+      </VDonateCardShell>
+      {l1Modal ? (
+        <HubWalletGateModal isOpen onClose={closeL1Modal} {...l1Modal} />
+      ) : null}
+    </>
   );
 }
