@@ -1,6 +1,6 @@
 {
   "network": "testnet-10",
-  "updatedAt": "2026-09-26T01:49:46.007Z",
+  "updatedAt": "2026-09-26T07:56:48.968Z",
   "attestations": [
     {
       "network": "testnet-10",
@@ -393,8 +393,8 @@
       "from": "kaspatest:qrwa6q8pk80dzpatgas9es2re0kusnja305wsnealy0hj480w452y0fmw3hsd",
       "sinkAddress": "kaspatest:pqw2y985nkrstxa7x30rkckq6y8papu48tv688vak9eyew2fc9r9vdf0hcw87",
       "claimantAddress": "kaspatest:qrwa6q8pk80dzpatgas9es2re0kusnja305wsnealy0hj480w452y0fmw3hsd",
-      "ticketId": "45629534dea83a44a72532e32998cbc6fedeab4641fe12d6bc8fc25ccdb84898:0",
-      "ticketTxId": "45629534dea83a44a72532e32998cbc6fedeab4641fe12d6bc8fc25ccdb84898",
+      "ticketId": "8822ac6970071ca9b6da4f894922395668e78800daa32cae7137d53df8ac1061:0",
+      "ticketTxId": "8822ac6970071ca9b6da4f894922395668e78800daa32cae7137d53df8ac1061",
       "ticketIndex": 0,
       "migrateVersion": 3,
       "status": "attested",
